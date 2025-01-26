@@ -1,0 +1,57 @@
+<div class="mat-card-container">
+  <mat-card class="login-form">
+    <mat-card-header class="center-aligned">
+      <mat-card-title class="card-title">
+        <h1>Log in to the application!</h1>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <div class="social-login-container">
+        <div class="social-login-buttons">
+          <button mat-icon-button color="primary" (click)="loginWithProvider(AuthProvider.google)">
+            <mat-icon svgIcon="google_logo"></mat-icon>
+          </button>
+
+          <button mat-icon-button color="primary" (click)="loginWithProvider(AuthProvider.github)">
+            <mat-icon svgIcon="github_logo"></mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="loginForm">
+        <mat-form-field class="form-group">
+          <mat-label>Email</mat-label>
+          <input matInput
+                 type="text"
+                 formControlName="username">
+        </mat-form-field>
+
+        <mat-form-field class="form-group">
+          <mat-label>Password</mat-label>
+          <input matInput
+                 type="password"
+                 formControlName="password">
+        </mat-form-field>
+
+        <div class="form-group">
+          <button mat-raised-button
+                  class="form-button"
+                  type="submit"
+                  color="primary"
+                  [disabled]="loginForm.invalid || loading"
+                  (click)="onSubmit()">
+            Log In
+          </button>
+        </div>
+
+        <div ngIf="errorResponse" class="error-text">
+          <p>{{errorMessage}}</p>
+        </div>
+      </form>
+
+    </mat-card-content>
+
+  </mat-card>
+</div>

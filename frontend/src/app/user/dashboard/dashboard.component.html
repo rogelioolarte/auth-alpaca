@@ -1,0 +1,19 @@
+<div>
+  <mat-toolbar color="primary" *ngIf="authService.authenticated">
+
+    <span class="header">User Console</span>
+
+    <span class="example-spacer"></span>
+
+    <button
+      mat-icon-button
+      class="example-icon favorite-icon"
+      (click)="authService.logout()">
+      <mat-icon class="mat-icon-large">logout</mat-icon>
+    </button>
+
+  </mat-toolbar>
+
+</div>
+
+<router-outlet></router-outlet>

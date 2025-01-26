@@ -1,0 +1,16 @@
+.profile-container {
+  padding-top: 30px;
+}
+
+.profile-info {
+  text-align: center;
+}
+
+.profile-info .profile-name {
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.profile-info .profile-field {
+  font-weight: 400;
+}
