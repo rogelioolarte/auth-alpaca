@@ -2,7 +2,7 @@
 Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.
 
 ## Introduction to the project
-The repository contains a Springboot application for users to login and register using email and password or using OAuth2 (Google).
+The repository contains a Springboot application for users to **login and register** using email and password or using OAuth2 (Google).
 The backend app is meant to be run together with the frontend Angular application.
 
 ## Technologies used
