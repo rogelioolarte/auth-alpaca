@@ -4,7 +4,7 @@ Spring Boot App that focuses on implementing multiple authentication methods usi
 
 ## Introduction to the project
 The repository contains a Springboot application for users to login and register using email and password or using OAuth2 (Google).
-The backend app is meant to be run together with the frontend Angular application. You can find the corresponding repository [here](https://github.com/rogelioolarte/multiple-auth-api).
+The backend app is meant to be run together with the frontend Angular application.
 
 ## Technologies used
 - **Backend**
