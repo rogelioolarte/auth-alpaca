@@ -35,7 +35,7 @@ The backend app is meant to be run together with the frontend Angular applicatio
  `psql -U postgres`
 
 2. **Start up the multiple-auth-api:**
- - Note: It is strongly recommended to use an IDE for managing the .env file. Using the "run.sh" script for loading variables may have problems.
+ - Note: It is **strongly recommended** to use an IDE for managing the .env file. Using the "run.sh" script for loading variables may have problems.
 
  - Run the following command from the root directory of the project (or just press the start button in your IDE (Recomended), remember to read the .env file):
 
