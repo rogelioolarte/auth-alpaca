@@ -23,7 +23,8 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     private final AppProperties appProperties;
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+    public void onAuthenticationFailure(HttpServletRequest request,
+                                        HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
         String targetUrl = null;
         if(request.getParameter("redirect_uri") != null) {
@@ -35,11 +36,13 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         if(request.getParameter("error") != null) {
             targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
                     .queryParam("error", request.getParameter("error")
-                            .replaceAll("[|{}\\[\\]]", " ")).build().toUriString();
+                            .replaceAll("[|{}\\[\\]]", " "))
+                    .build().toUriString();
         } else {
             targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
                     .queryParam("error", exception.getMessage()
-                            .replaceAll("[|{}\\[\\]]", " ")).build().toUriString();
+                            .replaceAll("[|{}\\[\\]]", " "))
+                    .build().toUriString();
         }
         repository.removeAuthorizationRequestCookies(request, response);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

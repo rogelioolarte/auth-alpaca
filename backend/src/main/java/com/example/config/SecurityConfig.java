@@ -80,8 +80,8 @@ public class SecurityConfig {
                     c -> c.baseUri(OAuth2RedirectionEndPoint));
             oauth2.userInfoEndpoint(
                     c -> c.userService(authService));
-            oauth2.tokenEndpoint(c -> c.accessTokenResponseClient(
-                    authorizationCodeTokenResponseClient()));
+            oauth2.tokenEndpoint(c -> c
+                    .accessTokenResponseClient(authorizationCodeTokenResponseClient()));
             oauth2.successHandler(oauth2SuccessHandler);
             oauth2.failureHandler(oauth2FailureHandler);
         });
