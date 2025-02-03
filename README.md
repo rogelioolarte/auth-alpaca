@@ -11,6 +11,14 @@ The backend app is meant to be run together with the frontend Angular applicatio
 - **Database**
     - Postgresql is used as the database.
 
+
+## How it works? 
+
+<div align="center" >
+  <img src="authorization-code.png" alt="google oauth2">
+</div>
+
+
 ## Steps to run the applications
  - Note: Use a terminal with bash to run the scripts.
 
