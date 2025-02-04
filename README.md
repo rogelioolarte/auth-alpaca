@@ -13,9 +13,10 @@ The backend app is meant to be run together with the frontend Angular applicatio
 
 
 ## How it works? 
-
+- **Our process**
+    - First, the user visits "localhost:4200/login" and logs in with Google, where he or she is redirected to the Google consent page.
 <div align="center" >
-  <img src="authorization-code.png" alt="google oauth2">
+  <img src="ouath2-diagram.png" alt="google oauth2 diagram">
 </div>
 
 
