@@ -12,14 +12,18 @@ The backend app is meant to be run together with the frontend Angular applicatio
     - Postgresql is used as the database.
 
 
-## How it works? 
-- **Our process**
-    - First, the user visits our Frontend App and logs in with Google, where they are redirected to the Google consent page.
-    - Second, if they accept the consent, they are redirected to our backend application with the authorization code, where it is resolved and they are redirected to our frontend application.
+## How it works our process of login with OAuth2? 
+  - First, The user visits our Frontend application and logs in with "Google" and is redirected to our Backend application where he is then redirected to the Google consent page with our OAuth2 API information for Google.
+  - Second, If he accepts the consent, he is redirected to our Backend application with the authorization code, where it is resolved, where he will first be redirected to our Backend application, but at the end to our Frontend application.
+  - Third, The received authorization code is processed and resolved in our Backend application, then the received authorization code is exchanged for a Token.
+  - Fourth, The Token response is received by our Backend application and converted to a Token response with our JWT configuration, then he is redirected to our Frontend application with the new Token.
+  - Fifth, The user can access our Backend application to use any of our services.
+
 <div align="center" >
   <img src="ouath2-diagram.png" alt="google oauth2 diagram">
 </div>
 
+[Image Source](https://developers.google.com/static/identity/protocols/oauth2/images/flows/authorization-code.png)
 
 ## Steps to run the applications
  - Note: Use a terminal with bash to run the scripts.
@@ -78,3 +82,6 @@ The backend app is meant to be run together with the frontend Angular applicatio
 ## Are you curious about the development process? 
 The use of oauth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation project:
 You can find the corresponding repository [here](https://github.com/anitalakhadze/multiple-auth-ui).
+
+## Are you curious about OAuth2 process?
+Visit the documentation and explanation of Google OAuth2 [here](https://developers.google.com/identity/protocols/oauth2).
