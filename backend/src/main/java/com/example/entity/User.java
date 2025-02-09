@@ -11,6 +11,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Entity Class User used for database.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -59,6 +62,19 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, fetch = FetchType.LAZY, orphanRemoval = true)
     private Advertiser advertiser;
 
+    /**
+     * Instantiates a new User ready to use and save for the database.
+     *
+     * @param email               the email
+     * @param password            the password
+     * @param enabled             the enabled
+     * @param accountNoExpired    the account no expired
+     * @param accountNoLocked     the account no locked
+     * @param credentialNoExpired the credential no expired
+     * @param emailVerified       the email verified
+     * @param googleConnected     the google connected
+     * @param roles               the roles
+     */
     public User(String email, String password, boolean enabled, boolean accountNoExpired,
                 boolean accountNoLocked, boolean credentialNoExpired, boolean emailVerified,
                 boolean googleConnected, Set<Role> roles) {
@@ -73,6 +89,11 @@ public class User {
         this.roles = roles;
     }
 
+    /**
+     * Gets authorities.
+     *
+     * @return the authorities
+     */
     public Set<SimpleGrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = new HashSet<>(roles.size());
         for (Role role : roles) {

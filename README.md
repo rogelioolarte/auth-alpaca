@@ -14,6 +14,15 @@
 [license]: LICENSE
 [license badge]: https://img.shields.io/github/license/rogelioolarte/multiple-auth-api?color=blue
 
+- [Multiple Auth API](#multiple-auth-api)
+  - [What is Multiple Auth API?](#what-is-multiple-auth-api)
+  - [Introduction to the project](#introduction-to-the-project)
+  - [Dependencies](#dependencies)
+  - [How it works the process of login with OAuth2?](#how-it-works-the-process-of-login-with-oauth2)
+  - [Steps to run the applications](#steps-to-run-the-applications)
+  - [Are you curious about the Development Process?](#are-you-curious-about-the-development-process)
+  - [Are you curious about OAuth2 Process?](#are-you-curious-about-oauth2-process)
+
 ## What is Multiple Auth API?
 Spring Boot Application that focuses on implementing multiple authentication methods using OAuhth2 and JWT.
 
@@ -28,8 +37,7 @@ The backend app is meant to be run together with the frontend Angular applicatio
   * [JJWT 0.12.6](https://github.com/jwtk/jjwt)
   * [Mapstruct 1.6.3](https://github.com/mapstruct/mapstruct)
 
-
-## How it works our process of login with OAuth2? 
+## How it works the process of login with OAuth2? 
 <details>
   <ul>
     <li>First, The user visits our Frontend application and logs in with "Google" and is redirected to our Backend application where he is then redirected to the Google consent page with our OAuth2 API information for Google</li>
@@ -117,9 +125,9 @@ npm run start
 
   - Make sure to update authorized redirect uri usage places in the _multiple-auth-api_ too.
 
-## Are you curious about the development process? 
+## Are you curious about the Development Process? 
 The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation project:
 You can find the corresponding repository [here](https://github.com/anitalakhadze/multiple-auth-ui).
 
-## Are you curious about OAuth2 process?
+## Are you curious about OAuth2 Process?
 Visit the documentation and explanation of Google OAuth2 [here](https://developers.google.com/identity/protocols/oauth2).
