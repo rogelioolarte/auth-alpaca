@@ -23,4 +23,8 @@ public class Permission {
 
     @Column(name = "permission_name", unique = true, nullable = false)
     private String permissionName;
+
+    public Permission(String permissionName) {
+        this.permissionName = permissionName;
+    }
 }

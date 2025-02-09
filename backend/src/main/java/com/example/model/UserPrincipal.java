@@ -31,7 +31,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.id = user.getId();
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
-        this.username = user.getUsername();
+        this.username = user.getEmail();
         this.password = user.getPassword();
         this.authorities = user.getAuthorities();
         this.attributes = attributes;

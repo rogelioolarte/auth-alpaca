@@ -25,7 +25,7 @@ public interface AdvertiserMapper
     @Mapping(source = "paid", target = "paid")
     @Mapping(source = "verified", target = "verified")
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.email", target = "username")
     AdvertiserResponseDTO toResponseDTO(Advertiser entity);
 
     @Override

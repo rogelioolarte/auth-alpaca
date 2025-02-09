@@ -42,46 +42,54 @@ public class AuthServiceImpl extends DefaultOAuth2UserService
     private final JJwtManager manager;
     private final PasswordManager passwordManager;
 
-    @Override
-    public AuthResponseDTO login(AuthRequestDTO requestDTO) {
-        Authentication authentication = this
-                .authenticate(requestDTO.getUsername(), requestDTO.getPassword());
+    public Object setSecurityContextBefore(Authentication authentication) {
         SecurityContext context = SecurityContextHolder.getContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
+        return authentication.getPrincipal();
+    }
+
+    @Override
+    public AuthResponseDTO login(AuthRequestDTO requestDTO) {
         return new AuthResponseDTO(manager
-                .createToken((UserPrincipal) authentication.getPrincipal()));
+                .createToken((UserPrincipal) setSecurityContextBefore(
+                        authenticate(requestDTO.getEmail(), requestDTO.getPassword()))));
     }
 
     @Override
     public AuthResponseDTO register(AuthRequestDTO requestDTO) {
-        if(userService.existsByUsername(requestDTO.getUsername()))
+        if(userService.existsByEmail(requestDTO.getEmail()))
             throw new BadRequestException("Email already registered");
-        userService.register(new User(requestDTO.getUsername(),
+        userService.register(new User(requestDTO.getEmail(),
                     passwordManager.encodePassword(requestDTO.getPassword()),
-                    true, true, true, true,
-                false, false, roleService.getUserRoles()));
+                    true, true, true,
+                true, false, false,
+                roleService.getUserRoles()));
         return login(requestDTO);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
-        return new UserPrincipal(userService.findByUsername(username), null);
+        return new UserPrincipal(userService.findByEmail(username), null);
     }
 
-    public Authentication authenticate(String username, String password) {
-        UserDetails userDetails = loadUserByUsername(username);
+    public UserDetails checkUserDetails(UserDetails userDetails,
+                                        String password) {
         if(userDetails == null)
             throw new BadRequestException("Invalid Username or Password");
         if(!passwordManager.matches(password, userDetails.getPassword()))
             throw new BadRequestException("Invalid Password");
-        return new UsernamePasswordAuthenticationToken(userDetails, null);
+        return userDetails;
+    }
+
+    public Authentication authenticate(String username, String password) {
+        return new UsernamePasswordAuthenticationToken(
+                checkUserDetails(loadUserByUsername(username), password), null);
     }
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest)
-            throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
         } catch (Exception e) {
@@ -97,15 +105,15 @@ public class AuthServiceImpl extends DefaultOAuth2UserService
         if (userInfo.getEmail() == null || userInfo.getEmail().isBlank())
             throw new OAuth2AuthenticationProcessingException(
                     "Email not found from Oauth2 Provider");
-        if(!userService.existsByUsername(userInfo.getEmail())) {
+        if(!userService.existsByEmail(userInfo.getEmail())) {
             return new UserPrincipal(registerProfile(
                     userService.register(new User(userInfo.getEmail(),
                             passwordManager.encodePassword(UUID.randomUUID().toString()),
                             true, true, true,
-                            true, userInfo.getEmailVerified(), true,
+                            true, true, true,
                             roleService.getUserRoles())), userInfo), user.getAttributes());
         }
-        return new UserPrincipal(userService.findByUsername(userInfo.getEmail()),
+        return new UserPrincipal(userService.findByEmail(userInfo.getEmail()),
                 user.getAttributes());
     }
 

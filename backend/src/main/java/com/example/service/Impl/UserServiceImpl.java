@@ -49,16 +49,16 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     }
 
     @Override
-    public boolean existsByUsername(String username) {
-        return dao.existsByUsername(username);
+    public boolean existsByEmail(String email) {
+        return dao.existsByEmail(email);
     }
 
     @Transactional
     @Override
-    public User findByUsername(String username) {
-        if (username == null) throw new BadRequestException(
+    public User findByEmail(String email) {
+        if (email == null) throw new BadRequestException(
                 String.format("%s cannot be found", getEntityName()));
-        return dao.findByUsername(username).orElseThrow(() ->
+        return dao.findByEmail(email).orElseThrow(() ->
                 new NotFoundException("The email does not match any account"));
     }
 

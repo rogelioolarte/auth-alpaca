@@ -38,7 +38,8 @@ public class Profile {
     private User user;
 
 
-    public Profile(String firstName, String lastName, String address, String avatarUrl, User user) {
+    public Profile(String firstName, String lastName, String address,
+                   String avatarUrl, User user) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;

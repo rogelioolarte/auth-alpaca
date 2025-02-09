@@ -51,4 +51,19 @@ public class Advertiser {
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
+
+    public Advertiser(String title, String description, String bannerUrl,
+                      String avatarUrl, String publicLocation, String publicUrlLocation,
+                      boolean indexed, boolean paid, boolean verified, User user) {
+        this.title = title;
+        this.description = description;
+        this.bannerUrl = bannerUrl;
+        this.avatarUrl = avatarUrl;
+        this.publicLocation = publicLocation;
+        this.publicUrlLocation = publicUrlLocation;
+        this.indexed = indexed;
+        this.paid = paid;
+        this.verified = verified;
+        this.user = user;
+    }
 }

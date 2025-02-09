@@ -9,6 +9,6 @@ import java.util.UUID;
 public interface IUserDAO extends IGenericDAO<User, UUID> {
 
     List<User> findUsersByRoleId(UUID id);
-    Optional<User> findByUsername(String username);
-    boolean existsByUsername(String username);
+    Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

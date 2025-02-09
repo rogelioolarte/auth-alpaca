@@ -29,9 +29,14 @@ public class Role {
     @Column(name = "role_description", nullable = false, unique = true)
     private String roleDescription;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new HashSet<>();
 
+    public Role(String roleName, String roleDescription, Set<Permission> permissions) {
+        this.roleName = roleName;
+        this.roleDescription = roleDescription;
+        this.permissions = permissions;
+    }
 }

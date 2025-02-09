@@ -2,6 +2,7 @@ package com.example.persistence;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +19,6 @@ public interface IGenericDAO<T, ID> {
     List<T> findAll();
     Page<T> findAllPage(Pageable pageable);
     boolean existsById(ID id);
-    boolean existsAllById(Collection<ID> ids);
-    boolean existsByUniqueProperties(T t);
+    boolean existsAllByIds(Collection<ID> ids);
+    boolean existsByUniqueProperties(@NonNull T t);
 }

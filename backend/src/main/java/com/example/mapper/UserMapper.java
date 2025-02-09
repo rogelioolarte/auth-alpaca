@@ -14,7 +14,7 @@ public interface UserMapper extends GenericMapper<User, UserResponseDTO, UserReq
 
     @Override
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "username", target = "username")
+    @Mapping(source = "email", target = "email")
     @Mapping(source = "profile", target = "profile")
     @Mapping(source = "advertiser", target = "advertiser")
     @Mapping(source = "roles", target = "roles")
@@ -22,10 +22,9 @@ public interface UserMapper extends GenericMapper<User, UserResponseDTO, UserReq
 
     @Override
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "username", source = "username")
+    @Mapping(target = "email", source = "email")
     @Mapping(target = "password", source = "password")
-    @Mapping(target = "roles", source = "roles",
-            qualifiedBy = {MainService.class, FindEntitiesSet.class})
+    @Mapping(target = "roles", source = "roles", qualifiedBy = {MainService.class, FindEntitiesSet.class})
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "credentialNoExpired", ignore = true)
     @Mapping(target = "accountNoLocked", ignore = true)
@@ -33,6 +32,8 @@ public interface UserMapper extends GenericMapper<User, UserResponseDTO, UserReq
     @Mapping(target = "profile", ignore = true)
     @Mapping(target = "advertiser", ignore = true)
     @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "emailVerified", ignore = true)
+    @Mapping(target = "googleConnected", ignore = true)
     User toEntity(UserRequestDTO dto);
 
 }

@@ -24,23 +24,23 @@ public class User {
     @Column(name = "user_id")
     private UUID id;
 
-    @Column(name = "username", unique = true, nullable = false)
-    private String username;
+    @Column(name = "email", unique = true, nullable = false)
+    private String email;
 
     @Column(name = "password", nullable = false)
     private String password;
 
     @Column(name = "enable", nullable = false)
-    private boolean enabled = false;
+    private boolean enabled = true;
 
     @Column(name = "account_no_expired", nullable = false)
-    private boolean accountNoExpired = false;
+    private boolean accountNoExpired = true;
 
     @Column(name = "account_no_locked", nullable = false)
-    private boolean accountNoLocked = false;
+    private boolean accountNoLocked = true;
 
     @Column(name = "credential_no_expired", nullable = false)
-    private boolean credentialNoExpired = false;
+    private boolean credentialNoExpired = true;
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
@@ -59,10 +59,10 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, fetch = FetchType.LAZY, orphanRemoval = true)
     private Advertiser advertiser;
 
-    public User(String username, String password, boolean enabled, boolean accountNoExpired,
+    public User(String email, String password, boolean enabled, boolean accountNoExpired,
                 boolean accountNoLocked, boolean credentialNoExpired, boolean emailVerified,
                 boolean googleConnected, Set<Role> roles) {
-        this.username = username;
+        this.email = email;
         this.password = password;
         this.enabled = enabled;
         this.accountNoExpired = accountNoExpired;

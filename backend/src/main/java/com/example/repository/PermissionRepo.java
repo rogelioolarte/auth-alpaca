@@ -7,4 +7,6 @@ import java.util.UUID;
 
 @Repository
 public interface PermissionRepo extends GenericRepo<Permission, UUID> {
+
+    boolean existsByPermissionName(String permissionName);
 }
