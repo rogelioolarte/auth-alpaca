@@ -14,10 +14,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-public abstract class GenericServiceImpl<T,ID> implements
-        IGenericService<T,ID> {
+/**
+ * Abstract service implementation providing common CRUD operations.
+ * This class serves as a base for entity-specific service implementations.
+ *
+ * @param <T>  The type of entity.
+ * @param <ID> The type of the entity's identifier.
+ */
+public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID> {
 
+    /**
+     * Gets the Data Access Object (DAO) associated with the entity.
+     *
+     * @return The DAO instance.
+     */
     protected abstract IGenericDAO<T, ID> getDAO();
+
+    /**
+     * Gets the name of the entity for error messages.
+     *
+     * @return The entity name.
+     */
     protected abstract String getEntityName();
 
     @FindEntity
@@ -34,13 +51,14 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public List<T> findAllByIds(Collection<ID> ids) {
-        if(ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull))
+        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull))
             throw new BadRequestException(
-                String.format("%s(s) cannot be found", getEntityName()));
-        if(!existsAllByIds(ids)) throw new NotFoundException(
+                    String.format("%s(s) cannot be found", getEntityName()));
+        if (!existsAllByIds(ids)) throw new NotFoundException(
                 String.format("Some %s(s) cannot be found", getEntityName()));
         return getDAO().findAllByIds(ids);
     }
+
 
     @FindEntitiesSet
     public Set<T> findAllByIdstoSet(Collection<ID> ids) {
@@ -50,17 +68,17 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public T save(T t) {
-        if(t == null) throw new BadRequestException(
+        if (t == null) throw new BadRequestException(
                 String.format("%s cannot be created", getEntityName()));
-        if(existsByUniqueProperties(t)) throw new BadRequestException(
-                String.format("%s already exists", getEntityName()));
+        if (existsByUniqueProperties(t)) throw new BadRequestException(
+                        String.format("%s already exists", getEntityName()));
         return getDAO().save(t);
     }
 
     @Transactional
     @Override
     public List<T> saveAll(List<T> t) {
-        if(t == null || t.isEmpty()) throw new BadRequestException(
+        if (t == null || t.isEmpty()) throw new BadRequestException(
                 String.format("%s cannot be created", getEntityName()));
         return getDAO().saveAll(t);
     }
@@ -68,9 +86,8 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public T updateById(T t, ID id) {
-        if(id == null || t == null) throw new BadRequestException(
+        if (id == null || t == null) throw new BadRequestException(
                 String.format("%s cannot be updated", getEntityName()));
-        System.out.println("Objeto para actualizar: " + CookieManager.justSerialize(t));
         return Optional.ofNullable(getDAO().updateById(t, id)).orElseThrow(() ->
                 new NotFoundException(String.format("%s with ID %s not found",
                         getEntityName(), id.toString())));
@@ -79,9 +96,9 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public void deleteById(ID id) {
-        if(id == null) throw new BadRequestException(
+        if (id == null) throw new BadRequestException(
                 String.format("%s cannot be deleted", getEntityName()));
-        if(!existsById(id)) throw new BadRequestException(
+        if (!existsById(id)) throw new BadRequestException(
                 String.format("%s not exists", getEntityName()));
         getDAO().deleteById(id);
     }
@@ -95,7 +112,7 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public Page<T> findAllPage(Pageable pageable) {
-        if(pageable == null) throw new BadRequestException(
+        if (pageable == null) throw new BadRequestException(
                 String.format("%s(s) Page cannot be created", getEntityName()));
         return getDAO().findAllPage(pageable);
     }
@@ -117,8 +134,7 @@ public abstract class GenericServiceImpl<T,ID> implements
     @Transactional
     @Override
     public boolean existsByUniqueProperties(T t) {
-        if(t == null) return false;
+        if (t == null) return false;
         return getDAO().existsByUniqueProperties(t);
     }
-
 }

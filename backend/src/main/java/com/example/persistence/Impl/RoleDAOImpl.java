@@ -65,7 +65,6 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
         return repo.existsByRoleName(role.getRoleName());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<Role> findRolesByPermissionId(UUID permissionId) {
         if (permissionId == null) return List.of();

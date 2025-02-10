@@ -33,8 +33,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl extends DefaultOAuth2UserService
-        implements IAuthService {
+public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthService {
 
     private final IUserService userService;
     private final IRoleService roleService;

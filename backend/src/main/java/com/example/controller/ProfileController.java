@@ -29,7 +29,7 @@ public class ProfileController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<ProfileResponseDTO> create(@Valid @RequestBody ProfileRequestDTO request) {
+    public ResponseEntity<ProfileResponseDTO> save(@Valid @RequestBody ProfileRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
     }

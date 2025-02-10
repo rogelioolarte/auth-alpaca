@@ -68,7 +68,8 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults());
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> {
             auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
             auth.requestMatchers("/api/profile/**").hasAnyRole("ADMIN", "USER");
@@ -81,16 +82,18 @@ public class SecurityConfig {
             oauth2.authorizationEndpoint(c -> {
                 c.baseUri(OAuth2BaseURI);
                 c.authorizationRequestRepository(cookieAuthReqRepo);
-                c.authorizationRequestResolver(new OAuth2ReqResolver(clientRegistrationRepository, OAuth2BaseURI));
+                c.authorizationRequestResolver(
+                        new OAuth2ReqResolver(clientRegistrationRepository, OAuth2BaseURI));
             });
             oauth2.redirectionEndpoint(c -> c.baseUri(OAuth2RedirectionEndPoint));
             oauth2.userInfoEndpoint(c -> c.userService(authService));
-            oauth2.tokenEndpoint(c -> c.accessTokenResponseClient(authorizationCodeTokenResponseClient()));
+            oauth2.tokenEndpoint(c ->
+                    c.accessTokenResponseClient(authorizationCodeTokenResponseClient()));
             oauth2.successHandler(oauth2SuccessHandler);
             oauth2.failureHandler(oauth2FailureHandler);
         });
         http.exceptionHandling(exceptionHandling -> exceptionHandling
-                .accessDeniedHandler(accessDeniedHandler())
+                        .accessDeniedHandler(accessDeniedHandler())
                 .authenticationEntryPoint(authenticationEntryPoint())
         );
         http.authenticationProvider(provider(authService));
@@ -123,7 +126,9 @@ public class SecurityConfig {
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) -> {
+        return (request,
+                response,
+                accessDeniedException) -> {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.getWriter().write("403 Forbidden Access: " + accessDeniedException.getMessage());
         };
@@ -155,7 +160,7 @@ public class SecurityConfig {
     /**
      * Configures an authentication provider with password encoding and user details service.
      *
-     * @param authService Authentication service implementation.
+     * @param authService Authentication Service Implementation.
      * @return AuthenticationProvider instance.
      */
     @Bean

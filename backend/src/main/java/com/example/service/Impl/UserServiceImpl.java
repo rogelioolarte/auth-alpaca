@@ -32,22 +32,13 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
 
     @Transactional
     @Override
-    public User save(User user) {
-        if(user == null) throw new BadRequestException(
+    public User register(User user) {
+        if (user == null) throw new BadRequestException(
                 String.format("%s cannot be created", getEntityName()));
-        if(super.existsByUniqueProperties(user))
-            throw new BadRequestException("Email already registered");
         return dao.save(user);
     }
 
     @Transactional
-    @Override
-    public User register(User user) {
-        if(user == null) throw new BadRequestException(
-                String.format("%s cannot be created", getEntityName()));
-        return dao.save(user);
-    }
-
     @Override
     public boolean existsByEmail(String email) {
         return dao.existsByEmail(email);
