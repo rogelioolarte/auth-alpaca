@@ -6,7 +6,7 @@
 [![license badge]][license]
 
 [javadoc]: https://rogelioolarte.github.io/multiple-auth-api/
-[javadoc badge]: https://img.shields.io/badge/javadoc-1.0.0-brightgreen.svg
+[javadoc badge]: https://img.shields.io/github/v/release/rogelioolarte/multiple-auth-api?label=javadoc&labelColor=grey&color=brightgreen
 [release]: https://github.com/rogelioolarte/multiple-auth-api/releases
 [release badge]: https://img.shields.io/github/v/release/rogelioolarte/multiple-auth-api?color=brightgreen&sort=semver
 [codecov]: https://codecov.io/gh/rogelioolarte/multiple-auth-api
