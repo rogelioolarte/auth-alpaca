@@ -6,7 +6,6 @@ import com.example.persistence.IGenericDAO;
 import com.example.qualifier.FindEntities;
 import com.example.qualifier.FindEntitiesSet;
 import com.example.qualifier.FindEntity;
-import com.example.security.manager.CookieManager;
 import com.example.service.IGenericService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

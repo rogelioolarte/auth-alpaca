@@ -9,22 +9,31 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<artifactId>multiple-auth-api</artifactId>
+	<version>1.0.0</version>
+	<name>Multiple Auth API 1.0.0</name>
+	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.</description>
 	<url/>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Rogelio Olarte</name>
+			<url>https://gitlab.com/rogelioolarte</url>
+			<email>rogelioolarte2222@gmail.com</email>
+			<roles><role>DEVELOPER</role></roles>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/rogelioolarte/multiple-auth-api.git</connection>
+		<developerConnection>scm:git:ssh://github.com:rogelioolarte/multiple-auth-api.git</developerConnection>
+		<url>https://github.com/rogelioolarte/multiple-auth-api</url>
+		<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
