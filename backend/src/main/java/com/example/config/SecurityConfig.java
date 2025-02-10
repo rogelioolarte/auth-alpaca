@@ -35,6 +35,10 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
+/**
+ * Configures security settings for the application, including authentication, authorization,
+ * OAuth2 login, and JWT token validation.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -51,16 +55,20 @@ public class SecurityConfig {
     private final CookieAuthReqRepo cookieAuthReqRepo;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-
+    /**
+     * Configures security filter chain with authentication and authorization settings.
+     *
+     * @param http HttpSecurity configuration.
+     * @return SecurityFilterChain instance.
+     * @throws Exception if an error occurs during configuration.
+     */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(Customizer.withDefaults());
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.sessionManagement(session -> {
-            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        });
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> {
             auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
             auth.requestMatchers("/api/profile/**").hasAnyRole("ADMIN", "USER");
@@ -73,13 +81,11 @@ public class SecurityConfig {
             oauth2.authorizationEndpoint(c -> {
                 c.baseUri(OAuth2BaseURI);
                 c.authorizationRequestRepository(cookieAuthReqRepo);
-                c.authorizationRequestResolver(
-                        new OAuth2ReqResolver(clientRegistrationRepository, OAuth2BaseURI));
+                c.authorizationRequestResolver(new OAuth2ReqResolver(clientRegistrationRepository, OAuth2BaseURI));
             });
             oauth2.redirectionEndpoint(c -> c.baseUri(OAuth2RedirectionEndPoint));
             oauth2.userInfoEndpoint(c -> c.userService(authService));
-            oauth2.tokenEndpoint(c -> c
-                    .accessTokenResponseClient(authorizationCodeTokenResponseClient()));
+            oauth2.tokenEndpoint(c -> c.accessTokenResponseClient(authorizationCodeTokenResponseClient()));
             oauth2.successHandler(oauth2SuccessHandler);
             oauth2.failureHandler(oauth2FailureHandler);
         });
@@ -92,6 +98,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Creates an OAuth2 access token response client.
+     *
+     * @return OAuth2AccessTokenResponseClient instance.
+     */
     private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
     authorizationCodeTokenResponseClient() {
         OAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
@@ -105,26 +116,48 @@ public class SecurityConfig {
         return client;
     }
 
+    /**
+     * Configures access denied handler.
+     *
+     * @return AccessDeniedHandler instance.
+     */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response,
-                accessDeniedException) -> {
+        return (request, response, accessDeniedException) -> {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.getWriter().write("403 Forbidden Access: " + accessDeniedException.getMessage());
-
         };
     }
+
+    /**
+     * Configures an authentication entry point.
+     *
+     * @return AuthenticationEntryPoint instance.
+     */
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return new Http403ForbiddenEntryPoint();
     }
 
+    /**
+     * Retrieves the authentication manager from the configuration.
+     *
+     * @param configuration AuthenticationConfiguration instance.
+     * @return AuthenticationManager instance.
+     * @throws Exception if an error occurs.
+     */
     @Bean
     public AuthenticationManager getManager(AuthenticationConfiguration configuration)
             throws Exception {
         return configuration.getAuthenticationManager();
     }
 
+    /**
+     * Configures an authentication provider with password encoding and user details service.
+     *
+     * @param authService Authentication service implementation.
+     * @return AuthenticationProvider instance.
+     */
     @Bean
     public AuthenticationProvider provider(IAuthService authService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -132,5 +165,4 @@ public class SecurityConfig {
         provider.setUserDetailsService(authService);
         return provider;
     }
-
 }
