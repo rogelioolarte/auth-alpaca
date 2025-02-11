@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -36,6 +38,13 @@ public class Permission {
      */
     @Column(name = "permission_name", unique = true, nullable = false)
     private String permissionName;
+
+    /**
+     * The set of roles associated with this Permission.
+     * A Permission can have multiple roles, forming a many-to-many relationship.
+     */
+    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Set<Role> roles = new HashSet<>();
 
     /**
      * Constructs an instance of a new Permission object with the specified attributes.

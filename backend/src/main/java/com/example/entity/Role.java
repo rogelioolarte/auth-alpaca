@@ -50,10 +50,17 @@ public class Role {
      * The set of permissions associated with this Role.
      * A Role can have multiple permissions, forming a many-to-many relationship.
      */
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new HashSet<>();
+
+    /**
+     * The set of users associated with this Role.
+     * A Role can have multiple users, forming a many-to-many relationship.
+     */
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users = new HashSet<>();
 
     /**
      * Constructs an instance of a new Role object with the specified attributes.

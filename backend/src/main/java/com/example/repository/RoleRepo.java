@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,19 +21,6 @@ import java.util.UUID;
  */
 @Repository
 public interface RoleRepo extends GenericRepo<Role, UUID> {
-
-    /**
-     * Deletes all user-role associations for a given role ID.
-     * <p>
-     * This operation modifies the database directly and is executed as a transactional query.
-     * </p>
-     *
-     * @param roleId The ID of the role to remove associations for - must not be null.
-     */
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM user_roles WHERE role_id = ?1", nativeQuery = true)
-    void deleteUserRolesByRoleId(UUID roleId);
 
     /**
      * Retrieves a role by its name.
@@ -53,11 +39,16 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
     boolean existsByRoleName(String roleName);
 
     /**
-     * Retrieves a list of roles associated with a specific permission.
+     * Deletes all user-role associations for a given role ID.
+     * <p>
+     * This operation modifies the database directly and is executed as a transactional query.
+     * </p>
      *
-     * @param permissionId The ID of the permission - must not be null.
-     * @return A list of roles that have the specified permission.
+     * @param roleId The ID of the role to remove associations for - must not be null.
      */
-    @Query("SELECT r FROM Role r JOIN r.permissions p WHERE p.id = :permissionId")
-    List<Role> findRolesByPermissionId(@Param("permissionId") UUID permissionId);
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM user_roles WHERE role_id = ?1", nativeQuery = true)
+    void deleteUserRolesByRoleId(@Param("roleId") UUID roleId);
+
 }

@@ -27,6 +27,12 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
     }
 
     @Override
+    public void deleteById(UUID id) {
+        repo.deleteRolePermissionsByPermissionId(id);
+        super.deleteById(id);
+    }
+
+    @Override
     public Permission updateById(Permission permission, UUID id) {
         if (permission.getPermissionName() == null || permission.getPermissionName().isBlank())
             return null;

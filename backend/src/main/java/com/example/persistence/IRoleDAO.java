@@ -2,7 +2,6 @@ package com.example.persistence;
 
 import com.example.entity.Role;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,14 +15,6 @@ import java.util.UUID;
  * @see IGenericDAO
  */
 public interface IRoleDAO extends IGenericDAO<Role, UUID> {
-
-    /**
-     * Retrieves a list of roles associated with a specific permission.
-     *
-     * @param permissionId The unique identifier of the permission - must not be null.
-     * @return A list of roles linked to the specified permission. Returns an empty list if no roles are found.
-     */
-    List<Role> findRolesByPermissionId(UUID permissionId);
 
     /**
      * Finds a role by its unique name.

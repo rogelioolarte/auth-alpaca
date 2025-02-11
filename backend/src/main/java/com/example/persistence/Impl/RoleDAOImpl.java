@@ -8,7 +8,6 @@ import com.example.repository.RoleRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,15 +28,15 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
     }
 
     @Override
-    public Optional<Role> findByRoleName(String roleName) {
-        if (roleName == null || roleName.isBlank()) return Optional.empty();
-        return repo.findByRoleName(roleName);
-    }
-
-    @Override
     public void deleteById(UUID id) {
         repo.deleteUserRolesByRoleId(id);
         super.deleteById(id);
+    }
+
+    @Override
+    public Optional<Role> findByRoleName(String roleName) {
+        if (roleName == null || roleName.isBlank()) return Optional.empty();
+        return repo.findByRoleName(roleName);
     }
 
     @Override
@@ -63,12 +62,6 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
                 role.getRoleDescription() == null || role.getRoleDescription().isBlank())
             return false;
         return repo.existsByRoleName(role.getRoleName());
-    }
-
-    @Override
-    public List<Role> findRolesByPermissionId(UUID permissionId) {
-        if (permissionId == null) return List.of();
-        return repo.findRolesByPermissionId(permissionId);
     }
 
 }

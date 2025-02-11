@@ -20,12 +20,14 @@ public interface RoleMapper
     @Mapping(source = "permissions", target = "permissions")
     RoleResponseDTO toResponseDTO(Role role);
 
+
     @Override
     @Mapping(target = "id", ignore = true)
     @Mapping(source = "roleName", target = "roleName")
     @Mapping(source = "roleDescription", target = "roleDescription")
     @Mapping(source = "permissions", target = "permissions",
             qualifiedBy = { MainService.class, FindEntitiesSet.class })
+    @Mapping(target = "users", ignore = true)
     Role toEntity(RoleRequestDTO dto);
 
 }

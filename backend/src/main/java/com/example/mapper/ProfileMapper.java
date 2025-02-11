@@ -20,7 +20,7 @@ public interface ProfileMapper
     @Mapping(source = "address", target = "address")
     @Mapping(source = "avatarUrl", target = "avatarUrl")
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "user.email", target = "username")
+    @Mapping(source = "user.email", target = "email")
     ProfileResponseDTO toResponseDTO(Profile profile);
 
     @Override
