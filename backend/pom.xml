@@ -26,7 +26,18 @@
 			<name>Rogelio Olarte</name>
 			<url>https://github.com/rogelioolarte</url>
 			<email>rogelioolarte2222@gmail.com</email>
-			<roles><role>DEVELOPER</role></roles>
+			<roles>
+				<role>DEVELOPER</role>
+				<role>MAINTAINER</role>
+			</roles>
+		</developer><developer>
+			<name>Lewis Florez Renza</name>
+			<url>https://github.com/gasperlf</url>
+			<email>gasper_lf@hotmail.com</email>
+			<roles>
+				<role>ADVISOR</role>
+				<role>REVIEWER</role>
+			</roles>
 		</developer>
 	</developers>
 	<scm>
