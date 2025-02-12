@@ -1,14 +1,14 @@
 package com.example.entity;
 
+import com.example.entity.intermediate.RolePermission;
+import com.example.entity.intermediate.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a Role entity in the system.
@@ -46,21 +46,11 @@ public class Role {
     @Column(name = "role_description", nullable = false, unique = true)
     private String roleDescription;
 
-    /**
-     * The set of permissions associated with this Role.
-     * A Role can have multiple permissions, forming a many-to-many relationship.
-     */
-    @ManyToMany(cascade = CascadeType.MERGE)
-    @JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id"))
-    private Set<Permission> permissions = new HashSet<>();
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePermission> rolePermissions = new HashSet<>();
 
-    /**
-     * The set of users associated with this Role.
-     * A Role can have multiple users, forming a many-to-many relationship.
-     */
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new HashSet<>();
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * Constructs an instance of a new Role object with the specified attributes.
@@ -73,6 +63,23 @@ public class Role {
     public Role(String roleName, String roleDescription, Set<Permission> permissions) {
         this.roleName = roleName;
         this.roleDescription = roleDescription;
-        this.permissions = permissions;
+        this.rolePermissions = permissionsToRolePermissions(permissions);
     }
+
+    public Set<RolePermission> permissionsToRolePermissions(Set<Permission> permissions) {
+        Set<RolePermission> rolePermissions = new HashSet<>(permissions.size());
+        for(Permission permission: permissions) {
+            rolePermissions.add(new RolePermission(this, permission));
+        }
+        return rolePermissions;
+    }
+
+    public List<Permission> getPermissions() {
+        List<Permission> permissions = new ArrayList<>(getRolePermissions().size());
+        for(RolePermission rolePermission : getRolePermissions()) {
+            permissions.add(rolePermission.getPermission());
+        }
+        return permissions;
+    }
+
 }

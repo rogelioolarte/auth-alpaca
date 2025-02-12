@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import com.example.entity.intermediate.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,9 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a User entity in the system.
@@ -90,14 +89,8 @@ public class User {
     @Column(name = "google_connected", nullable = false)
     private boolean googleConnected = false;
 
-    /**
-     * The roles assigned to the User.
-     * A User can have multiple roles, and roles are mapped through the "user_roles" join table.
-     */
-    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false))
-    private Set<Role> roles = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * The Profile entity associated with the User.
@@ -140,7 +133,23 @@ public class User {
         this.credentialNoExpired = credentialNoExpired;
         this.emailVerified = emailVerified;
         this.googleConnected = googleConnected;
-        this.roles = roles;
+        this.userRoles = rolesToUserRoles(roles);
+    }
+
+    public Set<UserRole> rolesToUserRoles(Set<Role> roles) {
+        Set<UserRole> userRoles = new HashSet<>(roles.size());
+        for(Role role: roles) {
+            userRoles.add(new UserRole(this, role));
+        }
+        return userRoles;
+    }
+
+    public List<Role> getRoles() {
+        List<Role> roles = new ArrayList<>(getUserRoles().size());
+        for(UserRole userRole : getUserRoles()) {
+            roles.add(userRole.getRole());
+        }
+        return roles;
     }
 
     /**
@@ -150,12 +159,12 @@ public class User {
      * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
      */
     public Set<SimpleGrantedAuthority> getAuthorities() {
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(roles.size());
-        for (Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
+        for (UserRole userRole : userRoles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
 //             Uncomment the following code if permissions should be included in authorities
 //             If we add this for cycle to the function it will have a time complexity of O(n^2)
-//             for (Permission permission : role.getPermissions()) {
+//             for (Permission permission : userRole.getRole().getPermissions()) {
 //                 authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
 //             }
         }

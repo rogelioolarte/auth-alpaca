@@ -28,12 +28,6 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
     }
 
     @Override
-    public void deleteById(UUID id) {
-        repo.deleteUserRolesByRoleId(id);
-        super.deleteById(id);
-    }
-
-    @Override
     public Optional<Role> findByRoleName(String roleName) {
         if (roleName == null || roleName.isBlank()) return Optional.empty();
         return repo.findByRoleName(roleName);
@@ -50,8 +44,8 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
         if (role.getRoleDescription() != null && !role.getRoleDescription().isBlank()) {
             existingRole.setRoleDescription(role.getRoleDescription());
         }
-        if (role.getPermissions() != null && !role.getPermissions().isEmpty()) {
-            existingRole.setPermissions(role.getPermissions());
+        if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
+            existingRole.setRolePermissions(role.getRolePermissions());
         }
         return save(existingRole);
     }

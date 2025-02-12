@@ -5,7 +5,6 @@ import com.example.exception.BadRequestException;
 import com.example.exception.NotFoundException;
 import com.example.persistence.IGenericDAO;
 import com.example.persistence.IUserDAO;
-import com.example.qualifier.MainService;
 import com.example.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@MainService
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {

@@ -8,7 +8,6 @@ import com.example.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,8 +44,8 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             existingUser.setPassword(user.getPassword());
         }
-        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            existingUser.setRoles(user.getRoles());
+        if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
+            existingUser.setUserRoles(user.getUserRoles());
         }
         return save(existingUser);
     }
@@ -60,12 +59,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     public boolean existsByEmail(String email) {
         if (email == null || email.isBlank()) return false;
         return repo.existsByEmail(email);
-    }
-
-    @Override
-    public List<User> findUsersByRoleId(UUID id) {
-        if (id == null) return List.of();
-        return repo.findUsersByRoleId(id);
     }
 
 }

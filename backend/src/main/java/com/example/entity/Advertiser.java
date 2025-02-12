@@ -77,19 +77,19 @@ public class Advertiser {
      * Indicates whether the Advertiser is indexed for public search.
      */
     @Column(name = "indexed", nullable = false)
-    private boolean indexed;
+    private boolean indexed = true;
 
     /**
      * Indicates whether the Advertiser has a paid subscription or promotion.
      */
     @Column(name = "paid", nullable = false)
-    private boolean paid;
+    private boolean paid = false;
 
     /**
      * Indicates whether the Advertiser is verified.
      */
     @Column(name = "verified", nullable = false)
-    private boolean verified;
+    private boolean verified = false;
 
     /**
      * The User associated with the Advertiser entity.

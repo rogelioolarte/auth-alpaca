@@ -3,9 +3,6 @@ package com.example.service.Impl;
 import com.example.exception.BadRequestException;
 import com.example.exception.NotFoundException;
 import com.example.persistence.IGenericDAO;
-import com.example.qualifier.FindEntities;
-import com.example.qualifier.FindEntitiesSet;
-import com.example.qualifier.FindEntity;
 import com.example.service.IGenericService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +33,6 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
      */
     protected abstract String getEntityName();
 
-    @FindEntity
     @Transactional
     @Override
     public T findById(ID id) {
@@ -46,7 +42,6 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
                 String.format("%s with ID %s not found", getEntityName(), id)));
     }
 
-    @FindEntities
     @Transactional
     @Override
     public List<T> findAllByIds(Collection<ID> ids) {
@@ -58,8 +53,6 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
         return getDAO().findAllByIds(ids);
     }
 
-
-    @FindEntitiesSet
     public Set<T> findAllByIdstoSet(Collection<ID> ids) {
         return new HashSet<>(findAllByIds(ids));
     }

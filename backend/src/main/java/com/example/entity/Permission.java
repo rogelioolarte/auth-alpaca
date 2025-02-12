@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import com.example.entity.intermediate.RolePermission;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,12 +40,8 @@ public class Permission {
     @Column(name = "permission_name", unique = true, nullable = false)
     private String permissionName;
 
-    /**
-     * The set of roles associated with this Permission.
-     * A Permission can have multiple roles, forming a many-to-many relationship.
-     */
-    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private Set<Role> roles = new HashSet<>();
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePermission> rolePermissions = new HashSet<>();
 
     /**
      * Constructs an instance of a new Permission object with the specified attributes.

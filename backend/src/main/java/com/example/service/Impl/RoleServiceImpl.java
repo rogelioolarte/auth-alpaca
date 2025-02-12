@@ -5,7 +5,6 @@ import com.example.exception.BadRequestException;
 import com.example.exception.NotFoundException;
 import com.example.persistence.IGenericDAO;
 import com.example.persistence.IRoleDAO;
-import com.example.qualifier.MainService;
 import com.example.service.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
 import java.util.UUID;
 
-@MainService
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements IRoleService {
@@ -30,6 +28,11 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
     @Override
     protected String getEntityName() {
         return "Role";
+    }
+
+    @Override
+    public Role save(Role role) {
+        return super.save(role);
     }
 
     @Override

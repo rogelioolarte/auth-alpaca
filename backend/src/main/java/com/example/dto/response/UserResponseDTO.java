@@ -1,12 +1,12 @@
 package com.example.dto.response;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public record UserResponseDTO(
         UUID id,
         String email,
-        Set<RoleResponseDTO> roles,
+        List<RoleResponseDTO> roles,
         ProfileResponseDTO profile,
         AdvertiserResponseDTO advertiser
 ) {

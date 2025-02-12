@@ -2,7 +2,6 @@ package com.example.persistence;
 
 import com.example.entity.User;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,14 +15,6 @@ import java.util.UUID;
  * @see IGenericDAO
  */
 public interface IUserDAO extends IGenericDAO<User, UUID> {
-
-    /**
-     * Retrieves a list of users associated with a specific role.
-     *
-     * @param id The unique identifier of the role - must not be null.
-     * @return A list of users who have the specified role. Returns an empty list if no users are found.
-     */
-    List<User> findUsersByRoleId(UUID id);
 
     /**
      * Finds a user by their email address.
