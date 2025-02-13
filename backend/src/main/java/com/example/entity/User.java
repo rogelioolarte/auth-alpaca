@@ -96,7 +96,7 @@ public class User {
      * </p>
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles;
+    private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * The Profile entity associated with the User.

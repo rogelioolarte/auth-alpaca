@@ -53,7 +53,7 @@ public class Role {
      * </p>
      */
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions;
+    private Set<RolePermission> rolePermissions = new HashSet<>();
 
     /**
      * Indicates the set of User has the Role.
@@ -62,7 +62,7 @@ public class Role {
      * </p>
      */
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles;
+    private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * Constructs an instance of a new Role object with the specified attributes.
