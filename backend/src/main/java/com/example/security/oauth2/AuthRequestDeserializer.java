@@ -1,4 +1,4 @@
-package com.example.utils;
+package com.example.security.oauth2;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-public class OAuth2AuthorizationRequestDeserializer extends
+public class AuthRequestDeserializer extends
         JsonDeserializer<OAuth2AuthorizationRequest> {
 
     @Override

@@ -9,6 +9,6 @@ public record ProfileResponseDTO(
         String address,
         String avatarUrl,
         UUID userId,
-        String username
+        String email
 ) {
 }

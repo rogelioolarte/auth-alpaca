@@ -38,8 +38,10 @@ public class AccessTokenResConverter
         }
         Map<String, Object> additionalParameters = new LinkedHashMap<>();
         source.entrySet().stream()
-                .filter(e -> !TokenResponseParameterNames.contains(e.getKey()))
-                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue()));
+                .filter(e -> !TokenResponseParameterNames
+                        .contains(e.getKey()))
+                .forEach(e -> additionalParameters
+                        .put(e.getKey(), e.getValue()));
         return OAuth2AccessTokenResponse.withToken(accessToken).tokenType(accessTokenType)
                 .expiresIn(expiresIn).scopes(scopes).additionalParameters(additionalParameters)
                 .refreshToken(refreshToken).build();

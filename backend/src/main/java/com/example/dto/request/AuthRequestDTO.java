@@ -16,7 +16,7 @@ public class AuthRequestDTO {
 
     @NotBlank(message = "Email is required.")
     @Email(message = "Email must be valid.")
-    private String username;
+    private String email;
 
     @NotBlank(message = "Password is required.")
     @Size(min = 8, max = 200,message = "The password must be at least 8 to 200 characters.")

@@ -29,7 +29,7 @@ public class RoleController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<RoleResponseDTO> create(@Valid @RequestBody RoleRequestDTO request) {
+    public ResponseEntity<RoleResponseDTO> save(@Valid @RequestBody RoleRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
     }

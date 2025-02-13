@@ -17,7 +17,7 @@ import java.util.UUID;
 public class UserRequestDTO {
 
     @Email(message = "Email must be valid.")
-    private String username;
+    private String email;
 
     @Size(min = 8, max = 200,message = "The password must be at least 8 to 200 characters.")
     private String password;

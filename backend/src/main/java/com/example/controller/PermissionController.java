@@ -29,7 +29,7 @@ public class PermissionController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<PermissionResponseDTO> create(@Valid @RequestBody PermissionRequestDTO request) {
+    public ResponseEntity<PermissionResponseDTO> save(@Valid @RequestBody PermissionRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
     }

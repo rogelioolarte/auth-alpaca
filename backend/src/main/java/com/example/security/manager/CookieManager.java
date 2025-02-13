@@ -1,7 +1,7 @@
 package com.example.security.manager;
 
-import com.example.utils.OAuth2AuthorizationRequestDeserializer;
-import com.example.utils.OAuth2AuthorizationResponseTypeDeserializer;
+import com.example.security.oauth2.AuthRequestDeserializer;
+import com.example.security.oauth2.AuthResponseTypeDeserializer;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -23,9 +23,9 @@ public class CookieManager {
 
     static {
         module.addDeserializer(OAuth2AuthorizationRequest.class,
-                new OAuth2AuthorizationRequestDeserializer());
+                new AuthRequestDeserializer());
         module.addDeserializer(OAuth2AuthorizationResponseType.class,
-                new OAuth2AuthorizationResponseTypeDeserializer());
+                new AuthResponseTypeDeserializer());
         objectMapper.registerModule(module)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);

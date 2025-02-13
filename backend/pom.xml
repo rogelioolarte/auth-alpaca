@@ -9,27 +9,47 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<artifactId>multiple-auth-api</artifactId>
+	<version>1.0.0</version>
+	<name>Multiple Auth API</name>
+	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.</description>
 	<url/>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Rogelio Olarte</name>
+			<url>https://github.com/rogelioolarte</url>
+			<email>rogelioolarte2222@gmail.com</email>
+			<roles>
+				<role>DEVELOPER</role>
+				<role>MAINTAINER</role>
+			</roles>
+		</developer><developer>
+			<name>Lewis Florez Renza</name>
+			<url>https://github.com/gasperlf</url>
+			<email>gasper_lf@hotmail.com</email>
+			<roles>
+				<role>ADVISOR</role>
+				<role>REVIEWER</role>
+			</roles>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/rogelioolarte/multiple-auth-api.git</connection>
+		<developerConnection>scm:git:ssh://github.com:rogelioolarte/multiple-auth-api.git</developerConnection>
+		<url>https://github.com/rogelioolarte/multiple-auth-api</url>
+		<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<jjwt.version>0.12.6</jjwt.version>
+		<spotless.version>2.44.0</spotless.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -81,17 +101,6 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-			<version>${org.mapstruct.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct-processor</artifactId>
-			<version>${org.mapstruct.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
@@ -119,11 +128,6 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>${org.mapstruct.version}</version>
-						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
@@ -137,6 +141,58 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>apply</goal>
+							<goal>check</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<formats>
+						<format>
+							<includes>
+								<include>*.md</include>
+								<include>*.json</include>
+								<include>.env</include>
+								<include>.gitattributes</include>
+								<include>.gitignore</include>
+							</includes>
+							<trimTrailingWhitespace/>
+							<endWithNewline/>
+							<indent>
+								<tabs>true</tabs>
+								<spacesPerTab>4</spacesPerTab>
+							</indent>
+						</format>
+					</formats>
+					<java>
+						<googleJavaFormat>
+							<version>1.17.0</version>
+							<style>AOSP</style>
+							<reflowLongStrings>true</reflowLongStrings>
+						</googleJavaFormat>
+						<includes>
+							<include>src/main/java/**/*.java</include>
+							<include>src/test/java/**/*.java</include>
+						</includes>
+						<removeUnusedImports/>
+						<toggleOffOn/>
+						<importOrder>
+							<order>java,javax,org.springframework,org,com</order>
+						</importOrder>
+						<licenseHeader>
+							<file>${project.basedir}/LICENSE</file>
+						</licenseHeader>
+					</java>
 				</configuration>
 			</plugin>
 		</plugins>

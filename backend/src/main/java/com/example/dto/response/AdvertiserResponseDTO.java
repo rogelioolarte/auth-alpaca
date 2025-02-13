@@ -14,6 +14,6 @@ public record AdvertiserResponseDTO(
         boolean paid,
         boolean verified,
         UUID userId,
-        String username
+        String email
 ) {
 }
