@@ -8,10 +8,7 @@ import com.example.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -37,6 +34,7 @@ public class ProfileMapperImpl implements ProfileMapper {
 
     @Override
     public List<ProfileResponseDTO> toListResponseDTO(Collection<Profile> entities) {
+        if(entities.isEmpty()) return Collections.emptyList();
         List<ProfileResponseDTO> profileResponseDTOS = new ArrayList<>(entities.size());
         for(Profile profile : entities) {
             profileResponseDTOS.add(toResponseDTO(profile));

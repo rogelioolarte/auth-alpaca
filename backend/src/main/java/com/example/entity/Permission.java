@@ -41,7 +41,7 @@ public class Permission {
     private String permissionName;
 
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions = new HashSet<>();
+    private Set<RolePermission> rolePermissions;
 
     /**
      * Constructs an instance of a new Permission object with the specified attributes.

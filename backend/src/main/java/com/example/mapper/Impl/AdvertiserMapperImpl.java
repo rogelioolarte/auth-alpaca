@@ -8,10 +8,7 @@ import com.example.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -42,6 +39,7 @@ public class AdvertiserMapperImpl implements AdvertiserMapper {
 
     @Override
     public List<AdvertiserResponseDTO> toListResponseDTO(Collection<Advertiser> entities) {
+        if(entities.isEmpty()) return Collections.emptyList();
         List<AdvertiserResponseDTO> responseDTOS = new ArrayList<>(entities.size());
         for(Advertiser advertiser : entities) {
             responseDTOS.add(toResponseDTO(advertiser));

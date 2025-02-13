@@ -46,11 +46,23 @@ public class Role {
     @Column(name = "role_description", nullable = false, unique = true)
     private String roleDescription;
 
+    /**
+     * Indicates the set of Permission has the Role.
+     * <p>
+     * A Role has a many-to-many relationship with an {@link Permission} through {@link RolePermission}
+     * </p>
+     */
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions = new HashSet<>();
+    private Set<RolePermission> rolePermissions;
 
+    /**
+     * Indicates the set of User has the Role.
+     * <p>
+     * A Role has a many-to-many relationship with an {@link User} through {@link UserRole}
+     * </p>
+     */
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles = new HashSet<>();
+    private Set<UserRole> userRoles;
 
     /**
      * Constructs an instance of a new Role object with the specified attributes.
@@ -66,7 +78,15 @@ public class Role {
         this.rolePermissions = permissionsToRolePermissions(permissions);
     }
 
+    /**
+     * Converts a set of {@link Permission} objects into a set of {@link RolePermission} objects
+     * associated with this Role.
+     *
+     * @param permissions the set of {@link Permission} objects to be converted.
+     * @return a set of {@link RolePermission} objects associated with this Role.
+     */
     public Set<RolePermission> permissionsToRolePermissions(Set<Permission> permissions) {
+        if(permissions.isEmpty()) return Collections.emptySet();
         Set<RolePermission> rolePermissions = new HashSet<>(permissions.size());
         for(Permission permission: permissions) {
             rolePermissions.add(new RolePermission(this, permission));
@@ -74,7 +94,13 @@ public class Role {
         return rolePermissions;
     }
 
+    /**
+     * Retrieves the list of permissions assigned to this Role.
+     *
+     * @return a list of {@link Permission} objects associated with this Role.
+     */
     public List<Permission> getPermissions() {
+        if(getRolePermissions().isEmpty()) return Collections.emptyList();
         List<Permission> permissions = new ArrayList<>(getRolePermissions().size());
         for(RolePermission rolePermission : getRolePermissions()) {
             permissions.add(rolePermission.getPermission());

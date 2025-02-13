@@ -89,12 +89,20 @@ public class User {
     @Column(name = "google_connected", nullable = false)
     private boolean googleConnected = false;
 
+    /**
+     * Indicates the set of Role has the User.
+     * <p>
+     * A User has a many-to-many relationship with an {@link Role} through {@link UserRole}
+     * </p>
+     */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles = new HashSet<>();
+    private Set<UserRole> userRoles;
 
     /**
      * The Profile entity associated with the User.
+     * <p>
      * A User has a one-to-one relationship with a {@link Profile}.
+     * </p>
      */
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE,
             fetch = FetchType.LAZY, orphanRemoval = true)
@@ -102,7 +110,9 @@ public class User {
 
     /**
      * The Advertiser entity associated with the User.
+     * <p>
      * A User has a one-to-one relationship with an {@link Advertiser}.
+     * </p>
      */
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE,
             fetch = FetchType.LAZY, orphanRemoval = true)
@@ -122,8 +132,9 @@ public class User {
      * @param googleConnected     indicates whether the User has connected with Google
      * @param roles               Set of Roles assigned to the User
      */
-    public User(String email, String password, boolean enabled, boolean accountNoExpired,
-                boolean accountNoLocked, boolean credentialNoExpired, boolean emailVerified,
+    public User(String email, String password, boolean enabled,
+                boolean accountNoExpired, boolean accountNoLocked,
+                boolean credentialNoExpired, boolean emailVerified,
                 boolean googleConnected, Set<Role> roles) {
         this.email = email;
         this.password = password;
@@ -136,7 +147,16 @@ public class User {
         this.userRoles = rolesToUserRoles(roles);
     }
 
-    public Set<UserRole> rolesToUserRoles(Set<Role> roles) {
+    /**
+     * Converts a set of {@link Role} objects into a set of {@link UserRole} objects
+     * associated with the current User.
+     *
+     * @param roles the set of {@link Role} objects to be converted.
+     * @return a set of {@link UserRole} objects associated with the User.
+     */
+    private Set<UserRole> rolesToUserRoles(Set<Role> roles) {
+        if(roles.isEmpty()) return Collections.emptySet();
+        if(roles.size() == 1) return Set.of(new UserRole(this, roles.iterator().next()));
         Set<UserRole> userRoles = new HashSet<>(roles.size());
         for(Role role: roles) {
             userRoles.add(new UserRole(this, role));
@@ -144,7 +164,14 @@ public class User {
         return userRoles;
     }
 
+    /**
+     * Retrieves the list of roles assigned to the User.
+     *
+     * @return a List of {@link Role} objects representing the User's roles.
+     */
     public List<Role> getRoles() {
+        if(getUserRoles().isEmpty()) return Collections.emptyList();
+        if(getUserRoles().size() == 1) return List.of(getUserRoles().iterator().next().getRole());
         List<Role> roles = new ArrayList<>(getUserRoles().size());
         for(UserRole userRole : getUserRoles()) {
             roles.add(userRole.getRole());
@@ -159,9 +186,13 @@ public class User {
      * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
      */
     public Set<SimpleGrantedAuthority> getAuthorities() {
+        if(userRoles.isEmpty()) return Collections.emptySet();
+        if(userRoles.size() == 1) return Set.of(new SimpleGrantedAuthority(
+                        "ROLE" + userRoles.iterator().next().getRole().getRoleName()));
         Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
         for (UserRole userRole : userRoles) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
+            authorities.add(new SimpleGrantedAuthority(
+                    "ROLE_" + userRole.getRole().getRoleName()));
 //             Uncomment the following code if permissions should be included in authorities
 //             If we add this for cycle to the function it will have a time complexity of O(n^2)
 //             for (Permission permission : userRole.getRole().getPermissions()) {

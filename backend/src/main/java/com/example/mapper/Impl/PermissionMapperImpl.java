@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -29,6 +30,7 @@ public class PermissionMapperImpl implements PermissionMapper {
 
     @Override
     public List<PermissionResponseDTO> toListResponseDTO(Collection<Permission> entities) {
+        if(entities.isEmpty()) return Collections.emptyList();
         List<PermissionResponseDTO> permissionResponseDTOS = new ArrayList<>(entities.size());
         for(Permission permission : entities) {
             permissionResponseDTOS.add(toResponseDTO(permission));

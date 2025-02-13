@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -44,6 +45,7 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public List<UserResponseDTO> toListResponseDTO(Collection<User> entities) {
+        if(entities.isEmpty()) return Collections.emptyList();
         List<UserResponseDTO> userResponseDTOS = new ArrayList<>(entities.size());
         for(User user : entities) {
             userResponseDTOS.add(toResponseDTO(user));
