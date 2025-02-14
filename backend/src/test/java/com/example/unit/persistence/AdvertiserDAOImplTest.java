@@ -1,10 +1,13 @@
-package com.example.persistence.impl;
+package com.example.unit.persistence;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+class AdvertiserDAOImplTest {
 
-class ProfileDAOImplTest {
+    @BeforeEach
+    void setUp() {
+    }
 
     @Test
     void findById() {

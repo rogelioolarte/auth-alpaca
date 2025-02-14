@@ -1,11 +1,9 @@
-package com.example.persistence.impl;
+package com.example.unit.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class PermissionDAOImplTest {
+class RoleServiceImplTest {
 
     @BeforeEach
     void setUp() {
@@ -20,7 +18,7 @@ class PermissionDAOImplTest {
     }
 
     @Test
-    void deleteById() {
+    void findAllByIdstoSet() {
     }
 
     @Test
@@ -29,6 +27,14 @@ class PermissionDAOImplTest {
 
     @Test
     void saveAll() {
+    }
+
+    @Test
+    void updateById() {
+    }
+
+    @Test
+    void deleteById() {
     }
 
     @Test
@@ -48,18 +54,22 @@ class PermissionDAOImplTest {
     }
 
     @Test
-    void getRepo() {
-    }
-
-    @Test
-    void getEntity() {
-    }
-
-    @Test
-    void updateById() {
-    }
-
-    @Test
     void existsByUniqueProperties() {
+    }
+
+    @Test
+    void getDAO() {
+    }
+
+    @Test
+    void getEntityName() {
+    }
+
+    @Test
+    void getUserRoles() {
+    }
+
+    @Test
+    void findByRoleName() {
     }
 }

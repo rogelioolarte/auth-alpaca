@@ -43,7 +43,8 @@ public class ProfileDAOImpl extends GenericDAOImpl<Profile, UUID> implements IPr
         if (profile.getAvatarUrl() != null && !profile.getAvatarUrl().isBlank()) {
             existingProfile.setAvatarUrl(profile.getAvatarUrl());
         }
-        if (profile.getUser() != null && !profile.getUser().getId().toString().isBlank()) {
+        if (profile.getUser() != null && profile.getUser().getId() != null
+                && !profile.getUser().getId().toString().isBlank()) {
             existingProfile.setUser(profile.getUser());
         }
         return save(existingProfile);
