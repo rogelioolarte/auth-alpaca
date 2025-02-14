@@ -49,7 +49,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<jjwt.version>0.12.6</jjwt.version>
-		<spotless.version>2.44.0</spotless.version>
+		<spotless.version>2.44.2</spotless.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -100,6 +100,7 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -114,6 +115,11 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>dotenv-java</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 	</dependencies>
 
@@ -143,57 +149,102 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<!--			<plugin>-->
+			<!--				<groupId>com.diffplug.spotless</groupId>-->
+			<!--				<artifactId>spotless-maven-plugin</artifactId>-->
+			<!--				<version>${spotless.version}</version>-->
+			<!--				<executions>-->
+			<!--					<execution>-->
+			<!--						<goals>-->
+			<!--							<goal>apply</goal>-->
+			<!--							<goal>check</goal>-->
+			<!--						</goals>-->
+			<!--						<phase>compile</phase>-->
+			<!--					</execution>-->
+			<!--				</executions>-->
+			<!--				<configuration>-->
+			<!--					<formats>-->
+			<!--						<format>-->
+			<!--							<includes>-->
+			<!--								<include>*.md</include>-->
+			<!--								<include>*.json</include>-->
+			<!--								<include>.gitattributes</include>-->
+			<!--								<include>.gitignore</include>-->
+			<!--							</includes>-->
+			<!--							<trimTrailingWhitespace/>-->
+			<!--							<endWithNewline/>-->
+			<!--							<indent>-->
+			<!--								<tabs>true</tabs>-->
+			<!--								<spacesPerTab>4</spacesPerTab>-->
+			<!--							</indent>-->
+			<!--						</format>-->
+			<!--					</formats>-->
+			<!--					<java>-->
+			<!--						<googleJavaFormat>-->
+			<!--							<version>1.25.2</version>-->
+			<!--							<style>AOSP</style>-->
+			<!--							<reflowLongStrings>true</reflowLongStrings>-->
+			<!--						</googleJavaFormat>-->
+			<!--						<includes>-->
+			<!--							<include>src/main/java/**</include>-->
+			<!--							<include>src/test/java/**</include>-->
+			<!--						</includes>-->
+			<!--						<removeUnusedImports/>-->
+			<!--						<formatAnnotations/>-->
+			<!--						<toggleOffOn/>-->
+			<!--						<importOrder>-->
+			<!--							<order>java,javax,org.springframework,org,com</order>-->
+			<!--						</importOrder>-->
+			<!--						<licenseHeader>-->
+			<!--							<file>${project.basedir}/LICENSE</file>-->
+			<!--						</licenseHeader>-->
+			<!--					</java>-->
+			<!--				</configuration>-->
+			<!--			</plugin>-->
 			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
-				<version>${spotless.version}</version>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<goals>
-							<goal>apply</goal>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/entity/**</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jacoco-check</id>
+						<goals>
 							<goal>check</goal>
 						</goals>
-						<phase>compile</phase>
+						<configuration>
+							<rules>
+								<rule>
+									<element>PACKAGE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.80</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<formats>
-						<format>
-							<includes>
-								<include>*.md</include>
-								<include>*.json</include>
-								<include>.env</include>
-								<include>.gitattributes</include>
-								<include>.gitignore</include>
-							</includes>
-							<trimTrailingWhitespace/>
-							<endWithNewline/>
-							<indent>
-								<tabs>true</tabs>
-								<spacesPerTab>4</spacesPerTab>
-							</indent>
-						</format>
-					</formats>
-					<java>
-						<googleJavaFormat>
-							<version>1.17.0</version>
-							<style>AOSP</style>
-							<reflowLongStrings>true</reflowLongStrings>
-						</googleJavaFormat>
-						<includes>
-							<include>src/main/java/**/*.java</include>
-							<include>src/test/java/**/*.java</include>
-						</includes>
-						<removeUnusedImports/>
-						<toggleOffOn/>
-						<importOrder>
-							<order>java,javax,org.springframework,org,com</order>
-						</importOrder>
-						<licenseHeader>
-							<file>${project.basedir}/LICENSE</file>
-						</licenseHeader>
-					</java>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
