@@ -1,4 +1,4 @@
-package com.example.mapper.Impl;
+package com.example.mapper.impl;
 
 import com.example.dto.request.UserRequestDTO;
 import com.example.dto.response.UserResponseDTO;
@@ -38,8 +38,6 @@ public class UserMapperImpl implements UserMapper {
     public User toEntity(UserRequestDTO requestDTO) {
         if(requestDTO == null) return null;
         return new User(requestDTO.getEmail(), requestDTO.getPassword(),
-                true, true, true,
-                true, false, false,
                 roleService.findAllByIdstoSet(requestDTO.getRoles()));
     }
 

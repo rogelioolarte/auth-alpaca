@@ -120,6 +120,20 @@ public class User {
 
     /**
      * Constructs an instance of a new User object with the specified attributes.
+     * The generated object is ready to be used by default.
+     *
+     * @param email               the User's email - must not be null
+     * @param password            the User's encrypted password - must not be null
+     * @param roles               Set of Roles assigned to the User
+     */
+    public User(String email, String password, Set<Role> roles) {
+        this.email = email;
+        this.password = password;
+        this.userRoles = rolesToUserRoles(roles);
+    }
+
+    /**
+     * Constructs an instance of a new User object with the specified attributes.
      * The generated object is ready to be used and stored in the database.
      *
      * @param email               the User's email - must not be null
@@ -188,7 +202,7 @@ public class User {
     public Set<SimpleGrantedAuthority> getAuthorities() {
         if(userRoles.isEmpty()) return Collections.emptySet();
         if(userRoles.size() == 1) return Set.of(new SimpleGrantedAuthority(
-                        "ROLE" + userRoles.iterator().next().getRole().getRoleName()));
+                        "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
         Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
         for (UserRole userRole : userRoles) {
             authorities.add(new SimpleGrantedAuthority(

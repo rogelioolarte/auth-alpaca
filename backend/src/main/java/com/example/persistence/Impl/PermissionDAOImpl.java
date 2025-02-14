@@ -1,4 +1,4 @@
-package com.example.persistence.Impl;
+package com.example.persistence.impl;
 
 import com.example.entity.Permission;
 import com.example.exception.NotFoundException;
@@ -28,8 +28,6 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
 
     @Override
     public Permission updateById(Permission permission, UUID id) {
-        if (permission.getPermissionName() == null || permission.getPermissionName().isBlank())
-            return null;
         Permission existingPermission = findById(id).orElseThrow(() -> new NotFoundException(
                 String.format("%s with ID %s not found",
                         getEntity().getName(), id.toString())));

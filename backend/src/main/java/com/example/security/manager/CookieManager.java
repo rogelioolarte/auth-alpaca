@@ -89,7 +89,7 @@ public class CookieManager {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (Exception e) {
-            throw new RuntimeException("Error serializing object", e);
+            throw new RuntimeException("Error serializing object", e.getCause());
         }
     }
 

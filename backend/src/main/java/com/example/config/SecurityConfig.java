@@ -5,7 +5,7 @@ import com.example.security.manager.JJwtManager;
 import com.example.security.manager.PasswordManager;
 import com.example.security.oauth2.*;
 import com.example.service.IAuthService;
-import com.example.service.Impl.AuthServiceImpl;
+import com.example.service.impl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,8 +44,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String OAuth2BaseURI = "/oauth2/authorize";
-    private static final String OAuth2RedirectionEndPoint = "/oauth2/callback/*";
+    private static final String oAuth2BaseURI = "/oauth2/authorize";
+    private static final String oAuth2RedirectionEndPoint = "/oauth2/callback/*";
 
     private final JJwtManager manager;
     private final PasswordManager passwordManager;
@@ -80,12 +80,12 @@ public class SecurityConfig {
         });
         http.oauth2Login(oauth2 -> {
             oauth2.authorizationEndpoint(c -> {
-                c.baseUri(OAuth2BaseURI);
+                c.baseUri(oAuth2BaseURI);
                 c.authorizationRequestRepository(cookieAuthReqRepo);
                 c.authorizationRequestResolver(
-                        new OAuth2ReqResolver(clientRegistrationRepository, OAuth2BaseURI));
+                        new OAuth2ReqResolver(clientRegistrationRepository, oAuth2BaseURI));
             });
-            oauth2.redirectionEndpoint(c -> c.baseUri(OAuth2RedirectionEndPoint));
+            oauth2.redirectionEndpoint(c -> c.baseUri(oAuth2RedirectionEndPoint));
             oauth2.userInfoEndpoint(c -> c.userService(authService));
             oauth2.tokenEndpoint(c ->
                     c.accessTokenResponseClient(authorizationCodeTokenResponseClient()));

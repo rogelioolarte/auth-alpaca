@@ -1,4 +1,4 @@
-package com.example.service.Impl;
+package com.example.service.impl;
 
 import com.example.entity.Profile;
 import com.example.persistence.IGenericDAO;

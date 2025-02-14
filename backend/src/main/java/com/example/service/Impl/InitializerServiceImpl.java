@@ -1,4 +1,4 @@
-package com.example.service.Impl;
+package com.example.service.impl;
 
 import com.example.service.DataService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ public class InitializerServiceImpl implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        dataService.initializeData();
+//        dataService.initializeData();
     }
 
 }

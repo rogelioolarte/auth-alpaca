@@ -1,4 +1,4 @@
-package com.example.service.Impl;
+package com.example.service.impl;
 
 import com.example.entity.Permission;
 import com.example.entity.Profile;
@@ -44,22 +44,13 @@ public class DataServiceImpl implements DataService {
         roleService.saveAll(List.of(adminRole, managerRole, userRole));
 
         User testGoogleUser = new User("mcqueenrayo104@gmail.com",
-                passwordManager.encodePassword("123456789"),
-                true, true, true,
-                true, false, false, Set.of(userRole));
+                passwordManager.encodePassword("123456789"), Set.of(userRole));
         User adminUser = new User("admin@admin.com",
-                passwordManager.encodePassword("123456789"),
-                true, true, true,
-                true, false, false,
-                Set.of(adminRole));
+                passwordManager.encodePassword("123456789"), Set.of(adminRole));
         User managerUser = new User("manager@manager.com",
-                passwordManager.encodePassword("123456789"),
-                true, true, true,
-                true, false, false, Set.of(managerRole));
+                passwordManager.encodePassword("123456789"), Set.of(managerRole));
         User userUser = new User("user@user.com",
-                passwordManager.encodePassword("123456789"),
-                true, true, true,
-                true, false, false, Set.of(userRole));
+                passwordManager.encodePassword("123456789"), Set.of(userRole));
         userService.saveAll(List.of(adminUser, managerUser, userUser, testGoogleUser));
 
         Profile adminProfile = new Profile("Admin", "Last",

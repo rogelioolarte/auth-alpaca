@@ -1,4 +1,4 @@
-package com.example.service.Impl;
+package com.example.service.impl;
 
 import com.example.dto.request.AuthRequestDTO;
 import com.example.dto.response.AuthResponseDTO;
@@ -112,7 +112,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
                             true, true, true,
                             roleService.getUserRoles())), userInfo), user.getAttributes());
         }
-        return new UserPrincipal(userService.findByEmail(userInfo.getEmail()),
+        return new UserPrincipal(checkExistinguser(userService.findByEmail(userInfo.getEmail())),
                 user.getAttributes());
     }
 
@@ -120,5 +120,15 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
         profileService.save(new Profile(userInfo.getFirstName(),
                 userInfo.getLastName(), "", userInfo.getImageUrl(), user));
         return user;
+    }
+
+    private User checkExistinguser(User user) {
+        if(user.isGoogleConnected()) {
+            user.setEmailVerified(true);
+            user.setGoogleConnected(true);
+            return userService.register(user);
+        } else {
+            return user;
+        }
     }
 }

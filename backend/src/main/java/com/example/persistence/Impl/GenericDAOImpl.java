@@ -1,4 +1,4 @@
-package com.example.persistence.Impl;
+package com.example.persistence.impl;
 
 import com.example.persistence.IGenericDAO;
 import com.example.repository.GenericRepo;

@@ -1,4 +1,4 @@
-package com.example.persistence.Impl;
+package com.example.persistence.impl;
 
 import com.example.entity.User;
 import com.example.exception.NotFoundException;

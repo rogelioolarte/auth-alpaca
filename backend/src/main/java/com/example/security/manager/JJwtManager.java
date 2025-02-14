@@ -1,6 +1,5 @@
 package com.example.security.manager;
 
-import com.example.config.AppProperties;
 import com.example.exception.UnauthorizedException;
 import com.example.model.UserPrincipal;
 import io.jsonwebtoken.Claims;
@@ -8,6 +7,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.SignatureAlgorithm;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -28,24 +29,28 @@ public class JJwtManager {
 
     private final SignatureAlgorithm alg = Jwts.SIG.RS512;
 
-    private final AppProperties app;
     private final RSAPrivateKey privateKey;
     private final RSAPublicKey publicKey;
+    private final String jwtUserGenerator;
+    private final String jwtTimeExpiration;
 
-    public JJwtManager(AppProperties app)
+    public JJwtManager(@Value("${app.jwtPrivateKey}") @NotNull String jwtPrivateKey,
+                       @Value("${app.jwtPublicKey}") @NotNull String jwtPublicKey,
+                       @Value("${app.jwtUserGenerator}") @NotNull String jwtUSerGenerator,
+                       @Value("${app.jwtTimeExpiration}") @NotNull String jwtTimeExpiration)
             throws Exception {
-        this.app = app;
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         this.publicKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec
-                (Decoders.BASE64.decode(app.jwtPublicKey)));
+                (Decoders.BASE64.decode(jwtPublicKey)));
         this.privateKey = (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec
-                (Decoders.BASE64.decode(app.jwtPrivateKey)));
-
+                (Decoders.BASE64.decode(jwtPrivateKey)));
+        this.jwtUserGenerator = jwtUSerGenerator;
+        this.jwtTimeExpiration = jwtTimeExpiration;
     }
 
     public String createToken(UserPrincipal user) {
         return Jwts.builder()
-                .issuer(app.jwtUserGenerator)
+                .issuer(jwtUserGenerator)
                 .subject(user.getUsername())
                 .claim("authorities", authoritiesToString(user.getAuthorities()))
                 .claim("userId", user.getId().toString())
@@ -55,7 +60,7 @@ public class JJwtManager {
                         user.getAdvertiserId().toString() : "")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() +
-                        Long.parseLong(app.jwtTimeExpiration)))
+                        Long.parseLong(jwtTimeExpiration)))
                 .notBefore(new Date(System.currentTimeMillis()))
                 .signWith(privateKey, alg).compact();
     }
@@ -63,7 +68,7 @@ public class JJwtManager {
     public Jws<Claims> validateToken(String token) {
         try {
             return Jwts.parser().verifyWith(publicKey)
-                    .requireIssuer(app.jwtUserGenerator)
+                    .requireIssuer(jwtUserGenerator)
                     .build()
                     .parseSignedClaims(token);
         } catch (Exception exception){

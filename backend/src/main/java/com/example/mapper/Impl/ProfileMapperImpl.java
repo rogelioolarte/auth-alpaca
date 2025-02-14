@@ -1,4 +1,4 @@
-package com.example.mapper.Impl;
+package com.example.mapper.impl;
 
 import com.example.dto.request.ProfileRequestDTO;
 import com.example.dto.response.ProfileResponseDTO;

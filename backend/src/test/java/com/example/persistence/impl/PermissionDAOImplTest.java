@@ -1,22 +1,14 @@
-package com.example.persistence.Impl;
+package com.example.persistence.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GenericDAOImplTest {
+class PermissionDAOImplTest {
 
     @BeforeEach
     void setUp() {
-    }
-
-    @Test
-    void getRepo() {
-    }
-
-    @Test
-    void getEntity() {
     }
 
     @Test
@@ -53,5 +45,21 @@ class GenericDAOImplTest {
 
     @Test
     void existsAllByIds() {
+    }
+
+    @Test
+    void getRepo() {
+    }
+
+    @Test
+    void getEntity() {
+    }
+
+    @Test
+    void updateById() {
+    }
+
+    @Test
+    void existsByUniqueProperties() {
     }
 }

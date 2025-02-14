@@ -1,15 +1,14 @@
 package com.example;
 
-import com.example.config.AppProperties;
+import com.example.utils.LoadEnv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(AppProperties.class)
 public class DemoApplication {
 
 	public static void main(String[] args) {
+		LoadEnv.init();
 		SpringApplication.run(DemoApplication.class, args);
 	}
 }

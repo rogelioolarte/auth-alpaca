@@ -1,4 +1,4 @@
-package com.example.service.Impl;
+package com.example.service.impl;
 
 import com.example.entity.Role;
 import com.example.exception.BadRequestException;
@@ -28,11 +28,6 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
     @Override
     protected String getEntityName() {
         return "Role";
-    }
-
-    @Override
-    public Role save(Role role) {
-        return super.save(role);
     }
 
     @Override
