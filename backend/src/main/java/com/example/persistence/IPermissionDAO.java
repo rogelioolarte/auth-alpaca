@@ -2,6 +2,7 @@ package com.example.persistence;
 
 import com.example.entity.Permission;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -11,4 +12,7 @@ import java.util.UUID;
  * @see IGenericDAO
  */
 public interface IPermissionDAO extends IGenericDAO<Permission, UUID> {
+
+
+    Optional<Permission> findByPermissionName(String permissionName);
 }

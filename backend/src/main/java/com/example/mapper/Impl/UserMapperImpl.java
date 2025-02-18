@@ -38,7 +38,7 @@ public class UserMapperImpl implements UserMapper {
     public User toEntity(UserRequestDTO requestDTO) {
         if(requestDTO == null) return null;
         return new User(requestDTO.getEmail(), requestDTO.getPassword(),
-                roleService.findAllByIdstoSet(requestDTO.getRoles()));
+                roleService.findAllByIdsToSet(requestDTO.getRoles()));
     }
 
     @Override

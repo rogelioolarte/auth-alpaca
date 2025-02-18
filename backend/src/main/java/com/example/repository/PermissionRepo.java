@@ -3,6 +3,7 @@ package com.example.repository;
 import com.example.entity.Permission;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -24,4 +25,12 @@ public interface PermissionRepo extends GenericRepo<Permission, UUID> {
      * @return {@code true} if a permission with the given name exists, {@code false} otherwise.
      */
     boolean existsByPermissionName(String permissionName);
+
+    /**
+     * Retrieves a permission by their permission name.
+     *
+     * @param permissionName The permission name of the permission - must not be null.
+     * @return An {@link Optional} containing the permission if found, otherwise empty.
+     */
+    Optional<Permission> findByPermissionName(String permissionName);
 }

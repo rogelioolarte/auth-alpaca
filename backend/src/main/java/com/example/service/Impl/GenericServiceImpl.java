@@ -53,7 +53,7 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
         return getDAO().findAllByIds(ids);
     }
 
-    public Set<T> findAllByIdstoSet(Collection<ID> ids) {
+    public Set<T> findAllByIdsToSet(Collection<ID> ids) {
         return new HashSet<>(findAllByIds(ids));
     }
 

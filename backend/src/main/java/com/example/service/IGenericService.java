@@ -45,7 +45,7 @@ public interface IGenericService<T, ID> {
      * @throws BadRequestException if the IDs are null or empty.
      * @throws NotFoundException   if any entity is not found.
      */
-    Set<T> findAllByIdstoSet(Collection<ID> ids);
+    Set<T> findAllByIdsToSet(Collection<ID> ids);
 
     /**
      * Saves a new entity.

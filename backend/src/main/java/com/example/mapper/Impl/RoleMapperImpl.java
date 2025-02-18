@@ -32,7 +32,7 @@ public class RoleMapperImpl implements RoleMapper {
     public Role toEntity(RoleRequestDTO requestDTO) {
         if(requestDTO == null) return null;
         return new Role(requestDTO.getRoleName(), requestDTO.getRoleDescription(),
-                permissionService.findAllByIdstoSet(requestDTO.getPermissions()));
+                permissionService.findAllByIdsToSet(requestDTO.getPermissions()));
     }
 
     @Override

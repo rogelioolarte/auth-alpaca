@@ -14,7 +14,7 @@ public class InitializerServiceImpl implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-//        dataService.initializeData();
+        dataService.initializeData();
     }
 
 }

@@ -8,6 +8,7 @@ import com.example.repository.PermissionRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -44,4 +45,8 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
         return repo.existsByPermissionName(permission.getPermissionName());
     }
 
+    @Override
+    public Optional<Permission> findByPermissionName(String permissionName) {
+        return repo.findByPermissionName(permissionName);
+    }
 }
