@@ -218,9 +218,16 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<excludes>
+							<excludes>DataServiceImpl
 								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/DataServiceImpl.class</exclude>
 								<exclude>**/entity/**</exclude>
+								<exclude>**/model/**</exclude>
+								<exclude>**/dto/**</exclude>
+								<exclude>**/exception/**</exclude>
+								<exclude>**/repository/**</exclude>
+								<exclude>**/config/**</exclude>
+								<exclude>**/utils/**</exclude>
 							</excludes>
 						</configuration>
 					</execution>
