@@ -4,6 +4,7 @@ import com.example.entity.Advertiser;
 import com.example.persistence.IAdvertiserDAO;
 import com.example.persistence.IGenericDAO;
 import com.example.service.IAdvertiserService;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,13 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
     private final IAdvertiserDAO dao;
 
     @Override
+    @Generated
     protected IGenericDAO<Advertiser, UUID> getDAO() {
         return dao;
     }
 
     @Override
+    @Generated
     protected String getEntityName() {
         return "Advertiser";
     }

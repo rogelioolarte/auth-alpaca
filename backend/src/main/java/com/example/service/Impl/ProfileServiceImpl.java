@@ -4,6 +4,7 @@ import com.example.entity.Profile;
 import com.example.persistence.IGenericDAO;
 import com.example.persistence.IProfileDAO;
 import com.example.service.IProfileService;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +17,13 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID> implem
     private final IProfileDAO dao;
 
     @Override
+    @Generated
     protected IGenericDAO<Profile, UUID> getDAO() {
         return dao;
     }
 
     @Override
+    @Generated
     protected String getEntityName() {
         return "Profile";
     }

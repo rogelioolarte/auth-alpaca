@@ -32,12 +32,12 @@ public abstract class GenericDAOImpl<T, ID> implements
 
     @Override
     public T save(T t) {
-        return getRepo().saveAndFlush(t);
+        return getRepo().save(t);
     }
 
     @Override
-    public List<T> saveAll(List<T> t) {
-        return getRepo().saveAllAndFlush(t);
+    public List<T> saveAll(Collection<T> t) {
+        return getRepo().saveAll(t);
     }
 
     @Override

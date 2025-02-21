@@ -17,6 +17,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,26 +40,26 @@ public class DataServiceImpl implements DataService {
         Permission updatePermission = new Permission("UPDATE");
         Permission deletePermission = new Permission("DELETE");
         Permission createPermission = new Permission("CREATE");
-        permissionDAO.saveAll(List.of(readPermission, updatePermission,
-                createPermission, deletePermission));
+        permissionDAO.saveAll(new ArrayList<>(List.of(readPermission, updatePermission,
+                createPermission, deletePermission)));
 
         Role adminRole = new Role("ADMIN", "It's an admin",
-                Set.of(readPermission, updatePermission, deletePermission, createPermission));
+                new HashSet<>(Set.of(readPermission, updatePermission, deletePermission, createPermission)));
         Role userRole = new Role("USER", "It's an user",
-                Set.of(readPermission, createPermission));
+                new HashSet<>(Set.of(readPermission, createPermission)));
         Role managerRole = new Role("MANAGER", "it's a manager",
-                Set.of(readPermission, updatePermission, createPermission));
-        roleDAO.saveAll(List.of(adminRole, managerRole, userRole));
+                new HashSet<>(Set.of(readPermission, updatePermission, createPermission)));
+        roleDAO.saveAll(new ArrayList<>(List.of(adminRole, managerRole, userRole)));
 
         User testGoogleUser = new User("mcqueenrayo104@gmail.com",
-                passwordManager.encodePassword("123456789"), Set.of(userRole));
+                passwordManager.encodePassword("123456789"), new HashSet<>(Set.of(userRole)));
         User adminUser = new User("admin@admin.com",
-                passwordManager.encodePassword("123456789"), Set.of(adminRole));
+                passwordManager.encodePassword("123456789"), new HashSet<>(Set.of(adminRole)));
         User managerUser = new User("manager@manager.com",
-                passwordManager.encodePassword("123456789"), Set.of(managerRole));
+                passwordManager.encodePassword("123456789"), new HashSet<>(Set.of(managerRole)));
         User userUser = new User("user@user.com",
-                passwordManager.encodePassword("123456789"), Set.of(userRole));
-        userDAO.saveAll(List.of(adminUser, managerUser, userUser, testGoogleUser));
+                passwordManager.encodePassword("123456789"), new HashSet<>(Set.of(userRole)));
+        userDAO.saveAll(new ArrayList<>(List.of(adminUser, managerUser, userUser, testGoogleUser)));
 
         Profile adminProfile = new Profile("Admin", "Last",
                 "https://foto.admin.com", "av admin 01", adminUser);
@@ -67,7 +69,8 @@ public class DataServiceImpl implements DataService {
                 "https://foto.invited.com", "av manager 01", managerUser);
         Profile testingGoogleProfile = new Profile("Testing google", "Last",
                 "https://foto.testing.com", "av testing 01", testGoogleUser);
-        profileDAO.saveAll(List.of(adminProfile, managerProfile, userProfile, testingGoogleProfile));
+        profileDAO.saveAll(new ArrayList<>(
+                List.of(adminProfile, managerProfile, userProfile, testingGoogleProfile)));
     }
 
     @EventListener(ApplicationReadyEvent.class)

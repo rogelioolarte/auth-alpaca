@@ -6,6 +6,7 @@ import com.example.exception.NotFoundException;
 import com.example.persistence.IGenericDAO;
 import com.example.persistence.IUserDAO;
 import com.example.service.IUserService;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,13 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     private final IUserDAO dao;
 
     @Override
+    @Generated
     protected IGenericDAO<User, UUID> getDAO() {
         return dao;
     }
 
     @Override
+    @Generated
     protected String getEntityName() {
         return "User";
     }
@@ -45,7 +48,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     @Transactional
     @Override
     public User findByEmail(String email) {
-        if (email == null) throw new BadRequestException(
+        if (email == null || email.isBlank()) throw new BadRequestException(
                 String.format("%s cannot be found", getEntityName()));
         return dao.findByEmail(email).orElseThrow(() ->
                 new NotFoundException("The email does not match any account"));

@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,14 +27,14 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JJwtManager jwtManager;
     private final CookieAuthReqRepo repository;
-    private final String oauth2AuthorizedRedirectURI;
+    private final Set<String> oauth2AuthorizedRedirectURI = new HashSet<>();
 
     public AuthSuccessHandler(JJwtManager jwtManager, CookieAuthReqRepo repository,
                               @Value("${app.oauth2AuthorizedRedirectURI}")
                               @NonNull String oauth2AuthorizedRedirectURI) {
         this.jwtManager = jwtManager;
         this.repository = repository;
-        this.oauth2AuthorizedRedirectURI = oauth2AuthorizedRedirectURI;
+        this.oauth2AuthorizedRedirectURI.add(oauth2AuthorizedRedirectURI);
     }
 
     @Override
@@ -68,10 +69,19 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private boolean isAuthorizedRedirectURI(String uri) {
         URI clientRedirectURI = URI.create(uri);
-        return Set.of(oauth2AuthorizedRedirectURI).stream().anyMatch(authURI -> {
-            URI authorizedURI = URI. create(authURI);
+        if(oauth2AuthorizedRedirectURI.size() == 1) {
+            URI authorizedURI = URI.create(oauth2AuthorizedRedirectURI.iterator().next());
             return authorizedURI.getHost().equalsIgnoreCase(clientRedirectURI.getHost()) &&
                     authorizedURI.getPort() == clientRedirectURI.getPort();
-        });
+        } else if (oauth2AuthorizedRedirectURI.size() > 1) {
+            for (String authURI : oauth2AuthorizedRedirectURI) {
+                URI authorizedURI = URI.create(authURI);
+                if (authorizedURI.getHost().equalsIgnoreCase(clientRedirectURI.getHost()) &&
+                        authorizedURI.getPort() == clientRedirectURI.getPort()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

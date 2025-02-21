@@ -37,11 +37,14 @@ public class RoleMapperImpl implements RoleMapper {
 
     @Override
     public List<RoleResponseDTO> toListResponseDTO(Collection<Role> entities) {
-        if(entities.isEmpty()) return Collections.emptyList();
-        if(entities.size() == 1) return List.of(toResponseDTO(entities.iterator().next()));
+        if(entities == null || entities.isEmpty()) return Collections.emptyList();
         List<RoleResponseDTO> roleResponseDTOS = new ArrayList<>(entities.size());
-        for(Role role : entities) {
-            roleResponseDTOS.add(toResponseDTO(role));
+        if(entities.size() == 1){
+            roleResponseDTOS.add(toResponseDTO(entities.iterator().next()));
+        } else {
+            for(Role role : entities) {
+                roleResponseDTOS.add(toResponseDTO(role));
+            }
         }
         return roleResponseDTOS;
     }

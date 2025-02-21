@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 import com.example.service.DataService;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -13,7 +14,8 @@ public class InitializerServiceImpl implements ApplicationRunner {
     private final DataService dataService;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    @Generated
+    public void run(ApplicationArguments args) {
         dataService.initializeData();
     }
 

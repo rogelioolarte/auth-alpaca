@@ -51,10 +51,10 @@ public interface IGenericDAO<T, ID> {
     /**
      * Saves multiple entities in batch.
      *
-     * @param t A list of entities to save - must not be null.
+     * @param t A collection of entities to save - must not be null.
      * @return A list of saved entities.
      */
-    List<T> saveAll(List<T> t);
+    List<T> saveAll(Collection<T> t);
 
     /**
      * Deletes an entity by its identifier - must not be null.

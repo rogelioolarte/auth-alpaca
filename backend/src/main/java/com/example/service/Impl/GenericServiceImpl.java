@@ -45,7 +45,7 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
     @Transactional
     @Override
     public List<T> findAllByIds(Collection<ID> ids) {
-        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull))
+        if (ids == null || ids.isEmpty() || ids.contains(null))
             throw new BadRequestException(
                     String.format("%s(s) cannot be found", getEntityName()));
         if (!existsAllByIds(ids)) throw new NotFoundException(
@@ -69,9 +69,9 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
 
     @Transactional
     @Override
-    public List<T> saveAll(List<T> t) {
-        if (t == null || t.isEmpty()) throw new BadRequestException(
-                String.format("%s cannot be created", getEntityName()));
+    public List<T> saveAll(Collection<T> t) {
+        if (t == null || t.isEmpty() || t.contains(null))
+            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
         return getDAO().saveAll(t);
     }
 
@@ -81,7 +81,7 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
         if (id == null || t == null) throw new BadRequestException(
                 String.format("%s cannot be updated", getEntityName()));
         return Optional.ofNullable(getDAO().updateById(t, id)).orElseThrow(() ->
-                new NotFoundException(String.format("%s with ID %s not found",
+                new BadRequestException(String.format("%s with ID %s cannot be updated",
                         getEntityName(), id.toString())));
     }
 
@@ -119,7 +119,7 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
     @Transactional
     @Override
     public boolean existsAllByIds(Collection<ID> ids) {
-        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull)) return false;
+        if (ids == null || ids.isEmpty() || ids.contains(null)) return false;
         return getDAO().existsAllByIds(ids);
     }
 

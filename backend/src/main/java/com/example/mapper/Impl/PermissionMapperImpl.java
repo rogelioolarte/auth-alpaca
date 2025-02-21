@@ -30,7 +30,7 @@ public class PermissionMapperImpl implements PermissionMapper {
 
     @Override
     public List<PermissionResponseDTO> toListResponseDTO(Collection<Permission> entities) {
-        if(entities.isEmpty()) return Collections.emptyList();
+        if(entities == null || entities.isEmpty()) return Collections.emptyList();
         List<PermissionResponseDTO> permissionResponseDTOS = new ArrayList<>(entities.size());
         for(Permission permission : entities) {
             permissionResponseDTOS.add(toResponseDTO(permission));

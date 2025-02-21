@@ -43,7 +43,7 @@ public class UserMapperImpl implements UserMapper {
 
     @Override
     public List<UserResponseDTO> toListResponseDTO(Collection<User> entities) {
-        if(entities.isEmpty()) return Collections.emptyList();
+        if(entities == null || entities.isEmpty()) return Collections.emptyList();
         List<UserResponseDTO> userResponseDTOS = new ArrayList<>(entities.size());
         for(User user : entities) {
             userResponseDTOS.add(toResponseDTO(user));

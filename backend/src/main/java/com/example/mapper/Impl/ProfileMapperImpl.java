@@ -34,7 +34,7 @@ public class ProfileMapperImpl implements ProfileMapper {
 
     @Override
     public List<ProfileResponseDTO> toListResponseDTO(Collection<Profile> entities) {
-        if(entities.isEmpty()) return Collections.emptyList();
+        if(entities == null || entities.isEmpty()) return Collections.emptyList();
         List<ProfileResponseDTO> profileResponseDTOS = new ArrayList<>(entities.size());
         for(Profile profile : entities) {
             profileResponseDTOS.add(toResponseDTO(profile));

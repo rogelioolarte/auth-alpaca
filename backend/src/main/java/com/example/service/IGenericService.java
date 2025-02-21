@@ -59,11 +59,11 @@ public interface IGenericService<T, ID> {
     /**
      * Saves multiple entities.
      *
-     * @param t A list of entities to save - must not be null or empty.
+     * @param t A collection of entities to save - must not be null or empty.
      * @return A list of saved entities.
      * @throws BadRequestException if the list is null or empty.
      */
-    List<T> saveAll(List<T> t);
+    List<T> saveAll(Collection<T> t);
 
     /**
      * Updates an existing entity by its identifier.

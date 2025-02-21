@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.StringUtils;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,10 +32,10 @@ public class AccessTokenResConverter
         if (source.containsKey(OAuth2ParameterNames.EXPIRES_IN)) {
             expiresIn = Long.valueOf((Integer) source.get(OAuth2ParameterNames.EXPIRES_IN));
         }
-        Set<String> scopes = Set.of();
+        Set<String> scopes = new HashSet<>();
         if (source.containsKey(OAuth2ParameterNames.SCOPE)) {
             String scope = (String) source.get(OAuth2ParameterNames.SCOPE);
-            scopes = Set.of(StringUtils.delimitedListToStringArray(scope, " "));
+            scopes = new HashSet<>(Set.of(StringUtils.delimitedListToStringArray(scope, " ")));
         }
         Map<String, Object> additionalParameters = new LinkedHashMap<>();
         source.entrySet().stream()

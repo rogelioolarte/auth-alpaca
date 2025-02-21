@@ -1,13 +1,8 @@
-package com.example.service.impl;
+package com.example.unit.persistence;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AdvertiserServiceImplTest {
-
-    @BeforeEach
-    void setUp() {
-    }
+class PermissionDAOImplTest {
 
     @Test
     void findById() {
@@ -18,7 +13,7 @@ class AdvertiserServiceImplTest {
     }
 
     @Test
-    void findAllByIdstoSet() {
+    void deleteById() {
     }
 
     @Test
@@ -27,14 +22,6 @@ class AdvertiserServiceImplTest {
 
     @Test
     void saveAll() {
-    }
-
-    @Test
-    void updateById() {
-    }
-
-    @Test
-    void deleteById() {
     }
 
     @Test
@@ -54,14 +41,14 @@ class AdvertiserServiceImplTest {
     }
 
     @Test
+    void updateById() {
+    }
+
+    @Test
     void existsByUniqueProperties() {
     }
 
     @Test
-    void getDAO() {
-    }
-
-    @Test
-    void getEntityName() {
+    void findByPermissionName() {
     }
 }

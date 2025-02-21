@@ -39,7 +39,7 @@ public class AdvertiserMapperImpl implements AdvertiserMapper {
 
     @Override
     public List<AdvertiserResponseDTO> toListResponseDTO(Collection<Advertiser> entities) {
-        if(entities.isEmpty()) return Collections.emptyList();
+        if(entities == null || entities.isEmpty()) return Collections.emptyList();
         List<AdvertiserResponseDTO> responseDTOS = new ArrayList<>(entities.size());
         for(Advertiser advertiser : entities) {
             responseDTOS.add(toResponseDTO(advertiser));

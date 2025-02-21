@@ -170,10 +170,13 @@ public class User {
      */
     private Set<UserRole> rolesToUserRoles(Set<Role> roles) {
         if(roles.isEmpty()) return Collections.emptySet();
-        if(roles.size() == 1) return Set.of(new UserRole(this, roles.iterator().next()));
         Set<UserRole> userRoles = new HashSet<>(roles.size());
-        for(Role role: roles) {
-            userRoles.add(new UserRole(this, role));
+        if(roles.size() == 1) {
+            userRoles.add(new UserRole(this, roles.iterator().next()));
+        } else {
+            for(Role role: roles) {
+                userRoles.add(new UserRole(this, role));
+            }
         }
         return userRoles;
     }
@@ -185,10 +188,13 @@ public class User {
      */
     public List<Role> getRoles() {
         if(getUserRoles().isEmpty()) return Collections.emptyList();
-        if(getUserRoles().size() == 1) return List.of(getUserRoles().iterator().next().getRole());
         List<Role> roles = new ArrayList<>(getUserRoles().size());
-        for(UserRole userRole : getUserRoles()) {
-            roles.add(userRole.getRole());
+        if(getUserRoles().size() == 1) {
+            roles.add(getUserRoles().iterator().next().getRole());
+        } else {
+            for(UserRole userRole : getUserRoles()) {
+                roles.add(userRole.getRole());
+            }
         }
         return roles;
     }
@@ -201,17 +207,20 @@ public class User {
      */
     public Set<SimpleGrantedAuthority> getAuthorities() {
         if(userRoles.isEmpty()) return Collections.emptySet();
-        if(userRoles.size() == 1) return Set.of(new SimpleGrantedAuthority(
-                        "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
         Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
-        for (UserRole userRole : userRoles) {
+        if(userRoles.size() == 1) {
             authorities.add(new SimpleGrantedAuthority(
-                    "ROLE_" + userRole.getRole().getRoleName()));
+                    "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
+        } else {
+            for (UserRole userRole : userRoles) {
+                authorities.add(new SimpleGrantedAuthority(
+                        "ROLE_" + userRole.getRole().getRoleName()));
 //             Uncomment the following code if permissions should be included in authorities
 //             If we add this for cycle to the function it will have a time complexity of O(n^2)
 //             for (Permission permission : userRole.getRole().getPermissions()) {
 //                 authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
 //             }
+            }
         }
         return authorities;
     }
