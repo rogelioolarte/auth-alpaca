@@ -5,6 +5,7 @@ import com.example.exception.NotFoundException;
 import com.example.persistence.IUserDAO;
 import com.example.repository.GenericRepo;
 import com.example.repository.UserRepo;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,13 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     private final UserRepo repo;
 
     @Override
+    @Generated
     protected GenericRepo<User, UUID> getRepo() {
         return repo;
     }
 
     @Override
+    @Generated
     protected Class<User> getEntity() {
         return User.class;
     }

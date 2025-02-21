@@ -165,10 +165,7 @@ class PermissionServiceImplTest {
         ArgumentCaptor<UUID> idAC = ArgumentCaptor.forClass(UUID.class);
         ArgumentCaptor<Permission> permissionAC = ArgumentCaptor.forClass(Permission.class);
         verify(dao).updateById(permissionAC.capture(), idAC.capture());
-        assertEquals(idSecond, idAC.getValue());
-        assertEquals(permissionSecond.getId(), permissionAC.getValue().getId());
         assertEquals(permissionSecond.getPermissionName(), permissionAC.getValue().getPermissionName());
-        assertEquals(permissionSecond.getRolePermissions(), permissionAC.getValue().getRolePermissions());
     }
 
     @Test

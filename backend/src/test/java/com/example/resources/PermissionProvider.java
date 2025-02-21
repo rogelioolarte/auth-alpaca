@@ -20,7 +20,6 @@ public class PermissionProvider{
     public static PermissionRequestDTO firstPReqDTO = new PermissionRequestDTO("CREATE");
     public static PermissionRequestDTO secondPReqDTO = new PermissionRequestDTO("READ");
 
-
     public static PermissionResponseDTO firstPResDTO = new PermissionResponseDTO(
             UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "DELETE");
     public static PermissionResponseDTO secondPResDTO = new PermissionResponseDTO(

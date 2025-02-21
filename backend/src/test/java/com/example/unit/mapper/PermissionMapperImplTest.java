@@ -32,7 +32,7 @@ class PermissionMapperImplTest {
                 mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
 
         Page<PermissionResponseDTO> permissionPage = mapper.toPageResponseDTO(
-                new PageImpl<>(PermissionProvider.listEntities(), Pageable.unpaged(), 0));
+                new PageImpl<>(PermissionProvider.listEntities(), Pageable.unpaged(), 2));
         assertNotNull(permissionPage);
         assertEquals(Pageable.unpaged(), permissionPage.getPageable());
         assertEquals(PermissionProvider.listEntities().getFirst().getId(),
