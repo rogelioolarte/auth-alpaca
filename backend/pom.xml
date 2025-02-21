@@ -218,7 +218,7 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<excludes>DataServiceImpl
+							<excludes>
 								<exclude>**/DemoApplication.class</exclude>
 								<exclude>**/DataServiceImpl.class</exclude>
 								<exclude>**/entity/**</exclude>
