@@ -112,13 +112,14 @@ class PermissionDAOImplTest {
 
     @Test
     void findAllPage() {
+        List<Permission> permissions = PermissionProvider.listEntities();
         when(repo.findAll(Pageable.unpaged()))
-                .thenReturn(new PageImpl<>(PermissionProvider.listEntities()));
+                .thenReturn(new PageImpl<>(permissions));
         Page<Permission> permissionPage = dao.findAllPage(Pageable.unpaged());
         assertNotNull(permissionPage);
         assertFalse(permissionPage.isEmpty());
         assertTrue(permissionPage.getPageable().isUnpaged());
-        assertEquals(permissionPage.getContent(), PermissionProvider.listEntities());
+        assertEquals(permissionPage.getContent(), permissions);
         verify(repo).findAll(Pageable.unpaged());
     }
 
@@ -137,16 +138,15 @@ class PermissionDAOImplTest {
 
     @Test
     void existsAllByIds() {
-        List<UUID> ids = PermissionProvider.listEntities().stream().map(Permission::getId).toList();
+        List<Permission> permissions =  PermissionProvider.listEntities();
+        List<UUID> ids = permissions.stream().map(Permission::getId).toList();
         when(repo.countByIds(ids)).thenReturn((long) ids.size());
         assertTrue(dao.existsAllByIds(ids));
         verify(repo).countByIds(ids);
-        reset(repo);
 
-        List<UUID> idsSecond = PermissionProvider.listEntities().stream().map(Permission::getId).toList();
-        when(repo.countByIds(idsSecond)).thenReturn(1L);
-        assertFalse(dao.existsAllByIds(idsSecond));
-        verify(repo).countByIds(idsSecond);
+        when(repo.countByIds(ids)).thenReturn(1L);
+        assertFalse(dao.existsAllByIds(ids));
+        verify(repo, times(2)).countByIds(ids);
     }
 
     @Test
@@ -156,7 +156,6 @@ class PermissionDAOImplTest {
         when(repo.findById(initialId)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> dao.updateById(initialPermission, initialId));
         verify(repo).findById(initialId);
-        reset(repo);
 
         UUID idSecond = PermissionProvider.alternativeEntity().getId();
         Permission permissionSecond = PermissionProvider.alternativeEntity();
@@ -169,9 +168,8 @@ class PermissionDAOImplTest {
         assertEquals(permissionSecond.getId(), permissionUpdatedSecond.getId());
         assertNotEquals(newPermissionSecond.getPermissionName(), permissionUpdatedSecond.getPermissionName());
         assertNotEquals(newPermissionSecond.getId(), permissionUpdatedSecond.getId());
-        verify(repo).findById(idSecond);
+        verify(repo, times(2)).findById(idSecond);
         verify(repo).save(permissionSecond);
-        reset(repo);
 
         UUID idThird = PermissionProvider.alternativeEntity().getId();
         Permission permissionThird = PermissionProvider.alternativeEntity();
@@ -184,7 +182,7 @@ class PermissionDAOImplTest {
         assertEquals(permissionThird.getId(), permissionUpdatedThird.getId());
         assertNotEquals(newPermissionThird.getPermissionName(), permissionUpdatedThird.getPermissionName());
         assertNotEquals(newPermissionThird.getId(), permissionUpdatedThird.getId());
-        verify(repo).findById(idThird);
+        verify(repo, times(3)).findById(idThird);
         verify(repo).save(permissionThird);
 
         UUID id = PermissionProvider.singleEntity().getId();
@@ -211,16 +209,16 @@ class PermissionDAOImplTest {
         secondPermission.setPermissionName("  ");
         assertFalse(dao.existsByUniqueProperties(secondPermission));
 
-        Permission permission = PermissionProvider.singleEntity();
-        when(repo.existsByPermissionName(permission.getPermissionName())).thenReturn(true);
-        assertTrue(dao.existsByUniqueProperties(permission));
-        verify(repo).existsByPermissionName(permission.getPermissionName());
-        reset(repo);
-
         Permission permissionSecond = PermissionProvider.alternativeEntity();
         when(repo.existsByPermissionName(permissionSecond.getPermissionName())).thenReturn(false);
         assertFalse(dao.existsByUniqueProperties(permissionSecond));
         verify(repo).existsByPermissionName(permissionSecond.getPermissionName());
+
+        Permission permission = PermissionProvider.singleEntity();
+        when(repo.existsByPermissionName(permission.getPermissionName())).thenReturn(true);
+        assertTrue(dao.existsByUniqueProperties(permission));
+        verify(repo).existsByPermissionName(permission.getPermissionName());
+
     }
 
     @Test

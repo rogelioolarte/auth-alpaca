@@ -19,7 +19,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PermissionServiceImplTest {
@@ -156,7 +157,6 @@ class PermissionServiceImplTest {
         when(dao.updateById(permission, id)).thenReturn(null);
         assertThrows(BadRequestException.class, () -> service.updateById(permission, id));
         verify(dao).updateById(permission, id);
-        reset(dao);
 
         UUID idSecond = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2");
         Permission permissionSecond = PermissionProvider.alternativeEntity();

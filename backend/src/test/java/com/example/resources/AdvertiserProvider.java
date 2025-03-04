@@ -14,13 +14,13 @@ public class AdvertiserProvider {
             "Advertiser_1", "Advertiser version 1",
             "https://banner.com/advertiser1", "https://avatar.com/advertiser1",
             "av. root 123", "https://location.com/advertiser1",
-            true, true, true, UserProvider.singleEntity());
+            true, true, true, null);
     public static Advertiser secondEntity = new Advertiser(
             UUID.fromString("91a16ad9-2d6c-4482-9a5c-02f8948afa8d"),
             "Advertiser_2", "Advertiser version 2",
             "https://banner.com/advertiser2", "https://avatar.com/advertiser2",
             "av. root 321", "https://location.com/advertiser2",
-            true, true, true, UserProvider.alternativeEntity());
+            true, true, true, null);
 
     public static AdvertiserRequestDTO firstPReqDTO = new AdvertiserRequestDTO(
             "Advertiser_1", "Advertiser version 1", "https://banner.com/advertiser1",
@@ -62,10 +62,12 @@ public class AdvertiserProvider {
     }
 
     public static Advertiser singleEntity() {
+        firstEntity.setUser(UserProvider.singleEntity());
         return firstEntity;
     }
 
     public static Advertiser alternativeEntity() {
+        secondEntity.setUser(UserProvider.alternativeEntity());
         return secondEntity;
     }
 

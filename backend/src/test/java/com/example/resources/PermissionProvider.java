@@ -10,13 +10,6 @@ import java.util.UUID;
 
 public class PermissionProvider{
 
-    public static Permission firstPermission = new Permission(
-            UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"),
-                "DELETE", new HashSet<>());
-    public static Permission secondPermission = new Permission(
-            UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"),
-            "CREATE", new HashSet<>());
-
     public static PermissionRequestDTO firstPReqDTO = new PermissionRequestDTO("CREATE");
     public static PermissionRequestDTO secondPReqDTO = new PermissionRequestDTO("READ");
 
@@ -26,7 +19,7 @@ public class PermissionProvider{
             UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "CREATE");
 
     public static List<Permission> listEntities() {
-        return List.of(firstPermission, secondPermission);
+        return List.of(singleEntity(), alternativeEntity());
     }
     
     public static List<PermissionRequestDTO> listRequest() {
@@ -38,11 +31,15 @@ public class PermissionProvider{
     }
 
     public static Permission singleEntity() {
-        return firstPermission;
+        return new Permission(
+                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"),
+                "DELETE", new HashSet<>());
     }
 
     public static Permission alternativeEntity() {
-        return secondPermission;
+        return new Permission(
+                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"),
+                "CREATE", new HashSet<>());
     }
 
     public static PermissionRequestDTO singleRequest() {

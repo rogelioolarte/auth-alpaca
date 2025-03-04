@@ -10,7 +10,7 @@ import java.util.*;
 public class UserProvider {
 
     public static User firstEntity = new User(
-            UUID.fromString("f36e39ad-710c-4719-8dac-fd999862e2cf"),
+            UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"),
             "admin@admin.com","123456789",
             true, true, true,
             true, true, true,
@@ -34,7 +34,7 @@ public class UserProvider {
             new HashSet<>(Set.of(RoleProvider.alternativeEntity().getId())));
 
     public static UserResponseDTO firstPResDTO = new UserResponseDTO(
-            UUID.fromString("f36e39ad-710c-4719-8dac-fd999862e2cf"), "admin@admin.com",
+            UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"), "admin@admin.com",
             new ArrayList<>(List.of(RoleProvider.singleResponse())), null, null);
     public static UserResponseDTO secondPResDTO = new UserResponseDTO(
             UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"), "user@user.com",
