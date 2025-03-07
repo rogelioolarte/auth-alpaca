@@ -1,5 +1,6 @@
 package com.example.unit.mapper;
 
+import com.example.dto.response.PermissionResponseDTO;
 import com.example.dto.response.RoleResponseDTO;
 import com.example.entity.Role;
 import com.example.mapper.impl.PermissionMapperImpl;
@@ -64,16 +65,18 @@ class RoleMapperImplTest {
     void toResponseDTO() {
         assertNull(mapper.toResponseDTO(null));
 
-        when(permissionMapper.toListResponseDTO(RoleProvider.singleEntity().getPermissions()))
-                .thenReturn(new ArrayList<>(List.of(PermissionProvider.singleResponse())));
-        RoleResponseDTO responseDTO = mapper.toResponseDTO(RoleProvider.singleEntity());
+        Role role = RoleProvider.singleEntity();
+        PermissionResponseDTO roleResponseDTO = PermissionProvider.singleResponse();
+        when(permissionMapper.toListResponseDTO(role.getPermissions()))
+                .thenReturn(new ArrayList<>(List.of(roleResponseDTO)));
+        RoleResponseDTO responseDTO = mapper.toResponseDTO(role);
         assertNotNull(responseDTO);
-        assertEquals(RoleProvider.singleEntity().getId(), responseDTO.id());
-        assertEquals(RoleProvider.singleEntity().getRoleName(), responseDTO.roleName());
-        assertEquals(RoleProvider.singleEntity().getRoleDescription(), responseDTO.roleDescription());
-        assertEquals(RoleProvider.singleEntity().getRolePermissions()
+        assertEquals(role.getId(), responseDTO.id());
+        assertEquals(role.getRoleName(), responseDTO.roleName());
+        assertEquals(role.getRoleDescription(), responseDTO.roleDescription());
+        assertEquals(role.getRolePermissions()
                 .iterator().next().getPermission().getId(), responseDTO.permissions().getFirst().id());
-        verify(permissionMapper).toListResponseDTO(RoleProvider.singleEntity().getPermissions());
+        verify(permissionMapper).toListResponseDTO(role.getPermissions());
     }
 
     @Test

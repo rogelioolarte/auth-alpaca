@@ -36,7 +36,7 @@ class PermissionDAOImplTest {
     void findById() {
         Permission permissionInitial = PermissionProvider.singleEntity();
         when(repo.findById(permissionInitial.getId()))
-                .thenReturn(Optional.ofNullable(PermissionProvider.singleEntity()));
+                .thenReturn(Optional.of(PermissionProvider.singleEntity()));
         Permission permission = dao
                 .findById(permissionInitial.getId()).orElse(null);
         assertNotNull(permission);

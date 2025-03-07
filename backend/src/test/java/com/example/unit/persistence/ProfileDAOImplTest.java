@@ -61,7 +61,7 @@ class ProfileDAOImplTest {
         assertNotEquals(newProfileThird.getAddress(), profileUpdatedThird.getAddress());
         assertNotEquals(newProfileThird.getId(), profileUpdatedThird.getId());
         verify(repo, times(3)).findById(idThird);
-        verify(repo, times(2)).save(profileThird);
+        verify(repo).save(profileThird);
 
         UUID id = ProfileProvider.singleEntity().getId();
         Profile profile = ProfileProvider.singleEntity();

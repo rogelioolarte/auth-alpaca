@@ -4,6 +4,7 @@ import com.example.dto.request.PermissionRequestDTO;
 import com.example.dto.response.PermissionResponseDTO;
 import com.example.entity.Permission;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -19,15 +20,15 @@ public class PermissionProvider{
             UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "CREATE");
 
     public static List<Permission> listEntities() {
-        return List.of(singleEntity(), alternativeEntity());
+        return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
     
     public static List<PermissionRequestDTO> listRequest() {
-        return List.of(firstPReqDTO, secondPReqDTO);
+        return new ArrayList<>(List.of(firstPReqDTO, secondPReqDTO));
     }
     
     public static List<PermissionResponseDTO> listResponse() {
-        return List.of(firstPResDTO, secondPResDTO);
+        return new ArrayList<>(List.of(firstPResDTO, secondPResDTO));
     }
 
     public static Permission singleEntity() {

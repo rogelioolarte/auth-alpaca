@@ -9,17 +9,6 @@ import java.util.*;
 
 public class RoleProvider {
 
-    public static Role firstEntity = new Role(
-            UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
-                    "ADMIN", "It's an admin", null, null);
-    public static Role secondEntity = new Role(
-            UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
-            "USER", "It's an user", null, null);
-    public static RolePermission firstRolePermission = new RolePermission(
-            firstEntity, PermissionProvider.singleEntity());
-    public static RolePermission secondRolePermission = new RolePermission(
-            secondEntity, PermissionProvider.alternativeEntity());
-
     public static RoleRequestDTO firstPReqDTO = new RoleRequestDTO(
             "ADMIN", "It's an admin",
             new HashSet<>(Set.of(PermissionProvider.singleEntity().getId())));
@@ -37,9 +26,7 @@ public class RoleProvider {
             new ArrayList<>(List.of(PermissionProvider.alternativeResponse())));
 
     public static List<Role> listEntities() {
-        firstEntity.setRolePermissions(new HashSet<>(Set.of(firstRolePermission)));
-        secondEntity.setRolePermissions(new HashSet<>(Set.of(secondRolePermission)));
-        return List.of(firstEntity, secondEntity);
+        return  new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
     public static List<RoleRequestDTO> listRequest() {
@@ -51,11 +38,21 @@ public class RoleProvider {
     }
 
     public static Role singleEntity() {
+        Role firstEntity = new Role(
+                UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
+                "ADMIN", "It's an admin", null, null);
+        RolePermission firstRolePermission = new RolePermission(
+                null, PermissionProvider.singleEntity());
         firstEntity.setRolePermissions(new HashSet<>(Set.of(firstRolePermission)));
         return firstEntity;
     }
 
     public static Role alternativeEntity() {
+        Role secondEntity = new Role(
+                UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
+                "USER", "It's an user", null, null);
+        RolePermission secondRolePermission = new RolePermission(
+                null, PermissionProvider.alternativeEntity());
         secondEntity.setRolePermissions(new HashSet<>(Set.of(secondRolePermission)));
         return secondEntity;
     }

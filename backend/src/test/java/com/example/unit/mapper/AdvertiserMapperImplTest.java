@@ -1,5 +1,6 @@
 package com.example.unit.mapper;
 
+import com.example.dto.request.AdvertiserRequestDTO;
 import com.example.dto.response.AdvertiserResponseDTO;
 import com.example.entity.Advertiser;
 import com.example.mapper.impl.AdvertiserMapperImpl;
@@ -40,44 +41,43 @@ class AdvertiserMapperImplTest {
         assertEquals(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
                 mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
 
+        List<Advertiser> entities = AdvertiserProvider.listEntities();
         Page<AdvertiserResponseDTO> page = mapper.toPageResponseDTO(
-                new PageImpl<>(AdvertiserProvider.listEntities(), Pageable.unpaged(), 2));
+                new PageImpl<>(entities, Pageable.unpaged(), 2));
         assertNotNull(page);
         assertEquals(Pageable.unpaged(), page.getPageable());
-        assertEquals(AdvertiserProvider.listEntities().getFirst().getId(),
-                page.getContent().getFirst().id());
-        assertEquals(AdvertiserProvider.listEntities().getFirst().getTitle(),
-                page.getContent().getFirst().title());
-        assertEquals(AdvertiserProvider.listEntities().getLast().getId(),
-                page.getContent().getLast().id());
-        assertEquals(AdvertiserProvider.listEntities().getLast().getTitle(),
-                page.getContent().getLast().title());
+        assertEquals(entities.getFirst().getId(), page.getContent().getFirst().id());
+        assertEquals(entities.getFirst().getTitle(), page.getContent().getFirst().title());
+        assertEquals(entities.getLast().getId(), page.getContent().getLast().id());
+        assertEquals(entities.getLast().getTitle(), page.getContent().getLast().title());
     }
 
     @Test
     void toResponseDTO() {
         assertNull(mapper.toResponseDTO(null));
 
-        AdvertiserResponseDTO responseDTO = mapper.toResponseDTO(AdvertiserProvider.singleEntity());
+        Advertiser entity = AdvertiserProvider.singleEntity();
+        AdvertiserResponseDTO responseDTO = mapper.toResponseDTO(entity);
         assertNotNull(responseDTO);
-        assertEquals(AdvertiserProvider.singleEntity().getId(), responseDTO.id());
-        assertEquals(AdvertiserProvider.singleEntity().getTitle(), responseDTO.title());
-        assertEquals(AdvertiserProvider.singleEntity().getDescription(), responseDTO.description());
-        assertEquals(AdvertiserProvider.singleEntity().getUser().getId(), responseDTO.userId());
+        assertEquals(entity.getId(), responseDTO.id());
+        assertEquals(entity.getTitle(), responseDTO.title());
+        assertEquals(entity.getDescription(), responseDTO.description());
+        assertEquals(entity.getUser().getId(), responseDTO.userId());
     }
 
     @Test
     void toEntity() {
         assertNull(mapper.toEntity(null));
 
-        when(userService.findById(UUID.fromString(AdvertiserProvider.singleRequest().getUserId())))
+        AdvertiserRequestDTO advertiserRequestDTO = AdvertiserProvider.singleRequest();
+        when(userService.findById(UUID.fromString(advertiserRequestDTO.getUserId())))
                 .thenReturn(UserProvider.singleEntity());
-        Advertiser entity = mapper.toEntity(AdvertiserProvider.singleRequest());
+        Advertiser entity = mapper.toEntity(advertiserRequestDTO);
         assertNotNull(entity);
-        assertEquals(AdvertiserProvider.singleRequest().getTitle(), entity.getTitle());
-        assertEquals(AdvertiserProvider.singleRequest().getDescription(), entity.getDescription());
-        assertEquals(AdvertiserProvider.singleRequest().getUserId(), entity.getUser().getId().toString());
-        verify(userService).findById(UUID.fromString(AdvertiserProvider.singleRequest().getUserId()));
+        assertEquals(advertiserRequestDTO.getTitle(), entity.getTitle());
+        assertEquals(advertiserRequestDTO.getDescription(), entity.getDescription());
+        assertEquals(advertiserRequestDTO.getUserId(), entity.getUser().getId().toString());
+        verify(userService).findById(UUID.fromString(advertiserRequestDTO.getUserId()));
     }
 
     @Test
@@ -86,16 +86,17 @@ class AdvertiserMapperImplTest {
 
         assertEquals(Collections.emptyList(), mapper.toListResponseDTO(Collections.emptyList()));
 
+        List<Advertiser> entities = AdvertiserProvider.listEntities();
         List<AdvertiserResponseDTO> responseDTOS = mapper.toListResponseDTO(
-                AdvertiserProvider.listEntities());
+                entities);
         assertNotNull(responseDTOS);
-        assertEquals(AdvertiserProvider.listEntities().getFirst().getId(),
+        assertEquals(entities.getFirst().getId(),
                 responseDTOS.getFirst().id());
-        assertEquals(AdvertiserProvider.listEntities().getFirst().getTitle(),
+        assertEquals(entities.getFirst().getTitle(),
                 responseDTOS.getFirst().title());
-        assertEquals(AdvertiserProvider.listEntities().getLast().getId(),
+        assertEquals(entities.getLast().getId(),
                 responseDTOS.getLast().id());
-        assertEquals(AdvertiserProvider.listEntities().getLast().getTitle(),
+        assertEquals(entities.getLast().getTitle(),
                 responseDTOS.getLast().title());
     }
 }

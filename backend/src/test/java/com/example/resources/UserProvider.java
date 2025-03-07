@@ -43,7 +43,7 @@ public class UserProvider {
     public static List<User> listEntities() {
         firstEntity.setUserRoles(new HashSet<>(Set.of(firstUserRole)));
         secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole)));
-        return List.of(firstEntity, secondEntity);
+        return  new ArrayList<>(List.of(firstEntity, secondEntity));
     }
 
     public static List<UserRequestDTO> listRequest() {

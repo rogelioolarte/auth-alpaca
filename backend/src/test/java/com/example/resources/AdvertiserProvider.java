@@ -4,6 +4,7 @@ import com.example.dto.request.AdvertiserRequestDTO;
 import com.example.dto.response.AdvertiserResponseDTO;
 import com.example.entity.Advertiser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,15 +51,15 @@ public class AdvertiserProvider {
             UserProvider.alternativeResponse().email());
 
     public static List<Advertiser> listEntities() {
-        return List.of(firstEntity, secondEntity);
+        return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
     public static List<AdvertiserRequestDTO> listRequest() {
-        return List.of(firstPReqDTO, secondPReqDTO);
+        return new ArrayList<>(List.of(firstPReqDTO, secondPReqDTO));
     }
 
     public static List<AdvertiserResponseDTO> listResponse() {
-        return List.of(firstPResDTO, secondPResDTO);
+        return new ArrayList<>(List.of(firstPResDTO, secondPResDTO));
     }
 
     public static Advertiser singleEntity() {
