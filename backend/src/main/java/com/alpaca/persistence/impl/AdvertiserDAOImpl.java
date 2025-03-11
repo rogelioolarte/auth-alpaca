@@ -54,8 +54,7 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
         if(advertiser.isIndexed() != existingAdvertiser.isIndexed()) {
             existingAdvertiser.setIndexed(advertiser.isIndexed());
         }
-        if(advertiser.getUser() != null && advertiser.getUser().getId() != null &&
-                !advertiser.getUser().getId().toString().isBlank()) {
+        if(advertiser.getUser() != null && advertiser.getUser().getId() != null) {
             existingAdvertiser.setUser(advertiser.getUser());
         }
         return repo.save(existingAdvertiser);

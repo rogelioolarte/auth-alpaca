@@ -9,32 +9,16 @@ import java.util.*;
 
 public class RoleProvider {
 
-    public static RoleRequestDTO firstPReqDTO = new RoleRequestDTO(
-            "ADMIN", "It's an admin",
-            new HashSet<>(Set.of(PermissionProvider.singleEntity().getId())));
-    public static RoleRequestDTO secondPReqDTO = new RoleRequestDTO(
-            "ADMIN", "It's an admin",
-            new HashSet<>(Set.of(PermissionProvider.alternativeEntity().getId())));
-
-    public static RoleResponseDTO firstPResDTO = new RoleResponseDTO(
-            UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
-            "ADMIN", "It's an admin",
-            new ArrayList<>(List.of(PermissionProvider.singleResponse())));
-    public static RoleResponseDTO secondPResDTO = new RoleResponseDTO(
-            UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
-            "USER", "It's an user",
-            new ArrayList<>(List.of(PermissionProvider.alternativeResponse())));
-
     public static List<Role> listEntities() {
-        return  new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
+        return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
     public static List<RoleRequestDTO> listRequest() {
-        return List.of(firstPReqDTO, secondPReqDTO);
+        return new ArrayList<>(List.of(singleRequest(), alternativeRequest()));
     }
 
     public static List<RoleResponseDTO> listResponse() {
-        return List.of(firstPResDTO, secondPResDTO);
+        return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
     public static Role singleEntity() {
@@ -58,18 +42,28 @@ public class RoleProvider {
     }
 
     public static RoleRequestDTO singleRequest() {
-        return firstPReqDTO;
+        return new RoleRequestDTO(
+                "ADMIN", "It's an admin",
+                new HashSet<>(Set.of(PermissionProvider.singleEntity().getId())));
     }
 
     public static RoleRequestDTO alternativeRequest() {
-        return secondPReqDTO;
+        return new RoleRequestDTO(
+                "ADMIN", "It's an admin",
+                new HashSet<>(Set.of(PermissionProvider.alternativeEntity().getId())));
     }
 
     public static RoleResponseDTO singleResponse() {
-        return firstPResDTO;
+        return new RoleResponseDTO(
+                UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
+                "ADMIN", "It's an admin",
+                new ArrayList<>(List.of(PermissionProvider.singleResponse())));
     }
 
     public static RoleResponseDTO alternativeResponse() {
-        return secondPResDTO;
+        return new RoleResponseDTO(
+                UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
+                "USER", "It's an user",
+                new ArrayList<>(List.of(PermissionProvider.alternativeResponse())));
     }
 }

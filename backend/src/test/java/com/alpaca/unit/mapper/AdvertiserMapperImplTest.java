@@ -39,7 +39,8 @@ class AdvertiserMapperImplTest {
                 mapper.toPageResponseDTO(null));
 
         assertEquals(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
-                mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
+                mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(),
+                        Pageable.unpaged(), 0)));
 
         List<Advertiser> entities = AdvertiserProvider.listEntities();
         Page<AdvertiserResponseDTO> page = mapper.toPageResponseDTO(

@@ -1,5 +1,6 @@
 package com.alpaca.unit.mapper;
 
+import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.mapper.impl.AdvertiserMapperImpl;
@@ -52,17 +53,18 @@ class UserMapperImplTest {
         assertEquals(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
                 mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
 
+        List<User> entities = UserProvider.listEntities();
         Page<UserResponseDTO> page = mapper.toPageResponseDTO(
-                new PageImpl<>(UserProvider.listEntities(), Pageable.unpaged(), 2));
+                new PageImpl<>(entities, Pageable.unpaged(), 2));
         assertNotNull(page);
         assertEquals(Pageable.unpaged(), page.getPageable());
-        assertEquals(UserProvider.listEntities().getFirst().getId(),
+        assertEquals(entities.getFirst().getId(),
                 page.getContent().getFirst().id());
-        assertEquals(UserProvider.listEntities().getFirst().getEmail(),
+        assertEquals(entities.getFirst().getEmail(),
                 page.getContent().getFirst().email());
-        assertEquals(UserProvider.listEntities().getLast().getId(),
+        assertEquals(entities.getLast().getId(),
                 page.getContent().getLast().id());
-        assertEquals(UserProvider.listEntities().getLast().getEmail(),
+        assertEquals(entities.getLast().getEmail(),
                 page.getContent().getLast().email());
     }
 
@@ -70,21 +72,22 @@ class UserMapperImplTest {
     void toResponseDTO() {
         assertNull(mapper.toResponseDTO(null));
 
-        when(roleMapper.toListResponseDTO(UserProvider.singleEntity().getRoles()))
+        User entity = UserProvider.singleEntity();
+        when(roleMapper.toListResponseDTO(entity.getRoles()))
                 .thenReturn(new ArrayList<>(List.of(RoleProvider.singleResponse())));
         when(profileMapper.toResponseDTO(null))
                 .thenReturn(ProfileProvider.singleResponse());
         when(advertiserMapper.toResponseDTO(null))
                 .thenReturn(AdvertiserProvider.singleResponse());
-        UserResponseDTO responseDTO = mapper.toResponseDTO(UserProvider.singleEntity());
+        UserResponseDTO responseDTO = mapper.toResponseDTO(entity);
         assertNotNull(responseDTO);
-        assertEquals(UserProvider.singleEntity().getId(), responseDTO.id());
-        assertEquals(UserProvider.singleEntity().getEmail(), responseDTO.email());
-        assertEquals(UserProvider.singleEntity().getUserRoles().iterator().next().getRole().getId(),
+        assertEquals(entity.getId(), responseDTO.id());
+        assertEquals(entity.getEmail(), responseDTO.email());
+        assertEquals(entity.getUserRoles().iterator().next().getRole().getId(),
                 responseDTO.roles().getFirst().id());
         assertNotNull(responseDTO.profile().id());
         assertNotNull(responseDTO.advertiser().id());
-        verify(roleMapper).toListResponseDTO(UserProvider.singleEntity().getRoles());
+        verify(roleMapper).toListResponseDTO(entity.getRoles());
         verify(profileMapper).toResponseDTO(null);
         verify(advertiserMapper).toResponseDTO(null);
     }
@@ -93,14 +96,15 @@ class UserMapperImplTest {
     void toEntity() {
         assertNull(mapper.toEntity(null));
 
-        when(roleService.findAllByIdsToSet(UserProvider.singleRequest().getRoles()))
+        UserRequestDTO request = UserProvider.singleRequest();
+        when(roleService.findAllByIdsToSet(request.getRoles()))
                 .thenReturn(new HashSet<>(Set.of(RoleProvider.singleEntity())));
-        User entity = mapper.toEntity(UserProvider.singleRequest());
+        User entity = mapper.toEntity(request);
         assertNotNull(entity);
-        assertEquals(UserProvider.singleRequest().getEmail(), entity.getEmail());
-        assertEquals(UserProvider.singleRequest().getRoles().iterator().next(),
+        assertEquals(request.getEmail(), entity.getEmail());
+        assertEquals(request.getRoles().iterator().next(),
                 entity.getRoles().getFirst().getId());
-        verify(roleService).findAllByIdsToSet(UserProvider.singleRequest().getRoles());
+        verify(roleService).findAllByIdsToSet(request.getRoles());
     }
 
     @Test
@@ -109,16 +113,12 @@ class UserMapperImplTest {
 
         assertEquals(Collections.emptyList(), mapper.toListResponseDTO(Collections.emptyList()));
 
-        List<UserResponseDTO> responseDTOS = mapper.toListResponseDTO(
-                UserProvider.listEntities());
+        List<User> entities = UserProvider.listEntities();
+        List<UserResponseDTO> responseDTOS = mapper.toListResponseDTO(entities);
         assertNotNull(responseDTOS);
-        assertEquals(UserProvider.listEntities().getFirst().getId(),
-                responseDTOS.getFirst().id());
-        assertEquals(UserProvider.listEntities().getFirst().getEmail(),
-                responseDTOS.getFirst().email());
-        assertEquals(UserProvider.listEntities().getLast().getId(),
-                responseDTOS.getLast().id());
-        assertEquals(UserProvider.listEntities().getLast().getEmail(),
-                responseDTOS.getLast().email());
+        assertEquals(entities.getFirst().getId(), responseDTOS.getFirst().id());
+        assertEquals(entities.getFirst().getEmail(), responseDTOS.getFirst().email());
+        assertEquals(entities.getLast().getId(), responseDTOS.getLast().id());
+        assertEquals(entities.getLast().getEmail(), responseDTOS.getLast().email());
     }
 }

@@ -30,73 +30,88 @@ class AdvertiserDAOImplTest {
     @Test
     void updateById() {
         UUID initialId = AdvertiserProvider.alternativeEntity().getId();
-        Advertiser initialAdvertiser = AdvertiserProvider.alternativeEntity();
+        Advertiser initialEntity = AdvertiserProvider.alternativeEntity();
         when(repo.findById(initialId)).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> dao.updateById(initialAdvertiser, initialId));
+        assertThrows(NotFoundException.class, () -> dao.updateById(initialEntity, initialId));
         verify(repo).findById(initialId);
 
         UUID idSecond = AdvertiserProvider.alternativeEntity().getId();
-        Advertiser advertiserSecond = AdvertiserProvider.alternativeEntity();
-        Advertiser newAdvertiserSecond = new Advertiser();
-        newAdvertiserSecond.setDescription(null);
-        when(repo.findById(idSecond)).thenReturn(Optional.of(advertiserSecond));
-        when(repo.save(advertiserSecond)).thenReturn(advertiserSecond);
-        Advertiser advertiserUpdatedSecond = dao.updateById(newAdvertiserSecond, idSecond);
-        assertNotNull(advertiserUpdatedSecond);
-        assertEquals(advertiserSecond.getId(), advertiserUpdatedSecond.getId());
-        assertNotEquals(newAdvertiserSecond.getDescription(), advertiserUpdatedSecond.getDescription());
-        assertNotEquals(newAdvertiserSecond.getId(), advertiserUpdatedSecond.getId());
+        Advertiser entitySecond = AdvertiserProvider.alternativeEntity();
+        Advertiser newEntitySecond = new Advertiser();
+        newEntitySecond.setDescription(null);
+        newEntitySecond.setTitle(null);
+        newEntitySecond.setAvatarUrl(null);
+        newEntitySecond.setBannerUrl(null);
+        newEntitySecond.setPublicUrlLocation(null);
+        newEntitySecond.setPublicLocation(null);
+        newEntitySecond.setIndexed(false);
+        newEntitySecond.setUser(null);
+        when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
+        when(repo.save(entitySecond)).thenReturn(entitySecond);
+        Advertiser entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
+        assertNotNull(entityUpdatedSecond);
+        assertEquals(entitySecond.getId(), entityUpdatedSecond.getId());
+        assertNotEquals(newEntitySecond.getDescription(), entityUpdatedSecond.getDescription());
+        assertNotEquals(newEntitySecond.getId(), entityUpdatedSecond.getId());
         verify(repo, times(2)).findById(idSecond);
-        verify(repo).save(advertiserSecond);
+        verify(repo).save(entitySecond);
 
         UUID idThird = AdvertiserProvider.alternativeEntity().getId();
-        Advertiser advertiserThird = AdvertiserProvider.alternativeEntity();
-        Advertiser newAdvertiserThird = new Advertiser();
-        newAdvertiserThird.setDescription(" ");
-        when(repo.findById(idThird)).thenReturn(Optional.of(advertiserThird));
-        when(repo.save(advertiserThird)).thenReturn(advertiserThird);
-        Advertiser permissionUpdatedThird = dao.updateById(newAdvertiserThird, idThird);
-        assertNotNull(permissionUpdatedThird);
-        assertEquals(advertiserThird.getId(), permissionUpdatedThird.getId());
-        assertNotEquals(newAdvertiserThird.getDescription(), permissionUpdatedThird.getDescription());
-        assertNotEquals(newAdvertiserThird.getId(), permissionUpdatedThird.getId());
+        Advertiser entityThird = AdvertiserProvider.alternativeEntity();
+        Advertiser newEntityThird = new Advertiser();
+        newEntityThird.setDescription(" ");
+        newEntityThird.setTitle(" ");
+        newEntityThird.setAvatarUrl(" ");
+        newEntityThird.setBannerUrl(" ");
+        newEntityThird.setPublicUrlLocation(" ");
+        newEntityThird.setPublicLocation(" ");
+        User newUser = new User();
+        newUser.setId(null);
+        newEntityThird.setUser(newUser);
+        when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
+        when(repo.save(entityThird)).thenReturn(entityThird);
+        Advertiser entityUpdatedThird = dao.updateById(newEntityThird, idThird);
+        assertNotNull(entityUpdatedThird);
+        assertEquals(entityThird.getId(), entityUpdatedThird.getId());
+        assertNotEquals(newEntityThird.getDescription(), entityUpdatedThird.getDescription());
+        assertNotEquals(newEntityThird.getId(), entityUpdatedThird.getId());
         verify(repo, times(3)).findById(idThird);
-        verify(repo, times(2)).save(advertiserThird);
+        verify(repo).save(entityThird);
 
         UUID id = AdvertiserProvider.singleEntity().getId();
-        Advertiser advertiser = AdvertiserProvider.singleEntity();
-        Advertiser newAdvertiser = AdvertiserProvider.alternativeEntity();
-        when(repo.findById(id)).thenReturn(Optional.of(advertiser));
-        when(repo.save(advertiser)).thenReturn(advertiser);
-        Advertiser advertiserUpdated = dao.updateById(newAdvertiser, id);
-        assertNotNull(advertiserUpdated);
-        assertEquals(advertiser.getId(), advertiserUpdated.getId());
-        assertEquals(newAdvertiser.getTitle(), advertiserUpdated.getTitle());
-        assertNotEquals(newAdvertiser.getId(), advertiserUpdated.getId());
+        Advertiser entity = AdvertiserProvider.singleEntity();
+        Advertiser newEntity = AdvertiserProvider.alternativeEntity();
+        when(repo.findById(id)).thenReturn(Optional.of(entity));
+        when(repo.save(entity)).thenReturn(entity);
+        Advertiser entityUpdated = dao.updateById(newEntity, id);
+        assertNotNull(entityUpdated);
+        assertEquals(entity.getId(), entityUpdated.getId());
+        assertEquals(newEntity.getTitle(), entityUpdated.getTitle());
+        assertNotEquals(newEntity.getId(), entityUpdated.getId());
         verify(repo).findById(id);
-        verify(repo).save(advertiser);
+        verify(repo).save(entity);
     }
 
     @Test
     void existsByUniqueProperties() {
-        Advertiser firstAdvertiser = new Advertiser();
-        firstAdvertiser.setUser(null);
-        assertFalse(dao.existsByUniqueProperties(firstAdvertiser));
+        Advertiser firstEntity = new Advertiser();
+        firstEntity.setUser(null);
+        assertFalse(dao.existsByUniqueProperties(firstEntity));
 
-        Advertiser secondAdvertiser = new Advertiser();
+        Advertiser secondEntity = new Advertiser();
         User secondUser = new User();
         secondUser.setId(null);
-        secondAdvertiser.setUser(secondUser);
-        assertFalse(dao.existsByUniqueProperties(secondAdvertiser));
+        secondEntity.setUser(secondUser);
+        assertFalse(dao.existsByUniqueProperties(secondEntity));
 
-        Advertiser advertiserSecond = AdvertiserProvider.alternativeEntity();
-        when(repo.countByUserId(advertiserSecond.getUser().getId())).thenReturn(0L);
-        assertFalse(dao.existsByUniqueProperties(advertiserSecond));
-        verify(repo).countByUserId(advertiserSecond.getUser().getId());
+        Advertiser entitySecond = AdvertiserProvider.alternativeEntity();
+        when(repo.countByUserId(entitySecond.getUser().getId())).thenReturn(0L);
+        assertFalse(dao.existsByUniqueProperties(entitySecond));
+        verify(repo).countByUserId(entitySecond.getUser().getId());
 
-        Advertiser advertiser = AdvertiserProvider.singleEntity();
-        when(repo.countByUserId(advertiser.getUser().getId())).thenReturn(1L);
-        assertTrue(dao.existsByUniqueProperties(advertiser));
-        verify(repo).countByUserId(advertiser.getUser().getId());
+        Advertiser entity = AdvertiserProvider.singleEntity();
+        when(repo.countByUserId(entity.getUser().getId())).thenReturn(1L);
+        assertTrue(dao.existsByUniqueProperties(entity));
+        verify(repo).countByUserId(entity.getUser().getId());
     }
 }

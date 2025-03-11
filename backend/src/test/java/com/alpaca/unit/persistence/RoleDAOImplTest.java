@@ -28,105 +28,105 @@ class RoleDAOImplTest {
     
     @Test
     void findByRoleName() {
-        Role firstRole = new Role();
-        firstRole.setRoleName(null);
-        assertEquals(dao.findByRoleName(firstRole.getRoleName()), Optional.empty());
+        Role firstEntity = new Role();
+        firstEntity.setRoleName(null);
+        assertEquals(dao.findByRoleName(firstEntity.getRoleName()), Optional.empty());
 
-        Role secondRole = new Role();
-        secondRole.setRoleName("  ");
-        assertEquals(dao.findByRoleName(secondRole.getRoleName()), Optional.empty());
+        Role secondEntity = new Role();
+        secondEntity.setRoleName("  ");
+        assertEquals(dao.findByRoleName(secondEntity.getRoleName()), Optional.empty());
 
-        Role roleSecond = RoleProvider.alternativeEntity();
-        when(repo.findByRoleName(roleSecond.getRoleName())).thenReturn(Optional.of(roleSecond));
-        Role roleFoundSecond = dao.findByRoleName(roleSecond.getRoleName())
+        Role entitySecond = RoleProvider.alternativeEntity();
+        when(repo.findByRoleName(entitySecond.getRoleName())).thenReturn(Optional.of(entitySecond));
+        Role entityFoundSecond = dao.findByRoleName(entitySecond.getRoleName())
                 .orElseGet(Role::new);
-        assertEquals(roleFoundSecond, roleSecond);
-        verify(repo).findByRoleName(roleSecond.getRoleName());
+        assertEquals(entityFoundSecond, entitySecond);
+        verify(repo).findByRoleName(entitySecond.getRoleName());
 
-        Role role = RoleProvider.singleEntity();
-        when(repo.findByRoleName(role.getRoleName())).thenReturn(Optional.of(role));
-        Role roleFound = dao.findByRoleName(role.getRoleName())
+        Role entity = RoleProvider.singleEntity();
+        when(repo.findByRoleName(entity.getRoleName())).thenReturn(Optional.of(entity));
+        Role entityFound = dao.findByRoleName(entity.getRoleName())
                 .orElseGet(Role::new);
-        assertEquals(roleFound, role);
-        verify(repo).findByRoleName(role.getRoleName());
+        assertEquals(entityFound, entity);
+        verify(repo).findByRoleName(entity.getRoleName());
     }
 
     @Test
     void updateById() {
         UUID initialId = RoleProvider.alternativeEntity().getId();
-        Role initialRole = RoleProvider.alternativeEntity();
+        Role initialEntity = RoleProvider.alternativeEntity();
         when(repo.findById(initialId)).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> dao.updateById(initialRole, initialId));
+        assertThrows(NotFoundException.class, () -> dao.updateById(initialEntity, initialId));
         verify(repo).findById(initialId);
 
         UUID idSecond = RoleProvider.alternativeEntity().getId();
-        Role roleSecond = RoleProvider.alternativeEntity();
-        Role newRoleSecond = new Role();
-        newRoleSecond.setRoleName(null);
-        when(repo.findById(idSecond)).thenReturn(Optional.of(roleSecond));
-        when(repo.save(roleSecond)).thenReturn(roleSecond);
-        Role roleUpdatedSecond = dao.updateById(newRoleSecond, idSecond);
-        assertNotNull(roleUpdatedSecond);
-        assertEquals(roleSecond.getId(), roleUpdatedSecond.getId());
-        assertNotEquals(newRoleSecond.getRoleName(), roleUpdatedSecond.getRoleName());
-        assertNotEquals(newRoleSecond.getId(), roleUpdatedSecond.getId());
+        Role entitySecond = RoleProvider.alternativeEntity();
+        Role newEntitySecond = new Role();
+        newEntitySecond.setRoleName(null);
+        when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
+        when(repo.save(entitySecond)).thenReturn(entitySecond);
+        Role entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
+        assertNotNull(entityUpdatedSecond);
+        assertEquals(entitySecond.getId(), entityUpdatedSecond.getId());
+        assertNotEquals(newEntitySecond.getRoleName(), entityUpdatedSecond.getRoleName());
+        assertNotEquals(newEntitySecond.getId(), entityUpdatedSecond.getId());
         verify(repo, times(2)).findById(idSecond);
-        verify(repo).save(roleSecond);
+        verify(repo).save(entitySecond);
 
         UUID idThird = RoleProvider.alternativeEntity().getId();
-        Role roleThird = RoleProvider.alternativeEntity();
-        Role newRoleThird = new Role();
-        newRoleThird.setRoleName(" ");
-        when(repo.findById(idThird)).thenReturn(Optional.of(roleThird));
-        when(repo.save(roleThird)).thenReturn(roleThird);
-        Role roleUpdatedThird = dao.updateById(newRoleThird, idThird);
-        assertNotNull(roleUpdatedThird);
-        assertEquals(roleThird.getId(), roleUpdatedThird.getId());
-        assertNotEquals(newRoleThird.getRoleName(), roleUpdatedThird.getRoleName());
-        assertNotEquals(newRoleThird.getId(), roleUpdatedThird.getId());
+        Role entityThird = RoleProvider.alternativeEntity();
+        Role newEntityThird = new Role();
+        newEntityThird.setRoleName(" ");
+        when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
+        when(repo.save(entityThird)).thenReturn(entityThird);
+        Role entityUpdatedThird = dao.updateById(newEntityThird, idThird);
+        assertNotNull(entityUpdatedThird);
+        assertEquals(entityThird.getId(), entityUpdatedThird.getId());
+        assertNotEquals(newEntityThird.getRoleName(), entityUpdatedThird.getRoleName());
+        assertNotEquals(newEntityThird.getId(), entityUpdatedThird.getId());
         verify(repo, times(3)).findById(idThird);
-        verify(repo).save(roleThird);
+        verify(repo).save(entityThird);
 
         UUID id = RoleProvider.singleEntity().getId();
-        Role role = RoleProvider.singleEntity();
-        Role newRole = RoleProvider.alternativeEntity();
-        when(repo.findById(id)).thenReturn(Optional.of(role));
-        when(repo.save(role)).thenReturn(role);
-        Role roleUpdated = dao.updateById(newRole, id);
-        assertNotNull(roleUpdated);
-        assertEquals(role.getId(), roleUpdated.getId());
-        assertEquals(newRole.getRoleName(), roleUpdated.getRoleName());
-        assertNotEquals(newRole.getId(), roleUpdated.getId());
+        Role entity = RoleProvider.singleEntity();
+        Role newEntity = RoleProvider.alternativeEntity();
+        when(repo.findById(id)).thenReturn(Optional.of(entity));
+        when(repo.save(entity)).thenReturn(entity);
+        Role entityUpdated = dao.updateById(newEntity, id);
+        assertNotNull(entityUpdated);
+        assertEquals(entity.getId(), entityUpdated.getId());
+        assertEquals(newEntity.getRoleName(), entityUpdated.getRoleName());
+        assertNotEquals(newEntity.getId(), entityUpdated.getId());
         verify(repo).findById(id);
-        verify(repo).save(role);
+        verify(repo).save(entity);
     }
 
     @Test
     void existsByUniqueProperties() {
-        Role firstRole = new Role();
-        firstRole.setRoleName(null);
-        assertFalse(dao.existsByUniqueProperties(firstRole));
+        Role firstEntity = new Role();
+        firstEntity.setRoleName(null);
+        assertFalse(dao.existsByUniqueProperties(firstEntity));
 
-        Role secondRole = new Role();
-        secondRole.setRoleName("  ");
-        assertFalse(dao.existsByUniqueProperties(secondRole));
+        Role secondEntity = new Role();
+        secondEntity.setRoleName("  ");
+        assertFalse(dao.existsByUniqueProperties(secondEntity));
 
-        Role thirdRole = new Role();
-        thirdRole.setRoleDescription(null);
-        assertFalse(dao.existsByUniqueProperties(thirdRole));
+        Role thirdEntity = new Role();
+        thirdEntity.setRoleDescription(null);
+        assertFalse(dao.existsByUniqueProperties(thirdEntity));
 
-        Role fourthRole = new Role();
-        fourthRole.setRoleDescription("  ");
-        assertFalse(dao.existsByUniqueProperties(fourthRole));
+        Role fourthEntity = new Role();
+        fourthEntity.setRoleDescription("  ");
+        assertFalse(dao.existsByUniqueProperties(fourthEntity));
 
-        Role roleSecond = RoleProvider.alternativeEntity();
-        when(repo.existsByRoleName(roleSecond.getRoleName())).thenReturn(false);
-        assertFalse(dao.existsByUniqueProperties(roleSecond));
-        verify(repo).existsByRoleName(roleSecond.getRoleName());
+        Role entitySecond = RoleProvider.alternativeEntity();
+        when(repo.existsByRoleName(entitySecond.getRoleName())).thenReturn(false);
+        assertFalse(dao.existsByUniqueProperties(entitySecond));
+        verify(repo).existsByRoleName(entitySecond.getRoleName());
 
-        Role role = RoleProvider.singleEntity();
-        when(repo.existsByRoleName(role.getRoleName())).thenReturn(true);
-        assertTrue(dao.existsByUniqueProperties(role));
-        verify(repo).existsByRoleName(role.getRoleName());
+        Role entity = RoleProvider.singleEntity();
+        when(repo.existsByRoleName(entity.getRoleName())).thenReturn(true);
+        assertTrue(dao.existsByUniqueProperties(entity));
+        verify(repo).existsByRoleName(entity.getRoleName());
     }
 }

@@ -11,24 +11,16 @@ import java.util.UUID;
 
 public class PermissionProvider{
 
-    public static PermissionRequestDTO firstPReqDTO = new PermissionRequestDTO("CREATE");
-    public static PermissionRequestDTO secondPReqDTO = new PermissionRequestDTO("READ");
-
-    public static PermissionResponseDTO firstPResDTO = new PermissionResponseDTO(
-            UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "DELETE");
-    public static PermissionResponseDTO secondPResDTO = new PermissionResponseDTO(
-            UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "CREATE");
-
     public static List<Permission> listEntities() {
         return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
     
     public static List<PermissionRequestDTO> listRequest() {
-        return new ArrayList<>(List.of(firstPReqDTO, secondPReqDTO));
+        return new ArrayList<>(List.of(singleRequest() , alternativeRequest()));
     }
     
     public static List<PermissionResponseDTO> listResponse() {
-        return new ArrayList<>(List.of(firstPResDTO, secondPResDTO));
+        return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
     public static Permission singleEntity() {
@@ -44,18 +36,22 @@ public class PermissionProvider{
     }
 
     public static PermissionRequestDTO singleRequest() {
-        return firstPReqDTO;
+        return new PermissionRequestDTO("CREATE");
     }
 
     public static PermissionRequestDTO alternativeRequest() {
-        return secondPReqDTO;
+        return new PermissionRequestDTO("READ");
     }
 
     public static PermissionResponseDTO singleResponse() {
-        return firstPResDTO;
+        return new PermissionResponseDTO(
+                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"),
+                "DELETE");
     }
 
     public static PermissionResponseDTO alternativeResponse() {
-        return secondPResDTO;
+        return new PermissionResponseDTO(
+                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"),
+                "CREATE");
     }
 }
