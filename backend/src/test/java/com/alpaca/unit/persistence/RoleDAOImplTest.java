@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +64,8 @@ class RoleDAOImplTest {
         Role entitySecond = RoleProvider.alternativeEntity();
         Role newEntitySecond = new Role();
         newEntitySecond.setRoleName(null);
+        newEntitySecond.setRoleDescription(null);
+        newEntitySecond.setRolePermissions(null);
         when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
         when(repo.save(entitySecond)).thenReturn(entitySecond);
         Role entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
@@ -77,6 +80,8 @@ class RoleDAOImplTest {
         Role entityThird = RoleProvider.alternativeEntity();
         Role newEntityThird = new Role();
         newEntityThird.setRoleName(" ");
+        newEntityThird.setRoleDescription(" ");
+        newEntityThird.setRolePermissions(Collections.emptySet());
         when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
         when(repo.save(entityThird)).thenReturn(entityThird);
         Role entityUpdatedThird = dao.updateById(newEntityThird, idThird);
@@ -112,10 +117,12 @@ class RoleDAOImplTest {
         assertFalse(dao.existsByUniqueProperties(secondEntity));
 
         Role thirdEntity = new Role();
+        thirdEntity.setRoleName("valid name");
         thirdEntity.setRoleDescription(null);
         assertFalse(dao.existsByUniqueProperties(thirdEntity));
 
         Role fourthEntity = new Role();
+        fourthEntity.setRoleName("valid name");
         fourthEntity.setRoleDescription("  ");
         assertFalse(dao.existsByUniqueProperties(fourthEntity));
 

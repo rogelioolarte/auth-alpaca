@@ -39,6 +39,10 @@ class ProfileDAOImplTest {
         Profile entitySecond = ProfileProvider.alternativeEntity();
         Profile newEntitySecond = new Profile();
         newEntitySecond.setAddress(null);
+        newEntitySecond.setAvatarUrl(null);
+        newEntitySecond.setUser(null);
+        newEntitySecond.setLastName(null);
+        newEntitySecond.setFirstName(null);
         when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
         when(repo.save(entitySecond)).thenReturn(entitySecond);
         Profile entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
@@ -53,6 +57,12 @@ class ProfileDAOImplTest {
         Profile entityThird = ProfileProvider.alternativeEntity();
         Profile newEntityThird = new Profile();
         newEntityThird.setAddress(" ");
+        newEntityThird.setLastName(" ");
+        newEntityThird.setFirstName(" ");
+        newEntityThird.setAvatarUrl(" ");
+        User newUserThird = new User();
+        newUserThird.setId(null);
+        newEntityThird.setUser(newUserThird);
         when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
         when(repo.save(entityThird)).thenReturn(entityThird);
         Profile entityUpdatedThird = dao.updateById(newEntityThird, idThird);

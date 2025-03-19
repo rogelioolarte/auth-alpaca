@@ -224,6 +224,7 @@
 								<exclude>**/entity/**</exclude>
 								<exclude>**/model/**</exclude>
 								<exclude>**/dto/**</exclude>
+								<exclude>**/controller/**</exclude>
 								<exclude>**/exception/**</exclude>
 								<exclude>**/repository/**</exclude>
 								<exclude>**/config/**</exclude>

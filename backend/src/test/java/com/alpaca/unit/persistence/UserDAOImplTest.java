@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,6 +63,8 @@ class UserDAOImplTest {
         User secondEntity = UserProvider.alternativeEntity();
         User newEntitySecond = new User();
         newEntitySecond.setEmail(null);
+        newEntitySecond.setPassword(null);
+        newEntitySecond.setUserRoles(null);
         when(repo.findById(idSecond)).thenReturn(Optional.of(secondEntity));
         when(repo.save(secondEntity)).thenReturn(secondEntity);
         User roleUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
@@ -76,6 +79,8 @@ class UserDAOImplTest {
         User thirdEntity = UserProvider.alternativeEntity();
         User newEntityThird = new User();
         newEntityThird.setEmail(" ");
+        newEntityThird.setPassword(" ");
+        newEntityThird.setUserRoles(Collections.emptySet());
         when(repo.findById(idThird)).thenReturn(Optional.of(thirdEntity));
         when(repo.save(thirdEntity)).thenReturn(thirdEntity);
         User roleUpdatedThird = dao.updateById(newEntityThird, idThird);

@@ -224,4 +224,25 @@ public class User {
         }
         return authorities;
     }
+
+    /**
+     * Determines whether the user account is allowed to be used based on its status.
+     * <p>
+     * This method checks multiple conditions to determine if the account is active
+     * and can be used for authentication.
+     * A user account is considered allowed if:
+     * <ul>
+     *     <li>The account is enabled.</li>
+     *     <li>The account is not expired.</li>
+     *     <li>The account is not locked.</li>
+     *     <li>The credentials are not expired.</li>
+     * </ul>
+     *
+     * @return {@code true} if the account meets all the conditions to be considered active;
+     *         {@code false} otherwise.
+     */
+    public boolean isAllowUser() {
+        return this.enabled && this.accountNoExpired &&
+                this.accountNoLocked && this.credentialNoExpired;
+    }
 }

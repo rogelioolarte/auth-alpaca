@@ -50,6 +50,30 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private String password;
 
     /**
+     * Indicates whether the User's entity is enabled.
+     * Defaults to {@code true}.
+     */
+    private boolean enabled = true;
+
+    /**
+     * Indicates whether the User's entity is not expired.
+     * Defaults to {@code true}.
+     */
+    private boolean accountNoExpired = true;
+
+    /**
+     * Indicates whether the User's entity is not locked.
+     * Defaults to {@code true}.
+     */
+    private boolean accountNoLocked = true;
+
+    /**
+     * Indicates whether the User's credentials are not expired.
+     * Defaults to {@code true}.
+     */
+    private boolean credentialNoExpired = true;
+
+    /**
      * The authorities granted to the user for authorization purposes.
      */
     private Collection<? extends GrantedAuthority> authorities;
@@ -73,7 +97,37 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
         this.username = user.getEmail();
         this.password = user.getPassword();
+        this.enabled = user.isEnabled();
+        this.accountNoLocked = user.isAccountNoLocked();
+        this.accountNoExpired = user.isAccountNoExpired();
+        this.credentialNoExpired = user.isCredentialNoExpired();
         this.authorities = user.getAuthorities();
+        this.attributes = attributes;
+    }
+
+    /**
+     * Constructs a new {@code UserPrincipal} instance using a decoded JWT token values.
+     * This constructor extracts relevant information from the {@code User} object
+     * and assigns it to the corresponding fields in {@code UserPrincipal}.
+     *
+     * @param userId            the {@link UUID} id of the User.
+     * @param profileId         the {@link UUID} id of the Profile.
+     * @param advertiserId      the {@link UUID} id of the Advertiser.
+     * @param username          the username of the User.
+     * @param password          the encoded password of the User.
+     * @param authoritiesList   the list of authorities of the User.
+     * @param attributes additional attributes obtained from an OAuth2 authentication provider.
+     */
+    public UserPrincipal(UUID userId, UUID profileId, UUID advertiserId,
+                         String username, String password,
+                         Collection<? extends GrantedAuthority> authoritiesList,
+                         Map<String, Object> attributes) {
+        this.id = userId;
+        this.profileId = profileId;
+        this.advertiserId = advertiserId;
+        this.username = username;
+        this.password = password;
+        this.authorities = authoritiesList;
         this.attributes = attributes;
     }
 
@@ -95,5 +149,25 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     @Override
     public String getName() {
         return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return accountNoExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNoLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return credentialNoExpired;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 }

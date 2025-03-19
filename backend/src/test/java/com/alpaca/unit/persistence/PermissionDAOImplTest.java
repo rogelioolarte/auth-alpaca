@@ -39,8 +39,7 @@ class PermissionDAOImplTest {
                 .thenReturn(Optional.of(PermissionProvider.singleEntity()));
         Permission entity = dao.findById(entityInitial.getId()).orElse(null);
         assertNotNull(entity);
-        assertEquals(entityInitial.getId(), entity.getId());
-        assertEquals(entityInitial.getPermissionName(), entity.getPermissionName());
+        assertEquals(entityInitial, entity);
         verify(repo).findById(entityInitial.getId());
     }
 
@@ -83,8 +82,7 @@ class PermissionDAOImplTest {
         ArgumentCaptor<Permission> pAC = ArgumentCaptor.forClass(Permission.class);
         verify(repo).save(entity);
         verify(repo).save(pAC.capture());
-        assertEquals(entity.getId(), pAC.getValue().getId());
-        assertEquals(entity.getPermissionName(), pAC.getValue().getPermissionName());
+        assertEquals(entity, pAC.getValue());
     }
 
     @Test
@@ -182,7 +180,7 @@ class PermissionDAOImplTest {
         assertNotEquals(newEntityThird.getPermissionName(), entityUpdatedThird.getPermissionName());
         assertNotEquals(newEntityThird.getId(), entityUpdatedThird.getId());
         verify(repo, times(3)).findById(idThird);
-        verify(repo).save(entityThird);
+        verify(repo, times(2)).save(entityThird);
 
         UUID id = PermissionProvider.singleEntity().getId();
         Permission entity = PermissionProvider.singleEntity();

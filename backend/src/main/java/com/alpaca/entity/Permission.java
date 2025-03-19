@@ -52,4 +52,21 @@ public class Permission {
     public Permission(String permissionName) {
         this.permissionName = permissionName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Permission that = (Permission) o;
+        return id.equals(that.id) && permissionName.equals(that.permissionName) &&
+                rolePermissions.equals(that.rolePermissions);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + permissionName.hashCode();
+        result = 31 * result + rolePermissions.hashCode();
+        return result;
+    }
 }

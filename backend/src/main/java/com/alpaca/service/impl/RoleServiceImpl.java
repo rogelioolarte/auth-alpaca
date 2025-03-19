@@ -36,7 +36,9 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
 
     @Override
     public Set<Role> getUserRoles() {
-        return new HashSet<>(Set.of(findByRoleName("USER")));
+        return new HashSet<>(Set.of(dao.findByRoleName("USER").orElseThrow(() ->
+                new NotFoundException(String.format("%s with Name %s not found",
+                        getEntityName(), "USER")))));
     }
 
     @Transactional
