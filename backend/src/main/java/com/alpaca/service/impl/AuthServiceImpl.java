@@ -5,6 +5,7 @@ import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
@@ -29,6 +30,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -73,6 +75,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      *
      * @param requestDTO the authentication request containing email and password.
      * @return an {@link AuthResponseDTO} containing the generated JWT token.
+     * @throws NotFoundException if the email is not registered.
      */
     @Override
     public AuthResponseDTO login(AuthRequestDTO requestDTO) {
@@ -94,8 +97,6 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
             throw new BadRequestException("Email already registered");
         userService.register(new User(requestDTO.getEmail(),
                 passwordManager.encodePassword(requestDTO.getPassword()),
-                true, true, true,
-                true, false, false,
                 roleService.getUserRoles()));
         return login(requestDTO);
     }
@@ -123,7 +124,8 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     public UserDetails validateUserDetails(UserDetails userDetails, String password) {
         if(userDetails == null)
             throw new BadRequestException("Invalid Username or Password");
-        if(!passwordManager.matches(password, userDetails.getPassword()))
+        if(password == null || password.isBlank() ||
+                !passwordManager.matches(password, userDetails.getPassword()))
             throw new BadRequestException("Invalid Password");
         if(!(userDetails.isEnabled() && userDetails.isAccountNonLocked() &&
                 userDetails.isAccountNonExpired() && userDetails.isCredentialsNonExpired()))
@@ -151,12 +153,13 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @throws OAuth2AuthenticationException if authentication fails.
      */
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
+        } catch (ResponseStatusException e) {
+            throw new InternalAuthenticationServiceException(e.getReason());
         } catch (Exception e) {
-            throw new InternalAuthenticationServiceException(
-                    "The email does not match any account");
+            throw new InternalAuthenticationServiceException("Error while authentication");
         }
     }
 
@@ -180,11 +183,11 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
                     userService.register(new User(userInfo.getEmail(),
                             passwordManager.encodePassword(UUID.randomUUID().toString()),
                             true, true, true,
-                            true, true, true,
+                            true, userInfo.getEmailVerified(), true,
                             roleService.getUserRoles())), userInfo), user.getAttributes());
         } else {
-            return new UserPrincipal(checkExistingUser(userService.findByEmail(userInfo.getEmail())),
-                    user.getAttributes());
+            return new UserPrincipal(checkExistingUser(userService.findByEmail(
+                    userInfo.getEmail()), userInfo), user.getAttributes());
         }
     }
 
@@ -196,8 +199,8 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @return the registered {@link User} entity.
      */
     private User registerProfile(User user, OAuth2UserInfo userInfo) {
-        profileService.save(new Profile(userInfo.getFirstName(),
-                userInfo.getLastName(), "", userInfo.getImageUrl(), user));
+        user.setProfile(profileService.save(new Profile(userInfo.getFirstName(),
+                userInfo.getLastName(), "", userInfo.getImageUrl(), user)));
         return user;
     }
 
@@ -208,15 +211,17 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @param user the existing user entity.
      * @return the updated {@link User} entity.
      */
-    private User checkExistingUser(User user) {
+    private User checkExistingUser(User user, OAuth2UserInfo userInfo) {
         if(!user.isAllowUser())
             throw new UnauthorizedException("The account has been deactivated or blocked");
-        if(user.isGoogleConnected()) {
-            user.setEmailVerified(true);
+        if(!user.isGoogleConnected()) {
             user.setGoogleConnected(true);
             return userService.register(user);
-        } else {
-            return user;
         }
+        if(!(user.isEmailVerified() && userInfo.getEmailVerified())) {
+            user.setEmailVerified(userInfo.getEmailVerified());
+            return userService.register(user);
+        }
+        return user;
     }
 }
