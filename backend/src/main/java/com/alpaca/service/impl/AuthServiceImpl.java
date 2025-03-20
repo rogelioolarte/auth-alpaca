@@ -17,6 +17,7 @@ import com.alpaca.service.IAuthService;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -146,13 +147,14 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Loads a user from an OAuth2 authentication request.
+     * Loads a User from an OAuth2 authentication request.
      *
      * @param userRequest the OAuth2 user request.
      * @return an {@link OAuth2User} representing the authenticated user.
      * @throws OAuth2AuthenticationException if authentication fails.
      */
     @Override
+    @Generated
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
@@ -172,7 +174,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @return an {@link OAuth2User} containing the authenticated user's details.
      * @throws OAuth2AuthenticationProcessingException if the email is not found from the provider.
      */
-    private OAuth2User processOAuth2User(OAuth2UserRequest request, OAuth2User user) {
+    public OAuth2User processOAuth2User(OAuth2UserRequest request, OAuth2User user) {
         OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(request
                 .getClientRegistration().getRegistrationId(), user.getAttributes());
         if (userInfo.getEmail() == null || userInfo.getEmail().isBlank())
@@ -197,8 +199,11 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @param user     the user entity to associate with the profile.
      * @param userInfo the OAuth2 user information.
      * @return the registered {@link User} entity.
+     * @throws BadRequestException if the user, userInfo, userId are null.
      */
-    private User registerProfile(User user, OAuth2UserInfo userInfo) {
+    public User registerProfile(User user, OAuth2UserInfo userInfo) {
+        if(user == null || userInfo == null || user.getId() == null)
+            throw new BadRequestException("Invalid credentials of OAuth2 Provider");
         user.setProfile(profileService.save(new Profile(userInfo.getFirstName(),
                 userInfo.getLastName(), "", userInfo.getImageUrl(), user)));
         return user;
@@ -211,14 +216,14 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @param user the existing user entity.
      * @return the updated {@link User} entity.
      */
-    private User checkExistingUser(User user, OAuth2UserInfo userInfo) {
+    public User checkExistingUser(User user, OAuth2UserInfo userInfo) {
         if(!user.isAllowUser())
             throw new UnauthorizedException("The account has been deactivated or blocked");
         if(!user.isGoogleConnected()) {
             user.setGoogleConnected(true);
             return userService.register(user);
         }
-        if(!(user.isEmailVerified() && userInfo.getEmailVerified())) {
+        if(user.isEmailVerified() != userInfo.getEmailVerified()) {
             user.setEmailVerified(userInfo.getEmailVerified());
             return userService.register(user);
         }

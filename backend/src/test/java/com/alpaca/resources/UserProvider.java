@@ -22,25 +22,43 @@ public class UserProvider {
     }
 
     public static User singleEntity() {
-        User firstEntity = new User(
+        return new User(
                 UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"),
                 "admin@admin.com","123456789",
                 true, true, true,
-                true, true, true,
-                null, null, null);
-        UserRole firstUserRole = new UserRole(
-                firstEntity, RoleProvider.singleEntity());
-        firstEntity.setUserRoles(new HashSet<>(Set.of(firstUserRole)));
-        return firstEntity;
+                true, false, false,
+                new HashSet<>(), null, null);
     }
 
     public static User alternativeEntity() {
+        return new User(
+                UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
+                "user@user.com", "1234567890",
+                true, true, true,
+                true, false, false,
+                new HashSet<>(), null, null);
+    }
+
+    public static User completeEntity() {
         User secondEntity = new User(
                 UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
                 "user@user.com", "123456789",
                 true, true, true,
-                true, true, true,
-                null, null, null);
+                true, false, false,
+                new HashSet<>(), null, null);
+        UserRole secondUserRole = new UserRole(
+                secondEntity, RoleProvider.alternativeEntity());
+        secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole)));
+        return secondEntity;
+    }
+
+    public static User notAllowEntity() {
+        User secondEntity = new User(
+                UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
+                "user@user.com", "123456789",
+                false, false, false,
+                false, false, false,
+                new HashSet<>(), null, null);
         UserRole secondUserRole = new UserRole(
                 secondEntity, RoleProvider.alternativeEntity());
         secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole)));

@@ -12,7 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,13 +33,13 @@ class RoleServiceImplTest {
     void getUserRoles() {
         Role entitySecond = RoleProvider.alternativeEntity();
         when(dao.findByRoleName(entitySecond.getRoleName())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> service.findByRoleName(entitySecond.getRoleName()));
+        assertThrows(NotFoundException.class, () -> service.getUserRoles());
         verify(dao).findByRoleName(entitySecond.getRoleName());
 
         Role entity = RoleProvider.alternativeEntity();
         when(dao.findByRoleName(entity.getRoleName())).thenReturn(Optional.of(entity));
-        Role entityFound = service.findByRoleName(entity.getRoleName());
-        assertEquals(entity, entityFound);
+        Set<Role> entitiesFound = service.getUserRoles();
+        assertEquals(new HashSet<>(Set.of(entity)), entitiesFound);
         verify(dao, times(2)).findByRoleName(entity.getRoleName());
     }
 

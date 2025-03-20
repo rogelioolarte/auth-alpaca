@@ -2,7 +2,9 @@ package com.alpaca.unit.mapper;
 
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
+import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
+import com.alpaca.entity.intermediate.UserRole;
 import com.alpaca.mapper.impl.AdvertiserMapperImpl;
 import com.alpaca.mapper.impl.ProfileMapperImpl;
 import com.alpaca.mapper.impl.RoleMapperImpl;
@@ -51,7 +53,8 @@ class UserMapperImplTest {
                 mapper.toPageResponseDTO(null));
 
         assertEquals(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
-                mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
+                mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(),
+                        Pageable.unpaged(), 0)));
 
         List<User> entities = UserProvider.listEntities();
         Page<UserResponseDTO> page = mapper.toPageResponseDTO(
@@ -73,6 +76,8 @@ class UserMapperImplTest {
         assertNull(mapper.toResponseDTO(null));
 
         User entity = UserProvider.singleEntity();
+        Role role = RoleProvider.singleEntity();
+        entity.setUserRoles(new HashSet<>(Set.of(new UserRole(entity, role))));
         when(roleMapper.toListResponseDTO(entity.getRoles()))
                 .thenReturn(new ArrayList<>(List.of(RoleProvider.singleResponse())));
         when(profileMapper.toResponseDTO(null))

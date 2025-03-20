@@ -117,12 +117,10 @@ class UserDAOImplTest {
 
         User alternativeEntity = UserProvider.alternativeEntity();
         when(repo.existsByEmail(alternativeEntity.getEmail())).thenReturn(false);
-        System.out.println("antepenultimo user" + alternativeEntity.getEmail());
         assertFalse(dao.existsByUniqueProperties(alternativeEntity));
         verify(repo).existsByEmail(alternativeEntity.getEmail());
 
         User entity = UserProvider.singleEntity();
-        System.out.println("ultimo user" + entity.getEmail());
         when(repo.existsByEmail(entity.getEmail())).thenReturn(true);
         assertTrue(dao.existsByUniqueProperties(entity));
         verify(repo).existsByEmail(entity.getEmail());

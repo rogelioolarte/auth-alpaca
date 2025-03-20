@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -169,5 +170,34 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + profileId.hashCode();
+        result = 31 * result + advertiserId.hashCode();
+        result = 31 * result + username.hashCode();
+        result = 31 * result + password.hashCode();
+        result = 31 * result + Boolean.hashCode(enabled);
+        result = 31 * result + Boolean.hashCode(accountNoExpired);
+        result = 31 * result + Boolean.hashCode(accountNoLocked);
+        result = 31 * result + Boolean.hashCode(credentialNoExpired);
+        result = 31 * result + authorities.hashCode();
+        result = 31 * result + attributes.hashCode();
+        return result;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof UserPrincipal that)) return false;
+
+        return enabled == that.enabled && accountNoExpired == that.accountNoExpired &&
+                accountNoLocked == that.accountNoLocked &&
+                credentialNoExpired == that.credentialNoExpired && id.equals(that.id) &&
+                Objects.equals(profileId, that.profileId) &&
+                Objects.equals(advertiserId, that.advertiserId) && username.equals(that.username)
+                && password.equals(that.password) && Objects.equals(authorities, that.authorities)
+                && Objects.equals(attributes, that.attributes);
     }
 }
