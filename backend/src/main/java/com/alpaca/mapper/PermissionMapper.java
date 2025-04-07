@@ -5,10 +5,9 @@ import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
 
 public interface PermissionMapper
-        extends GenericMapper<Permission, PermissionResponseDTO, PermissionRequestDTO> {
+    extends GenericMapper<Permission, PermissionResponseDTO, PermissionRequestDTO> {
 
-    PermissionResponseDTO toResponseDTO(Permission entity);
+  PermissionResponseDTO toResponseDTO(Permission entity);
 
-    Permission toEntity(PermissionRequestDTO requestDTO);
-
+  Permission toEntity(PermissionRequestDTO requestDTO);
 }

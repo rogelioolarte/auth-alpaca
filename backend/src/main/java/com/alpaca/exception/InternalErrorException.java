@@ -5,7 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class InternalErrorException extends ResponseStatusException {
 
-    public InternalErrorException(String message) {
-      super(HttpStatus.INTERNAL_SERVER_ERROR, message);
-    }
+  public InternalErrorException(String message) {
+    super(HttpStatus.INTERNAL_SERVER_ERROR, message);
+  }
 }

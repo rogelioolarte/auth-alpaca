@@ -16,26 +16,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final IAuthService authService;
+  private final IAuthService authService;
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO requestDTO) {
-        return new ResponseEntity<>(authService.login(requestDTO), HttpStatus.OK);
-    }
+  @PostMapping("/login")
+  public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO requestDTO) {
+    return new ResponseEntity<>(authService.login(requestDTO), HttpStatus.OK);
+  }
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody AuthRequestDTO requestDTO) {
-        return new ResponseEntity<>(authService.register(requestDTO), HttpStatus.OK);
-    }
+  @PostMapping("/register")
+  public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody AuthRequestDTO requestDTO) {
+    return new ResponseEntity<>(authService.register(requestDTO), HttpStatus.OK);
+  }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserPrincipal> getCurrentUser(@AuthenticationPrincipal UserPrincipal user) {
-        return ResponseEntity.ok(user);
-    }
+  @GetMapping("/me")
+  public ResponseEntity<UserPrincipal> getCurrentUser(@AuthenticationPrincipal UserPrincipal user) {
+    return ResponseEntity.ok(user);
+  }
 
-    @GetMapping("/")
-    public ResponseEntity<String> register() {
-        return new ResponseEntity<>("API Online", HttpStatus.OK);
-    }
-
+  @GetMapping("/")
+  public ResponseEntity<String> register() {
+    return new ResponseEntity<>("API Online", HttpStatus.OK);
+  }
 }

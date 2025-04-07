@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record UserResponseDTO(
-        UUID id,
-        String email,
-        List<RoleResponseDTO> roles,
-        ProfileResponseDTO profile,
-        AdvertiserResponseDTO advertiser
-) {
-}
+    UUID id,
+    String email,
+    List<RoleResponseDTO> roles,
+    ProfileResponseDTO profile,
+    AdvertiserResponseDTO advertiser) {}
