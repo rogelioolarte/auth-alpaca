@@ -5,9 +5,12 @@ import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+
 @Component
+@Profile("prod")
 @RequiredArgsConstructor
 public class InitializerServiceImpl implements ApplicationRunner {
 
@@ -16,6 +19,6 @@ public class InitializerServiceImpl implements ApplicationRunner {
   @Override
   @Generated
   public void run(ApplicationArguments args) {
-    //        dataService.initializeData();
+    dataService.initializeData();
   }
 }

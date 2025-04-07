@@ -4,10 +4,11 @@ import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Optional;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 public class CookieAuthReqRepo

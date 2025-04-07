@@ -3,8 +3,9 @@ package com.alpaca.security.oauth2;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
+
+import java.io.IOException;
 
 public class AuthResponseTypeDeserializer
     extends JsonDeserializer<OAuth2AuthorizationResponseType> {

@@ -1,7 +1,5 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.RedirectCookieName;
-
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.CookieManager;
@@ -9,17 +7,20 @@ import com.alpaca.security.manager.JJwtManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.alpaca.security.oauth2.CookieAuthReqRepo.RedirectCookieName;
 
 @Component
 public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {

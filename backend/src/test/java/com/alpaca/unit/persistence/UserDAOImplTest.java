@@ -1,8 +1,5 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.entity.intermediate.UserRole;
@@ -11,12 +8,16 @@ import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserDAOImplTest {

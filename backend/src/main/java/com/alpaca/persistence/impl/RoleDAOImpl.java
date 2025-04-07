@@ -5,10 +5,11 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RoleRepo;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor

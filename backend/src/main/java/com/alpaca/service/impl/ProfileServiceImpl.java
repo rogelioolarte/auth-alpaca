@@ -4,10 +4,11 @@ import com.alpaca.entity.Profile;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.service.IProfileService;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

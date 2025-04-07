@@ -1,21 +1,22 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.entity.Role;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.RoleProvider;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RoleDAOImplTest {
