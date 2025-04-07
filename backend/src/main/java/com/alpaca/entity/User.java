@@ -188,12 +188,12 @@ public class User {
      * @return a List of {@link Role} objects representing the User's roles.
      */
     public List<Role> getRoles() {
-        if(getUserRoles().isEmpty()) return Collections.emptyList();
-        List<Role> roles = new ArrayList<>(getUserRoles().size());
-        if(getUserRoles().size() == 1) {
-            roles.add(getUserRoles().iterator().next().getRole());
+        if(userRoles.isEmpty()) return Collections.emptyList();
+        List<Role> roles = new ArrayList<>(userRoles.size());
+        if(userRoles.size() == 1) {
+            roles.add(userRoles.iterator().next().getRole());
         } else {
-            for(UserRole userRole : getUserRoles()) {
+            for(UserRole userRole : userRoles) {
                 roles.add(userRole.getRole());
             }
         }
@@ -245,5 +245,41 @@ public class User {
     public boolean isAllowUser() {
         return this.enabled && this.accountNoExpired &&
                 this.accountNoLocked && this.credentialNoExpired;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return enabled == user.enabled &&
+                accountNoExpired == user.accountNoExpired &&
+                accountNoLocked == user.accountNoLocked &&
+                credentialNoExpired == user.credentialNoExpired &&
+                emailVerified == user.emailVerified &&
+                googleConnected == user.googleConnected &&
+                id != null && id.equals(user.id) &&
+                email != null && email.equals(user.email) &&
+                password != null && password.equals(user.password) &&
+                userRoles != null && userRoles.equals(user.userRoles) &&
+                profile != null && profile.equals(user.profile) &&
+                advertiser != null && advertiser.equals(user.advertiser);
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(email);
+        result = 31 * result + Objects.hashCode(password);
+        result = 31 * result + Boolean.hashCode(enabled);
+        result = 31 * result + Boolean.hashCode(accountNoExpired);
+        result = 31 * result + Boolean.hashCode(accountNoLocked);
+        result = 31 * result + Boolean.hashCode(credentialNoExpired);
+        result = 31 * result + Boolean.hashCode(emailVerified);
+        result = 31 * result + Boolean.hashCode(googleConnected);
+        result = 31 * result + Objects.hashCode(userRoles);
+        result = 31 * result + Objects.hashCode(profile);
+        result = 31 * result + Objects.hashCode(advertiser);
+        return result;
     }
 }

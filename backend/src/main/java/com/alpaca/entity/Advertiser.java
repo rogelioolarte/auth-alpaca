@@ -128,4 +128,38 @@ public class Advertiser {
         this.verified = verified;
         this.user = user;
     }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Advertiser that)) return false;
+        return indexed == that.indexed &&
+                paid == that.paid &&
+                verified == that.verified &&
+                id != null && id.equals(that.id) &&
+                title != null && title.equals(that.title) &&
+                description != null && description.equals(that.description) &&
+                bannerUrl != null && bannerUrl.equals(that.bannerUrl) &&
+                avatarUrl != null && avatarUrl.equals(that.avatarUrl) &&
+                publicLocation != null && publicLocation.equals(that.publicLocation) &&
+                publicUrlLocation != null && publicUrlLocation.equals(that.publicUrlLocation) &&
+                user != null && user.equals(that.user);
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + title.hashCode();
+        result = 31 * result + description.hashCode();
+        result = 31 * result + bannerUrl.hashCode();
+        result = 31 * result + avatarUrl.hashCode();
+        result = 31 * result + publicLocation.hashCode();
+        result = 31 * result + publicUrlLocation.hashCode();
+        result = 31 * result + Boolean.hashCode(indexed);
+        result = 31 * result + Boolean.hashCode(paid);
+        result = 31 * result + Boolean.hashCode(verified);
+        result = 31 * result + user.hashCode();
+        return result;
+    }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,19 +55,19 @@ public class Permission {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Permission that = (Permission) o;
-        return id.equals(that.id) && permissionName.equals(that.permissionName) &&
-                rolePermissions.equals(that.rolePermissions);
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Permission that)) return false;
+        return id != null && id.equals(that.id) &&
+                permissionName != null && permissionName.equals(that.permissionName) &&
+                rolePermissions != null && rolePermissions.equals(that.rolePermissions);
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + permissionName.hashCode();
-        result = 31 * result + rolePermissions.hashCode();
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(permissionName);
+        result = 31 * result + Objects.hashCode(rolePermissions);
         return result;
     }
 }

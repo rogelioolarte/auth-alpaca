@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -84,5 +85,29 @@ public class Profile {
         this.address = address;
         this.avatarUrl = avatarUrl;
         this.user = user;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Profile profile)) return false;
+        return id != null && id.equals(profile.id) &&
+                firstName != null && firstName.equals(profile.firstName) &&
+                lastName != null && lastName.equals(profile.lastName) &&
+                address != null && address.equals(profile.address) &&
+                avatarUrl != null && avatarUrl.equals(profile.avatarUrl) &&
+                user != null && user.equals(profile.user);
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(firstName);
+        result = 31 * result + Objects.hashCode(lastName);
+        result = 31 * result + Objects.hashCode(address);
+        result = 31 * result + Objects.hashCode(avatarUrl);
+        result = 31 * result + Objects.hashCode(user);
+        return result;
     }
 }

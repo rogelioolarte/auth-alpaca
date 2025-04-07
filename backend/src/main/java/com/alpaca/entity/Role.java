@@ -100,12 +100,32 @@ public class Role {
      * @return a list of {@link Permission} objects associated with this Role.
      */
     public List<Permission> getPermissions() {
-        if(getRolePermissions().isEmpty()) return Collections.emptyList();
-        List<Permission> permissions = new ArrayList<>(getRolePermissions().size());
+        if(rolePermissions.isEmpty()) return Collections.emptyList();
+        List<Permission> permissions = new ArrayList<>(rolePermissions.size());
         for(RolePermission rolePermission : getRolePermissions()) {
             permissions.add(rolePermission.getPermission());
         }
         return permissions;
     }
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Role role)) return false;
+        return id != null && id.equals(role.id) &&
+                roleName != null && roleName.equals(role.roleName) &&
+                roleDescription != null && roleDescription.equals(role.roleDescription) &&
+                rolePermissions != null && rolePermissions.equals(role.rolePermissions) &&
+                userRoles != null && userRoles.equals(role.userRoles);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(id);
+        result = 31 * result + Objects.hashCode(roleName);
+        result = 31 * result + Objects.hashCode(roleDescription);
+        result = 31 * result + Objects.hashCode(rolePermissions);
+        result = 31 * result + Objects.hashCode(userRoles);
+        return result;
+    }
 }
