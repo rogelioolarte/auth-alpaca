@@ -132,58 +132,19 @@
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<version>0.8.12</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>prepare-agent</goal>
-									<goal>report</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>report</id>
-								<phase>test</phase>
-								<goals>
-									<goal>report</goal>
-								</goals>
-								<configuration>
-									<excludes>
-										<exclude>**/DemoApplication.class</exclude>
-										<exclude>**/DataServiceImpl.class</exclude>
-										<exclude>**/entity/**</exclude>
-										<exclude>**/model/**</exclude>
-										<exclude>**/dto/**</exclude>
-										<exclude>**/controller/**</exclude>
-										<exclude>**/exception/**</exclude>
-										<exclude>**/repository/**</exclude>
-										<exclude>**/config/**</exclude>
-										<exclude>**/utils/**</exclude>
-									</excludes>
-								</configuration>
-							</execution>
-						</executions>
-						<configuration>
-							<rules>
-								<rule>
-									<element>PACKAGE</element>
-									<limits>
-										<limit>
-											<counter>LINE</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.80</minimum>
-										</limit>
-									</limits>
-								</rule>
-							</rules>
-						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<includes>
-								<include>unit/**/*Test.java</include>
-							</includes>
-						</configuration>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+								<phase>none</phase>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
@@ -224,6 +185,7 @@
 										<exclude>**/config/**</exclude>
 										<exclude>**/utils/**</exclude>
 									</excludes>
+									<outputDirectory>${project.build.directory}/site-integration</outputDirectory>
 								</configuration>
 							</execution>
 						</executions>
@@ -240,15 +202,6 @@
 									</limits>
 								</rule>
 							</rules>
-						</configuration>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<includes>
-								<include>integration/**/*IT.java</include>
-							</includes>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -329,6 +282,8 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!--Jacoco Plugin-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -337,9 +292,45 @@
 					<execution>
 						<goals>
 							<goal>prepare-agent</goal>
+							<goal>report</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/DataServiceImpl.class</exclude>
+								<exclude>**/entity/**</exclude>
+								<exclude>**/model/**</exclude>
+								<exclude>**/dto/**</exclude>
+								<exclude>**/controller/**</exclude>
+								<exclude>**/exception/**</exclude>
+								<exclude>**/repository/**</exclude>
+								<exclude>**/config/**</exclude>
+								<exclude>**/utils/**</exclude>
+							</excludes>
+						</configuration>
+					</execution>
 				</executions>
+				<configuration>
+					<rules>
+						<rule>
+							<element>PACKAGE</element>
+							<limits>
+								<limit>
+									<counter>LINE</counter>
+									<value>COVEREDRATIO</value>
+									<minimum>0.80</minimum>
+								</limit>
+							</limits>
+						</rule>
+					</rules>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -352,10 +343,33 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Maven Failsafe Plugin for Running Integration Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.5.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>integration/**/*IT.java</include>
+					</includes>
+					<reportsDirectory>${project.build.directory}/failsafe-reports/integration</reportsDirectory>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<includes>
+						<include>unit/**/*Test.java</include>
+					</includes>
 					<argLine>
 						@{argLine}
 						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar

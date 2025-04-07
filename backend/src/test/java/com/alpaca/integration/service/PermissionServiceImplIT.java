@@ -8,7 +8,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IPermissionDAO;
 import com.alpaca.resources.PermissionProvider;
-import com.alpaca.service.IPermissionService;
+import com.alpaca.service.impl.PermissionServiceImpl;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,24 +17,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
+/** Integration tests for {@link com.alpaca.service.impl.PermissionServiceImpl} */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 class PermissionServiceImplIT {
 
   @Autowired private IPermissionDAO dao;
 
-  @Autowired private IPermissionService service;
+  @Autowired private PermissionServiceImpl service;
 
   @Test
+  @Transactional
   void findById() {
     assertThrows(BadRequestException.class, () -> service.findById(null));
 
     UUID randomId = UUID.randomUUID();
     assertThrows(NotFoundException.class, () -> this.service.findById(randomId));
 
-    Permission permission = PermissionProvider.alternativeEntity();
-    service.save(permission);
+    String permissionName = PermissionProvider.alternativeEntity().getPermissionName();
+    Permission permission = service.save(new Permission(permissionName));
     Permission permissionFound = service.findById(permission.getId());
     assertNotNull(permissionFound);
     assertEquals(permission.getId(), permissionFound.getId());
@@ -42,25 +45,21 @@ class PermissionServiceImplIT {
   }
 
   @Test
+  @Transactional
   void findAllByIds() {
-    // Test con entrada nula o vacía
     assertThrows(BadRequestException.class, () -> service.findAllByIds(null));
     assertThrows(BadRequestException.class, () -> service.findAllByIds(Collections.emptyList()));
 
-    // Test con IDs inválidos
     UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
     List<UUID> uuids = new ArrayList<>();
     uuids.add(id);
     uuids.add(null);
     assertThrows(BadRequestException.class, () -> service.findAllByIds(uuids));
 
-    // Test con IDs válidos
     UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a3");
-    Permission permission = PermissionProvider.singleEntity();
-    dao.save(permission); // Guardamos el permiso en la base de datos
-    when(dao.existsAllByIds(List.of(permission.getId()))).thenReturn(true);
-    when(dao.findAllByIds(List.of(permission.getId()))).thenReturn(List.of(permission));
 
+    String permissionName = PermissionProvider.singleEntity().getPermissionName();
+    Permission permission = service.save(new Permission(permissionName));
     List<Permission> permissions =
         service.findAllByIds(new ArrayList<>(List.of(permission.getId())));
     assertNotNull(permissions);
@@ -69,89 +68,91 @@ class PermissionServiceImplIT {
   }
 
   @Test
+  @Transactional
   void save() {
-    // Test con permiso nulo
     assertThrows(BadRequestException.class, () -> service.save(null));
 
-    // Test con permiso existente
-    Permission permission = PermissionProvider.singleEntity();
-    dao.save(permission); // Guardamos el permiso en la base de datos
-    assertThrows(BadRequestException.class, () -> service.save(permission));
+    String permissionName = PermissionProvider.singleEntity().getPermissionName();
+    service.save(new Permission(permissionName));
+    assertThrows(BadRequestException.class, () -> service.save(new Permission(permissionName)));
 
-    // Test con permiso nuevo
-    Permission permissionSecond = PermissionProvider.alternativeEntity();
-    when(dao.existsByUniqueProperties(permissionSecond)).thenReturn(false);
+    String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
+    Permission permissionSecond = new Permission(permissionNameSecond);
     Permission savedPermission = service.save(permissionSecond);
     assertNotNull(savedPermission);
     assertEquals(permissionSecond.getId(), savedPermission.getId());
   }
 
   @Test
+  @Transactional
   void updateById() {
     assertThrows(BadRequestException.class, () -> service.updateById(null, null));
 
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a122");
-    Permission permission = PermissionProvider.singleEntity();
-    dao.save(permission); // Guardamos el permiso en la base de datos
+    String permissionName = PermissionProvider.singleEntity().getPermissionName();
+    Permission permission = service.save(new Permission(permissionName));
 
-    Permission permissionSecond = PermissionProvider.alternativeEntity();
-    UUID idSecond = permissionSecond.getId();
-    dao.save(permissionSecond); // Guardamos el permiso actualizado en la base de datos
+    String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
+    Permission permissionSecond = service.save(new Permission(permissionNameSecond));
 
-    Permission updatedPermission = service.updateById(permissionSecond, idSecond);
+    Permission updatedPermission = service.updateById(permissionSecond, permission.getId());
     assertNotNull(updatedPermission);
+    assertEquals(permission.getId(), updatedPermission.getId());
     assertEquals(permissionSecond.getPermissionName(), updatedPermission.getPermissionName());
   }
 
   @Test
+  @Transactional
   void deleteById() {
     assertThrows(BadRequestException.class, () -> service.deleteById(null));
 
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
-    Permission permission = PermissionProvider.singleEntity();
-    dao.save(permission); // Guardamos el permiso en la base de datos
-
-    when(dao.existsById(id)).thenReturn(false);
+    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a122");
     assertThrows(BadRequestException.class, () -> service.deleteById(id));
 
-    // Eliminar permiso de la base de datos
-    dao.deleteById(permission.getId());
-    assertFalse(dao.existsById(permission.getId()));
+    String permissionName = PermissionProvider.singleEntity().getPermissionName();
+    Permission permission = service.save(new Permission(permissionName));
+    service.deleteById(permission.getId());
+    assertFalse(service.existsById(permission.getId()));
   }
 
   @Test
+  @Transactional
   void findAll() {
     List<Permission> initialPermissions = PermissionProvider.listEntities();
+    List<Permission> savedPermissions = new ArrayList<>();
     for (Permission permission : initialPermissions) {
-      dao.save(permission); // Guardamos los permisos en la base de datos
+      savedPermissions.add(dao.save(permission));
     }
 
     List<Permission> permissions = service.findAll();
     assertNotNull(permissions);
     assertFalse(permissions.isEmpty());
     assertEquals(initialPermissions.size(), permissions.size());
+    assertEquals(savedPermissions, permissions);
   }
 
   @Test
+  @Transactional
   void findAllPage() {
-    List<Permission> permissions = PermissionProvider.listEntities();
-    for (Permission permission : permissions) {
-      dao.save(permission); // Guardamos los permisos en la base de datos
+    List<Permission> initialPermissions = PermissionProvider.listEntities();
+    List<Permission> savedPermissions = new ArrayList<>();
+    for (Permission permission : initialPermissions) {
+      savedPermissions.add(dao.save(permission));
     }
 
     Page<Permission> permissionPage = service.findAllPage(Pageable.unpaged());
     assertNotNull(permissionPage);
     assertFalse(permissionPage.isEmpty());
     assertTrue(permissionPage.getPageable().isUnpaged());
+    assertEquals(savedPermissions, permissionPage.getContent());
   }
 
   @Test
+  @Transactional
   void existsById() {
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
-    Permission permission = PermissionProvider.singleEntity();
-    dao.save(permission); // Guardamos el permiso en la base de datos
+    String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
+    Permission permission = dao.save(new Permission(permissionNameSecond));
 
     assertTrue(service.existsById(permission.getId()));
-    assertFalse(service.existsById(UUID.randomUUID())); // ID no existente
+    assertFalse(service.existsById(UUID.randomUUID()));
   }
 }

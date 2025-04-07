@@ -11,7 +11,10 @@ import java.util.UUID;
 public class PermissionProvider {
 
   public static List<Permission> listEntities() {
-    return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
+    return new ArrayList<>(
+        List.of(
+            new Permission(singleEntity().getPermissionName()),
+            new Permission(alternativeEntity().getPermissionName())));
   }
 
   public static List<PermissionRequestDTO> listRequest() {
