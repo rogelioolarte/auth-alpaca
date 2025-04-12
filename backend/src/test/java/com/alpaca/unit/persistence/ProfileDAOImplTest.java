@@ -1,22 +1,21 @@
 package com.alpaca.unit.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.ProfileDAOImpl;
 import com.alpaca.repository.ProfileRepo;
 import com.alpaca.resources.ProfileProvider;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileDAOImplTest {
@@ -25,34 +24,44 @@ class ProfileDAOImplTest {
 
   @InjectMocks private ProfileDAOImpl dao;
 
-  @Test
-  void updateById() {
-    UUID initialId = ProfileProvider.alternativeEntity().getId();
-    Profile initialEntity = ProfileProvider.alternativeEntity();
-    when(repo.findById(initialId)).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> dao.updateById(initialEntity, initialId));
-    verify(repo).findById(initialId);
+  private Profile firstEntity;
+  private Profile secondEntity;
+  private Profile thirdEntity;
 
-    UUID idSecond = ProfileProvider.alternativeEntity().getId();
-    Profile entitySecond = ProfileProvider.alternativeEntity();
+  @BeforeEach
+  void setup() {
+    firstEntity = ProfileProvider.singleEntity();
+    secondEntity = ProfileProvider.alternativeEntity();
+    thirdEntity = ProfileProvider.alternativeEntity();
+  }
+
+  @Test
+  void updateByIdCaseOne() {
+    when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> dao.updateById(firstEntity, firstEntity.getId()));
+    verify(repo).findById(firstEntity.getId());
+  }
+
+  @Test
+  void updateByIdCaseTwo() {
     Profile newEntitySecond = new Profile();
     newEntitySecond.setAddress(null);
     newEntitySecond.setAvatarUrl(null);
     newEntitySecond.setUser(null);
     newEntitySecond.setLastName(null);
     newEntitySecond.setFirstName(null);
-    when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
-    when(repo.save(entitySecond)).thenReturn(entitySecond);
-    Profile entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
-    assertNotNull(entityUpdatedSecond);
-    assertEquals(entitySecond.getId(), entityUpdatedSecond.getId());
-    assertNotEquals(newEntitySecond.getAddress(), entityUpdatedSecond.getAddress());
-    assertNotEquals(newEntitySecond.getId(), entityUpdatedSecond.getId());
-    verify(repo, times(2)).findById(idSecond);
-    verify(repo).save(entitySecond);
+    when(repo.findById(secondEntity.getId())).thenReturn(Optional.of(secondEntity));
+    when(repo.save(secondEntity)).thenReturn(secondEntity);
+    Profile updatedEntity = dao.updateById(newEntitySecond, secondEntity.getId());
+    assertNotNull(updatedEntity);
+    assertEquals(secondEntity.getId(), updatedEntity.getId());
+    assertNotEquals(newEntitySecond.getAddress(), updatedEntity.getAddress());
+    verify(repo).findById(secondEntity.getId());
+    verify(repo).save(secondEntity);
+  }
 
-    UUID idThird = ProfileProvider.alternativeEntity().getId();
-    Profile entityThird = ProfileProvider.alternativeEntity();
+  @Test
+  void updateByIdCaseThree() {
     Profile newEntityThird = new Profile();
     newEntityThird.setAddress(" ");
     newEntityThird.setLastName(" ");
@@ -61,50 +70,56 @@ class ProfileDAOImplTest {
     User newUserThird = new User();
     newUserThird.setId(null);
     newEntityThird.setUser(newUserThird);
-    when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
-    when(repo.save(entityThird)).thenReturn(entityThird);
-    Profile entityUpdatedThird = dao.updateById(newEntityThird, idThird);
-    assertNotNull(entityUpdatedThird);
-    assertEquals(entityThird.getId(), entityUpdatedThird.getId());
-    assertNotEquals(newEntityThird.getAddress(), entityUpdatedThird.getAddress());
-    assertNotEquals(newEntityThird.getId(), entityUpdatedThird.getId());
-    verify(repo, times(3)).findById(idThird);
-    verify(repo).save(entityThird);
-
-    UUID id = ProfileProvider.singleEntity().getId();
-    Profile entity = ProfileProvider.singleEntity();
-    Profile newEntity = ProfileProvider.alternativeEntity();
-    when(repo.findById(id)).thenReturn(Optional.of(entity));
-    when(repo.save(entity)).thenReturn(entity);
-    Profile entityUpdated = dao.updateById(newEntity, id);
-    assertNotNull(entityUpdated);
-    assertEquals(entity.getId(), entityUpdated.getId());
-    assertEquals(newEntity.getAddress(), entityUpdated.getAddress());
-    assertNotEquals(newEntity.getId(), entityUpdated.getId());
-    verify(repo).findById(id);
-    verify(repo).save(entity);
+    when(repo.findById(thirdEntity.getId())).thenReturn(Optional.of(thirdEntity));
+    when(repo.save(thirdEntity)).thenReturn(thirdEntity);
+    Profile updatedEntity = dao.updateById(newEntityThird, thirdEntity.getId());
+    assertNotNull(updatedEntity);
+    assertEquals(thirdEntity.getId(), updatedEntity.getId());
+    assertNotEquals(newEntityThird.getAddress(), updatedEntity.getAddress());
+    verify(repo).findById(thirdEntity.getId());
+    verify(repo).save(thirdEntity);
   }
 
   @Test
-  void existsByUniqueProperties() {
-    Profile firstEntity = new Profile();
-    firstEntity.setUser(null);
-    assertFalse(dao.existsByUniqueProperties(firstEntity));
+  void updateByIdCaseFour() {
+    when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
+    when(repo.save(firstEntity)).thenReturn(firstEntity);
+    Profile updatedEntity = dao.updateById(secondEntity, firstEntity.getId());
+    assertNotNull(updatedEntity);
+    assertEquals(firstEntity.getId(), updatedEntity.getId());
+    assertEquals(secondEntity.getAddress(), updatedEntity.getAddress());
+    assertNotEquals(secondEntity.getId(), updatedEntity.getId());
+    verify(repo).findById(firstEntity.getId());
+    verify(repo).save(firstEntity);
+  }
 
-    Profile secondEntity = new Profile();
-    User secondUser = new User();
-    secondUser.setId(null);
-    secondEntity.setUser(secondUser);
+  @Test
+  void existsByUniquePropertiesCaseOne() {
+    Profile entityWithNullUser = new Profile();
+    entityWithNullUser.setUser(null);
+    assertFalse(dao.existsByUniqueProperties(entityWithNullUser));
+  }
+
+  @Test
+  void existsByUniquePropertiesCaseTwo() {
+    Profile entityWithNullUserId = new Profile();
+    User userWithNullId = new User();
+    userWithNullId.setId(null);
+    entityWithNullUserId.setUser(userWithNullId);
+    assertFalse(dao.existsByUniqueProperties(entityWithNullUserId));
+  }
+
+  @Test
+  void existsByUniquePropertiesCaseThree() {
+    when(repo.countByUserId(secondEntity.getUser().getId())).thenReturn(0L);
     assertFalse(dao.existsByUniqueProperties(secondEntity));
+    verify(repo).countByUserId(secondEntity.getUser().getId());
+  }
 
-    Profile entitySecond = ProfileProvider.alternativeEntity();
-    when(repo.countByUserId(entitySecond.getUser().getId())).thenReturn(0L);
-    assertFalse(dao.existsByUniqueProperties(entitySecond));
-    verify(repo).countByUserId(entitySecond.getUser().getId());
-
-    Profile entity = ProfileProvider.singleEntity();
-    when(repo.countByUserId(entity.getUser().getId())).thenReturn(1L);
-    assertTrue(dao.existsByUniqueProperties(entity));
-    verify(repo).countByUserId(entity.getUser().getId());
+  @Test
+  void existsByUniquePropertiesCaseFour() {
+    when(repo.countByUserId(firstEntity.getUser().getId())).thenReturn(1L);
+    assertTrue(dao.existsByUniqueProperties(firstEntity));
+    verify(repo).countByUserId(firstEntity.getUser().getId());
   }
 }

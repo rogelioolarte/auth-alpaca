@@ -8,13 +8,12 @@ import com.alpaca.mapper.ProfileMapper;
 import com.alpaca.mapper.RoleMapper;
 import com.alpaca.mapper.UserMapper;
 import com.alpaca.service.IRoleService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

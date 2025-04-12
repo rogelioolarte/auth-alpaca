@@ -3,7 +3,6 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.AdvertiserRequestDTO;
 import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

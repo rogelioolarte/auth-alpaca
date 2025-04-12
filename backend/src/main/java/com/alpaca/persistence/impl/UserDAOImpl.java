@@ -5,12 +5,11 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -53,6 +52,30 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     }
     if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
       existingUser.setUserRoles(user.getUserRoles());
+    }
+    if (user.getProfile() != null && user.getProfile().getId() != null) {
+      existingUser.setProfile(user.getProfile());
+    }
+    if (user.getAdvertiser() != null && user.getAdvertiser().getId() != null) {
+      existingUser.setAdvertiser(user.getAdvertiser());
+    }
+    if (existingUser.isEnabled() != user.isEnabled()) {
+      existingUser.setEnabled(user.isEnabled());
+    }
+    if (existingUser.isAccountNoLocked() != user.isAccountNoLocked()) {
+      existingUser.setAccountNoLocked(user.isAccountNoLocked());
+    }
+    if (existingUser.isAccountNoExpired() != user.isAccountNoExpired()) {
+      existingUser.setAccountNoExpired(user.isAccountNoExpired());
+    }
+    if (existingUser.isCredentialNoExpired() != user.isCredentialNoExpired()) {
+      existingUser.setCredentialNoExpired(user.isCredentialNoExpired());
+    }
+    if (existingUser.isEmailVerified() != user.isEmailVerified()) {
+      existingUser.setEmailVerified(user.isEmailVerified());
+    }
+    if (existingUser.isGoogleConnected() != user.isGoogleConnected()) {
+      existingUser.setGoogleConnected(user.isGoogleConnected());
     }
     return save(existingUser);
   }

@@ -2,12 +2,11 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.repository.GenericRepo;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public abstract class GenericDAOImpl<T, ID> implements IGenericDAO<T, ID> {
 
@@ -57,6 +56,6 @@ public abstract class GenericDAOImpl<T, ID> implements IGenericDAO<T, ID> {
 
   @Override
   public boolean existsAllByIds(Collection<ID> ids) {
-    return getRepo().countByIds(ids) == (long) ids.size();
+    return ((long) ids.size()) == getRepo().countByIds(ids);
   }
 }

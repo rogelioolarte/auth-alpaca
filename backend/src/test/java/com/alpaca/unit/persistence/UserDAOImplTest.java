@@ -1,23 +1,27 @@
 package com.alpaca.unit.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import com.alpaca.entity.Advertiser;
+import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.entity.intermediate.UserRole;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
+import com.alpaca.resources.AdvertiserProvider;
+import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
+import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserDAOImplTest {
@@ -26,124 +30,183 @@ class UserDAOImplTest {
 
   @InjectMocks private UserDAOImpl dao;
 
-  @Test
-  void findByEmail() {
-    User firstEntity = new User();
-    firstEntity.setEmail(null);
-    assertEquals(dao.findByEmail(firstEntity.getEmail()), Optional.empty());
+  private User firstEntity;
+  private User secondEntity;
+  private User thirdEntity;
+  private final UUID id = UserProvider.singleEntity().getId();
+  private final UUID idSecond = UserProvider.alternativeEntity().getId();
+  private final UUID idThird = UserProvider.alternativeEntity().getId();
 
-    User secondEntity = new User();
-    secondEntity.setEmail("  ");
-    assertEquals(dao.findByEmail(secondEntity.getEmail()), Optional.empty());
-
-    User entitySecond = UserProvider.alternativeEntity();
-    when(repo.findByEmail(entitySecond.getEmail())).thenReturn(Optional.empty());
-    User entityFoundSecond = dao.findByEmail(entitySecond.getEmail()).orElseGet(User::new);
-    assertNotEquals(entityFoundSecond, entitySecond);
-    verify(repo).findByEmail(entitySecond.getEmail());
-
-    User entity = UserProvider.singleEntity();
-    when(repo.findByEmail(entity.getEmail())).thenReturn(Optional.of(entity));
-    User entityFound = dao.findByEmail(entity.getEmail()).orElseGet(User::new);
-    assertEquals(entityFound, entity);
-    verify(repo).findByEmail(entity.getEmail());
+  @BeforeEach
+  void setup() {
+    firstEntity = UserProvider.singleEntity();
+    secondEntity = UserProvider.alternativeEntity();
+    thirdEntity = UserProvider.alternativeEntity();
   }
 
   @Test
-  void updateById() {
-    UUID initialId = UserProvider.alternativeEntity().getId();
-    User initialEntity = UserProvider.alternativeEntity();
-    when(repo.findById(initialId)).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> dao.updateById(initialEntity, initialId));
-    verify(repo).findById(initialId);
+  void findByEmailCaseOne() {
+    User firstEntityWithNullEmail = new User();
+    firstEntityWithNullEmail.setEmail(null);
+    assertEquals(dao.findByEmail(firstEntityWithNullEmail.getEmail()), Optional.empty());
+  }
 
-    UUID idSecond = UserProvider.alternativeEntity().getId();
-    User secondEntity = UserProvider.alternativeEntity();
+  @Test
+  void findByEmailCaseTwo() {
+    User secondEntityWithEmptyEmail = new User();
+    secondEntityWithEmptyEmail.setEmail("  ");
+    assertEquals(dao.findByEmail(secondEntityWithEmptyEmail.getEmail()), Optional.empty());
+  }
+
+  @Test
+  void findByEmailCaseThree() {
+    when(repo.findByEmail(secondEntity.getEmail())).thenReturn(Optional.empty());
+    User entityFoundSecond = dao.findByEmail(secondEntity.getEmail()).orElseGet(User::new);
+    assertNotEquals(entityFoundSecond, secondEntity);
+    verify(repo).findByEmail(secondEntity.getEmail());
+  }
+
+  @Test
+  void findByEmailCaseFour() {
+    when(repo.findByEmail(firstEntity.getEmail())).thenReturn(Optional.of(firstEntity));
+    User entityFound = dao.findByEmail(firstEntity.getEmail()).orElseGet(User::new);
+    assertEquals(entityFound, firstEntity);
+    verify(repo).findByEmail(firstEntity.getEmail());
+  }
+
+  @Test
+  void updateByIdCaseOne() {
+    when(repo.findById(idSecond)).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> dao.updateById(secondEntity, idSecond));
+    verify(repo).findById(idSecond);
+  }
+
+  @Test
+  void updateByIdCaseTwo() {
     User newEntitySecond = new User();
     newEntitySecond.setEmail(null);
     newEntitySecond.setPassword(null);
     newEntitySecond.setUserRoles(null);
+    newEntitySecond.setProfile(null);
+    newEntitySecond.setAdvertiser(null);
+    newEntitySecond.setEnabled(false);
+    newEntitySecond.setAccountNoLocked(false);
+    newEntitySecond.setCredentialNoExpired(false);
+    newEntitySecond.setAccountNoExpired(false);
+
     when(repo.findById(idSecond)).thenReturn(Optional.of(secondEntity));
     when(repo.save(secondEntity)).thenReturn(secondEntity);
-    User roleUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
-    assertNotNull(roleUpdatedSecond);
-    assertEquals(secondEntity.getId(), roleUpdatedSecond.getId());
-    assertNotEquals(newEntitySecond.getEmail(), roleUpdatedSecond.getEmail());
-    assertNotEquals(newEntitySecond.getId(), roleUpdatedSecond.getId());
-    verify(repo, times(2)).findById(idSecond);
+    User userUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
+    assertNotNull(userUpdatedSecond);
+    assertEquals(secondEntity.getId(), userUpdatedSecond.getId());
+    assertNotEquals(newEntitySecond.getEmail(), userUpdatedSecond.getEmail());
+    verify(repo).findById(idSecond);
     verify(repo).save(secondEntity);
+  }
 
-    UUID idThird = UserProvider.alternativeEntity().getId();
-    User thirdEntity = UserProvider.alternativeEntity();
+  @Test
+  void updateByIdCaseThree() {
     User newEntityThird = new User();
     newEntityThird.setEmail(" ");
     newEntityThird.setPassword(" ");
     newEntityThird.setUserRoles(Collections.emptySet());
+    newEntityThird.setEmailVerified(true);
+    newEntityThird.setGoogleConnected(true);
+    Profile thirdProfile = new Profile();
+    thirdProfile.setId(null);
+    newEntityThird.setProfile(thirdProfile);
+    Advertiser thirdAdvertiser = new Advertiser();
+    thirdAdvertiser.setId(null);
+    newEntityThird.setAdvertiser(thirdAdvertiser);
+
     when(repo.findById(idThird)).thenReturn(Optional.of(thirdEntity));
     when(repo.save(thirdEntity)).thenReturn(thirdEntity);
-    User roleUpdatedThird = dao.updateById(newEntityThird, idThird);
-    assertNotNull(roleUpdatedThird);
-    assertEquals(thirdEntity.getId(), roleUpdatedThird.getId());
-    assertNotEquals(newEntityThird.getEmail(), roleUpdatedThird.getEmail());
-    assertNotEquals(newEntityThird.getId(), roleUpdatedThird.getId());
-    verify(repo, times(3)).findById(idThird);
+    User userUpdatedThird = dao.updateById(newEntityThird, idThird);
+    assertNotNull(userUpdatedThird);
+    assertEquals(thirdEntity.getId(), userUpdatedThird.getId());
+    assertNotEquals(newEntityThird.getEmail(), userUpdatedThird.getEmail());
+    verify(repo).findById(idThird);
     verify(repo).save(thirdEntity);
+  }
 
-    UUID id = UserProvider.singleEntity().getId();
-    User entity = UserProvider.singleEntity();
+  @Test
+  void updateByIdCaseFour() {
     User newEntity = UserProvider.alternativeEntity();
-    Role role = RoleProvider.alternativeEntity();
-    newEntity.setUserRoles(new HashSet<>(Set.of(new UserRole(newEntity, role))));
-    when(repo.findById(id)).thenReturn(Optional.of(entity));
-    when(repo.save(entity)).thenReturn(entity);
-    User roleUpdated = dao.updateById(newEntity, id);
-    assertNotNull(roleUpdated);
-    assertEquals(entity.getId(), roleUpdated.getId());
-    assertEquals(newEntity.getEmail(), roleUpdated.getEmail());
-    assertNotEquals(newEntity.getId(), roleUpdated.getId());
+    Profile profile = ProfileProvider.singleEntity();
+    Advertiser advertiser = AdvertiserProvider.singleEntity();
+    newEntity.setProfile(profile);
+    newEntity.setAdvertiser(advertiser);
+    newEntity.setEmailVerified(true);
+    newEntity.setGoogleConnected(true);
+    Role newRole = RoleProvider.alternativeEntity();
+    newEntity.setUserRoles(new HashSet<>(Set.of(new UserRole(newEntity, newRole))));
+
+    when(repo.findById(id)).thenReturn(Optional.of(firstEntity));
+    when(repo.save(firstEntity)).thenReturn(firstEntity);
+    User userUpdated = dao.updateById(newEntity, id);
+    assertNotNull(userUpdated);
+    assertEquals(firstEntity.getId(), userUpdated.getId());
+    assertEquals(newEntity.getEmail(), userUpdated.getEmail());
+    assertEquals(newEntity.getProfile(), userUpdated.getProfile());
+    assertEquals(newEntity.getAdvertiser(), userUpdated.getAdvertiser());
+    assertNotEquals(newEntity.getId(), userUpdated.getId());
     verify(repo).findById(id);
-    verify(repo).save(entity);
+    verify(repo).save(firstEntity);
   }
 
   @Test
-  void existsByUniqueProperties() {
-    User firstEntity = new User();
-    firstEntity.setEmail(null);
-    assertFalse(dao.existsByUniqueProperties(firstEntity));
-
-    User secondEntity = new User();
-    secondEntity.setEmail("  ");
-    assertFalse(dao.existsByUniqueProperties(secondEntity));
-
-    User alternativeEntity = UserProvider.alternativeEntity();
-    when(repo.existsByEmail(alternativeEntity.getEmail())).thenReturn(false);
-    assertFalse(dao.existsByUniqueProperties(alternativeEntity));
-    verify(repo).existsByEmail(alternativeEntity.getEmail());
-
-    User entity = UserProvider.singleEntity();
-    when(repo.existsByEmail(entity.getEmail())).thenReturn(true);
-    assertTrue(dao.existsByUniqueProperties(entity));
-    verify(repo).existsByEmail(entity.getEmail());
+  void existsByUniquePropertiesCaseOne() {
+    User firstEntityWithNullEmail = new User();
+    firstEntityWithNullEmail.setEmail(null);
+    assertFalse(dao.existsByUniqueProperties(firstEntityWithNullEmail));
   }
 
   @Test
-  void existsByEmail() {
-    User firstEntity = new User();
-    firstEntity.setEmail(null);
-    assertFalse(dao.existsByUniqueProperties(firstEntity));
+  void existsByUniquePropertiesCaseTwo() {
+    User secondEntityWithEmptyEmail = new User();
+    secondEntityWithEmptyEmail.setEmail("  ");
+    assertFalse(dao.existsByUniqueProperties(secondEntityWithEmptyEmail));
+  }
 
-    User secondEntity = new User();
-    secondEntity.setEmail("  ");
+  @Test
+  void existsByUniquePropertiesCaseThree() {
+    when(repo.existsByEmail(secondEntity.getEmail())).thenReturn(false);
     assertFalse(dao.existsByUniqueProperties(secondEntity));
+    verify(repo).existsByEmail(secondEntity.getEmail());
+  }
 
-    User alternativeEntity = UserProvider.alternativeEntity();
-    when(repo.existsByEmail(alternativeEntity.getEmail())).thenReturn(false);
-    assertFalse(dao.existsByUniqueProperties(alternativeEntity));
-    verify(repo).existsByEmail(alternativeEntity.getEmail());
+  @Test
+  void existsByUniquePropertiesCaseFour() {
+    when(repo.existsByEmail(firstEntity.getEmail())).thenReturn(true);
+    assertTrue(dao.existsByUniqueProperties(firstEntity));
+    verify(repo).existsByEmail(firstEntity.getEmail());
+  }
 
-    User entity = UserProvider.singleEntity();
-    when(repo.existsByEmail(entity.getEmail())).thenReturn(true);
-    assertTrue(dao.existsByUniqueProperties(entity));
-    verify(repo).existsByEmail(entity.getEmail());
+  @Test
+  void existsByEmailCaseOne() {
+    User firstEntityWithNullEmail = new User();
+    firstEntityWithNullEmail.setEmail(null);
+    assertFalse(dao.existsByUniqueProperties(firstEntityWithNullEmail));
+  }
+
+  @Test
+  void existsByEmailCaseTwo() {
+    User secondEntityWithEmptyEmail = new User();
+    secondEntityWithEmptyEmail.setEmail("  ");
+    assertFalse(dao.existsByUniqueProperties(secondEntityWithEmptyEmail));
+  }
+
+  @Test
+  void existsByEmailCaseThree() {
+    when(repo.existsByEmail(secondEntity.getEmail())).thenReturn(false);
+    assertFalse(dao.existsByUniqueProperties(secondEntity));
+    verify(repo).existsByEmail(secondEntity.getEmail());
+  }
+
+  @Test
+  void existsByEmailCaseFour() {
+    when(repo.existsByEmail(firstEntity.getEmail())).thenReturn(true);
+    assertTrue(dao.existsByUniqueProperties(firstEntity));
+    verify(repo).existsByEmail(firstEntity.getEmail());
   }
 }

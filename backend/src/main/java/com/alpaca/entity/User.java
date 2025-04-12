@@ -2,13 +2,12 @@ package com.alpaca.entity;
 
 import com.alpaca.entity.intermediate.UserRole;
 import jakarta.persistence.*;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.*;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the
@@ -204,8 +203,10 @@ public class User {
     } else {
       for (UserRole userRole : userRoles) {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-        //             Uncomment the following code if permissions should be included in authorities
-        //             If we add this for cycle to the function it will have a time complexity of
+        //             Uncomment the following code if permissions should be included in
+        // authorities
+        //             If we add this for cycle to the function it will have a time
+        // complexity of
         // O(n^2)
         //             for (Permission permission : userRole.getRole().getPermissions()) {
         //                 authorities.add(new
@@ -249,8 +250,6 @@ public class User {
         && credentialNoExpired == user.credentialNoExpired
         && emailVerified == user.emailVerified
         && googleConnected == user.googleConnected
-        && id != null
-        && id.equals(user.id)
         && email != null
         && email.equals(user.email)
         && password != null

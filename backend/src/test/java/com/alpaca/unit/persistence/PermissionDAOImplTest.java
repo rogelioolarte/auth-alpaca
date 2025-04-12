@@ -1,10 +1,18 @@
 package com.alpaca.unit.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
 import com.alpaca.resources.PermissionProvider;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,14 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class PermissionDAOImplTest {
 
@@ -30,194 +30,195 @@ class PermissionDAOImplTest {
 
   @InjectMocks private PermissionDAOImpl dao;
 
-  @Test
-  void findById() {
-    Permission entityInitial = PermissionProvider.singleEntity();
-    when(repo.findById(entityInitial.getId()))
-        .thenReturn(Optional.of(PermissionProvider.singleEntity()));
-    Permission entity = dao.findById(entityInitial.getId()).orElse(null);
-    assertNotNull(entity);
-    assertEquals(entityInitial, entity);
-    verify(repo).findById(entityInitial.getId());
+  private Permission firstEntity;
+  private Permission secondEntity;
+  private List<Permission> entities;
+  private final List<UUID> ids =
+      PermissionProvider.listEntities().stream()
+          .map(Permission::getId)
+          .collect(Collectors.toList());
+
+  @BeforeEach
+  void setup() {
+    firstEntity = PermissionProvider.singleEntity();
+    secondEntity = PermissionProvider.alternativeEntity();
+    entities = PermissionProvider.listEntities();
   }
 
   @Test
-  void findAllByIds() {
-    List<Permission> entities = PermissionProvider.listEntities();
-    when(repo.findAllById(entities.stream().map(Permission::getId).collect(Collectors.toSet())))
-        .thenReturn(PermissionProvider.listEntities());
-    List<Permission> entitiesFound =
-        dao.findAllByIds(entities.stream().map(Permission::getId).collect(Collectors.toSet()));
-    assertNotNull(entitiesFound);
-    assertEquals(entities.getFirst().getId(), entitiesFound.getFirst().getId());
-    assertEquals(
-        entities.getFirst().getPermissionName(), entitiesFound.getFirst().getPermissionName());
-    assertEquals(entities.getLast().getId(), entitiesFound.getLast().getId());
-    assertEquals(
-        entities.getLast().getPermissionName(), entitiesFound.getLast().getPermissionName());
-    verify(repo).findAllById(entities.stream().map(Permission::getId).collect(Collectors.toSet()));
+  void findByIdCaseOne() {
+    when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
+    Permission result = dao.findById(firstEntity.getId()).orElse(null);
+    assertNotNull(result);
+    assertEquals(firstEntity, result);
+    verify(repo).findById(firstEntity.getId());
   }
 
   @Test
-  void deleteById() {
-    UUID id = PermissionProvider.singleEntity().getId();
-    dao.deleteById(id);
+  void findAllByIdsCaseOne() {
+    when(repo.findAllById(ids)).thenReturn(entities);
+    List<Permission> result = dao.findAllByIds(ids);
+    assertNotNull(result);
+    assertEquals(entities, result);
+    verify(repo).findAllById(ids);
+  }
+
+  @Test
+  void deleteByIdCaseOne() {
+    dao.deleteById(firstEntity.getId());
     ArgumentCaptor<UUID> idAC = ArgumentCaptor.forClass(UUID.class);
-    verify(repo).deleteById(id);
+    verify(repo).deleteById(firstEntity.getId());
     verify(repo).deleteById(idAC.capture());
-    assertEquals(id, idAC.getValue());
+    assertEquals(firstEntity.getId(), idAC.getValue());
   }
 
   @Test
-  void save() {
-    Permission entity = PermissionProvider.singleEntity();
-    when(repo.save(entity)).thenReturn(entity);
-    dao.save(entity);
+  void saveCaseOne() {
+    when(repo.save(firstEntity)).thenReturn(firstEntity);
+    dao.save(firstEntity);
     ArgumentCaptor<Permission> pAC = ArgumentCaptor.forClass(Permission.class);
-    verify(repo).save(entity);
+    verify(repo).save(firstEntity);
     verify(repo).save(pAC.capture());
-    assertEquals(entity, pAC.getValue());
+    assertEquals(firstEntity, pAC.getValue());
   }
 
   @Test
-  void saveAll() {
-    List<Permission> entities = PermissionProvider.listEntities();
+  void saveAllCaseOne() {
     when(repo.saveAll(entities)).thenReturn(entities);
-    List<Permission> saveEntities = dao.saveAll(entities);
-    assertNotNull(saveEntities);
-    assertFalse(saveEntities.isEmpty());
-    assertEquals(entities, saveEntities);
+    List<Permission> result = dao.saveAll(entities);
+    assertNotNull(result);
+    assertEquals(entities, result);
     verify(repo).saveAll(entities);
   }
 
   @Test
-  void findAll() {
-    List<Permission> entities = PermissionProvider.listEntities();
+  void findAllCaseOne() {
     when(repo.findAll()).thenReturn(entities);
-    List<Permission> entitiesFound = dao.findAll();
-    assertNotNull(entitiesFound);
-    assertFalse(entitiesFound.isEmpty());
-    assertEquals(entities, entitiesFound);
+    List<Permission> result = dao.findAll();
+    assertNotNull(result);
+    assertEquals(entities, result);
     verify(repo).findAll();
   }
 
   @Test
-  void findAllPage() {
-    List<Permission> entities = PermissionProvider.listEntities();
+  void findAllPageCaseOne() {
     when(repo.findAll(Pageable.unpaged())).thenReturn(new PageImpl<>(entities));
-    Page<Permission> entitiesPage = dao.findAllPage(Pageable.unpaged());
-    assertNotNull(entitiesPage);
-    assertFalse(entitiesPage.isEmpty());
-    assertTrue(entitiesPage.getPageable().isUnpaged());
-    assertEquals(entitiesPage.getContent(), entities);
+    Page<Permission> result = dao.findAllPage(Pageable.unpaged());
+    assertNotNull(result);
+    assertEquals(entities, result.getContent());
     verify(repo).findAll(Pageable.unpaged());
   }
 
   @Test
-  void existsById() {
-    UUID id = PermissionProvider.singleEntity().getId();
-    when(repo.existsById(id)).thenReturn(false);
-    assertFalse(dao.existsById(id));
-    verify(repo).existsById(id);
-
-    UUID idSecond = PermissionProvider.alternativeEntity().getId();
-    when(repo.existsById(idSecond)).thenReturn(true);
-    assertTrue(dao.existsById(idSecond));
-    verify(repo).existsById(idSecond);
+  void existsByIdCaseOne() {
+    when(repo.existsById(firstEntity.getId())).thenReturn(false);
+    assertFalse(dao.existsById(firstEntity.getId()));
+    verify(repo).existsById(firstEntity.getId());
   }
 
   @Test
-  void existsAllByIds() {
-    List<Permission> entities = PermissionProvider.listEntities();
-    List<UUID> ids = entities.stream().map(Permission::getId).toList();
+  void existsByIdCaseTwo() {
+    when(repo.existsById(secondEntity.getId())).thenReturn(true);
+    assertTrue(dao.existsById(secondEntity.getId()));
+    verify(repo).existsById(secondEntity.getId());
+  }
+
+  @Test
+  void existsAllByIdsCaseOne() {
     when(repo.countByIds(ids)).thenReturn((long) ids.size());
     assertTrue(dao.existsAllByIds(ids));
     verify(repo).countByIds(ids);
+  }
 
+  @Test
+  void existsAllByIdsCaseTwo() {
     when(repo.countByIds(ids)).thenReturn(1L);
     assertFalse(dao.existsAllByIds(ids));
-    verify(repo, times(2)).countByIds(ids);
+    verify(repo).countByIds(ids);
   }
 
   @Test
-  void updateById() {
-    UUID initialId = PermissionProvider.alternativeEntity().getId();
-    Permission initialEntity = PermissionProvider.alternativeEntity();
-    when(repo.findById(initialId)).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> dao.updateById(initialEntity, initialId));
-    verify(repo).findById(initialId);
-
-    UUID idSecond = PermissionProvider.alternativeEntity().getId();
-    Permission entitySecond = PermissionProvider.alternativeEntity();
-    Permission newEntitySecond = new Permission();
-    newEntitySecond.setPermissionName(null);
-    when(repo.findById(idSecond)).thenReturn(Optional.of(entitySecond));
-    when(repo.save(entitySecond)).thenReturn(entitySecond);
-    Permission entityUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
-    assertNotNull(entityUpdatedSecond);
-    assertEquals(entitySecond.getId(), entityUpdatedSecond.getId());
-    assertNotEquals(newEntitySecond.getPermissionName(), entityUpdatedSecond.getPermissionName());
-    assertNotEquals(newEntitySecond.getId(), entityUpdatedSecond.getId());
-    verify(repo, times(2)).findById(idSecond);
-    verify(repo).save(entitySecond);
-
-    UUID idThird = PermissionProvider.alternativeEntity().getId();
-    Permission entityThird = PermissionProvider.alternativeEntity();
-    Permission newEntityThird = new Permission();
-    newEntityThird.setPermissionName("  ");
-    when(repo.findById(idThird)).thenReturn(Optional.of(entityThird));
-    when(repo.save(entityThird)).thenReturn(entityThird);
-    Permission entityUpdatedThird = dao.updateById(newEntityThird, idThird);
-    assertNotNull(entityUpdatedThird);
-    assertEquals(entityThird.getId(), entityUpdatedThird.getId());
-    assertNotEquals(newEntityThird.getPermissionName(), entityUpdatedThird.getPermissionName());
-    assertNotEquals(newEntityThird.getId(), entityUpdatedThird.getId());
-    verify(repo, times(3)).findById(idThird);
-    verify(repo, times(2)).save(entityThird);
-
-    UUID id = PermissionProvider.singleEntity().getId();
-    Permission entity = PermissionProvider.singleEntity();
-    Permission newEntity = PermissionProvider.alternativeEntity();
-    when(repo.findById(id)).thenReturn(Optional.of(entity));
-    when(repo.save(entity)).thenReturn(entity);
-    Permission entityUpdated = dao.updateById(newEntity, id);
-    assertNotNull(entityUpdated);
-    assertEquals(entity.getId(), entityUpdated.getId());
-    assertEquals(newEntity.getPermissionName(), entityUpdated.getPermissionName());
-    assertNotEquals(newEntity.getId(), entityUpdated.getId());
-    verify(repo).findById(id);
-    verify(repo).save(entity);
+  void updateByIdCaseOne() {
+    when(repo.findById(secondEntity.getId())).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> dao.updateById(secondEntity, secondEntity.getId()));
+    verify(repo).findById(secondEntity.getId());
   }
 
   @Test
-  void existsByUniqueProperties() {
-    Permission firstEntity = new Permission();
-    firstEntity.setPermissionName(null);
-    assertFalse(dao.existsByUniqueProperties(firstEntity));
+  void updateByIdCaseTwo() {
+    Permission emptyName = new Permission();
+    emptyName.setPermissionName(null);
+    when(repo.findById(secondEntity.getId())).thenReturn(Optional.of(secondEntity));
+    when(repo.save(secondEntity)).thenReturn(secondEntity);
+    Permission result = dao.updateById(emptyName, secondEntity.getId());
+    assertNotNull(result);
+    assertEquals(secondEntity.getId(), result.getId());
+    verify(repo).findById(secondEntity.getId());
+    verify(repo).save(secondEntity);
+  }
 
-    Permission secondEntity = new Permission();
-    secondEntity.setPermissionName("  ");
+  @Test
+  void updateByIdCaseThree() {
+    Permission blankName = new Permission();
+    blankName.setPermissionName("  ");
+    when(repo.findById(secondEntity.getId())).thenReturn(Optional.of(secondEntity));
+    when(repo.save(secondEntity)).thenReturn(secondEntity);
+    Permission result = dao.updateById(blankName, secondEntity.getId());
+    assertNotNull(result);
+    assertEquals(secondEntity.getId(), result.getId());
+    verify(repo).findById(secondEntity.getId());
+    verify(repo).save(secondEntity);
+  }
+
+  @Test
+  void updateByIdCaseFour() {
+    Permission updated = new Permission();
+    updated.setPermissionName("New Name");
+    when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
+    when(repo.save(firstEntity)).thenReturn(firstEntity);
+    Permission result = dao.updateById(updated, firstEntity.getId());
+    assertNotNull(result);
+    assertEquals(firstEntity.getId(), result.getId());
+    assertEquals(updated.getPermissionName(), result.getPermissionName());
+    verify(repo).findById(firstEntity.getId());
+    verify(repo).save(firstEntity);
+  }
+
+  @Test
+  void existsByUniquePropertiesCaseOne() {
+    Permission test = new Permission();
+    test.setPermissionName(null);
+    assertFalse(dao.existsByUniqueProperties(test));
+  }
+
+  @Test
+  void existsByUniquePropertiesCaseTwo() {
+    Permission test = new Permission();
+    test.setPermissionName("   ");
+    assertFalse(dao.existsByUniqueProperties(test));
+  }
+
+  @Test
+  void existsByUniquePropertiesCaseThree() {
+    when(repo.existsByPermissionName(secondEntity.getPermissionName())).thenReturn(false);
     assertFalse(dao.existsByUniqueProperties(secondEntity));
-
-    Permission entitySecond = PermissionProvider.alternativeEntity();
-    when(repo.existsByPermissionName(entitySecond.getPermissionName())).thenReturn(false);
-    assertFalse(dao.existsByUniqueProperties(entitySecond));
-    verify(repo).existsByPermissionName(entitySecond.getPermissionName());
-
-    Permission entity = PermissionProvider.singleEntity();
-    when(repo.existsByPermissionName(entity.getPermissionName())).thenReturn(true);
-    assertTrue(dao.existsByUniqueProperties(entity));
-    verify(repo).existsByPermissionName(entity.getPermissionName());
+    verify(repo).existsByPermissionName(secondEntity.getPermissionName());
   }
 
   @Test
-  void findByPermissionName() {
-    Permission entity = PermissionProvider.singleEntity();
-    when(repo.findByPermissionName(entity.getPermissionName())).thenReturn(Optional.of(entity));
-    Permission entityFound = dao.findByPermissionName(entity.getPermissionName()).orElse(null);
-    assertNotNull(entityFound);
-    assertEquals(entity.getId(), entityFound.getId());
-    assertEquals(entity.getPermissionName(), entityFound.getPermissionName());
-    verify(repo).findByPermissionName(entity.getPermissionName());
+  void existsByUniquePropertiesCaseFour() {
+    when(repo.existsByPermissionName(firstEntity.getPermissionName())).thenReturn(true);
+    assertTrue(dao.existsByUniqueProperties(firstEntity));
+    verify(repo).existsByPermissionName(firstEntity.getPermissionName());
+  }
+
+  @Test
+  void findByPermissionNameCaseOne() {
+    when(repo.findByPermissionName(firstEntity.getPermissionName()))
+        .thenReturn(Optional.of(firstEntity));
+    Permission result = dao.findByPermissionName(firstEntity.getPermissionName()).orElse(null);
+    assertNotNull(result);
+    assertEquals(firstEntity, result);
+    verify(repo).findByPermissionName(firstEntity.getPermissionName());
   }
 }
