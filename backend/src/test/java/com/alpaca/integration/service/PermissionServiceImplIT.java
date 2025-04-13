@@ -26,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 class PermissionServiceImplIT {
 
-  @Autowired private IPermissionDAO dao;
-
   @Autowired private PermissionServiceImpl service;
 
   @Test
@@ -122,7 +120,7 @@ class PermissionServiceImplIT {
     List<Permission> initialPermissions = PermissionProvider.listEntities();
     List<Permission> savedPermissions = new ArrayList<>();
     for (Permission permission : initialPermissions) {
-      savedPermissions.add(dao.save(permission));
+      savedPermissions.add(service.save(permission));
     }
 
     List<Permission> permissions = service.findAll();
@@ -138,9 +136,8 @@ class PermissionServiceImplIT {
     List<Permission> initialPermissions = PermissionProvider.listEntities();
     List<Permission> savedPermissions = new ArrayList<>();
     for (Permission permission : initialPermissions) {
-      savedPermissions.add(dao.save(permission));
+      savedPermissions.add(service.save(permission));
     }
-
     Page<Permission> permissionPage = service.findAllPage(Pageable.unpaged());
     assertNotNull(permissionPage);
     assertFalse(permissionPage.isEmpty());
@@ -152,8 +149,7 @@ class PermissionServiceImplIT {
   @Transactional
   void existsById() {
     String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
-    Permission permission = dao.save(new Permission(permissionNameSecond));
-
+    Permission permission = service.save(new Permission(permissionNameSecond));
     assertTrue(service.existsById(permission.getId()));
     assertFalse(service.existsById(UUID.randomUUID()));
   }
