@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/** Unit tests for {@link ProfileDAOImpl} */
 @ExtendWith(MockitoExtension.class)
 class ProfileDAOImplTest {
 
@@ -35,6 +36,7 @@ class ProfileDAOImplTest {
     thirdEntity = ProfileProvider.alternativeEntity();
   }
 
+  // --- updateById ---
   @Test
   void updateByIdCaseOne() {
     when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
@@ -93,6 +95,7 @@ class ProfileDAOImplTest {
     verify(repo).save(firstEntity);
   }
 
+  // --- existsByUniqueProperties ---
   @Test
   void existsByUniquePropertiesCaseOne() {
     Profile entityWithNullUser = new Profile();

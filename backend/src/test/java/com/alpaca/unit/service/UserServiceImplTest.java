@@ -10,7 +10,9 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.UserServiceImpl;
+import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,50 +27,74 @@ class UserServiceImplTest {
 
   @InjectMocks private UserServiceImpl service;
 
+  private User firstEntity;
+  private User secondEntity;
+
+    @BeforeEach
+  void setup() {
+    firstEntity = UserProvider.singleEntity();
+    secondEntity = UserProvider.alternativeEntity();
+  }
+
+  // --- register ---
   @Test
-  void register() {
+  void registerCaseOne() {
     assertThrows(BadRequestException.class, () -> service.register(null));
-
-    User entitySecond = UserProvider.alternativeEntity();
-    when(dao.save(entitySecond)).thenReturn(null);
-    assertNull(service.register(entitySecond));
-    verify(dao).save(entitySecond);
-
-    User entity = UserProvider.singleEntity();
-    when(dao.save(entity)).thenReturn(entity);
-    User entityFound = service.register(entity);
-    assertEquals(entity, entityFound);
-    verify(dao).save(entity);
   }
 
   @Test
-  void existsByEmail() {
-    User alternativeEntity = UserProvider.alternativeEntity();
-    when(dao.existsByEmail(alternativeEntity.getEmail())).thenReturn(false);
-    assertFalse(service.existsByEmail(alternativeEntity.getEmail()));
-    verify(dao).existsByEmail(alternativeEntity.getEmail());
-
-    User entity = UserProvider.singleEntity();
-    when(dao.existsByEmail(entity.getEmail())).thenReturn(true);
-    assertTrue(service.existsByEmail(entity.getEmail()));
-    verify(dao).existsByEmail(entity.getEmail());
+  void registerCaseTwo() {
+    when(dao.save(secondEntity)).thenReturn(null);
+    assertNull(service.register(secondEntity));
+    verify(dao).save(secondEntity);
   }
 
   @Test
-  void findByEmail() {
+  void registerCaseThree() {
+    when(dao.save(firstEntity)).thenReturn(firstEntity);
+    User entityFound = service.register(firstEntity);
+    assertEquals(firstEntity, entityFound);
+    verify(dao).save(firstEntity);
+  }
+
+  // --- existsByEmail ---
+  @Test
+  void existsByEmailCaseOne() {
+    when(dao.existsByEmail(secondEntity.getEmail())).thenReturn(false);
+    assertFalse(service.existsByEmail(secondEntity.getEmail()));
+    verify(dao).existsByEmail(secondEntity.getEmail());
+  }
+
+  @Test
+  void existsByEmailCaseTwo() {
+    when(dao.existsByEmail(firstEntity.getEmail())).thenReturn(true);
+    assertTrue(service.existsByEmail(firstEntity.getEmail()));
+    verify(dao).existsByEmail(firstEntity.getEmail());
+  }
+
+  // --- findByEmail ---
+  @Test
+  void findByEmailCaseOne() {
     assertThrows(BadRequestException.class, () -> service.findByEmail(null));
+  }
 
+  @Test
+  void findByEmailCaseTwo() {
     assertThrows(BadRequestException.class, () -> service.findByEmail("  "));
+  }
 
-    User entitySecond = UserProvider.alternativeEntity();
-    when(dao.findByEmail(entitySecond.getEmail())).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> service.findByEmail(entitySecond.getEmail()));
-    verify(dao).findByEmail(entitySecond.getEmail());
+  @Test
+  void findByEmailCaseThree() {
+    when(dao.findByEmail(secondEntity.getEmail())).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> service.findByEmail(secondEntity.getEmail()));
+    verify(dao).findByEmail(secondEntity.getEmail());
+  }
 
-    User entity = UserProvider.singleEntity();
-    when(dao.findByEmail(entity.getEmail())).thenReturn(Optional.of(entity));
-    User entityFound = service.findByEmail(entity.getEmail());
-    assertEquals(entityFound, entity);
-    verify(dao).findByEmail(entity.getEmail());
+  @Test
+  void findByEmailCaseFour() {
+    when(dao.findByEmail(firstEntity.getEmail())).thenReturn(Optional.of(firstEntity));
+    User entityFound = service.findByEmail(firstEntity.getEmail());
+    assertEquals(firstEntity, entityFound);
+    verify(dao).findByEmail(firstEntity.getEmail());
   }
 }

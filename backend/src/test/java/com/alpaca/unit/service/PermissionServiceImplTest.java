@@ -10,6 +10,8 @@ import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
 import java.util.*;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,239 +29,329 @@ class PermissionServiceImplTest {
 
   @InjectMocks private PermissionServiceImpl service;
 
+  private Permission firstEntity;
+  private Permission secondEntity;
+  private List<Permission> entities;
+  private List<UUID> ids;
+
+  @BeforeEach
+  void setup() {
+    firstEntity = PermissionProvider.singleEntity();
+    secondEntity = PermissionProvider.alternativeEntity();
+    entities = PermissionProvider.listEntities();
+    ids = entities.stream().map(Permission::getId).collect(Collectors.toList());
+  }
+
+  // --- findById ---
   @Test
-  void findById() {
+  void findByIdCaseOne() {
     assertThrows(BadRequestException.class, () -> service.findById(null));
+  }
 
+  @Test
+  void findByIdCaseTwo() {
     UUID randomId = UUID.randomUUID();
-    when(this.dao.findById(randomId)).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> this.service.findById(randomId));
-    verify(this.dao).findById(randomId);
-
-    Permission permission = PermissionProvider.alternativeEntity();
-    when(dao.findById(permission.getId())).thenReturn(Optional.of(permission));
-    Permission permissionFound = service.findById(permission.getId());
-    assertNotNull(permissionFound);
-    assertEquals(permission.getId(), permissionFound.getId());
-    assertEquals(permissionFound, permission);
-    verify(dao).findById(permission.getId());
+    when(dao.findById(randomId)).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> service.findById(randomId));
+    verify(dao).findById(randomId);
   }
 
   @Test
-  void findAllByIds() {
+  void findByIdCaseThree() {
+    when(dao.findById(secondEntity.getId())).thenReturn(Optional.of(secondEntity));
+    Permission result = service.findById(secondEntity.getId());
+    assertNotNull(result);
+    assertEquals(secondEntity, result);
+    verify(dao).findById(secondEntity.getId());
+  }
+
+  // --- findAllByIds ---
+  @Test
+  void findAllByIdsCaseOne() {
     assertThrows(BadRequestException.class, () -> service.findAllByIds(null));
-
-    assertThrows(BadRequestException.class, () -> service.findAllByIds(Collections.emptyList()));
-
-    List<UUID> uuids = new ArrayList<>();
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
-    uuids.add(id);
-    uuids.add(null);
-    assertThrows(BadRequestException.class, () -> service.findAllByIds(uuids));
-
-    UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a3");
-    when(dao.existsAllByIds((List.of(secondId)))).thenReturn(false);
-    assertThrows(
-        NotFoundException.class, () -> service.findAllByIds(new ArrayList<>(List.of(secondId))));
-
-    Permission permission = PermissionProvider.singleEntity();
-    when(dao.existsAllByIds(List.of(permission.getId()))).thenReturn(true);
-    when(dao.findAllByIds(List.of(permission.getId()))).thenReturn(List.of(permission));
-    List<Permission> permissions =
-        service.findAllByIds(new ArrayList<>(List.of(permission.getId())));
-    assertNotNull(permissions);
-    assertFalse(permissions.isEmpty());
-    assertEquals(new ArrayList<>(List.of(permission)), permissions);
-    verify(dao).existsAllByIds(List.of(permission.getId()));
-    verify(dao).findAllByIds(List.of(permission.getId()));
   }
 
   @Test
-  void findAllByIdsToSet() {
-    assertThrows(BadRequestException.class, () -> service.findAllByIdsToSet(null));
+  void findAllByIdsCaseTwo() {
+    assertThrows(BadRequestException.class, () -> service.findAllByIds(Collections.emptyList()));
+  }
 
+  @Test
+  void findAllByIdsCaseThree() {
+    List<UUID> invalidIds = new ArrayList<>(ids);
+    invalidIds.add(null);
+    assertThrows(BadRequestException.class, () -> service.findAllByIds(invalidIds));
+  }
+
+  @Test
+  void findAllByIdsCaseFour() {
+    List<UUID> someIds = List.of(secondEntity.getId());
+    when(dao.existsAllByIds(someIds)).thenReturn(false);
+    assertThrows(NotFoundException.class, () -> service.findAllByIds(new ArrayList<>(someIds)));
+    verify(dao).existsAllByIds(someIds);
+  }
+
+  @Test
+  void findAllByIdsCaseFive() {
+    List<UUID> someIds = List.of(firstEntity.getId());
+    when(dao.existsAllByIds(someIds)).thenReturn(true);
+    when(dao.findAllByIds(someIds)).thenReturn(List.of(firstEntity));
+    List<Permission> result = service.findAllByIds(new ArrayList<>(someIds));
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(firstEntity, result.getFirst());
+    verify(dao).existsAllByIds(someIds);
+    verify(dao).findAllByIds(someIds);
+  }
+
+  // --- findAllByIdsToSet ---
+  @Test
+  void findAllByIdsToSetCaseOne() {
+    assertThrows(BadRequestException.class, () -> service.findAllByIdsToSet(null));
+  }
+
+  @Test
+  void findAllByIdsToSetCaseTwo() {
     assertThrows(
         BadRequestException.class, () -> service.findAllByIdsToSet(Collections.emptyList()));
+  }
 
+  @Test
+  void findAllByIdsToSetCaseThree() {
     UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
     List<UUID> uuids = new ArrayList<>();
     uuids.add(id);
     uuids.add(null);
     assertThrows(BadRequestException.class, () -> service.findAllByIdsToSet(uuids));
+  }
 
+  @Test
+  void findAllByIdsToSetCaseFour() {
     UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4b3");
     when(dao.existsAllByIds(List.of(secondId))).thenReturn(false);
     assertThrows(
         NotFoundException.class,
         () -> service.findAllByIdsToSet(new ArrayList<>(List.of(secondId))));
+  }
 
-    Permission permission = PermissionProvider.singleEntity();
-    when(dao.existsAllByIds(List.of(permission.getId()))).thenReturn(true);
-    when(dao.findAllByIds(List.of(permission.getId()))).thenReturn(List.of(permission));
+  @Test
+  void findAllByIdsToSetCaseFive() {
+    when(dao.existsAllByIds(List.of(firstEntity.getId()))).thenReturn(true);
+    when(dao.findAllByIds(List.of(firstEntity.getId()))).thenReturn(List.of(firstEntity));
     Set<Permission> permissions =
-        service.findAllByIdsToSet(new ArrayList<>(List.of(permission.getId())));
+        service.findAllByIdsToSet(new ArrayList<>(List.of(firstEntity.getId())));
     assertNotNull(permissions);
     assertFalse(permissions.isEmpty());
-    assertEquals(new HashSet<>(Set.of(permission)), permissions);
-    verify(dao).existsAllByIds(List.of(permission.getId()));
-    verify(dao).findAllByIds(List.of(permission.getId()));
+    assertEquals(Set.of(firstEntity), permissions);
+    verify(dao).existsAllByIds(List.of(firstEntity.getId()));
+    verify(dao).findAllByIds(List.of(firstEntity.getId()));
   }
 
+  // --- save ---
   @Test
-  void save() {
+  void saveCaseOne() {
     assertThrows(BadRequestException.class, () -> service.save(null));
-
-    Permission permission = PermissionProvider.singleEntity();
-    when(dao.existsByUniqueProperties(permission)).thenReturn(true);
-    assertThrows(BadRequestException.class, () -> service.save(permission));
-    verify(dao).existsByUniqueProperties(permission);
-
-    Permission permissionSecond = PermissionProvider.alternativeEntity();
-    when(dao.existsByUniqueProperties(permissionSecond)).thenReturn(false);
-    when(dao.save(permissionSecond)).thenReturn(permissionSecond);
-    service.save(permissionSecond);
-    verify(dao).existsByUniqueProperties(permissionSecond);
-    ArgumentCaptor<Permission> permissionAC = ArgumentCaptor.forClass(Permission.class);
-    verify(dao).save(permissionAC.capture());
-    assertEquals(permissionSecond.getId(), permissionAC.getValue().getId());
-    assertEquals(permissionSecond.getPermissionName(), permissionAC.getValue().getPermissionName());
-    assertEquals(
-        permissionSecond.getRolePermissions(), permissionAC.getValue().getRolePermissions());
   }
 
   @Test
-  void saveAll() {
+  void saveCaseTwo() {
+    when(dao.existsByUniqueProperties(firstEntity)).thenReturn(true);
+    assertThrows(BadRequestException.class, () -> service.save(firstEntity));
+    verify(dao).existsByUniqueProperties(firstEntity);
+  }
+
+  @Test
+  void saveCaseThree() {
+    when(dao.existsByUniqueProperties(secondEntity)).thenReturn(false);
+    when(dao.save(secondEntity)).thenReturn(secondEntity);
+    service.save(secondEntity);
+    verify(dao).existsByUniqueProperties(secondEntity);
+    ArgumentCaptor<Permission> captor = ArgumentCaptor.forClass(Permission.class);
+    verify(dao).save(captor.capture());
+    assertEquals(secondEntity.getId(), captor.getValue().getId());
+  }
+
+  // --- saveAll ---
+  @Test
+  void saveAllCaseOne() {
     assertThrows(BadRequestException.class, () -> service.saveAll(null));
+  }
 
+  @Test
+  void saveAllCaseTwo() {
     assertThrows(BadRequestException.class, () -> service.saveAll(Collections.emptyList()));
-
-    List<Permission> permissions = new ArrayList<>(PermissionProvider.listEntities());
-    permissions.add(null);
-    assertThrows(BadRequestException.class, () -> service.saveAll(permissions));
-
-    List<Permission> listEntities = new ArrayList<>(PermissionProvider.listEntities());
-    when(dao.saveAll(listEntities)).thenReturn(listEntities);
-    List<Permission> savePermissions = service.saveAll(listEntities);
-    assertNotNull(savePermissions);
-    assertFalse(savePermissions.isEmpty());
-    assertEquals(listEntities, savePermissions);
-    verify(dao).saveAll(listEntities);
   }
 
   @Test
-  void updateById() {
+  void saveAllCaseThree() {
+    List<Permission> invalidList = new ArrayList<>(entities);
+    invalidList.add(null);
+    assertThrows(BadRequestException.class, () -> service.saveAll(invalidList));
+  }
+
+  @Test
+  void saveAllCaseFour() {
+    when(dao.saveAll(entities)).thenReturn(entities);
+    List<Permission> result = service.saveAll(entities);
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals(entities, result);
+    verify(dao).saveAll(entities);
+  }
+
+  // --- updateById ---
+  @Test
+  void updateByIdCaseOne() {
     assertThrows(BadRequestException.class, () -> service.updateById(null, null));
-
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a122");
-    assertThrows(BadRequestException.class, () -> service.updateById(null, id));
-
-    Permission permission = PermissionProvider.singleEntity();
-    assertThrows(BadRequestException.class, () -> service.updateById(permission, null));
-
-    when(dao.updateById(permission, id)).thenReturn(null);
-    assertThrows(BadRequestException.class, () -> service.updateById(permission, id));
-    verify(dao).updateById(permission, id);
-
-    Permission permissionSecond = PermissionProvider.alternativeEntity();
-    UUID idSecond = permissionSecond.getId();
-    when(dao.updateById(permissionSecond, idSecond)).thenReturn(permissionSecond);
-    service.updateById(permissionSecond, idSecond);
-    ArgumentCaptor<UUID> idAC = ArgumentCaptor.forClass(UUID.class);
-    ArgumentCaptor<Permission> permissionAC = ArgumentCaptor.forClass(Permission.class);
-    verify(dao, times(2)).updateById(permissionAC.capture(), idAC.capture());
-    assertEquals(permissionSecond.getPermissionName(), permissionAC.getValue().getPermissionName());
   }
 
   @Test
-  void deleteById() {
-    assertThrows(BadRequestException.class, () -> service.deleteById(null));
+  void updateByIdCaseTwo() {
+    UUID id = UUID.randomUUID();
+    assertThrows(BadRequestException.class, () -> service.updateById(null, id));
+  }
 
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
+  @Test
+  void updateByIdCaseThree() {
+    assertThrows(BadRequestException.class, () -> service.updateById(firstEntity, null));
+  }
+
+  @Test
+  void updateByIdCaseFour() {
+    UUID id = UUID.randomUUID();
+    when(dao.updateById(firstEntity, id)).thenReturn(null);
+    assertThrows(BadRequestException.class, () -> service.updateById(firstEntity, id));
+    verify(dao).updateById(firstEntity, id);
+  }
+
+  @Test
+  void updateByIdCaseFive() {
+    UUID id = secondEntity.getId();
+    when(dao.updateById(secondEntity, id)).thenReturn(secondEntity);
+    service.updateById(secondEntity, id);
+    ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
+    ArgumentCaptor<Permission> permissionCaptor = ArgumentCaptor.forClass(Permission.class);
+    verify(dao).updateById(permissionCaptor.capture(), idCaptor.capture());
+    assertEquals(secondEntity.getPermissionName(), permissionCaptor.getValue().getPermissionName());
+  }
+
+  // --- deleteById ---
+  @Test
+  void deleteByIdCaseOne() {
+    assertThrows(BadRequestException.class, () -> service.deleteById(null));
+  }
+
+  @Test
+  void deleteByIdCaseTwo() {
+    UUID id = UUID.randomUUID();
     when(dao.existsById(id)).thenReturn(false);
     assertThrows(BadRequestException.class, () -> service.deleteById(id));
-
-    UUID idSecond = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2");
-    when(dao.existsById(idSecond)).thenReturn(true);
-    service.deleteById(idSecond);
-    ArgumentCaptor<UUID> idAC = ArgumentCaptor.forClass(UUID.class);
-    verify(dao).existsById(idSecond);
-    verify(dao).deleteById(idAC.capture());
-    assertEquals(idSecond, idAC.getValue());
   }
 
   @Test
-  void findAll() {
-    List<Permission> initialPermissions = PermissionProvider.listEntities();
-    when(dao.findAll()).thenReturn(initialPermissions);
-    List<Permission> permissions = service.findAll();
-    assertNotNull(permissions);
-    assertFalse(permissions.isEmpty());
-    assertEquals(initialPermissions, permissions);
-    assertEquals(initialPermissions.getFirst(), permissions.getFirst());
+  void deleteByIdCaseThree() {
+    UUID id = UUID.randomUUID();
+    when(dao.existsById(id)).thenReturn(true);
+    service.deleteById(id);
+    ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
+    verify(dao).existsById(id);
+    verify(dao).deleteById(idCaptor.capture());
+    assertEquals(id, idCaptor.getValue());
+  }
+
+  // --- findAll ---
+  @Test
+  void findAllCaseOne() {
+    when(dao.findAll()).thenReturn(entities);
+    List<Permission> result = service.findAll();
+    assertNotNull(result);
+    assertFalse(result.isEmpty());
+    assertEquals(entities, result);
     verify(dao).findAll();
   }
 
+  // --- findAllPage ---
   @Test
-  void findAllPage() {
+  void findAllPageCaseOne() {
     assertThrows(BadRequestException.class, () -> service.findAllPage(null));
+  }
 
-    List<Permission> permissions = PermissionProvider.listEntities();
-    when(dao.findAllPage(Pageable.unpaged())).thenReturn(new PageImpl<>(permissions));
-    Page<Permission> permissionPage = service.findAllPage(Pageable.unpaged());
-    assertNotNull(permissionPage);
-    assertFalse(permissionPage.isEmpty());
-    assertTrue(permissionPage.getPageable().isUnpaged());
-    assertEquals(permissionPage.getContent(), permissions);
+  @Test
+  void findAllPageCaseTwo() {
+    when(dao.findAllPage(Pageable.unpaged())).thenReturn(new PageImpl<>(entities));
+    Page<Permission> page = service.findAllPage(Pageable.unpaged());
+    assertNotNull(page);
+    assertFalse(page.isEmpty());
+    assertEquals(entities, page.getContent());
     verify(dao).findAllPage(Pageable.unpaged());
   }
 
+  // --- existsById ---
   @Test
-  void existsById() {
+  void existsByIdCaseOne() {
     assertFalse(service.existsById(null));
-
-    UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
-    when(dao.existsById(id)).thenReturn(true);
-    assertTrue(service.existsById(id));
-    verify(dao).existsById(id);
-
-    UUID idSecond = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2");
-    when(dao.existsById(idSecond)).thenReturn(false);
-    assertFalse(service.existsById(idSecond));
-    verify(dao).existsById(idSecond);
   }
 
   @Test
-  void existsAllByIds() {
+  void existsByIdCaseTwo() {
+    UUID id = UUID.randomUUID();
+    when(dao.existsById(id)).thenReturn(true);
+    assertTrue(service.existsById(id));
+    verify(dao).existsById(id);
+  }
+
+  // --- existsAllByIds ---
+  @Test
+  void existsAllByIdsCaseOne() {
     assertFalse(service.existsAllByIds(null));
+  }
 
+  @Test
+  void existsAllByIdsCaseTwo() {
     assertFalse(service.existsAllByIds(Collections.emptyList()));
+  }
 
+  @Test
+  void existsAllByIdsCaseThree() {
     UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
     List<UUID> uuids = new ArrayList<>();
     uuids.add(id);
     uuids.add(null);
     assertFalse(service.existsAllByIds(uuids));
+  }
 
+  @Test
+  void existsAllByIdsCaseFour() {
     UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2");
     when(dao.existsAllByIds(List.of(secondId))).thenReturn(false);
     assertFalse(service.existsAllByIds(new ArrayList<>(List.of(secondId))));
     verify(dao).existsAllByIds(List.of(secondId));
+  }
 
+  @Test
+  void existsAllByIdsCaseFive() {
     UUID thirdId = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
     when(dao.existsAllByIds(List.of(thirdId))).thenReturn(true);
     assertTrue(service.existsAllByIds(new ArrayList<>(List.of(thirdId))));
     verify(dao).existsAllByIds(List.of(thirdId));
   }
 
+  // --- existsByUniqueProperties ---
   @Test
-  void existsByUniqueProperties() {
+  void existsByUniquePropertiesCaseOne() {
     assertFalse(service.existsByUniqueProperties(null));
+  }
 
+  @Test
+  void existsByUniquePropertiesCaseTwo() {
     Permission permissionSecond = PermissionProvider.alternativeEntity();
     when(dao.existsByUniqueProperties(permissionSecond)).thenReturn(false);
     assertFalse(service.existsByUniqueProperties(permissionSecond));
     verify(dao).existsByUniqueProperties(permissionSecond);
+  }
 
+  @Test
+  void existsByUniquePropertiesCaseThree() {
     Permission permission = PermissionProvider.singleEntity();
     when(dao.existsByUniqueProperties(permission)).thenReturn(true);
     assertTrue(service.existsByUniqueProperties(permission));

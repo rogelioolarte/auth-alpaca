@@ -22,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/** Unit tests for {@link RoleDAOImpl} */
 @ExtendWith(MockitoExtension.class)
 class RoleDAOImplTest {
 
@@ -40,6 +41,7 @@ class RoleDAOImplTest {
     thirdEntity = RoleProvider.alternativeEntity();
   }
 
+  // --- findByRoleName ---
   @Test
   void findByRoleNameCaseOne() {
     Role entityWithNullRoleName = new Role();
@@ -70,6 +72,7 @@ class RoleDAOImplTest {
     verify(repo).findByRoleName(firstEntity.getRoleName());
   }
 
+  // --- updateById ---
   @Test
   void updateByIdCaseOne() {
     when(repo.findById(secondEntity.getId())).thenReturn(Optional.empty());
@@ -125,6 +128,7 @@ class RoleDAOImplTest {
     verify(repo).save(firstEntity);
   }
 
+  // --- existsByUniqueProperties ---
   @Test
   void existsByUniquePropertiesCaseOne() {
     Role entityWithNullRoleName = new Role();

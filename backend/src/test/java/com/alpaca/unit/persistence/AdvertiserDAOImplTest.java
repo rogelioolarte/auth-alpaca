@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/** Unit tests for {@link AdvertiserDAOImpl} */
 @ExtendWith(MockitoExtension.class)
 class AdvertiserDAOImplTest {
 
@@ -36,6 +37,7 @@ class AdvertiserDAOImplTest {
     thirdEntity = AdvertiserProvider.alternativeEntity();
   }
 
+  // --- updateById ---
   @Test
   void updateByIdCaseOne() {
     UUID initialId = firstEntity.getId();
@@ -113,6 +115,7 @@ class AdvertiserDAOImplTest {
     verify(repo).save(firstEntity);
   }
 
+  // --- existsByUniqueProperties ---
   @Test
   void existsByUniquePropertiesCaseOne() {
     Advertiser firstEntity = new Advertiser();

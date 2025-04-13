@@ -21,7 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link com.alpaca.service.impl.PermissionServiceImpl} */
+/** Integration tests for {@link PermissionServiceImpl} */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 class PermissionServiceImplIT {

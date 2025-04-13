@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/** Unit tests for {@link UserDAOImpl} */
 @ExtendWith(MockitoExtension.class)
 class UserDAOImplTest {
 
@@ -44,6 +45,7 @@ class UserDAOImplTest {
     thirdEntity = UserProvider.alternativeEntity();
   }
 
+  // --- findByEmail ---
   @Test
   void findByEmailCaseOne() {
     User firstEntityWithNullEmail = new User();
@@ -74,6 +76,7 @@ class UserDAOImplTest {
     verify(repo).findByEmail(firstEntity.getEmail());
   }
 
+  // --- updateById ---
   @Test
   void updateByIdCaseOne() {
     when(repo.findById(idSecond)).thenReturn(Optional.empty());
@@ -93,7 +96,6 @@ class UserDAOImplTest {
     newEntitySecond.setAccountNoLocked(false);
     newEntitySecond.setCredentialNoExpired(false);
     newEntitySecond.setAccountNoExpired(false);
-
     when(repo.findById(idSecond)).thenReturn(Optional.of(secondEntity));
     when(repo.save(secondEntity)).thenReturn(secondEntity);
     User userUpdatedSecond = dao.updateById(newEntitySecond, idSecond);
@@ -118,7 +120,6 @@ class UserDAOImplTest {
     Advertiser thirdAdvertiser = new Advertiser();
     thirdAdvertiser.setId(null);
     newEntityThird.setAdvertiser(thirdAdvertiser);
-
     when(repo.findById(idThird)).thenReturn(Optional.of(thirdEntity));
     when(repo.save(thirdEntity)).thenReturn(thirdEntity);
     User userUpdatedThird = dao.updateById(newEntityThird, idThird);
@@ -140,7 +141,6 @@ class UserDAOImplTest {
     newEntity.setGoogleConnected(true);
     Role newRole = RoleProvider.alternativeEntity();
     newEntity.setUserRoles(new HashSet<>(Set.of(new UserRole(newEntity, newRole))));
-
     when(repo.findById(id)).thenReturn(Optional.of(firstEntity));
     when(repo.save(firstEntity)).thenReturn(firstEntity);
     User userUpdated = dao.updateById(newEntity, id);
@@ -154,6 +154,7 @@ class UserDAOImplTest {
     verify(repo).save(firstEntity);
   }
 
+  // --- existsByUniqueProperties ---
   @Test
   void existsByUniquePropertiesCaseOne() {
     User firstEntityWithNullEmail = new User();
@@ -182,31 +183,28 @@ class UserDAOImplTest {
     verify(repo).existsByEmail(firstEntity.getEmail());
   }
 
+  // --- existsByEmail ---
   @Test
   void existsByEmailCaseOne() {
-    User firstEntityWithNullEmail = new User();
-    firstEntityWithNullEmail.setEmail(null);
-    assertFalse(dao.existsByUniqueProperties(firstEntityWithNullEmail));
+    assertFalse(dao.existsByEmail(null));
   }
 
   @Test
   void existsByEmailCaseTwo() {
-    User secondEntityWithEmptyEmail = new User();
-    secondEntityWithEmptyEmail.setEmail("  ");
-    assertFalse(dao.existsByUniqueProperties(secondEntityWithEmptyEmail));
+    assertFalse(dao.existsByEmail("  "));
   }
 
   @Test
   void existsByEmailCaseThree() {
     when(repo.existsByEmail(secondEntity.getEmail())).thenReturn(false);
-    assertFalse(dao.existsByUniqueProperties(secondEntity));
+    assertFalse(dao.existsByEmail(secondEntity.getEmail()));
     verify(repo).existsByEmail(secondEntity.getEmail());
   }
 
   @Test
   void existsByEmailCaseFour() {
     when(repo.existsByEmail(firstEntity.getEmail())).thenReturn(true);
-    assertTrue(dao.existsByUniqueProperties(firstEntity));
+    assertTrue(dao.existsByEmail(firstEntity.getEmail()));
     verify(repo).existsByEmail(firstEntity.getEmail());
   }
 }

@@ -13,6 +13,7 @@ import com.alpaca.service.impl.RoleServiceImpl;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,35 +28,54 @@ class RoleServiceImplTest {
 
   @InjectMocks private RoleServiceImpl service;
 
-  @Test
-  void getUserRoles() {
-    Role entitySecond = RoleProvider.alternativeEntity();
-    when(dao.findByRoleName(entitySecond.getRoleName())).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> service.getUserRoles());
-    verify(dao).findByRoleName(entitySecond.getRoleName());
+  private Role firstEntity;
+  private Role secondEntity;
 
-    Role entity = RoleProvider.alternativeEntity();
-    when(dao.findByRoleName(entity.getRoleName())).thenReturn(Optional.of(entity));
-    Set<Role> entitiesFound = service.getUserRoles();
-    assertEquals(new HashSet<>(Set.of(entity)), entitiesFound);
-    verify(dao, times(2)).findByRoleName(entity.getRoleName());
+  @BeforeEach
+  void setup() {
+    firstEntity = RoleProvider.singleEntity();
+    secondEntity = RoleProvider.alternativeEntity();
+  }
+
+  // --- getUserRoles ---
+  @Test
+  void getUserRolesCaseOne() {
+    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> service.getUserRoles());
+    verify(dao).findByRoleName(secondEntity.getRoleName());
   }
 
   @Test
-  void findByRoleName() {
+  void getUserRolesCaseTwo() {
+    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.of(secondEntity));
+    Set<Role> entitiesFound = service.getUserRoles();
+    assertEquals(new HashSet<>(Set.of(secondEntity)), entitiesFound);
+    verify(dao).findByRoleName(secondEntity.getRoleName());
+  }
+
+  // --- findByRoleName ---
+  @Test
+  void findByRoleNameCaseOne() {
     assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
+  }
 
+  @Test
+  void findByRoleNameCaseTwo() {
     assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
+  }
 
-    Role entitySecond = RoleProvider.alternativeEntity();
-    when(dao.findByRoleName(entitySecond.getRoleName())).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> service.findByRoleName(entitySecond.getRoleName()));
-    verify(dao).findByRoleName(entitySecond.getRoleName());
+  @Test
+  void findByRoleNameCaseThree() {
+    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
+    assertThrows(NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
+    verify(dao).findByRoleName(secondEntity.getRoleName());
+  }
 
-    Role entity = RoleProvider.singleEntity();
-    when(dao.findByRoleName(entity.getRoleName())).thenReturn(Optional.of(entity));
-    Role entityFound = service.findByRoleName(entity.getRoleName());
-    assertEquals(entity, entityFound);
-    verify(dao).findByRoleName(entity.getRoleName());
+  @Test
+  void findByRoleNameCaseFour() {
+    when(dao.findByRoleName(firstEntity.getRoleName())).thenReturn(Optional.of(firstEntity));
+    Role entityFound = service.findByRoleName(firstEntity.getRoleName());
+    assertEquals(firstEntity, entityFound);
+    verify(dao).findByRoleName(firstEntity.getRoleName());
   }
 }

@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+/** Unit tests for {@link PermissionDAOImpl} */
 @ExtendWith(MockitoExtension.class)
 class PermissionDAOImplTest {
 
@@ -45,6 +46,7 @@ class PermissionDAOImplTest {
     entities = PermissionProvider.listEntities();
   }
 
+  // --- findById ---
   @Test
   void findByIdCaseOne() {
     when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
@@ -54,6 +56,7 @@ class PermissionDAOImplTest {
     verify(repo).findById(firstEntity.getId());
   }
 
+  // --- findAllByIds ---
   @Test
   void findAllByIdsCaseOne() {
     when(repo.findAllById(ids)).thenReturn(entities);
@@ -63,6 +66,7 @@ class PermissionDAOImplTest {
     verify(repo).findAllById(ids);
   }
 
+  // --- deleteById ---
   @Test
   void deleteByIdCaseOne() {
     dao.deleteById(firstEntity.getId());
@@ -72,6 +76,7 @@ class PermissionDAOImplTest {
     assertEquals(firstEntity.getId(), idAC.getValue());
   }
 
+  // --- save ---
   @Test
   void saveCaseOne() {
     when(repo.save(firstEntity)).thenReturn(firstEntity);
@@ -82,6 +87,7 @@ class PermissionDAOImplTest {
     assertEquals(firstEntity, pAC.getValue());
   }
 
+  // --- saveAll ---
   @Test
   void saveAllCaseOne() {
     when(repo.saveAll(entities)).thenReturn(entities);
@@ -91,6 +97,7 @@ class PermissionDAOImplTest {
     verify(repo).saveAll(entities);
   }
 
+  // --- findAll ---
   @Test
   void findAllCaseOne() {
     when(repo.findAll()).thenReturn(entities);
@@ -100,6 +107,7 @@ class PermissionDAOImplTest {
     verify(repo).findAll();
   }
 
+  // --- findAllPage ---
   @Test
   void findAllPageCaseOne() {
     when(repo.findAll(Pageable.unpaged())).thenReturn(new PageImpl<>(entities));
@@ -109,6 +117,7 @@ class PermissionDAOImplTest {
     verify(repo).findAll(Pageable.unpaged());
   }
 
+  // --- existsById ---
   @Test
   void existsByIdCaseOne() {
     when(repo.existsById(firstEntity.getId())).thenReturn(false);
@@ -123,6 +132,7 @@ class PermissionDAOImplTest {
     verify(repo).existsById(secondEntity.getId());
   }
 
+  // --- existsAllByIds ---
   @Test
   void existsAllByIdsCaseOne() {
     when(repo.countByIds(ids)).thenReturn((long) ids.size());
@@ -137,6 +147,7 @@ class PermissionDAOImplTest {
     verify(repo).countByIds(ids);
   }
 
+  // --- updateById ---
   @Test
   void updateByIdCaseOne() {
     when(repo.findById(secondEntity.getId())).thenReturn(Optional.empty());
@@ -184,6 +195,7 @@ class PermissionDAOImplTest {
     verify(repo).save(firstEntity);
   }
 
+  // --- existsByUniqueProperties ---
   @Test
   void existsByUniquePropertiesCaseOne() {
     Permission test = new Permission();
@@ -212,6 +224,7 @@ class PermissionDAOImplTest {
     verify(repo).existsByPermissionName(firstEntity.getPermissionName());
   }
 
+  // --- findByPermissionName ---
   @Test
   void findByPermissionNameCaseOne() {
     when(repo.findByPermissionName(firstEntity.getPermissionName()))
