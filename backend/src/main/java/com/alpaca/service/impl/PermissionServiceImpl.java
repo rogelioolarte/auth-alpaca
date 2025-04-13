@@ -4,11 +4,10 @@ import com.alpaca.entity.Permission;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IPermissionDAO;
 import com.alpaca.service.IPermissionService;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

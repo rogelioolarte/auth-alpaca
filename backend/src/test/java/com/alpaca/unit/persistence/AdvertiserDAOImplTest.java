@@ -1,24 +1,23 @@
 package com.alpaca.unit.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.AdvertiserDAOImpl;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.resources.AdvertiserProvider;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link AdvertiserDAOImpl} */
 @ExtendWith(MockitoExtension.class)

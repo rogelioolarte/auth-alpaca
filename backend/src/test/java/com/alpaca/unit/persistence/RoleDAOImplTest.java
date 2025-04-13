@@ -1,5 +1,9 @@
 package com.alpaca.unit.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.intermediate.RolePermission;
@@ -8,21 +12,16 @@ import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.resources.RoleProvider;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link RoleDAOImpl} */
 @ExtendWith(MockitoExtension.class)

@@ -5,12 +5,11 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor

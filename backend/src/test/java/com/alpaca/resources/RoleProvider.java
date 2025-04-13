@@ -4,7 +4,6 @@ import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.intermediate.RolePermission;
-
 import java.util.*;
 
 public class RoleProvider {
