@@ -1,8 +1,5 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
@@ -15,13 +12,18 @@ import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link UserDAOImpl} */
 @ExtendWith(MockitoExtension.class)

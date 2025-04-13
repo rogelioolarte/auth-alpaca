@@ -1,17 +1,10 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.persistence.IPermissionDAO;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link PermissionServiceImpl} */
 @SpringBootTest

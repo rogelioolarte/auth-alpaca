@@ -1,12 +1,9 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.resources.RoleProvider;
-import java.util.*;
 import com.alpaca.service.impl.RoleServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Integration tests for {@link RoleServiceImpl}

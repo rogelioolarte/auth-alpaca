@@ -1,12 +1,9 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.resources.UserProvider;
-
 import com.alpaca.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +14,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link UserServiceImpl} */
 @SpringBootTest

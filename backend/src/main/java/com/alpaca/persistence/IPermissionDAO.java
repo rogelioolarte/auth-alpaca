@@ -1,6 +1,7 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Permission;
+
 import java.util.Optional;
 import java.util.UUID;
 

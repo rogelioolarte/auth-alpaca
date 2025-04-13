@@ -1,10 +1,6 @@
 package com.alpaca.model;
 
 import com.alpaca.entity.User;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +8,11 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents the Principal User Details in the security context. This class implements both {@link
