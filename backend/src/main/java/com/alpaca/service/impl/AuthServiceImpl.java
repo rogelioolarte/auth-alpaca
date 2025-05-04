@@ -17,6 +17,7 @@ import com.alpaca.service.IAuthService;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.Map;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
@@ -165,7 +166,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     } catch (ResponseStatusException e) {
       throw new InternalAuthenticationServiceException(e.getReason());
     } catch (Exception e) {
-      throw new InternalAuthenticationServiceException("Error while authentication");
+      throw new InternalAuthenticationServiceException("Error while authentication: ");
     }
   }
 
@@ -178,32 +179,59 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
    * @return an {@link OAuth2User} containing the authenticated user's details.
    * @throws OAuth2AuthenticationProcessingException if the email is not found from the provider.
    */
+  @Generated
   public OAuth2User processOAuth2User(OAuth2UserRequest request, OAuth2User user) {
     OAuth2UserInfo userInfo =
         OAuth2UserInfoFactory.getOAuth2UserInfo(
             request.getClientRegistration().getRegistrationId(), user.getAttributes());
     if (userInfo.getEmail() == null || userInfo.getEmail().isBlank())
       throw new OAuth2AuthenticationProcessingException("Email not found from Oauth2 Provider");
-    if (!userService.existsByEmail(userInfo.getEmail())) {
+    return registerOrLoginOAuth2(
+        userInfo.getEmail(),
+        userInfo.getFirstName(),
+        userInfo.getLastName(),
+        userInfo.getImageUrl(),
+        userInfo.getEmailVerified(),
+        user.getAttributes());
+  }
+
+  public UserPrincipal registerOrLoginOAuth2(
+      String email,
+      String firstName,
+      String lastName,
+      String imageURL,
+      boolean emailVerified,
+      Map<String, Object> attributes) {
+    if (email == null
+        || email.isBlank()
+        || firstName == null
+        || firstName.isBlank()
+        || lastName == null
+        || lastName.isBlank()
+        || imageURL == null
+        || imageURL.isBlank())
+      throw new BadRequestException("The account does not have enough information");
+    if (!userService.existsByEmail(email)) {
       return new UserPrincipal(
           registerProfile(
               userService.register(
                   new User(
-                      userInfo.getEmail(),
+                      email,
                       passwordManager.encodePassword(UUID.randomUUID().toString()),
                       true,
                       true,
                       true,
                       true,
-                      userInfo.getEmailVerified(),
+                      emailVerified,
                       true,
                       roleService.getUserRoles())),
-              userInfo),
-          user.getAttributes());
+              firstName,
+              lastName,
+              imageURL),
+          attributes);
     } else {
       return new UserPrincipal(
-          checkExistingUser(userService.findByEmail(userInfo.getEmail()), userInfo),
-          user.getAttributes());
+          checkExistingUser(userService.findByEmail(email), emailVerified), attributes);
     }
   }
 
@@ -211,21 +239,20 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
    * Registers a new profile for a user.
    *
    * @param user the user entity to associate with the profile.
-   * @param userInfo the OAuth2 user information.
+   * @param firstName the First Name of user information.
+   * @param lastName the Last Name of user information.
+   * @param imageURL the Image URL of user information.
    * @return the registered {@link User} entity.
    * @throws BadRequestException if the user, userInfo, userId are null.
    */
-  public User registerProfile(User user, OAuth2UserInfo userInfo) {
-    if (user == null || userInfo == null || user.getId() == null)
+  public User registerProfile(User user, String firstName, String lastName, String imageURL) {
+    if (user == null
+        || user.getId() == null
+        || firstName == null
+        || lastName == null
+        || imageURL == null)
       throw new BadRequestException("Invalid credentials of OAuth2 Provider");
-    user.setProfile(
-        profileService.save(
-            new Profile(
-                userInfo.getFirstName(),
-                userInfo.getLastName(),
-                "",
-                userInfo.getImageUrl(),
-                user)));
+    user.setProfile(profileService.save(new Profile(firstName, lastName, "", imageURL, user)));
     return user;
   }
 
@@ -233,18 +260,19 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
    * Checks if an existing user has connected their account to Google. If so, updates their account
    * status and re-registers them.
    *
-   * @param user the existing user entity.
+   * @param user The existing user entity.
+   * @param emailVerified The existing user has verified email
    * @return the updated {@link User} entity.
    */
-  public User checkExistingUser(User user, OAuth2UserInfo userInfo) {
+  public User checkExistingUser(User user, boolean emailVerified) {
     if (!user.isAllowUser())
       throw new UnauthorizedException("The account has been deactivated or blocked");
     if (!user.isGoogleConnected()) {
       user.setGoogleConnected(true);
       return userService.register(user);
     }
-    if (user.isEmailVerified() != userInfo.getEmailVerified()) {
-      user.setEmailVerified(userInfo.getEmailVerified());
+    if (user.isEmailVerified() != emailVerified) {
+      user.setEmailVerified(emailVerified);
       return userService.register(user);
     }
     return user;

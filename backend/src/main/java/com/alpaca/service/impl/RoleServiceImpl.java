@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements IRoleService {
 
   private final IRoleDAO dao;
-  private Set<Role> userRoles;
 
   @Override
   @Generated
@@ -35,13 +34,9 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
 
   @Override
   public Set<Role> getUserRoles() {
-    return new HashSet<>(
-        Set.of(
-            dao.findByRoleName("USER")
-                .orElseThrow(
-                    () ->
-                        new NotFoundException(
-                            String.format("%s with Name %s not found", getEntityName(), "USER")))));
+    Set<Role> roles = new HashSet<>();
+    roles.add(findByRoleName("USER"));
+    return roles;
   }
 
   @Transactional

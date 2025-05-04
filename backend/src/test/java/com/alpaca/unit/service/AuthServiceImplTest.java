@@ -245,36 +245,114 @@ class AuthServiceImplTest {
     assertEquals(new UserPrincipal(user, null), auth.getPrincipal());
   }
 
-  // --- loadUser ---
+  // --- registerOrLoginOAuth2 ---
   @Test
-  void loadUser() {}
+  void registerOrLoginOAuth2CaseOne() {
+    assertThrows(
+        BadRequestException.class,
+        () -> service.registerOrLoginOAuth2(null, null, null, null, false, null));
+  }
 
-  // --- processOAuth2User ---
   @Test
-  void processOAuth2User() {}
+  void registerOrLoginOAuth2CaseTwo() {
+    assertThrows(
+        BadRequestException.class,
+        () -> service.registerOrLoginOAuth2(" ", " ", " ", " ", false, null));
+  }
+
+  @Test
+  void registerOrLoginOAuth2CaseThree() {
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            service.registerOrLoginOAuth2(
+                userInfoGoogleNotVerified.getEmail(),
+                userInfoGoogleNotVerified.getFirstName(),
+                userInfoGoogleNotVerified.getLastName(),
+                userInfoGoogleNotVerified.getImageUrl(),
+                userInfoGoogleNotVerified.getEmailVerified(),
+                null));
+  }
+
+  @Test
+  void registerOrLoginOAuth2CaseFour() {
+    when(userService.existsByEmail(userInfoGoogleNotVerified.getEmail())).thenReturn(false);
+    when(userService.register(any())).thenReturn(user);
+    UserPrincipal userPrincipal =
+        service.registerOrLoginOAuth2(
+            userInfoGoogleNotVerified.getEmail(),
+            userInfoGoogleNotVerified.getFirstName(),
+            userInfoGoogleNotVerified.getLastName(),
+            userInfoGoogleNotVerified.getImageUrl(),
+            userInfoGoogleNotVerified.getEmailVerified(),
+            attributesNotVerified);
+    assertNotNull(userPrincipal);
+    assertEquals(new UserPrincipal(user, attributesNotVerified), userPrincipal);
+    verify(userService).existsByEmail(userInfoGoogleNotVerified.getEmail());
+    verify(userService).register(any());
+  }
+
+  @Test
+  void registerOrLoginOAuth2CaseFive() {
+    when(userService.existsByEmail(userInfoGoogle.getEmail())).thenReturn(true);
+    when(userService.findByEmail(userInfoGoogle.getEmail())).thenReturn(user);
+    when(userService.register(any())).thenReturn(user);
+    UserPrincipal userPrincipal =
+        service.registerOrLoginOAuth2(
+            userInfoGoogle.getEmail(),
+            userInfoGoogle.getFirstName(),
+            userInfoGoogle.getLastName(),
+            userInfoGoogle.getImageUrl(),
+            userInfoGoogle.getEmailVerified(),
+            attributesVerified);
+    assertNotNull(userPrincipal);
+    assertEquals(new UserPrincipal(user, attributesVerified), userPrincipal);
+    verify(userService).existsByEmail(userInfoGoogle.getEmail());
+    verify(userService).findByEmail(userInfoGoogle.getEmail());
+    verify(userService).register(any());
+  }
 
   // --- registerProfile ---
   @Test
   void registerProfileCaseOne() {
-    assertThrows(BadRequestException.class, () -> service.registerProfile(user, null));
+    assertThrows(BadRequestException.class, () -> service.registerProfile(user, null, null, null));
   }
 
   @Test
   void registerProfileCaseTwo() {
-    assertThrows(BadRequestException.class, () -> service.registerProfile(null, userInfoGoogle));
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            service.registerProfile(
+                null,
+                userInfoGoogle.getFirstName(),
+                userInfoGoogle.getLastName(),
+                userInfoGoogle.getImageUrl()));
   }
 
   @Test
   void registerProfileCaseThree() {
     User user = new User();
     user.setId(null);
-    assertThrows(BadRequestException.class, () -> service.registerProfile(user, userInfoGoogle));
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            service.registerProfile(
+                user,
+                userInfoGoogle.getFirstName(),
+                userInfoGoogle.getLastName(),
+                userInfoGoogle.getImageUrl()));
   }
 
   @Test
   void registerProfileCaseFour() {
     when(profileService.save(any(Profile.class))).thenReturn(profile);
-    User newUser = service.registerProfile(user, userInfoGoogle);
+    User newUser =
+        service.registerProfile(
+            user,
+            userInfoGoogle.getFirstName(),
+            userInfoGoogle.getLastName(),
+            userInfoGoogle.getImageUrl());
     assertNotNull(newUser);
     assertNotNull(newUser.getProfile());
     assertEquals(profile, newUser.getProfile());
@@ -285,7 +363,8 @@ class AuthServiceImplTest {
   @Test
   void checkExistingUserCaseOne() {
     assertThrows(
-        UnauthorizedException.class, () -> service.checkExistingUser(thirdEntity, userInfoGoogle));
+        UnauthorizedException.class,
+        () -> service.checkExistingUser(thirdEntity, userInfoGoogle.getEmailVerified()));
   }
 
   @Test
@@ -294,7 +373,7 @@ class AuthServiceImplTest {
     user.setGoogleConnected(false);
     user.setEmailVerified(true);
     when(userService.register(any(User.class))).thenReturn(user);
-    User newUser = service.checkExistingUser(user, userInfoGoogle);
+    User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
     assertEquals(user.getId(), newUser.getId());
     assertTrue(newUser.isGoogleConnected());
     verify(userService).register(any(User.class));
@@ -306,7 +385,7 @@ class AuthServiceImplTest {
     user.setGoogleConnected(true);
     user.setEmailVerified(false);
     when(userService.register(any(User.class))).thenReturn(user);
-    User newUser = service.checkExistingUser(user, userInfoGoogle);
+    User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
     assertEquals(user.getId(), newUser.getId());
     assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
     verify(userService).register(any(User.class));
@@ -317,7 +396,7 @@ class AuthServiceImplTest {
     User user = UserProvider.alternativeEntity();
     user.setGoogleConnected(true);
     user.setEmailVerified(false);
-    User newUser = service.checkExistingUser(user, userInfoGoogleNotVerified);
+    User newUser = service.checkExistingUser(user, userInfoGoogleNotVerified.getEmailVerified());
     assertEquals(user.getId(), newUser.getId());
     assertEquals(userInfoGoogleNotVerified.getEmailVerified(), newUser.isEmailVerified());
   }
@@ -327,7 +406,7 @@ class AuthServiceImplTest {
     User user = UserProvider.alternativeEntity();
     user.setGoogleConnected(true);
     user.setEmailVerified(true);
-    User newUser = service.checkExistingUser(user, userInfoGoogle);
+    User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
     assertEquals(user.getId(), newUser.getId());
     assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
   }

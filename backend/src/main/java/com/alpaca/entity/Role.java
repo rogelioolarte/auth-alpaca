@@ -43,7 +43,11 @@ public class Role {
    * <p>A Role has a many-to-many relationship with an {@link Permission} through {@link
    * RolePermission}
    */
-  @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(
+      mappedBy = "role",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
   private Set<RolePermission> rolePermissions = new HashSet<>();
 
   /**
@@ -51,7 +55,11 @@ public class Role {
    *
    * <p>A Role has a many-to-many relationship with an {@link User} through {@link UserRole}
    */
-  @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(
+      mappedBy = "role",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
   private Set<UserRole> userRoles = new HashSet<>();
 
   /**
