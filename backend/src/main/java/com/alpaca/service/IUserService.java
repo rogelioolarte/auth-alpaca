@@ -6,7 +6,7 @@ import com.alpaca.exception.NotFoundException;
 import java.util.UUID;
 
 /**
- * Service interface for managing {@code User} entities. Extends {@link IGenericService} to inherit
+ * Service interface for managing {@link User} entities. Extends {@link IGenericService} to inherit
  * common CRUD operations.
  *
  * @see IGenericService

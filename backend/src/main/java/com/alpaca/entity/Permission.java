@@ -53,12 +53,10 @@ public class Permission {
   public final boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Permission that)) return false;
-    return id != null
-        && id.equals(that.id)
-        && permissionName != null
+    return permissionName != null
         && permissionName.equals(that.permissionName)
-        && rolePermissions != null
-        && rolePermissions.equals(that.rolePermissions);
+        && (rolePermissions == that.rolePermissions
+            || rolePermissions.equals(that.rolePermissions));
   }
 
   @Override

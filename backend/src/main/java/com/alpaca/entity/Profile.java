@@ -75,9 +75,7 @@ public class Profile {
   public final boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Profile profile)) return false;
-    return id != null
-        && id.equals(profile.id)
-        && firstName != null
+    return firstName != null
         && firstName.equals(profile.firstName)
         && lastName != null
         && lastName.equals(profile.lastName)

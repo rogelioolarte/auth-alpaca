@@ -2,6 +2,7 @@ package com.alpaca.resources;
 
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
+import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.entity.intermediate.UserRole;
 import java.util.*;
@@ -120,5 +121,46 @@ public class UserProvider {
         new ArrayList<>(List.of(RoleProvider.alternativeResponse())),
         null,
         null);
+  }
+
+  /** Utility to create an object of oauth2 attributes * */
+  public static Map<String, Object> createAttributes(
+      User user, Profile profile, boolean emailVerified) {
+    return Map.of(
+        "sub", user.getId().toString(),
+        "email", user.getEmail(),
+        "name", profile.getFirstName(),
+        "given_name", (profile.getFirstName() + " " + profile.getLastName()),
+        "family_name", profile.getLastName(),
+        "picture", profile.getAvatarUrl(),
+        "email_verified", emailVerified);
+  }
+
+  public static String getEmail() {
+    return "test@example.com";
+  }
+
+  public static String getPassword() {
+    return "encodedPassword";
+  }
+
+  /** Utility to create a User entity * */
+  public static User createUser(
+      boolean enabled,
+      boolean accountNonExpired,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      boolean emailVerified,
+      boolean googleConnected) {
+    return new User(
+        getEmail(),
+        getPassword(),
+        enabled,
+        accountNonExpired,
+        accountNonLocked,
+        credentialsNonExpired,
+        emailVerified,
+        googleConnected,
+        new HashSet<>());
   }
 }

@@ -5,6 +5,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
+import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
 import java.util.UUID;
 import lombok.Generated;
@@ -12,6 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Main Service for managing {@link User} entities. Extends {@link IGenericService} to inherit
+ * common CRUD operations.
+ *
+ * @see IGenericService
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {

@@ -118,8 +118,6 @@ public class Advertiser {
     return indexed == that.indexed
         && paid == that.paid
         && verified == that.verified
-        && id != null
-        && id.equals(that.id)
         && title != null
         && title.equals(that.title)
         && description != null

@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Service interface for managing {@code Role} entities. Extends {@link IGenericService} to inherit
+ * Service interface for managing {@link Role} entities. Extends {@link IGenericService} to inherit
  * common CRUD operations.
  *
  * @see IGenericService

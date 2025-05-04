@@ -4,7 +4,7 @@ import com.alpaca.entity.Permission;
 import java.util.UUID;
 
 /**
- * Service interface for managing {@code Permission} entities. Extends {@link IGenericService} to
+ * Service interface for managing {@link Permission} entities. Extends {@link IGenericService} to
  * inherit common CRUD operations.
  *
  * @see IGenericService

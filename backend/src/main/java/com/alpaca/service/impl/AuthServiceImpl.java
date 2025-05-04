@@ -1,6 +1,5 @@
 package com.alpaca.service.impl;
 
-import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
@@ -40,8 +39,9 @@ import org.springframework.web.server.ResponseStatusException;
  * registration, and OAuth2 authentication processing.
  *
  * <p>This service integrates with Spring Security and provides methods for handling login,
- * registration, and setting the security context for authenticated users. It also extends {@link
- * DefaultOAuth2UserService} to support OAuth2 authentication.
+ * registration, and setting the security context for authenticated users.
+ *
+ * <p>It also extends {@link DefaultOAuth2UserService} to support OAuth2 authentication.
  */
 @Service
 @RequiredArgsConstructor
@@ -73,36 +73,32 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
   /**
    * Authenticates a user and returns an authentication response containing a JWT token.
    *
-   * @param requestDTO the authentication request containing email and password.
+   * @param email the authentication request containing email.
+   * @param password the authentication request containing password.
    * @return an {@link AuthResponseDTO} containing the generated JWT token.
    * @throws NotFoundException if the email is not registered.
    */
   @Override
-  public AuthResponseDTO login(AuthRequestDTO requestDTO) {
+  public AuthResponseDTO login(String email, String password) {
     return new AuthResponseDTO(
         manager.createToken(
-            (UserPrincipal)
-                setSecurityContextBefore(
-                    authenticate(requestDTO.getEmail(), requestDTO.getPassword()))));
+            (UserPrincipal) setSecurityContextBefore(authenticate(email, password))));
   }
 
   /**
    * Registers a new user and logs them in.
    *
-   * @param requestDTO the registration request containing email and password.
+   * @param email the authentication request containing email.
+   * @param password the authentication request containing password.
    * @return an {@link AuthResponseDTO} containing the generated JWT token for the new user.
    * @throws BadRequestException if the email is already registered.
    */
   @Override
-  public AuthResponseDTO register(AuthRequestDTO requestDTO) {
-    if (userService.existsByEmail(requestDTO.getEmail()))
-      throw new BadRequestException("Email already registered");
+  public AuthResponseDTO register(String email, String password) {
+    if (userService.existsByEmail(email)) throw new BadRequestException("Email already registered");
     userService.register(
-        new User(
-            requestDTO.getEmail(),
-            passwordManager.encodePassword(requestDTO.getPassword()),
-            roleService.getUserRoles()));
-    return login(requestDTO);
+        new User(email, passwordManager.encodePassword(password), roleService.getUserRoles()));
+    return login(email, password);
   }
 
   /**
@@ -121,15 +117,15 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
    * Validates a user's credentials.
    *
    * @param userDetails the user details retrieved from the database.
-   * @param password the password provided by the user.
+   * @param rawPassword the password provided by the user.
    * @return the validated {@link UserDetails} object.
    * @throws BadRequestException if the user is not found or the password is incorrect.
    */
-  public UserDetails validateUserDetails(UserDetails userDetails, String password) {
+  public UserDetails validateUserDetails(String rawPassword, UserDetails userDetails) {
     if (userDetails == null) throw new BadRequestException("Invalid Username or Password");
-    if (password == null
-        || password.isBlank()
-        || !passwordManager.matches(password, userDetails.getPassword()))
+    if (rawPassword == null
+        || rawPassword.isBlank()
+        || !passwordManager.matches(rawPassword, userDetails.getPassword()))
       throw new BadRequestException("Invalid Password");
     if (!(userDetails.isEnabled()
         && userDetails.isAccountNonLocked()
@@ -148,7 +144,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
    */
   public Authentication authenticate(String username, String password) {
     return new UsernamePasswordAuthenticationToken(
-        validateUserDetails(loadUserByUsername(username), password), null);
+        validateUserDetails(password, loadUserByUsername(username)), null);
   }
 
   /**

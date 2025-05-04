@@ -1,10 +1,7 @@
 package com.alpaca.model;
 
 import com.alpaca.entity.User;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,10 +49,10 @@ public class UserPrincipal implements OAuth2User, UserDetails {
   private boolean credentialNoExpired = true;
 
   /** The authorities granted to the user for authorization purposes. */
-  private Collection<? extends GrantedAuthority> authorities;
+  private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
 
   /** Additional attributes provided by an OAuth2 authentication provider. */
-  private Map<String, Object> attributes;
+  private Map<String, Object> attributes = new HashMap<>();
 
   /**
    * Constructs a new {@code UserPrincipal} instance using a {@link User} entity. This constructor
@@ -152,33 +149,33 @@ public class UserPrincipal implements OAuth2User, UserDetails {
   @Override
   public int hashCode() {
     int result = id.hashCode();
-    result = 31 * result + profileId.hashCode();
-    result = 31 * result + advertiserId.hashCode();
+    result = 31 * result + (profileId != null ? profileId.hashCode() : 0);
+    result = 31 * result + (advertiserId != null ? advertiserId.hashCode() : 0);
     result = 31 * result + username.hashCode();
     result = 31 * result + password.hashCode();
     result = 31 * result + Boolean.hashCode(enabled);
     result = 31 * result + Boolean.hashCode(accountNoExpired);
     result = 31 * result + Boolean.hashCode(accountNoLocked);
     result = 31 * result + Boolean.hashCode(credentialNoExpired);
-    result = 31 * result + authorities.hashCode();
-    result = 31 * result + attributes.hashCode();
+    result = 31 * result + (authorities != null ? authorities.hashCode() : 0);
+    result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
     return result;
   }
 
   @Override
   public final boolean equals(Object o) {
+    if (this == o) return true;
     if (!(o instanceof UserPrincipal that)) return false;
-
     return enabled == that.enabled
         && accountNoExpired == that.accountNoExpired
         && accountNoLocked == that.accountNoLocked
         && credentialNoExpired == that.credentialNoExpired
-        && id.equals(that.id)
-        && Objects.equals(profileId, that.profileId)
-        && Objects.equals(advertiserId, that.advertiserId)
+        && username != null
         && username.equals(that.username)
+        && password != null
         && password.equals(that.password)
-        && Objects.equals(authorities, that.authorities)
-        && Objects.equals(attributes, that.attributes);
+        && (authorities == that.authorities || authorities.equals(that.authorities))
+        && (profileId == that.profileId || profileId.equals(that.profileId))
+        && (advertiserId == that.advertiserId || advertiserId.equals(that.advertiserId));
   }
 }

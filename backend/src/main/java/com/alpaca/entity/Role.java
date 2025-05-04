@@ -110,16 +110,12 @@ public class Role {
   public final boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Role role)) return false;
-    return id != null
-        && id.equals(role.id)
-        && roleName != null
+    return roleName != null
         && roleName.equals(role.roleName)
         && roleDescription != null
         && roleDescription.equals(role.roleDescription)
-        && rolePermissions != null
-        && rolePermissions.equals(role.rolePermissions)
-        && userRoles != null
-        && userRoles.equals(role.userRoles);
+        && (rolePermissions == role.rolePermissions || rolePermissions.equals(role.rolePermissions))
+        && (userRoles == role.userRoles || userRoles.equals(role.userRoles));
   }
 
   @Override

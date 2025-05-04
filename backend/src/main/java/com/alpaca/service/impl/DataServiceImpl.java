@@ -15,6 +15,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Main Service to manage the data ready to use the application.
+ *
+ * <p>It extends from {@link DataService} to inherit common operations.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,7 @@ public class DataServiceImpl implements DataService {
   private final IProfileService profileService;
   private final PasswordManager passwordManager;
 
+  /** Function to add basic data necessary to use the application. */
   @Transactional
   @Override
   public void initializeData() {

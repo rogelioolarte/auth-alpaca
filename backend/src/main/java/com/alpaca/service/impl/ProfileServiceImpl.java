@@ -3,12 +3,19 @@ package com.alpaca.service.impl;
 import com.alpaca.entity.Profile;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IProfileDAO;
+import com.alpaca.service.IGenericService;
 import com.alpaca.service.IProfileService;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Main Service for managing {@link Profile} entities. Extends {@link IGenericService} to inherit
+ * common CRUD operations.
+ *
+ * @see IGenericService
+ */
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>

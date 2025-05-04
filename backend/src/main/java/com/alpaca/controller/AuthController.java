@@ -20,12 +20,14 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO requestDTO) {
-    return new ResponseEntity<>(authService.login(requestDTO), HttpStatus.OK);
+    return new ResponseEntity<>(
+        authService.login(requestDTO.getEmail(), requestDTO.getPassword()), HttpStatus.OK);
   }
 
   @PostMapping("/register")
   public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody AuthRequestDTO requestDTO) {
-    return new ResponseEntity<>(authService.register(requestDTO), HttpStatus.OK);
+    return new ResponseEntity<>(
+        authService.register(requestDTO.getEmail(), requestDTO.getPassword()), HttpStatus.OK);
   }
 
   @GetMapping("/me")

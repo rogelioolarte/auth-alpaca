@@ -8,6 +8,11 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+/**
+ * Main Service to initialize actions to use the application.
+ *
+ * <p>It is implemented from {@link ApplicationRunner} to initialize at the beginning.
+ */
 @Component
 @Profile("dev")
 @RequiredArgsConstructor

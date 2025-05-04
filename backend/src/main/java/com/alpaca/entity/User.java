@@ -254,12 +254,9 @@ public class User {
         && email.equals(user.email)
         && password != null
         && password.equals(user.password)
-        && userRoles != null
-        && userRoles.equals(user.userRoles)
-        && profile != null
-        && profile.equals(user.profile)
-        && advertiser != null
-        && advertiser.equals(user.advertiser);
+        && (userRoles == user.userRoles || userRoles.equals(user.userRoles))
+        && (profile == user.profile || profile.equals(user.profile))
+        && (advertiser == user.advertiser || advertiser.equals(user.advertiser));
   }
 
   @Override

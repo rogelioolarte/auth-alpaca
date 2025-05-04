@@ -4,11 +4,18 @@ import com.alpaca.entity.Advertiser;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.service.IAdvertiserService;
+import com.alpaca.service.IGenericService;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Main Service for managing {@link Advertiser} entities. Extends {@link IGenericService} to inherit
+ * common CRUD operations.
+ *
+ * @see IGenericService
+ */
 @Service
 @RequiredArgsConstructor
 public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>

@@ -5,6 +5,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRoleDAO;
+import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRoleService;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Main Service for managing {@link Role} entities. Extends {@link IGenericService} to inherit
+ * common CRUD operations.
+ *
+ * @see IGenericService
+ */
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements IRoleService {
