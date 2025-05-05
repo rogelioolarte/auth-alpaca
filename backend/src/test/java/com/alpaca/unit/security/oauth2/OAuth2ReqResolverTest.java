@@ -44,12 +44,11 @@ class OAuth2ReqResolverTest {
   void setUp() {
     resolver = new OAuth2ReqResolver(clientRegRepo, baseUri);
     ReflectionTestUtils.setField(resolver, "defaultResolver", defaultResolver);
-    lenient().when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
-    lenient().when(defaultResolver.resolve(servletRequest, clientId)).thenReturn(baseRequest);
   }
 
   @Test
   void resolveDelegatesToDefaultAndAddsPKCE() {
+    when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
     OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
     assertNotNull(custom, "The resolver must not return null");
     assertNotNull(custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER),
@@ -63,6 +62,7 @@ class OAuth2ReqResolverTest {
 
   @Test
   void resolveWithClientIdDelegatesToDefaultAndAddsPKCE() {
+    when(defaultResolver.resolve(servletRequest, clientId)).thenReturn(baseRequest);
     OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest, clientId);
     assertNotNull(custom, "The resolver must not return null");
     assertTrue(custom.getAttributes().containsKey(PkceParameterNames.CODE_VERIFIER));
@@ -73,6 +73,7 @@ class OAuth2ReqResolverTest {
 
   @Test
   void resolveAddsPKCEParameters_whenDefaultReturnsRequest() {
+    when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
     OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
     assertNotNull(custom);
     String codeVerifier = (String) custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER);
@@ -85,6 +86,7 @@ class OAuth2ReqResolverTest {
 
   @Test
   void resolveWithClientIdAddsPKCEParameters_whenDefaultReturnsRequest() {
+    when(defaultResolver.resolve(servletRequest, clientId)).thenReturn(baseRequest);
     OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest, clientId);
     assertNotNull(custom);
     assertTrue(custom.getAttributes().containsKey(PkceParameterNames.CODE_VERIFIER));
