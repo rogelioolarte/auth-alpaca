@@ -19,10 +19,9 @@ public class CookieAuthReqRepo
 
   @Override
   public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-    Optional<Cookie> cookie = CookieManager.getCookie(request, AuthorizationCookieName);
-    if (cookie.isPresent()) {
-      Cookie cookieP = cookie.get();
-      return CookieManager.deserialize(cookieP, OAuth2AuthorizationRequest.class);
+    Cookie cookie = CookieManager.getCookie(request, AuthorizationCookieName).orElse(null);
+    if (cookie != null) {
+      return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
     }
     return null;
   }
