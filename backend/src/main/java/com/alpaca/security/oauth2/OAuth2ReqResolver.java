@@ -21,6 +21,7 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
   private final OAuth2AuthorizationRequestResolver defaultResolver;
   private final StringKeyGenerator securityKeyGenerator =
       new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
+  ;
 
   public OAuth2ReqResolver(
       ClientRegistrationRepository repository, String authorizationRequestBaseURI) {

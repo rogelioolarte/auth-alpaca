@@ -3,6 +3,7 @@ package com.alpaca.unit.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
+import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
+/** Unit tests for {@link AuthRequestDeserializer} */
 @DisplayName("AuthRequestDeserializer Unit Tests")
 class AuthRequestDeserializerTest {
 
@@ -151,7 +153,8 @@ class AuthRequestDeserializerTest {
           """;
 
       OAuth2AuthorizationRequest req = mapper.readValue(json, OAuth2AuthorizationRequest.class);
-      assertTrue(req.getScopes().isEmpty(), "Non‑string elements in scopes array should be ignored");
+      assertTrue(
+          req.getScopes().isEmpty(), "Non‑string elements in scopes array should be ignored");
     }
 
     @Test
