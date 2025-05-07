@@ -135,56 +135,56 @@ class AuthRequestDeserializerTest {
       OAuth2AuthorizationRequest req = mapper.readValue(json, OAuth2AuthorizationRequest.class);
       assertTrue(req.getScopes().isEmpty());
     }
-  }
 
-  @Test
-  @DisplayName("Given scopes array with only non‑string elements, returns empty set")
-  void arrayWithNonStringScopes_skipped() throws Exception {
-    String json =
-        """
-        {
-          "clientId":"c1",
-          "authorizationUri":"u1",
-          "redirectUri":"r1",
-          "state":"s1",
-          "scopes":[1, true, {"foo":"bar"}]
-        }
-        """;
+    @Test
+    @DisplayName("Given scopes array with only non‑string elements, returns empty set")
+    void arrayWithNonStringScopes_skipped() throws Exception {
+      String json =
+          """
+          {
+            "clientId":"c1",
+            "authorizationUri":"u1",
+            "redirectUri":"r1",
+            "state":"s1",
+            "scopes":[1, true, {"foo":"bar"}]
+          }
+          """;
 
-    OAuth2AuthorizationRequest req = mapper.readValue(json, OAuth2AuthorizationRequest.class);
-    assertTrue(req.getScopes().isEmpty(), "Non‑string elements in scopes array should be ignored");
-  }
-
-  @Test
-  @DisplayName("deserialize(parser) advances null currentToken to START_OBJECT")
-  void deserialize_directly_advancesParserFromNull() throws Exception {
-    String json =
-        """
-        { "clientId":"c","authorizationUri":"u","redirectUri":"r","state":"s" }
-        """;
-    JsonFactory factory = new JsonFactory();
-    try (JsonParser parser = factory.createParser(json)) {
-      assertNull(parser.currentToken(), "Must start with null token");
-      AuthRequestDeserializer desert = new AuthRequestDeserializer();
-      OAuth2AuthorizationRequest req = desert.deserialize(parser, null);
-      assertEquals("c", req.getClientId());
+      OAuth2AuthorizationRequest req = mapper.readValue(json, OAuth2AuthorizationRequest.class);
+      assertTrue(req.getScopes().isEmpty(), "Non‑string elements in scopes array should be ignored");
     }
-  }
 
-  @Test
-  @DisplayName("Given a non‑object JSON (e.g. array), throws JsonMappingException")
-  void nonObjectJson_throwsJsonMappingException() {
-    String json =
-        """
-            [ "not", "an", "object" ]
-        """;
-    JsonMappingException ex =
-        assertThrows(
-            JsonMappingException.class,
-            () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
-    assertTrue(
-        ex.getOriginalMessage().contains("Expected JSON object for OAuth2AuthorizationRequest"),
-        "Should enforce START_OBJECT at the root");
+    @Test
+    @DisplayName("Given advances null currentToken to START_OBJECT")
+    void deserialize_directly_advancesParserFromNull() throws Exception {
+      String json =
+          """
+          { "clientId":"c","authorizationUri":"u","redirectUri":"r","state":"s" }
+          """;
+      JsonFactory factory = new JsonFactory();
+      try (JsonParser parser = factory.createParser(json)) {
+        assertNull(parser.currentToken(), "Must start with null token");
+        AuthRequestDeserializer desert = new AuthRequestDeserializer();
+        OAuth2AuthorizationRequest req = desert.deserialize(parser, null);
+        assertEquals("c", req.getClientId());
+      }
+    }
+
+    @Test
+    @DisplayName("Given a non‑object JSON, throws JsonMappingException")
+    void nonObjectJson_throwsJsonMappingException() {
+      String json =
+          """
+              [ "not", "an", "object" ]
+          """;
+      JsonMappingException ex =
+          assertThrows(
+              JsonMappingException.class,
+              () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
+      assertTrue(
+          ex.getOriginalMessage().contains("Expected JSON object for OAuth2AuthorizationRequest"),
+          "Should enforce START_OBJECT at the root");
+    }
   }
 
   @Test
