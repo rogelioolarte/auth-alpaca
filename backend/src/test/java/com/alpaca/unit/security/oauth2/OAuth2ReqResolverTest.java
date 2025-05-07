@@ -1,5 +1,8 @@
 package com.alpaca.unit.security.oauth2;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,9 +15,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link OAuth2ReqResolver} */
 @ExtendWith(MockitoExtension.class)

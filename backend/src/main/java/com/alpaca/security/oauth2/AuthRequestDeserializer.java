@@ -8,13 +8,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 public class AuthRequestDeserializer extends StdDeserializer<OAuth2AuthorizationRequest> {
 
