@@ -38,7 +38,8 @@ class CookieAuthReqRepoTest {
   class LoadAuthorizationRequestTests {
 
     @Test
-    @DisplayName("Given an existing auth cookie, returns the deserialized OAuth2AuthorizationRequest")
+    @DisplayName(
+        "Given an existing auth cookie, returns the deserialized OAuth2AuthorizationRequest")
     void givenAuthCookiePresent_whenLoadAuthorizationRequest_thenReturnDeserializedRequest() {
       Cookie cookie = new Cookie(CookieAuthReqRepo.AuthorizationCookieName, "cookie-value");
       OAuth2AuthorizationRequest expected = mock(OAuth2AuthorizationRequest.class);
@@ -48,10 +49,10 @@ class CookieAuthReqRepoTest {
         mock.when(() -> CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class))
             .thenReturn(expected);
         OAuth2AuthorizationRequest actual = repo.loadAuthorizationRequest(request);
-        assertAll("verify loaded request",
+        assertAll(
+            "verify loaded request",
             () -> assertNotNull(actual, "Result should not be null"),
-            () -> assertEquals(expected, actual, "Result should match the deserialized request")
-        );
+            () -> assertEquals(expected, actual, "Result should match the deserialized request"));
       }
     }
 
@@ -61,7 +62,8 @@ class CookieAuthReqRepoTest {
       try (MockedStatic<CookieManager> mock = mockStatic(CookieManager.class)) {
         mock.when(() -> CookieManager.getCookie(request, CookieAuthReqRepo.AuthorizationCookieName))
             .thenReturn(Optional.empty());
-        assertNull(repo.loadAuthorizationRequest(request),
+        assertNull(
+            repo.loadAuthorizationRequest(request),
             "Result should be null when no cookie is present");
       }
     }
@@ -74,24 +76,26 @@ class CookieAuthReqRepoTest {
     @ParameterizedTest
     @NullAndEmptySource
     @DisplayName("Given null or empty redirectUri, only adds the authorization cookie")
-    void givenNullOrEmptyRedirectUri_whenSaveAuthorizationRequest_thenOnlyAddAuthCookie(String redirectUri) {
+    void givenNullOrEmptyRedirectUri_whenSaveAuthorizationRequest_thenOnlyAddAuthCookie(
+        String redirectUri) {
       OAuth2AuthorizationRequest authReq = mock(OAuth2AuthorizationRequest.class);
       request.addParameter(CookieAuthReqRepo.RedirectCookieName, redirectUri);
       try (MockedStatic<CookieManager> mock = mockStatic(CookieManager.class)) {
         mock.when(() -> CookieManager.serialize(authReq)).thenReturn("serialized-value");
         repo.saveAuthorizationRequest(authReq, request, response);
-        mock.verify(() -> CookieManager.addCookie(
-            response,
-            CookieAuthReqRepo.AuthorizationCookieName,
-            "serialized-value",
-            CookieAuthReqRepo.cookieExpiredSeconds
-        ), times(1));
-        mock.verify(() -> CookieManager.addCookie(
-            eq(response),
-            eq(CookieAuthReqRepo.RedirectCookieName),
-            anyString(),
-            anyInt()
-        ), never());
+        mock.verify(
+            () ->
+                CookieManager.addCookie(
+                    response,
+                    CookieAuthReqRepo.AuthorizationCookieName,
+                    "serialized-value",
+                    CookieAuthReqRepo.cookieExpiredSeconds),
+            times(1));
+        mock.verify(
+            () ->
+                CookieManager.addCookie(
+                    eq(response), eq(CookieAuthReqRepo.RedirectCookieName), anyString(), anyInt()),
+            never());
       }
     }
   }

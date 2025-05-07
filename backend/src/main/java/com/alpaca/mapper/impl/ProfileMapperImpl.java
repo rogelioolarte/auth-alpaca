@@ -5,9 +5,10 @@ import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.mapper.ProfileMapper;
 import com.alpaca.service.IUserService;
-import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor

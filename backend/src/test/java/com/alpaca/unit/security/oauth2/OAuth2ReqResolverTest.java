@@ -1,20 +1,20 @@
 package com.alpaca.unit.security.oauth2;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link OAuth2ReqResolver} */
 @ExtendWith(MockitoExtension.class)
@@ -47,8 +47,7 @@ class OAuth2ReqResolverTest {
     OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
     assertNotNull(custom, "The resolver must not return null");
     assertNotNull(
-        custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER),
-        "Must contain code_verifier");
+        custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER), "Must contain code_verifier");
     assertNotNull(
         custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE),
         "Must contain code_challenge");

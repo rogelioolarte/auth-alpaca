@@ -2,12 +2,13 @@ package com.alpaca.entity;
 
 import com.alpaca.entity.intermediate.UserRole;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.*;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the
@@ -72,7 +73,7 @@ public class User {
   @OneToMany(
       mappedBy = "user",
       cascade = CascadeType.ALL,
-      fetch = FetchType.LAZY,
+      fetch = FetchType.EAGER,
       orphanRemoval = true)
   private Set<UserRole> userRoles = new HashSet<>();
 

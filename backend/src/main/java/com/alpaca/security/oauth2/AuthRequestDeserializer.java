@@ -1,59 +1,106 @@
 package com.alpaca.security.oauth2;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
-public class AuthRequestDeserializer extends JsonDeserializer<OAuth2AuthorizationRequest> {
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+public class AuthRequestDeserializer extends StdDeserializer<OAuth2AuthorizationRequest> {
+
+  private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
+  private static final ObjectReader MAP_READER = new ObjectMapper().readerFor(MAP_TYPE);
+
+  public AuthRequestDeserializer() {
+    super(OAuth2AuthorizationRequest.class);
+  }
 
   @Override
   public OAuth2AuthorizationRequest deserialize(JsonParser p, DeserializationContext ct)
       throws IOException {
 
-    @SuppressWarnings("unchecked")
-    Map<String, Object> data =
-        Optional.ofNullable(p.readValueAs(Map.class))
-            .orElseThrow(() -> new IOException("Invalid JSON format"));
+    if (p.currentToken() == null) {
+      p.nextToken();
+    }
+    if (p.currentToken() != JsonToken.START_OBJECT) {
+      throw JsonMappingException.from(p, "Expected JSON object for OAuth2AuthorizationRequest");
+    }
+
+    String clientId = null, authorizationUri = null, redirectUri = null, state = null;
+    Set<String> scopes = Collections.emptySet();
+    Map<String, Object> attributes = Collections.emptyMap();
+    Map<String, Object> additionalParameters = Collections.emptyMap();
+
+    while (p.nextToken() != JsonToken.END_OBJECT) {
+      String field = p.currentName();
+      p.nextToken();
+      switch (field) {
+        case "clientId" -> clientId = p.getValueAsString();
+        case "authorizationUri" -> authorizationUri = p.getValueAsString();
+        case "redirectUri" -> redirectUri = p.getValueAsString();
+        case "state" -> state = p.getValueAsString();
+        case "scopes" -> scopes = parseScopes(p);
+        case "attributes" -> attributes = MAP_READER.readValue(p);
+        case "additionalParameters" -> additionalParameters = MAP_READER.readValue(p);
+        default -> p.skipChildren();
+      }
+    }
+
+    clientId = requireField(clientId, "clientId", p);
+    authorizationUri = requireField(authorizationUri, "authorizationUri", p);
+    redirectUri = requireField(redirectUri, "redirectUri", p);
+    state = requireField(state, "state", p);
 
     return OAuth2AuthorizationRequest.authorizationCode()
-        .clientId(getString(data, "clientId"))
-        .authorizationUri(getString(data, "authorizationUri"))
-        .redirectUri(getString(data, "redirectUri"))
-        .scopes(getSet(data))
-        .state(getString(data, "state"))
-        .attributes(getMap(data, "attributes"))
-        .additionalParameters(getMap(data, "additionalParameters"))
+        .clientId(clientId)
+        .authorizationUri(authorizationUri)
+        .redirectUri(redirectUri)
+        .scopes(scopes)
+        .state(state)
+        .attributes(attributes)
+        .additionalParameters(additionalParameters)
         .build();
   }
 
-  private String getString(Map<String, Object> data, String key) {
-    return Optional.ofNullable(data.get(key))
-        .filter(String.class::isInstance)
-        .map(String.class::cast)
-        .orElse(null);
-  }
-
-  private Set<String> getSet(Map<String, Object> data) {
-    Object value = data.get("scopes");
-    if (value instanceof Collection<?>) {
-      return ((Collection<?>) value)
-          .stream()
-              .filter(String.class::isInstance)
-              .map(String.class::cast)
-              .collect(Collectors.toSet());
+  /** Ensures a required string field was present and not null. */
+  private static String requireField(String value, String name, JsonParser p)
+      throws JsonMappingException {
+    if (value == null) {
+      throw JsonMappingException.from(p, "Missing required field '" + name + "'");
     }
-    return Collections.emptySet();
+    return value;
   }
 
-  @SuppressWarnings("unchecked")
-  private Map<String, Object> getMap(Map<String, Object> data, String key) {
-    return Optional.ofNullable(data.get(key))
-        .filter(Map.class::isInstance)
-        .map(obj -> (Map<String, Object>) obj)
-        .orElse(Collections.emptyMap());
+  /** Parses the 'scopes' JSON array into an immutable Set<String>. */
+  private static Set<String> parseScopes(JsonParser p) throws IOException {
+    if (p.currentToken() != JsonToken.START_ARRAY) {
+      p.skipChildren();
+      return Collections.emptySet();
+    }
+
+    Set<String> temp = new LinkedHashSet<>();
+    while (p.nextToken() != JsonToken.END_ARRAY) {
+      if (p.currentToken() == JsonToken.VALUE_STRING) {
+        temp.add(p.getText());
+      } else {
+        p.skipChildren();
+      }
+    }
+    return Set.copyOf(temp);
+  }
+
+  @Override
+  public Class<OAuth2AuthorizationRequest> handledType() {
+    return OAuth2AuthorizationRequest.class;
   }
 }
