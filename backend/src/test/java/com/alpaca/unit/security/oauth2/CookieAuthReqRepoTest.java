@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.security.manager.CookieManager;
-import com.alpaca.security.oauth2.AuthRequestDeserializer;
 import com.alpaca.security.oauth2.CookieAuthReqRepo;
 import jakarta.servlet.http.Cookie;
 import java.util.Optional;
@@ -20,7 +19,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 /** Unit tests for {@link CookieAuthReqRepo} */
-@DisplayName("Unit tests for CookieAuthReqRepo")
+@DisplayName("CookieAuthReqRepo Unit Tests ")
 class CookieAuthReqRepoTest {
 
   private CookieAuthReqRepo repo;

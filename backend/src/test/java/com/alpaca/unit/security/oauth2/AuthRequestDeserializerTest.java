@@ -3,7 +3,6 @@ package com.alpaca.unit.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
-import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;

@@ -8,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -18,40 +21,44 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
   private final CookieAuthReqRepo repository;
-  private final String frontendURI;
+  private final String frontendUri;
+  private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
 
-  public AuthFailureHandler(@Value("${app.frontendURI}") @NotNull String frontendURI) {
-    this.repository = new CookieAuthReqRepo();
-    this.frontendURI = frontendURI;
+  public AuthFailureHandler(
+      CookieAuthReqRepo repository,
+      @Value("${app.frontendURI}") @NotNull String frontendUri
+  ) {
+    this.repository = repository;
+    this.frontendUri = frontendUri;
   }
 
   @Override
-  public void onAuthenticationFailure(
-      HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+  public void onAuthenticationFailure(HttpServletRequest request,
+                                      HttpServletResponse response,
+                                      AuthenticationException exception)
       throws IOException {
-    String targetUrl = null;
-    if (request.getParameter("redirect_uri") != null) {
-      targetUrl = request.getParameter("redirect_uri");
-    } else {
-      targetUrl =
-          CookieManager.getCookie(request, RedirectCookieName)
-              .map(Cookie::getName)
-              .orElse(frontendURI);
-    }
-    if (request.getParameter("error") != null) {
-      targetUrl =
-          UriComponentsBuilder.fromUriString(targetUrl)
-              .queryParam("error", request.getParameter("error").replaceAll("[|{}\\[\\]]", " "))
-              .build()
-              .toUriString();
-    } else {
-      targetUrl =
-          UriComponentsBuilder.fromUriString(targetUrl)
-              .queryParam("error", exception.getMessage().replaceAll("[|{}\\[\\]]", " "))
-              .build()
-              .toUriString();
+    if (response.isCommitted()) {
+      logger.debug("Response already committed, cannot redirect");
+      return;
     }
     repository.removeAuthorizationRequestCookies(request, response);
-    getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    getRedirectStrategy().sendRedirect(request, response,
+        appendErrorParam(resolveTargetUrl(request),
+            Optional.ofNullable(request.getParameter("error"))
+                .orElse(exception.getMessage())));
+  }
+
+  private String resolveTargetUrl(HttpServletRequest request) {
+    return Optional.ofNullable(request.getParameter("redirect_uri"))
+        .or(() -> CookieManager.getCookie(request, RedirectCookieName).map(Cookie::getValue))
+        .orElse(frontendUri);
+  }
+
+  private String appendErrorParam(String base, String rawError) {
+    return UriComponentsBuilder.fromUriString(base)
+        .queryParam("error",
+            ERROR_SANITIZER.matcher(rawError).replaceAll(" ").trim())
+        .build()
+        .toUriString();
   }
 }
