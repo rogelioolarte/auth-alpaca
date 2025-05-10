@@ -49,7 +49,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   ) throws IOException {
     String targetUrl = determineTargetUrl(request, response, authentication);
     if (response.isCommitted()) {
-      logger.debug("Response already committed; cannot redirect to: ".concat(targetUrl));
+      logger.debug(String.format("Response already committed; cannot redirect to: %s", targetUrl));
       return;
     }
     clearAuthenticationAttributes(request, response);
