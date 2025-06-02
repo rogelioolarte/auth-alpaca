@@ -1,19 +1,15 @@
 package com.alpaca.unit.security.oauth2;
 
-import java.lang.reflect.Method;
-import java.util.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import com.alpaca.security.oauth2.OAuth2ReqResolver;
+import com.alpaca.security.oauth2.AccessTokenResConverter;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-
-import com.alpaca.security.oauth2.AccessTokenResConverter;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Unit tests for {@link AccessTokenResConverter} */
 @DisplayName("AccessTokenResConverter Unit Tests")
@@ -47,8 +43,10 @@ class AccessTokenResConverterTest {
     assertEquals(OAuth2AccessToken.TokenType.BEARER, response.getAccessToken().getTokenType());
     assertNotNull(response.getAccessToken().getIssuedAt());
     assertNotNull(response.getAccessToken().getExpiresAt());
-    assertEquals(expiresIn, response.getAccessToken().getExpiresAt().getEpochSecond()
-        - response.getAccessToken().getIssuedAt().getEpochSecond());
+    assertEquals(
+        expiresIn,
+        response.getAccessToken().getExpiresAt().getEpochSecond()
+            - response.getAccessToken().getIssuedAt().getEpochSecond());
     assertEquals(scopes, response.getAccessToken().getScopes());
     assertNotNull(response.getRefreshToken());
     assertEquals(refreshToken, response.getRefreshToken().getTokenValue());
@@ -64,7 +62,8 @@ class AccessTokenResConverterTest {
     assertNotNull(response);
     assertNotNull(response.getAccessToken().getExpiresAt());
     assertNotNull(response.getAccessToken().getIssuedAt());
-    assertEquals(DEFAULT_EXPIRES_IN,
+    assertEquals(
+        DEFAULT_EXPIRES_IN,
         response.getAccessToken().getExpiresAt().getEpochSecond()
             - response.getAccessToken().getIssuedAt().getEpochSecond());
   }
@@ -82,10 +81,8 @@ class AccessTokenResConverterTest {
 
   @Test
   void convert_WhenNoAdditionalParameters_ShouldReturnEmptyMap() {
-    Map<String, Object> source = Map.of(
-        OAuth2ParameterNames.ACCESS_TOKEN, "t",
-        OAuth2ParameterNames.EXPIRES_IN, 10
-    );
+    Map<String, Object> source =
+        Map.of(OAuth2ParameterNames.ACCESS_TOKEN, "t", OAuth2ParameterNames.EXPIRES_IN, 10);
     OAuth2AccessTokenResponse response = converter.convert(source);
     assertNotNull(response);
     assertTrue(response.getAdditionalParameters().isEmpty());

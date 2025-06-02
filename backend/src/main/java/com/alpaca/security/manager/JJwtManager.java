@@ -124,15 +124,19 @@ public class JJwtManager {
     return getSpecificClaim(claims, "advertiserId", String.class);
   }
 
+  public UUID getUUIDFromClaim(String claim) {
+    return !claim.isBlank() ? UUID.fromString(claim) : null;
+  }
+
   public boolean existString(String string) {
     return string != null && !string.isBlank();
   }
 
   public UserPrincipal getUserPrincipal(Claims claims) {
     return new UserPrincipal(
-        UUID.fromString(getUserId(claims)),
-        existString(getProfileId(claims)) ? UUID.fromString(getProfileId(claims)) : null,
-        existString(getAdvertiserId(claims)) ? UUID.fromString(getAdvertiserId(claims)) : null,
+        getUUIDFromClaim(getUserId(claims)),
+        getUUIDFromClaim(getProfileId(claims)),
+        getUUIDFromClaim(getAdvertiserId(claims)),
         getUsername(claims),
         null,
         getAuthoritiesList(claims),

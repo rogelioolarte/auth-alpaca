@@ -69,7 +69,8 @@ public class UserProvider {
             null,
             null);
     UserRole secondUserRole = new UserRole(secondEntity, RoleProvider.alternativeEntity());
-    secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole)));
+    UserRole firstUserRole = new UserRole(secondEntity, RoleProvider.singleEntity());
+    secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole, firstUserRole)));
     return secondEntity;
   }
 

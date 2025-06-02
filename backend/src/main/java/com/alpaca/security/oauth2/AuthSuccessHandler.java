@@ -11,12 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
@@ -34,8 +31,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   public AuthSuccessHandler(
       JJwtManager jwtManager,
       CookieAuthReqRepo repository,
-      @Value("${app.oauth2AuthorizedRedirectURI}") @NonNull List<URI> redirectUris
-  ) {
+      @Value("${app.oauth2AuthorizedRedirectURI}") @NonNull List<URI> redirectUris) {
     this.jwtManager = jwtManager;
     this.repository = repository;
     this.authorizedRedirectUris = Set.copyOf(redirectUris);
@@ -43,10 +39,8 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   @Override
   public void onAuthenticationSuccess(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Authentication authentication
-  ) throws IOException {
+      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+      throws IOException {
     String targetUrl = determineTargetUrl(request, response, authentication);
     if (response.isCommitted()) {
       logger.debug(String.format("Response already committed; cannot redirect to: %s", targetUrl));
@@ -58,10 +52,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   @Override
   protected String determineTargetUrl(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Authentication auth
-  ) {
+      HttpServletRequest request, HttpServletResponse response, Authentication auth) {
     Optional<Cookie> redirectCookie = CookieManager.getCookie(request, RedirectCookieName);
     String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
 
@@ -75,18 +66,16 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
   }
 
   protected void clearAuthenticationAttributes(
-      HttpServletRequest request,
-      HttpServletResponse response
-  ) {
+      HttpServletRequest request, HttpServletResponse response) {
     super.clearAuthenticationAttributes(request);
     repository.removeAuthorizationRequestCookies(request, response);
   }
 
   private boolean isAuthorizedRedirectURI(URI clientUri) {
     return authorizedRedirectUris.stream()
-        .anyMatch(auth ->
-            auth.getHost().equalsIgnoreCase(clientUri.getHost()) &&
-                auth.getPort() == clientUri.getPort()
-        );
+        .anyMatch(
+            auth ->
+                auth.getHost().equalsIgnoreCase(clientUri.getHost())
+                    && auth.getPort() == clientUri.getPort());
   }
 }

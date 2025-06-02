@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -25,27 +24,27 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
   private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
 
   public AuthFailureHandler(
-      CookieAuthReqRepo repository,
-      @Value("${app.frontendURI}") @NotNull String frontendUri
-  ) {
+      CookieAuthReqRepo repository, @Value("${app.frontendURI}") @NotNull String frontendUri) {
     this.repository = repository;
     this.frontendUri = frontendUri;
   }
 
   @Override
-  public void onAuthenticationFailure(HttpServletRequest request,
-                                      HttpServletResponse response,
-                                      AuthenticationException exception)
+  public void onAuthenticationFailure(
+      HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
       throws IOException {
     if (response.isCommitted()) {
       logger.debug("Response already committed, cannot redirect");
       return;
     }
     repository.removeAuthorizationRequestCookies(request, response);
-    getRedirectStrategy().sendRedirect(request, response,
-        appendErrorParam(resolveTargetUrl(request),
-            Optional.ofNullable(request.getParameter("error"))
-                .orElse(exception.getMessage())));
+    getRedirectStrategy()
+        .sendRedirect(
+            request,
+            response,
+            appendErrorParam(
+                resolveTargetUrl(request),
+                Optional.ofNullable(request.getParameter("error")).orElse(exception.getMessage())));
   }
 
   private String resolveTargetUrl(HttpServletRequest request) {
@@ -56,8 +55,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
   private String appendErrorParam(String base, String rawError) {
     return UriComponentsBuilder.fromUriString(base)
-        .queryParam("error",
-            ERROR_SANITIZER.matcher(rawError).replaceAll(" ").trim())
+        .queryParam("error", ERROR_SANITIZER.matcher(rawError).replaceAll(" ").trim())
         .build()
         .toUriString();
   }

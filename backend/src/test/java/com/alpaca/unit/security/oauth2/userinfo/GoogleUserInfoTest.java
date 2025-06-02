@@ -16,7 +16,7 @@ class GoogleUserInfoTest {
   private static final String sub = "123";
   private static final String firstName = "FirstName";
   private static final String lastName = "LastName";
-  private static  final String email = "example@example.com";
+  private static final String email = "example@example.com";
   private static final String picture = "http://example.com/image.jpg";
   private static final String name = firstName + " " + lastName;
 
