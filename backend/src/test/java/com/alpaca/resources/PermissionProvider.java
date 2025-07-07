@@ -25,6 +25,14 @@ public class PermissionProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static Permission templateSingleEntity() {
+        return new Permission(null, "DELETE", new HashSet<>());
+    }
+
+    public static Permission templateAlternativeEntity() {
+        return new Permission(null, "CREATE", new HashSet<>());
+    }
+
     public static Permission singleEntity() {
         return new Permission(
                 UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "DELETE", new HashSet<>());

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,16 @@ class PermissionServiceImplIT {
 
     @Autowired private PermissionServiceImpl service;
 
+    private Permission singleEntity;
+    private Permission alternativeEntity;
+
+    @BeforeEach
+    void setup() {
+        singleEntity = new Permission(PermissionProvider.singleEntity().getPermissionName());
+        alternativeEntity =
+                new Permission(PermissionProvider.alternativeEntity().getPermissionName());
+    }
+
     @Test
     @Transactional
     void findById() {
@@ -35,8 +46,7 @@ class PermissionServiceImplIT {
         UUID randomId = UUID.randomUUID();
         assertThrows(NotFoundException.class, () -> this.service.findById(randomId));
 
-        String permissionName = PermissionProvider.alternativeEntity().getPermissionName();
-        Permission permission = service.save(new Permission(permissionName));
+        Permission permission = service.save(alternativeEntity);
         Permission permissionFound = service.findById(permission.getId());
         assertNotNull(permissionFound);
         assertEquals(permission.getId(), permissionFound.getId());
@@ -56,10 +66,7 @@ class PermissionServiceImplIT {
         uuids.add(null);
         assertThrows(BadRequestException.class, () -> service.findAllByIds(uuids));
 
-        UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a3");
-
-        String permissionName = PermissionProvider.singleEntity().getPermissionName();
-        Permission permission = service.save(new Permission(permissionName));
+        Permission permission = service.save(singleEntity);
         List<Permission> permissions =
                 service.findAllByIds(new ArrayList<>(List.of(permission.getId())));
         assertNotNull(permissions);
@@ -72,15 +79,12 @@ class PermissionServiceImplIT {
     void save() {
         assertThrows(BadRequestException.class, () -> service.save(null));
 
-        String permissionName = PermissionProvider.singleEntity().getPermissionName();
-        service.save(new Permission(permissionName));
-        assertThrows(BadRequestException.class, () -> service.save(new Permission(permissionName)));
+        service.save(singleEntity);
+        assertThrows(BadRequestException.class, () -> service.save(singleEntity));
 
-        String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
-        Permission permissionSecond = new Permission(permissionNameSecond);
-        Permission savedPermission = service.save(permissionSecond);
+        Permission savedPermission = service.save(alternativeEntity);
         assertNotNull(savedPermission);
-        assertEquals(permissionSecond.getId(), savedPermission.getId());
+        assertEquals(alternativeEntity.getId(), savedPermission.getId());
     }
 
     @Test
@@ -88,11 +92,8 @@ class PermissionServiceImplIT {
     void updateById() {
         assertThrows(BadRequestException.class, () -> service.updateById(null, null));
 
-        String permissionName = PermissionProvider.singleEntity().getPermissionName();
-        Permission permission = service.save(new Permission(permissionName));
-
-        String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
-        Permission permissionSecond = service.save(new Permission(permissionNameSecond));
+        Permission permission = service.save(singleEntity);
+        Permission permissionSecond = service.save(alternativeEntity);
 
         Permission updatedPermission = service.updateById(permissionSecond, permission.getId());
         assertNotNull(updatedPermission);
@@ -108,8 +109,7 @@ class PermissionServiceImplIT {
         UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a122");
         assertThrows(BadRequestException.class, () -> service.deleteById(id));
 
-        String permissionName = PermissionProvider.singleEntity().getPermissionName();
-        Permission permission = service.save(new Permission(permissionName));
+        Permission permission = service.save(singleEntity);
         service.deleteById(permission.getId());
         assertFalse(service.existsById(permission.getId()));
     }
@@ -148,8 +148,7 @@ class PermissionServiceImplIT {
     @Test
     @Transactional
     void existsById() {
-        String permissionNameSecond = PermissionProvider.alternativeEntity().getPermissionName();
-        Permission permission = service.save(new Permission(permissionNameSecond));
+        Permission permission = service.save(alternativeEntity);
         assertTrue(service.existsById(permission.getId()));
         assertFalse(service.existsById(UUID.randomUUID()));
     }

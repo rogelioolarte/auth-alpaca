@@ -1,6 +1,6 @@
 package com.alpaca.unit.security.filter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.security.filter.SimpleCORSFilter;
