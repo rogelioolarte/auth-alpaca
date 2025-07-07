@@ -21,6 +21,10 @@ public class ProfileProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static Profile singleTemplate() {
+        return new Profile(null, "Admin", "Last", "https://foto.admin.com", "av admin 01", null);
+    }
+
     public static Profile singleEntity() {
         return new Profile(
                 UUID.fromString("fb2ba5e5-37c8-4645-994e-6a6953188801"),

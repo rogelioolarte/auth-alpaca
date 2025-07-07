@@ -52,7 +52,7 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
             existingUser.setPassword(user.getPassword());
         }
         if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
-            existingUser.setUserRoles(user.getUserRoles());
+            existingUser.setUserRoles(user.getRoles());
         }
         if (user.getProfile() != null && user.getProfile().getId() != null) {
             existingUser.setProfile(user.getProfile());

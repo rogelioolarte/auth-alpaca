@@ -76,6 +76,14 @@ public class Role {
         this.rolePermissions = permissionsToRolePermissions(permissions);
     }
 
+    public void setRolePermissions(Collection<Permission> permissions) {
+        if (permissions != null && !permissions.isEmpty()) {
+            this.rolePermissions = permissionsToRolePermissions(permissions);
+        } else {
+            this.rolePermissions = new HashSet<>();
+        }
+    }
+
     /**
      * Converts a set of {@link Permission} objects into a set of {@link RolePermission} objects
      * associated with this Role.
@@ -83,7 +91,7 @@ public class Role {
      * @param permissions the set of {@link Permission} objects to be converted.
      * @return a set of {@link RolePermission} objects associated with this Role.
      */
-    public Set<RolePermission> permissionsToRolePermissions(Set<Permission> permissions) {
+    public Set<RolePermission> permissionsToRolePermissions(Collection<Permission> permissions) {
         if (permissions.isEmpty()) return Collections.emptySet();
         Set<RolePermission> rolePermissions = new HashSet<>(permissions.size());
         for (Permission permission : permissions) {

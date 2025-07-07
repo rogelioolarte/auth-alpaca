@@ -21,6 +21,24 @@ public class AdvertiserProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static Advertiser singleTemplate() {
+        Advertiser firstEntity =
+                new Advertiser(
+                        null,
+                        "Advertiser_1",
+                        "Advertiser version 1",
+                        "https://banner.com/advertiser1",
+                        "https://avatar.com/advertiser1",
+                        "av. root 123",
+                        "https://location.com/advertiser1",
+                        true,
+                        true,
+                        true,
+                        null);
+        firstEntity.setUser(UserProvider.singleEntity());
+        return firstEntity;
+    }
+
     public static Advertiser singleEntity() {
         Advertiser firstEntity =
                 new Advertiser(

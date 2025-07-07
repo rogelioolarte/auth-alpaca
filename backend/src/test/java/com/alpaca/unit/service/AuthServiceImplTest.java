@@ -7,7 +7,6 @@ import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.entity.intermediate.UserRole;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
@@ -119,7 +118,7 @@ class AuthServiceImplTest {
 
     @Test
     void registerCaseTwo() {
-        secondEntity.setUserRoles(Set.of(new UserRole(secondEntity, role)));
+        secondEntity.setUserRoles(Set.of(role));
         when(userService.existsByEmail(secondEntity.getEmail())).thenReturn(false);
         when(roleService.getUserRoles()).thenReturn(Set.of(role));
         when(userService.register(any(User.class))).thenReturn(secondEntity);

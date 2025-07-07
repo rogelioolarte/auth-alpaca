@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 /** Integration tests for {@link com.alpaca.persistence.impl.AdvertiserDAOImpl} */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@Transactional
 class AdvertiserDAOImplIT {
 
     @Autowired private IAdvertiserDAO dao;

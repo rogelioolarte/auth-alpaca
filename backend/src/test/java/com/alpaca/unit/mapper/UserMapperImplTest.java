@@ -6,9 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
-import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.entity.intermediate.UserRole;
 import com.alpaca.mapper.impl.AdvertiserMapperImpl;
 import com.alpaca.mapper.impl.ProfileMapperImpl;
 import com.alpaca.mapper.impl.RoleMapperImpl;
@@ -68,8 +66,7 @@ class UserMapperImplTest {
         assertNull(mapper.toResponseDTO(null));
 
         User entity = UserProvider.singleEntity();
-        Role role = RoleProvider.singleEntity();
-        entity.setUserRoles(new HashSet<>(Set.of(new UserRole(entity, role))));
+        entity.setUserRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
         when(roleMapper.toListResponseDTO(entity.getRoles()))
                 .thenReturn(new ArrayList<>(List.of(RoleProvider.singleResponse())));
         when(profileMapper.toResponseDTO(null)).thenReturn(ProfileProvider.singleResponse());

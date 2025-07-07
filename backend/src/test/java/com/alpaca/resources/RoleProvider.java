@@ -3,7 +3,6 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
-import com.alpaca.entity.intermediate.RolePermission;
 import java.util.*;
 
 public class RoleProvider {
@@ -20,6 +19,11 @@ public class RoleProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static Role singleTemplate() {
+        Role firstEntity = new Role(null, "ADMIN", "It's an admin", null, null);
+        return firstEntity;
+    }
+
     public static Role singleEntity() {
         Role firstEntity =
                 new Role(
@@ -28,9 +32,7 @@ public class RoleProvider {
                         "It's an admin",
                         null,
                         null);
-        RolePermission firstRolePermission =
-                new RolePermission(null, PermissionProvider.singleEntity());
-        firstEntity.setRolePermissions(new HashSet<>(Set.of(firstRolePermission)));
+        firstEntity.setRolePermissions(new HashSet<>(Set.of(PermissionProvider.singleEntity())));
         return firstEntity;
     }
 
@@ -42,9 +44,8 @@ public class RoleProvider {
                         "It's an user",
                         null,
                         null);
-        RolePermission secondRolePermission =
-                new RolePermission(null, PermissionProvider.alternativeEntity());
-        secondEntity.setRolePermissions(new HashSet<>(Set.of(secondRolePermission)));
+        secondEntity.setRolePermissions(
+                new HashSet<>(Set.of(PermissionProvider.alternativeEntity())));
         return secondEntity;
     }
 

@@ -360,10 +360,12 @@
 					<includes>
 						<include>integration/**/*IT.java</include>
 					</includes>
-					<excludes>
-						<exclude>unit/**</exclude>
-					</excludes>
 					<reportsDirectory>${project.build.directory}/failsafe-reports/integration</reportsDirectory>
+					<argLine>
+						@{argLine}
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+						-Xshare:off -XX:+EnableDynamicAgentLoading
+					</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

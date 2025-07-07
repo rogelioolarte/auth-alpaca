@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
-import com.alpaca.entity.intermediate.RolePermission;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
@@ -117,8 +116,7 @@ class RoleDAOImplTest {
     @Test
     void updateByIdCaseFour() {
         Permission permission = PermissionProvider.singleEntity();
-        secondEntity.setRolePermissions(
-                new HashSet<>(Set.of(new RolePermission(secondEntity, permission))));
+        secondEntity.setRolePermissions(new HashSet<>(Set.of(permission)));
         when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
         when(repo.save(firstEntity)).thenReturn(firstEntity);
         Role updatedEntity = dao.updateById(secondEntity, firstEntity.getId());

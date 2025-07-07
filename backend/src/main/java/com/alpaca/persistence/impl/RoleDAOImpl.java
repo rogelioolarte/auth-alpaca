@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RoleRepo;
+import com.alpaca.repository.intermediate.RolePermissionRepo;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO {
 
     private final RoleRepo repo;
+    private final RolePermissionRepo rolePermissionRepo;
 
     @Override
     protected GenericRepo<Role, UUID> getRepo() {
@@ -49,7 +51,7 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
             existingRole.setRoleDescription(role.getRoleDescription());
         }
         if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
-            existingRole.setRolePermissions(role.getRolePermissions());
+            existingRole.setRolePermissions(role.getPermissions());
         }
         return save(existingRole);
     }

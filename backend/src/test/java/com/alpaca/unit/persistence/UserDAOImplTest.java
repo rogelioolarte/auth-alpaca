@@ -8,7 +8,6 @@ import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.entity.intermediate.UserRole;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
@@ -141,7 +140,7 @@ class UserDAOImplTest {
         newEntity.setEmailVerified(true);
         newEntity.setGoogleConnected(true);
         Role newRole = RoleProvider.alternativeEntity();
-        newEntity.setUserRoles(new HashSet<>(Set.of(new UserRole(newEntity, newRole))));
+        newEntity.setUserRoles(new HashSet<>(Set.of(newRole)));
         when(repo.findById(id)).thenReturn(Optional.of(firstEntity));
         when(repo.save(firstEntity)).thenReturn(firstEntity);
         User userUpdated = dao.updateById(newEntity, id);

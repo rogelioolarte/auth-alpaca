@@ -149,6 +149,14 @@ public class User {
         this.userRoles = rolesToUserRoles(roles);
     }
 
+    public void setUserRoles(Collection<Role> roles) {
+        if (roles != null && !roles.isEmpty()) {
+            this.userRoles = rolesToUserRoles(roles);
+        } else {
+            this.userRoles = new HashSet<>();
+        }
+    }
+
     /**
      * Converts a set of {@link Role} objects into a set of {@link UserRole} objects associated with
      * the current User.
@@ -156,7 +164,7 @@ public class User {
      * @param roles the set of {@link Role} objects to be converted.
      * @return a set of {@link UserRole} objects associated with the User.
      */
-    private Set<UserRole> rolesToUserRoles(Set<Role> roles) {
+    private Set<UserRole> rolesToUserRoles(Collection<Role> roles) {
         if (roles.isEmpty()) return Collections.emptySet();
         Set<UserRole> userRoles = new HashSet<>(roles.size());
         if (roles.size() == 1) {

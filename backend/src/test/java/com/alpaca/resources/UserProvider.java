@@ -4,7 +4,6 @@ import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
-import com.alpaca.entity.intermediate.UserRole;
 import java.util.*;
 
 public class UserProvider {
@@ -19,6 +18,38 @@ public class UserProvider {
 
     public static List<UserResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
+    }
+
+    public static User singleTemplate() {
+        return new User(
+                null,
+                "admin@admin.com",
+                "123456789",
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                new HashSet<>(),
+                null,
+                null);
+    }
+
+    public static User alternativeTemplate() {
+        return new User(
+            null,
+            "user@user.com",
+            "1234567890",
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            new HashSet<>(),
+            null,
+            null);
     }
 
     public static User singleEntity() {
@@ -68,9 +99,9 @@ public class UserProvider {
                         new HashSet<>(),
                         null,
                         null);
-        UserRole secondUserRole = new UserRole(secondEntity, RoleProvider.alternativeEntity());
-        UserRole firstUserRole = new UserRole(secondEntity, RoleProvider.singleEntity());
-        secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole, firstUserRole)));
+        secondEntity.setUserRoles(
+                new HashSet<>(
+                        Set.of(RoleProvider.alternativeEntity(), RoleProvider.singleEntity())));
         return secondEntity;
     }
 
@@ -89,8 +120,7 @@ public class UserProvider {
                         new HashSet<>(),
                         null,
                         null);
-        UserRole secondUserRole = new UserRole(secondEntity, RoleProvider.alternativeEntity());
-        secondEntity.setUserRoles(new HashSet<>(Set.of(secondUserRole)));
+        secondEntity.setUserRoles(new HashSet<>(Set.of(RoleProvider.alternativeEntity())));
         return secondEntity;
     }
 
