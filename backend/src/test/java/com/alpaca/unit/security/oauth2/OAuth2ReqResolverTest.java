@@ -108,7 +108,7 @@ class OAuth2ReqResolverTest {
   }
 
   @Test
-  void addPKCEParameters_whenNoSuchAlgorithmException_thenFallbackToVerifier() throws Exception {
+  void addPKCEParameters_whenNoSuchAlgorithmException_thenFallbackToVerifier() {
     OAuth2ReqResolver real = new OAuth2ReqResolver(clientRegRepo, "/oauth2/authorize-client");
     OAuth2ReqResolver spy = spy(real);
     StringKeyGenerator fixedGen = () -> "fixed-verifier";

@@ -232,7 +232,7 @@ class AuthServiceImplTest {
     when(passwordManager.matches(user.getPassword(), user.getPassword())).thenReturn(true);
     Authentication auth = service.authenticate(user.getEmail(), user.getPassword());
     assertNotNull(auth);
-    assertEquals(new UserPrincipal(user, null), (UserPrincipal) auth.getPrincipal());
+    assertEquals(new UserPrincipal(user, null), auth.getPrincipal());
   }
 
   // --- registerOrLoginOAuth2 ---

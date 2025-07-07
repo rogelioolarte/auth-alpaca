@@ -52,22 +52,13 @@ class AuthResponseTypeDeserializerTest {
   @Test
   void deserialize_nullText_shouldThrowNullPointerException() throws IOException {
     when(parser.getText()).thenReturn(null);
-    assertThrows(
-        NullPointerException.class,
-        () -> {
-          deserializer.deserialize(parser, ct);
-        });
+    assertThrows(NullPointerException.class, () -> deserializer.deserialize(parser, ct));
   }
 
   @Test
   void deserialize_ioExceptionFromParser_shouldPropagate() throws IOException {
     when(parser.getText()).thenThrow(new IOException("fail"));
-    IOException ex =
-        assertThrows(
-            IOException.class,
-            () -> {
-              deserializer.deserialize(parser, ct);
-            });
+    IOException ex = assertThrows(IOException.class, () -> deserializer.deserialize(parser, ct));
     assertEquals("fail", ex.getMessage());
   }
 }

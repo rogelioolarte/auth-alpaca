@@ -3,6 +3,7 @@ package com.alpaca.unit.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.security.oauth2.AccessTokenResConverter;
+import java.lang.reflect.Method;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +55,7 @@ class AccessTokenResConverterTest {
   }
 
   @Test
-  void convert_WhenExpiresMissing_ShouldUseDefault() throws Exception {
+  void convert_WhenExpiresMissing_ShouldUseDefault() {
     Map<String, Object> source = new HashMap<>();
     source.put(OAuth2ParameterNames.ACCESS_TOKEN, "tokenABC");
     source.put(OAuth2ParameterNames.SCOPE, "scope1");
@@ -86,5 +87,72 @@ class AccessTokenResConverterTest {
     OAuth2AccessTokenResponse response = converter.convert(source);
     assertNotNull(response);
     assertTrue(response.getAdditionalParameters().isEmpty());
+  }
+
+  @Test
+  @DisplayName("convert_WithMultipleAdditionalParameters")
+  void convert_WithMultipleAdditionalParameters_PreservesAllInOrder() {
+    // Prepare the source with LinkedHashMap to control the order
+    Map<String, Object> source = new LinkedHashMap<>();
+    source.put(OAuth2ParameterNames.ACCESS_TOKEN, accessToken);
+    source.put("first_extra", "value1");
+    source.put(OAuth2ParameterNames.SCOPE, scope); // standard, it is filtered
+    source.put("second_extra", 123);
+    source.put("third_extra", List.of("a", "b"));
+    source.put("fourth_extra", true);
+    // standard expires_in parameter: does not enter additional
+    source.put(OAuth2ParameterNames.EXPIRES_IN, expiresIn);
+
+    OAuth2AccessTokenResponse response = converter.convert(source);
+    assertNotNull(response);
+    Map<String, Object> actualExtras = response.getAdditionalParameters();
+
+    Map<String, Object> expectedExtras = new LinkedHashMap<>();
+    expectedExtras.put("first_extra", "value1");
+    expectedExtras.put("second_extra", 123);
+    expectedExtras.put("third_extra", List.of("a", "b"));
+    expectedExtras.put("fourth_extra", true);
+
+    assertEquals(expectedExtras, actualExtras);
+  }
+
+  @Test
+  @DisplayName("extractAdditionalParameters merges duplicate keys using last-value-wins")
+  void extractAdditionalParameters_mergeBehavior() throws Exception {
+    AccessTokenResConverter converter = new AccessTokenResConverter();
+
+    // We create a test Map where entrySet() returns duplicates
+    Map<String, Object> fakeSource =
+        new AbstractMap<>() {
+          private final List<Entry<String, Object>> entries =
+              List.of(
+                  Map.entry("dup", "first"), Map.entry("dup", "second"), Map.entry("other", 42));
+
+          @Override
+          public Set<Entry<String, Object>> entrySet() {
+            // LinkedHashSet to preserve insertion order in the test
+            return new LinkedHashSet<>(entries);
+          }
+
+          @Override
+          public Object get(Object key) {
+            // Just to fulfill Map contract, we don't use get() here
+            return null;
+          }
+        };
+
+    // We invoke the private method by reflection
+    Method extract =
+        AccessTokenResConverter.class.getDeclaredMethod("extractAdditionalParameters", Map.class);
+    extract.setAccessible(true);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> result = (Map<String, Object>) extract.invoke(converter, fakeSource);
+
+    // You should merge "dup" with the second value ("second") and keep "other"
+    Map<String, Object> expected = new LinkedHashMap<>();
+    expected.put("dup", "second");
+    expected.put("other", 42);
+
+    assertEquals(expected, result);
   }
 }

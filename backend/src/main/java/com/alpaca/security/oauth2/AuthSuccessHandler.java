@@ -73,9 +73,6 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   private boolean isAuthorizedRedirectURI(URI clientUri) {
     return authorizedRedirectUris.stream()
-        .anyMatch(
-            auth ->
-                auth.getHost().equalsIgnoreCase(clientUri.getHost())
-                    && auth.getPort() == clientUri.getPort());
+        .anyMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
   }
 }
