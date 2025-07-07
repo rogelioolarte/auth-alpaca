@@ -25,36 +25,38 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements IRoleService {
 
-  private final IRoleDAO dao;
+    private final IRoleDAO dao;
 
-  @Override
-  @Generated
-  protected IGenericDAO<Role, UUID> getDAO() {
-    return dao;
-  }
+    @Override
+    @Generated
+    protected IGenericDAO<Role, UUID> getDAO() {
+        return dao;
+    }
 
-  @Override
-  @Generated
-  protected String getEntityName() {
-    return "Role";
-  }
+    @Override
+    @Generated
+    protected String getEntityName() {
+        return "Role";
+    }
 
-  @Override
-  public Set<Role> getUserRoles() {
-    Set<Role> roles = new HashSet<>();
-    roles.add(findByRoleName("USER"));
-    return roles;
-  }
+    @Override
+    public Set<Role> getUserRoles() {
+        Set<Role> roles = new HashSet<>();
+        roles.add(findByRoleName("USER"));
+        return roles;
+    }
 
-  @Transactional
-  @Override
-  public Role findByRoleName(String roleName) {
-    if (roleName == null || roleName.isBlank())
-      throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
-    return dao.findByRoleName(roleName)
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    String.format("%s with Name %s not found", getEntityName(), roleName)));
-  }
+    @Transactional
+    @Override
+    public Role findByRoleName(String roleName) {
+        if (roleName == null || roleName.isBlank())
+            throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
+        return dao.findByRoleName(roleName)
+                .orElseThrow(
+                        () ->
+                                new NotFoundException(
+                                        String.format(
+                                                "%s with Name %s not found",
+                                                getEntityName(), roleName)));
+    }
 }

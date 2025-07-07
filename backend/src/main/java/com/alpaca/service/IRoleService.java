@@ -14,21 +14,21 @@ import java.util.UUID;
  */
 public interface IRoleService extends IGenericService<Role, UUID> {
 
-  /**
-   * Finds a role by its name.
-   *
-   * @param roleName The name of the role - must not be null.
-   * @return The {@code Role} entity if found.
-   * @throws BadRequestException if the roleName is null.
-   * @throws NotFoundException if the entity is not found.
-   */
-  Role findByRoleName(String roleName);
+    /**
+     * Finds a role by its name.
+     *
+     * @param roleName The name of the role - must not be null.
+     * @return The {@code Role} entity if found.
+     * @throws BadRequestException if the roleName is null.
+     * @throws NotFoundException if the entity is not found.
+     */
+    Role findByRoleName(String roleName);
 
-  /**
-   * Retrieves the set of roles assigned to the current user.
-   *
-   * @return A {@code Set} containing the user's roles.
-   * @throws NotFoundException if the entity is not found.
-   */
-  Set<Role> getUserRoles();
+    /**
+     * Retrieves the set of roles assigned to the current user.
+     *
+     * @return A {@code Set} containing the user's roles.
+     * @throws NotFoundException if the entity is not found.
+     */
+    Set<Role> getUserRoles();
 }

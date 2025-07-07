@@ -18,27 +18,27 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
-  private final JJwtManager manager;
+    private final JJwtManager manager;
 
-  @Override
-  protected void doFilterInternal(
-      @NonNull HttpServletRequest request,
-      @NonNull HttpServletResponse response,
-      @NonNull FilterChain filterChain)
-      throws ServletException, IOException {
-    String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-    if (isAToken(jwtToken)) {
-      SecurityContext context = SecurityContextHolder.getContext();
-      UsernamePasswordAuthenticationToken authentication =
-          manager.manageAuthentication(jwtToken.substring(7));
-      authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-      context.setAuthentication(authentication);
-      SecurityContextHolder.setContext(context);
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
+            throws ServletException, IOException {
+        String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (isAToken(jwtToken)) {
+            SecurityContext context = SecurityContextHolder.getContext();
+            UsernamePasswordAuthenticationToken authentication =
+                    manager.manageAuthentication(jwtToken.substring(7));
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+        }
+        filterChain.doFilter(request, response);
     }
-    filterChain.doFilter(request, response);
-  }
 
-  public boolean isAToken(String token) {
-    return token != null && token.startsWith("Bearer ") && token.length() > 120;
-  }
+    public boolean isAToken(String token) {
+        return token != null && token.startsWith("Bearer ") && token.length() > 120;
+    }
 }

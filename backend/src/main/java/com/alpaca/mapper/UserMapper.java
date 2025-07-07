@@ -6,7 +6,7 @@ import com.alpaca.entity.User;
 
 public interface UserMapper extends GenericMapper<User, UserResponseDTO, UserRequestDTO> {
 
-  UserResponseDTO toResponseDTO(User entity);
+    UserResponseDTO toResponseDTO(User entity);
 
-  User toEntity(UserRequestDTO requestDTO);
+    User toEntity(UserRequestDTO requestDTO);
 }

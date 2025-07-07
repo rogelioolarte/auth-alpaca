@@ -17,48 +17,49 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 @ExtendWith(MockitoExtension.class)
 class AuthResponseTypeDeserializerTest {
 
-  @Mock private JsonParser parser;
-  @Mock private DeserializationContext ct;
+    @Mock private JsonParser parser;
+    @Mock private DeserializationContext ct;
 
-  private AuthResponseTypeDeserializer deserializer;
+    private AuthResponseTypeDeserializer deserializer;
 
-  @BeforeEach
-  void setUp() {
-    deserializer = new AuthResponseTypeDeserializer();
-  }
+    @BeforeEach
+    void setUp() {
+        deserializer = new AuthResponseTypeDeserializer();
+    }
 
-  @Test
-  void deserialize_lowercaseText_shouldReturnUppercaseType() throws IOException {
-    when(parser.getText()).thenReturn("code");
-    OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
-    assertNotNull(result);
-    assertEquals("CODE", result.getValue());
-  }
+    @Test
+    void deserialize_lowercaseText_shouldReturnUppercaseType() throws IOException {
+        when(parser.getText()).thenReturn("code");
+        OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
+        assertNotNull(result);
+        assertEquals("CODE", result.getValue());
+    }
 
-  @Test
-  void deserialize_mixedCaseText_shouldNormalizeToUppercase() throws IOException {
-    when(parser.getText()).thenReturn("CoDe");
-    OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
-    assertEquals("CODE", result.getValue());
-  }
+    @Test
+    void deserialize_mixedCaseText_shouldNormalizeToUppercase() throws IOException {
+        when(parser.getText()).thenReturn("CoDe");
+        OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
+        assertEquals("CODE", result.getValue());
+    }
 
-  @Test
-  void deserialize_uppercaseText_shouldRemainUppercase() throws IOException {
-    when(parser.getText()).thenReturn("TOKEN");
-    OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
-    assertEquals("TOKEN", result.getValue());
-  }
+    @Test
+    void deserialize_uppercaseText_shouldRemainUppercase() throws IOException {
+        when(parser.getText()).thenReturn("TOKEN");
+        OAuth2AuthorizationResponseType result = deserializer.deserialize(parser, ct);
+        assertEquals("TOKEN", result.getValue());
+    }
 
-  @Test
-  void deserialize_nullText_shouldThrowNullPointerException() throws IOException {
-    when(parser.getText()).thenReturn(null);
-    assertThrows(NullPointerException.class, () -> deserializer.deserialize(parser, ct));
-  }
+    @Test
+    void deserialize_nullText_shouldThrowNullPointerException() throws IOException {
+        when(parser.getText()).thenReturn(null);
+        assertThrows(NullPointerException.class, () -> deserializer.deserialize(parser, ct));
+    }
 
-  @Test
-  void deserialize_ioExceptionFromParser_shouldPropagate() throws IOException {
-    when(parser.getText()).thenThrow(new IOException("fail"));
-    IOException ex = assertThrows(IOException.class, () -> deserializer.deserialize(parser, ct));
-    assertEquals("fail", ex.getMessage());
-  }
+    @Test
+    void deserialize_ioExceptionFromParser_shouldPropagate() throws IOException {
+        when(parser.getText()).thenThrow(new IOException("fail"));
+        IOException ex =
+                assertThrows(IOException.class, () -> deserializer.deserialize(parser, ct));
+        assertEquals("fail", ex.getMessage());
+    }
 }

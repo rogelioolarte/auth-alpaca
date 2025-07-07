@@ -6,7 +6,7 @@ import com.alpaca.entity.Role;
 
 public interface RoleMapper extends GenericMapper<Role, RoleResponseDTO, RoleRequestDTO> {
 
-  RoleResponseDTO toResponseDTO(Role entity);
+    RoleResponseDTO toResponseDTO(Role entity);
 
-  Role toEntity(RoleRequestDTO requestDTO);
+    Role toEntity(RoleRequestDTO requestDTO);
 }

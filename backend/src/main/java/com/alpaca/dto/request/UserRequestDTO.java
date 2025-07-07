@@ -17,15 +17,15 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserRequestDTO {
 
-  @Email(message = "Email must be valid.")
-  @NotBlank(message = "Email is required.")
-  private String email;
+    @Email(message = "Email must be valid.")
+    @NotBlank(message = "Email is required.")
+    private String email;
 
-  @Size(min = 8, max = 200, message = "Password must be at least 8 to 200 characters.")
-  @NotBlank(message = "Password is required.")
-  private String password;
+    @Size(min = 8, max = 200, message = "Password must be at least 8 to 200 characters.")
+    @NotBlank(message = "Password is required.")
+    private String password;
 
-  @Size(min = 1, max = 3, message = "At least 1 Role is required")
-  @NotEmpty(message = "Roles are required.")
-  private Set<UUID> roles;
+    @Size(min = 1, max = 3, message = "At least 1 Role is required")
+    @NotEmpty(message = "Roles are required.")
+    private Set<UUID> roles;
 }

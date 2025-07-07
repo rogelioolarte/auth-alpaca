@@ -23,59 +23,65 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 class RoleServiceImplIT {
 
-  @Autowired private RoleServiceImpl service;
+    @Autowired private RoleServiceImpl service;
 
-  private Role firstEntity;
-  private Role secondEntity;
+    private Role firstEntity;
+    private Role secondEntity;
 
-  @BeforeEach
-  void setup() {
-    firstEntity = RoleProvider.singleEntity();
-    secondEntity = RoleProvider.alternativeEntity();
-  }
+    @BeforeEach
+    void setup() {
+        firstEntity = RoleProvider.singleEntity();
+        secondEntity = RoleProvider.alternativeEntity();
+    }
 
-  // --- getUserRoles ---
-  @Test
-  @Transactional
-  void getUserRolesCaseOne() {
-    assertThrows(NotFoundException.class, () -> service.getUserRoles());
-  }
+    // --- getUserRoles ---
+    @Test
+    @Transactional
+    void getUserRolesCaseOne() {
+        assertThrows(NotFoundException.class, () -> service.getUserRoles());
+    }
 
-  @Test
-  @Transactional
-  void getUserRolesCaseTwo() {
-    Role role =
-        service.save(
-            new Role(
-                secondEntity.getRoleName(), secondEntity.getRoleDescription(), new HashSet<>()));
-    assertEquals(new HashSet<>(Set.of(role)), service.getUserRoles());
-  }
+    @Test
+    @Transactional
+    void getUserRolesCaseTwo() {
+        Role role =
+                service.save(
+                        new Role(
+                                secondEntity.getRoleName(),
+                                secondEntity.getRoleDescription(),
+                                new HashSet<>()));
+        assertEquals(new HashSet<>(Set.of(role)), service.getUserRoles());
+    }
 
-  // --- findByRoleName ---
-  @Test
-  @Transactional
-  void findByRoleNameCaseOne() {
-    assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
-  }
+    // --- findByRoleName ---
+    @Test
+    @Transactional
+    void findByRoleNameCaseOne() {
+        assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
+    }
 
-  @Test
-  @Transactional
-  void findByRoleNameCaseTwo() {
-    assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
-  }
+    @Test
+    @Transactional
+    void findByRoleNameCaseTwo() {
+        assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
+    }
 
-  @Test
-  @Transactional
-  void findByRoleNameCaseThree() {
-    assertThrows(NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
-  }
+    @Test
+    @Transactional
+    void findByRoleNameCaseThree() {
+        assertThrows(
+                NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
+    }
 
-  @Test
-  @Transactional
-  void findByRoleNameCaseFour() {
-    Role role =
-        service.save(
-            new Role(firstEntity.getRoleName(), firstEntity.getRoleDescription(), new HashSet<>()));
-    assertEquals(role, service.findByRoleName(firstEntity.getRoleName()));
-  }
+    @Test
+    @Transactional
+    void findByRoleNameCaseFour() {
+        Role role =
+                service.save(
+                        new Role(
+                                firstEntity.getRoleName(),
+                                firstEntity.getRoleDescription(),
+                                new HashSet<>()));
+        assertEquals(role, service.findByRoleName(firstEntity.getRoleName()));
+    }
 }

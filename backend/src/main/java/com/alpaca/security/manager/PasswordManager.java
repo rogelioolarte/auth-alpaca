@@ -9,27 +9,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class PasswordManager {
 
-  private final Pbkdf2PasswordEncoder encoder;
+    private final Pbkdf2PasswordEncoder encoder;
 
-  public PasswordManager(@Value("${spring.datasource.secret.key}") @NonNull String secretKey) {
-    encoder =
-        new Pbkdf2PasswordEncoder(
-            secretKey,
-            16,
-            310000,
-            Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512);
-    encoder.setEncodeHashAsBase64(true);
-  }
+    public PasswordManager(@Value("${spring.datasource.secret.key}") @NonNull String secretKey) {
+        encoder =
+                new Pbkdf2PasswordEncoder(
+                        secretKey,
+                        16,
+                        310000,
+                        Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512);
+        encoder.setEncodeHashAsBase64(true);
+    }
 
-  public PasswordEncoder passwordEncoder() {
-    return encoder;
-  }
+    public PasswordEncoder passwordEncoder() {
+        return encoder;
+    }
 
-  public String encodePassword(String rawPassword) {
-    return encoder.encode(rawPassword);
-  }
+    public String encodePassword(String rawPassword) {
+        return encoder.encode(rawPassword);
+    }
 
-  public boolean matches(String rawPassword, String encodedPassword) {
-    return encoder.matches(rawPassword, encodedPassword);
-  }
+    public boolean matches(String rawPassword, String encodedPassword) {
+        return encoder.matches(rawPassword, encodedPassword);
+    }
 }

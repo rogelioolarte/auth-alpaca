@@ -14,11 +14,12 @@ import java.util.UUID;
  */
 public interface IRoleDAO extends IGenericDAO<Role, UUID> {
 
-  /**
-   * Finds a role by its unique name.
-   *
-   * @param roleName The name of the role - must not be null.
-   * @return An {@link Optional} containing the role if found, otherwise an empty {@link Optional}.
-   */
-  Optional<Role> findByRoleName(String roleName);
+    /**
+     * Finds a role by its unique name.
+     *
+     * @param roleName The name of the role - must not be null.
+     * @return An {@link Optional} containing the role if found, otherwise an empty {@link
+     *     Optional}.
+     */
+    Optional<Role> findByRoleName(String roleName);
 }

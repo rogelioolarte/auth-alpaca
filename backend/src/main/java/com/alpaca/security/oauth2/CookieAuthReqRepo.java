@@ -10,53 +10,53 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CookieAuthReqRepo
-    implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
+        implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-  public static final String AuthorizationCookieName = "oauth2_auth_request";
-  public static final String RedirectCookieName = "redirect_uri";
-  public static final int cookieExpiredSeconds = 180;
+    public static final String AuthorizationCookieName = "oauth2_auth_request";
+    public static final String RedirectCookieName = "redirect_uri";
+    public static final int cookieExpiredSeconds = 180;
 
-  @Override
-  public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-    Cookie cookie = CookieManager.getCookie(request, AuthorizationCookieName).orElse(null);
-    if (cookie != null) {
-      return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
+    @Override
+    public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
+        Cookie cookie = CookieManager.getCookie(request, AuthorizationCookieName).orElse(null);
+        if (cookie != null) {
+            return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
+        }
+        return null;
     }
-    return null;
-  }
 
-  @Override
-  public void saveAuthorizationRequest(
-      OAuth2AuthorizationRequest authorizationRequest,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    if (authorizationRequest == null) {
-      CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-      CookieManager.deleteCookie(request, response, RedirectCookieName);
+    @Override
+    public void saveAuthorizationRequest(
+            OAuth2AuthorizationRequest authorizationRequest,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        if (authorizationRequest == null) {
+            CookieManager.deleteCookie(request, response, AuthorizationCookieName);
+            CookieManager.deleteCookie(request, response, RedirectCookieName);
+        }
+        if (authorizationRequest != null) {
+            CookieManager.addCookie(
+                    response,
+                    AuthorizationCookieName,
+                    CookieManager.serialize(authorizationRequest),
+                    cookieExpiredSeconds);
+        }
+        String redirectURIAfterLogin = request.getParameter(RedirectCookieName);
+        if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
+            CookieManager.addCookie(
+                    response, RedirectCookieName, redirectURIAfterLogin, cookieExpiredSeconds);
+        }
     }
-    if (authorizationRequest != null) {
-      CookieManager.addCookie(
-          response,
-          AuthorizationCookieName,
-          CookieManager.serialize(authorizationRequest),
-          cookieExpiredSeconds);
-    }
-    String redirectURIAfterLogin = request.getParameter(RedirectCookieName);
-    if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
-      CookieManager.addCookie(
-          response, RedirectCookieName, redirectURIAfterLogin, cookieExpiredSeconds);
-    }
-  }
 
-  @Override
-  public OAuth2AuthorizationRequest removeAuthorizationRequest(
-      HttpServletRequest request, HttpServletResponse response) {
-    return loadAuthorizationRequest(request);
-  }
+    @Override
+    public OAuth2AuthorizationRequest removeAuthorizationRequest(
+            HttpServletRequest request, HttpServletResponse response) {
+        return loadAuthorizationRequest(request);
+    }
 
-  public void removeAuthorizationRequestCookies(
-      HttpServletRequest request, HttpServletResponse response) {
-    CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-    CookieManager.deleteCookie(request, response, RedirectCookieName);
-  }
+    public void removeAuthorizationRequestCookies(
+            HttpServletRequest request, HttpServletResponse response) {
+        CookieManager.deleteCookie(request, response, AuthorizationCookieName);
+        CookieManager.deleteCookie(request, response, RedirectCookieName);
+    }
 }

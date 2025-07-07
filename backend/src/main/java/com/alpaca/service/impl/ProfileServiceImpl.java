@@ -19,19 +19,19 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
-    implements IProfileService {
+        implements IProfileService {
 
-  private final IProfileDAO dao;
+    private final IProfileDAO dao;
 
-  @Override
-  @Generated
-  protected IGenericDAO<Profile, UUID> getDAO() {
-    return dao;
-  }
+    @Override
+    @Generated
+    protected IGenericDAO<Profile, UUID> getDAO() {
+        return dao;
+    }
 
-  @Override
-  @Generated
-  protected String getEntityName() {
-    return "Profile";
-  }
+    @Override
+    @Generated
+    protected String getEntityName() {
+        return "Profile";
+    }
 }

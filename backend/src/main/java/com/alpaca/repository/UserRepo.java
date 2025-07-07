@@ -16,19 +16,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepo extends GenericRepo<User, UUID> {
 
-  /**
-   * Retrieves a user by their email address.
-   *
-   * @param email The email address of the user - must not be null.
-   * @return An {@link Optional} containing the user if found, otherwise empty.
-   */
-  Optional<User> findByEmail(String email);
+    /**
+     * Retrieves a user by their email address.
+     *
+     * @param email The email address of the user - must not be null.
+     * @return An {@link Optional} containing the user if found, otherwise empty.
+     */
+    Optional<User> findByEmail(String email);
 
-  /**
-   * Checks whether a user with the specified email address exists.
-   *
-   * @param email The email address to check - must not be null.
-   * @return {@code true} if a user with the given email exists, {@code false} otherwise.
-   */
-  boolean existsByEmail(String email);
+    /**
+     * Checks whether a user with the specified email address exists.
+     *
+     * @param email The email address to check - must not be null.
+     * @return {@code true} if a user with the given email exists, {@code false} otherwise.
+     */
+    boolean existsByEmail(String email);
 }

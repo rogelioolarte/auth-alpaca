@@ -26,67 +26,68 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 class ProfileMapperImplTest {
 
-  @Mock private UserServiceImpl userService;
+    @Mock private UserServiceImpl userService;
 
-  @InjectMocks private ProfileMapperImpl mapper;
+    @InjectMocks private ProfileMapperImpl mapper;
 
-  @Test
-  void toPageResponseDTO() {
-    assertEquals(
-        new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
-        mapper.toPageResponseDTO(null));
+    @Test
+    void toPageResponseDTO() {
+        assertEquals(
+                new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
+                mapper.toPageResponseDTO(null));
 
-    assertEquals(
-        new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
-        mapper.toPageResponseDTO(new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
+        assertEquals(
+                new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0),
+                mapper.toPageResponseDTO(
+                        new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0)));
 
-    List<Profile> profiles = ProfileProvider.listEntities();
-    Page<ProfileResponseDTO> page =
-        mapper.toPageResponseDTO(new PageImpl<>(profiles, Pageable.unpaged(), 2));
-    assertNotNull(page);
-    assertEquals(Pageable.unpaged(), page.getPageable());
-    assertEquals(profiles.getFirst().getId(), page.getContent().getFirst().id());
-    assertEquals(profiles.getLast().getId(), page.getContent().getLast().id());
-  }
+        List<Profile> profiles = ProfileProvider.listEntities();
+        Page<ProfileResponseDTO> page =
+                mapper.toPageResponseDTO(new PageImpl<>(profiles, Pageable.unpaged(), 2));
+        assertNotNull(page);
+        assertEquals(Pageable.unpaged(), page.getPageable());
+        assertEquals(profiles.getFirst().getId(), page.getContent().getFirst().id());
+        assertEquals(profiles.getLast().getId(), page.getContent().getLast().id());
+    }
 
-  @Test
-  void toResponseDTO() {
-    assertNull(mapper.toResponseDTO(null));
+    @Test
+    void toResponseDTO() {
+        assertNull(mapper.toResponseDTO(null));
 
-    Profile profile = ProfileProvider.singleEntity();
-    ProfileResponseDTO responseDTO = mapper.toResponseDTO(ProfileProvider.singleEntity());
-    assertNotNull(responseDTO);
-    assertEquals(profile.getId(), responseDTO.id());
-    assertEquals(profile.getFirstName(), responseDTO.firstName());
-    assertEquals(profile.getLastName(), responseDTO.lastName());
-    assertEquals(profile.getUser().getId(), responseDTO.userId());
-  }
+        Profile profile = ProfileProvider.singleEntity();
+        ProfileResponseDTO responseDTO = mapper.toResponseDTO(ProfileProvider.singleEntity());
+        assertNotNull(responseDTO);
+        assertEquals(profile.getId(), responseDTO.id());
+        assertEquals(profile.getFirstName(), responseDTO.firstName());
+        assertEquals(profile.getLastName(), responseDTO.lastName());
+        assertEquals(profile.getUser().getId(), responseDTO.userId());
+    }
 
-  @Test
-  void toEntity() {
-    assertNull(mapper.toEntity(null));
+    @Test
+    void toEntity() {
+        assertNull(mapper.toEntity(null));
 
-    ProfileRequestDTO profileRequestDTO = ProfileProvider.singleRequest();
-    when(userService.findById(UUID.fromString(profileRequestDTO.getUserId())))
-        .thenReturn(UserProvider.singleEntity());
-    Profile entity = mapper.toEntity(profileRequestDTO);
-    assertNotNull(entity);
-    assertEquals(profileRequestDTO.getFirstName(), entity.getFirstName());
-    assertEquals(profileRequestDTO.getLastName(), entity.getLastName());
-    assertEquals(profileRequestDTO.getUserId(), entity.getUser().getId().toString());
-    verify(userService).findById(UUID.fromString(profileRequestDTO.getUserId()));
-  }
+        ProfileRequestDTO profileRequestDTO = ProfileProvider.singleRequest();
+        when(userService.findById(UUID.fromString(profileRequestDTO.getUserId())))
+                .thenReturn(UserProvider.singleEntity());
+        Profile entity = mapper.toEntity(profileRequestDTO);
+        assertNotNull(entity);
+        assertEquals(profileRequestDTO.getFirstName(), entity.getFirstName());
+        assertEquals(profileRequestDTO.getLastName(), entity.getLastName());
+        assertEquals(profileRequestDTO.getUserId(), entity.getUser().getId().toString());
+        verify(userService).findById(UUID.fromString(profileRequestDTO.getUserId()));
+    }
 
-  @Test
-  void toListResponseDTO() {
-    assertEquals(Collections.emptyList(), mapper.toListResponseDTO(null));
+    @Test
+    void toListResponseDTO() {
+        assertEquals(Collections.emptyList(), mapper.toListResponseDTO(null));
 
-    assertEquals(Collections.emptyList(), mapper.toListResponseDTO(Collections.emptyList()));
+        assertEquals(Collections.emptyList(), mapper.toListResponseDTO(Collections.emptyList()));
 
-    List<Profile> profiles = ProfileProvider.listEntities();
-    List<ProfileResponseDTO> responseDTOS = mapper.toListResponseDTO(profiles);
-    assertNotNull(responseDTOS);
-    assertEquals(profiles.getFirst().getId(), responseDTOS.getFirst().id());
-    assertEquals(profiles.getLast().getId(), responseDTOS.getLast().id());
-  }
+        List<Profile> profiles = ProfileProvider.listEntities();
+        List<ProfileResponseDTO> responseDTOS = mapper.toListResponseDTO(profiles);
+        assertNotNull(responseDTOS);
+        assertEquals(profiles.getFirst().getId(), responseDTOS.getFirst().id());
+        assertEquals(profiles.getLast().getId(), responseDTOS.getLast().id());
+    }
 }

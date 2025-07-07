@@ -23,40 +23,40 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {
 
-  private final IUserDAO dao;
+    private final IUserDAO dao;
 
-  @Override
-  @Generated
-  protected IGenericDAO<User, UUID> getDAO() {
-    return dao;
-  }
+    @Override
+    @Generated
+    protected IGenericDAO<User, UUID> getDAO() {
+        return dao;
+    }
 
-  @Override
-  @Generated
-  protected String getEntityName() {
-    return "User";
-  }
+    @Override
+    @Generated
+    protected String getEntityName() {
+        return "User";
+    }
 
-  @Transactional
-  @Override
-  public User register(User user) {
-    if (user == null)
-      throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-    return dao.save(user);
-  }
+    @Transactional
+    @Override
+    public User register(User user) {
+        if (user == null)
+            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
+        return dao.save(user);
+    }
 
-  @Transactional
-  @Override
-  public boolean existsByEmail(String email) {
-    return dao.existsByEmail(email);
-  }
+    @Transactional
+    @Override
+    public boolean existsByEmail(String email) {
+        return dao.existsByEmail(email);
+    }
 
-  @Transactional
-  @Override
-  public User findByEmail(String email) {
-    if (email == null || email.isBlank())
-      throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
-    return dao.findByEmail(email)
-        .orElseThrow(() -> new NotFoundException("The email does not match any account"));
-  }
+    @Transactional
+    @Override
+    public User findByEmail(String email) {
+        if (email == null || email.isBlank())
+            throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
+        return dao.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("The email does not match any account"));
+    }
 }

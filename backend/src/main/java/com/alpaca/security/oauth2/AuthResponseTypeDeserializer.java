@@ -7,10 +7,10 @@ import java.io.IOException;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 
 public class AuthResponseTypeDeserializer
-    extends JsonDeserializer<OAuth2AuthorizationResponseType> {
-  @Override
-  public OAuth2AuthorizationResponseType deserialize(JsonParser p, DeserializationContext ct)
-      throws IOException {
-    return new OAuth2AuthorizationResponseType(p.getText().toUpperCase());
-  }
+        extends JsonDeserializer<OAuth2AuthorizationResponseType> {
+    @Override
+    public OAuth2AuthorizationResponseType deserialize(JsonParser p, DeserializationContext ct)
+            throws IOException {
+        return new OAuth2AuthorizationResponseType(p.getText().toUpperCase());
+    }
 }

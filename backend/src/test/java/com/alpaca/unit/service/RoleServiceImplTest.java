@@ -25,58 +25,59 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RoleServiceImplTest {
 
-  @Mock private RoleDAOImpl dao;
+    @Mock private RoleDAOImpl dao;
 
-  @InjectMocks private RoleServiceImpl service;
+    @InjectMocks private RoleServiceImpl service;
 
-  private Role firstEntity;
-  private Role secondEntity;
+    private Role firstEntity;
+    private Role secondEntity;
 
-  @BeforeEach
-  void setup() {
-    firstEntity = RoleProvider.singleEntity();
-    secondEntity = RoleProvider.alternativeEntity();
-  }
+    @BeforeEach
+    void setup() {
+        firstEntity = RoleProvider.singleEntity();
+        secondEntity = RoleProvider.alternativeEntity();
+    }
 
-  // --- getUserRoles ---
-  @Test
-  void getUserRolesCaseOne() {
-    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> service.getUserRoles());
-    verify(dao).findByRoleName(secondEntity.getRoleName());
-  }
+    // --- getUserRoles ---
+    @Test
+    void getUserRolesCaseOne() {
+        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> service.getUserRoles());
+        verify(dao).findByRoleName(secondEntity.getRoleName());
+    }
 
-  @Test
-  void getUserRolesCaseTwo() {
-    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.of(secondEntity));
-    Set<Role> entitiesFound = service.getUserRoles();
-    assertEquals(new HashSet<>(Set.of(secondEntity)), entitiesFound);
-    verify(dao).findByRoleName(secondEntity.getRoleName());
-  }
+    @Test
+    void getUserRolesCaseTwo() {
+        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.of(secondEntity));
+        Set<Role> entitiesFound = service.getUserRoles();
+        assertEquals(new HashSet<>(Set.of(secondEntity)), entitiesFound);
+        verify(dao).findByRoleName(secondEntity.getRoleName());
+    }
 
-  // --- findByRoleName ---
-  @Test
-  void findByRoleNameCaseOne() {
-    assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
-  }
+    // --- findByRoleName ---
+    @Test
+    void findByRoleNameCaseOne() {
+        assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
+    }
 
-  @Test
-  void findByRoleNameCaseTwo() {
-    assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
-  }
+    @Test
+    void findByRoleNameCaseTwo() {
+        assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
+    }
 
-  @Test
-  void findByRoleNameCaseThree() {
-    when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
-    assertThrows(NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
-    verify(dao).findByRoleName(secondEntity.getRoleName());
-  }
+    @Test
+    void findByRoleNameCaseThree() {
+        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
+        assertThrows(
+                NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
+        verify(dao).findByRoleName(secondEntity.getRoleName());
+    }
 
-  @Test
-  void findByRoleNameCaseFour() {
-    when(dao.findByRoleName(firstEntity.getRoleName())).thenReturn(Optional.of(firstEntity));
-    Role entityFound = service.findByRoleName(firstEntity.getRoleName());
-    assertEquals(firstEntity, entityFound);
-    verify(dao).findByRoleName(firstEntity.getRoleName());
-  }
+    @Test
+    void findByRoleNameCaseFour() {
+        when(dao.findByRoleName(firstEntity.getRoleName())).thenReturn(Optional.of(firstEntity));
+        Role entityFound = service.findByRoleName(firstEntity.getRoleName());
+        assertEquals(firstEntity, entityFound);
+        verify(dao).findByRoleName(firstEntity.getRoleName());
+    }
 }

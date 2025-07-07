@@ -267,7 +267,7 @@
 					<java>
 						<googleJavaFormat>
 							<version>1.26.0</version>
-							<style>GOOGLE</style>
+							<style>AOSP</style>
 							<reflowLongStrings>true</reflowLongStrings>
 						</googleJavaFormat>
 					</java>

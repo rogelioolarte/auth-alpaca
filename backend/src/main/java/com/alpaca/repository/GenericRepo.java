@@ -22,12 +22,12 @@ import org.springframework.data.repository.query.Param;
 @NoRepositoryBean
 public interface GenericRepo<T, ID> extends JpaRepository<T, ID> {
 
-  /**
-   * Counts the number of entities with the given IDs.
-   *
-   * @param ids The collection of entity IDs to count - must not be null.
-   * @return The number of entities found matching the provided IDs.
-   */
-  @Query("SELECT COUNT(e) FROM #{#entityName} e WHERE e.id IN :ids")
-  long countByIds(@Param("ids") Collection<ID> ids);
+    /**
+     * Counts the number of entities with the given IDs.
+     *
+     * @param ids The collection of entity IDs to count - must not be null.
+     * @return The number of entities found matching the provided IDs.
+     */
+    @Query("SELECT COUNT(e) FROM #{#entityName} e WHERE e.id IN :ids")
+    long countByIds(@Param("ids") Collection<ID> ids);
 }

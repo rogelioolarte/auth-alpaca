@@ -13,39 +13,39 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProfileMapperImpl implements ProfileMapper {
 
-  private final IUserService userService;
+    private final IUserService userService;
 
-  @Override
-  public ProfileResponseDTO toResponseDTO(Profile entity) {
-    if (entity == null) return null;
-    return new ProfileResponseDTO(
-        entity.getId(),
-        entity.getFirstName(),
-        entity.getLastName(),
-        entity.getAddress(),
-        entity.getAvatarUrl(),
-        entity.getUser().getId(),
-        entity.getUser().getEmail());
-  }
-
-  @Override
-  public Profile toEntity(ProfileRequestDTO requestDTO) {
-    if (requestDTO == null) return null;
-    return new Profile(
-        requestDTO.getFirstName(),
-        requestDTO.getLastName(),
-        requestDTO.getAddress(),
-        requestDTO.getAvatarUrl(),
-        userService.findById(UUID.fromString(requestDTO.getUserId())));
-  }
-
-  @Override
-  public List<ProfileResponseDTO> toListResponseDTO(Collection<Profile> entities) {
-    if (entities == null || entities.isEmpty()) return Collections.emptyList();
-    List<ProfileResponseDTO> profileResponseDTOS = new ArrayList<>(entities.size());
-    for (Profile profile : entities) {
-      profileResponseDTOS.add(toResponseDTO(profile));
+    @Override
+    public ProfileResponseDTO toResponseDTO(Profile entity) {
+        if (entity == null) return null;
+        return new ProfileResponseDTO(
+                entity.getId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getAddress(),
+                entity.getAvatarUrl(),
+                entity.getUser().getId(),
+                entity.getUser().getEmail());
     }
-    return profileResponseDTOS;
-  }
+
+    @Override
+    public Profile toEntity(ProfileRequestDTO requestDTO) {
+        if (requestDTO == null) return null;
+        return new Profile(
+                requestDTO.getFirstName(),
+                requestDTO.getLastName(),
+                requestDTO.getAddress(),
+                requestDTO.getAvatarUrl(),
+                userService.findById(UUID.fromString(requestDTO.getUserId())));
+    }
+
+    @Override
+    public List<ProfileResponseDTO> toListResponseDTO(Collection<Profile> entities) {
+        if (entities == null || entities.isEmpty()) return Collections.emptyList();
+        List<ProfileResponseDTO> profileResponseDTOS = new ArrayList<>(entities.size());
+        for (Profile profile : entities) {
+            profileResponseDTOS.add(toResponseDTO(profile));
+        }
+        return profileResponseDTOS;
+    }
 }

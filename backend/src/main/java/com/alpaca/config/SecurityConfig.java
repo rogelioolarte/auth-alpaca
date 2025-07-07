@@ -43,135 +43,141 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private static final String oAuth2BaseURI = "/oauth2/authorize";
-  private static final String oAuth2RedirectionEndPoint = "/oauth2/callback/*";
+    private static final String oAuth2BaseURI = "/oauth2/authorize";
+    private static final String oAuth2RedirectionEndPoint = "/oauth2/callback/*";
 
-  private final JJwtManager manager;
-  private final PasswordManager passwordManager;
-  private final AuthServiceImpl authService;
-  private final AuthFailureHandler oauth2FailureHandler;
-  private final AuthSuccessHandler oauth2SuccessHandler;
-  private final CookieAuthReqRepo cookieAuthReqRepo;
-  private final ClientRegistrationRepository clientRegistrationRepository;
+    private final JJwtManager manager;
+    private final PasswordManager passwordManager;
+    private final AuthServiceImpl authService;
+    private final AuthFailureHandler oauth2FailureHandler;
+    private final AuthSuccessHandler oauth2SuccessHandler;
+    private final CookieAuthReqRepo cookieAuthReqRepo;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
-  /**
-   * Configures security filter chain with authentication and authorization settings.
-   *
-   * @param http HttpSecurity configuration.
-   * @return SecurityFilterChain instance.
-   * @throws Exception if an error occurs during configuration.
-   */
-  @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable);
-    http.cors(Customizer.withDefaults());
-    http.formLogin(AbstractHttpConfigurer::disable);
-    http.httpBasic(AbstractHttpConfigurer::disable);
-    http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-    http.authorizeHttpRequests(
-        auth -> {
-          auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
-          auth.requestMatchers("/api/profile/**").hasAnyRole("ADMIN", "USER");
-          auth.requestMatchers("/api/user/**").hasAnyRole("ADMIN", "USER");
-          auth.requestMatchers("/api/role/**").hasAnyRole("ADMIN");
-          auth.requestMatchers("/api/permission/**").hasAnyRole("ADMIN");
-          auth.anyRequest().denyAll();
-        });
-    http.oauth2Login(
-        oauth2 -> {
-          oauth2.authorizationEndpoint(
-              c -> {
-                c.baseUri(oAuth2BaseURI);
-                c.authorizationRequestRepository(cookieAuthReqRepo);
-                c.authorizationRequestResolver(
-                    new OAuth2ReqResolver(clientRegistrationRepository, oAuth2BaseURI));
-              });
-          oauth2.redirectionEndpoint(c -> c.baseUri(oAuth2RedirectionEndPoint));
-          oauth2.userInfoEndpoint(c -> c.userService(authService));
-          oauth2.tokenEndpoint(
-              c -> c.accessTokenResponseClient(authorizationCodeTokenResponseClient()));
-          oauth2.successHandler(oauth2SuccessHandler);
-          oauth2.failureHandler(oauth2FailureHandler);
-        });
-    http.exceptionHandling(
-        exceptionHandling ->
-            exceptionHandling
-                .accessDeniedHandler(accessDeniedHandler())
-                .authenticationEntryPoint(authenticationEntryPoint()));
-    http.authenticationProvider(provider(authService));
-    http.addFilterBefore(new JwtTokenValidatorFilter(manager), BasicAuthenticationFilter.class);
-    return http.build();
-  }
+    /**
+     * Configures security filter chain with authentication and authorization settings.
+     *
+     * @param http HttpSecurity configuration.
+     * @return SecurityFilterChain instance.
+     * @throws Exception if an error occurs during configuration.
+     */
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.cors(Customizer.withDefaults());
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+        http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authorizeHttpRequests(
+                auth -> {
+                    auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
+                    auth.requestMatchers("/api/profile/**").hasAnyRole("ADMIN", "USER");
+                    auth.requestMatchers("/api/user/**").hasAnyRole("ADMIN", "USER");
+                    auth.requestMatchers("/api/role/**").hasAnyRole("ADMIN");
+                    auth.requestMatchers("/api/permission/**").hasAnyRole("ADMIN");
+                    auth.anyRequest().denyAll();
+                });
+        http.oauth2Login(
+                oauth2 -> {
+                    oauth2.authorizationEndpoint(
+                            c -> {
+                                c.baseUri(oAuth2BaseURI);
+                                c.authorizationRequestRepository(cookieAuthReqRepo);
+                                c.authorizationRequestResolver(
+                                        new OAuth2ReqResolver(
+                                                clientRegistrationRepository, oAuth2BaseURI));
+                            });
+                    oauth2.redirectionEndpoint(c -> c.baseUri(oAuth2RedirectionEndPoint));
+                    oauth2.userInfoEndpoint(c -> c.userService(authService));
+                    oauth2.tokenEndpoint(
+                            c ->
+                                    c.accessTokenResponseClient(
+                                            authorizationCodeTokenResponseClient()));
+                    oauth2.successHandler(oauth2SuccessHandler);
+                    oauth2.failureHandler(oauth2FailureHandler);
+                });
+        http.exceptionHandling(
+                exceptionHandling ->
+                        exceptionHandling
+                                .accessDeniedHandler(accessDeniedHandler())
+                                .authenticationEntryPoint(authenticationEntryPoint()));
+        http.authenticationProvider(provider(authService));
+        http.addFilterBefore(new JwtTokenValidatorFilter(manager), BasicAuthenticationFilter.class);
+        return http.build();
+    }
 
-  /**
-   * Creates an OAuth2 access token response client.
-   *
-   * @return OAuth2AccessTokenResponseClient instance.
-   */
-  private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
-      authorizationCodeTokenResponseClient() {
-    OAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
-        new OAuth2AccessTokenResponseHttpMessageConverter();
-    tokenResponseHttpMessageConverter.setAccessTokenResponseConverter(
-        new AccessTokenResConverter());
-    RestClientAuthorizationCodeTokenResponseClient client =
-        new RestClientAuthorizationCodeTokenResponseClient();
-    client.setRestClient(
-        RestClient.builder()
-            .messageConverters(
-                List.of(new FormHttpMessageConverter(), tokenResponseHttpMessageConverter))
-            .defaultStatusHandler(new OAuth2ErrorResponseErrorHandler())
-            .build());
-    return client;
-  }
+    /**
+     * Creates an OAuth2 access token response client.
+     *
+     * @return OAuth2AccessTokenResponseClient instance.
+     */
+    private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
+            authorizationCodeTokenResponseClient() {
+        OAuth2AccessTokenResponseHttpMessageConverter tokenResponseHttpMessageConverter =
+                new OAuth2AccessTokenResponseHttpMessageConverter();
+        tokenResponseHttpMessageConverter.setAccessTokenResponseConverter(
+                new AccessTokenResConverter());
+        RestClientAuthorizationCodeTokenResponseClient client =
+                new RestClientAuthorizationCodeTokenResponseClient();
+        client.setRestClient(
+                RestClient.builder()
+                        .messageConverters(
+                                List.of(
+                                        new FormHttpMessageConverter(),
+                                        tokenResponseHttpMessageConverter))
+                        .defaultStatusHandler(new OAuth2ErrorResponseErrorHandler())
+                        .build());
+        return client;
+    }
 
-  /**
-   * Configures access denied handler.
-   *
-   * @return AccessDeniedHandler instance.
-   */
-  @Bean
-  public AccessDeniedHandler accessDeniedHandler() {
-    return (request, response, accessDeniedException) -> {
-      response.setStatus(HttpStatus.FORBIDDEN.value());
-      response.getWriter().write("403 Forbidden Access: " + accessDeniedException.getMessage());
-    };
-  }
+    /**
+     * Configures access denied handler.
+     *
+     * @return AccessDeniedHandler instance.
+     */
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.getWriter()
+                    .write("403 Forbidden Access: " + accessDeniedException.getMessage());
+        };
+    }
 
-  /**
-   * Configures an authentication entry point.
-   *
-   * @return AuthenticationEntryPoint instance.
-   */
-  @Bean
-  public AuthenticationEntryPoint authenticationEntryPoint() {
-    return new Http403ForbiddenEntryPoint();
-  }
+    /**
+     * Configures an authentication entry point.
+     *
+     * @return AuthenticationEntryPoint instance.
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new Http403ForbiddenEntryPoint();
+    }
 
-  /**
-   * Retrieves the authentication manager from the configuration.
-   *
-   * @param configuration AuthenticationConfiguration instance.
-   * @return AuthenticationManager instance.
-   * @throws Exception if an error occurs.
-   */
-  @Bean
-  public AuthenticationManager getManager(AuthenticationConfiguration configuration)
-      throws Exception {
-    return configuration.getAuthenticationManager();
-  }
+    /**
+     * Retrieves the authentication manager from the configuration.
+     *
+     * @param configuration AuthenticationConfiguration instance.
+     * @return AuthenticationManager instance.
+     * @throws Exception if an error occurs.
+     */
+    @Bean
+    public AuthenticationManager getManager(AuthenticationConfiguration configuration)
+            throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
-  /**
-   * Configures an authentication provider with password encoding and user details service.
-   *
-   * @param authService Authentication Service Implementation.
-   * @return AuthenticationProvider instance.
-   */
-  @Bean
-  public AuthenticationProvider provider(IAuthService authService) {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setPasswordEncoder(passwordManager.passwordEncoder());
-    provider.setUserDetailsService(authService);
-    return provider;
-  }
+    /**
+     * Configures an authentication provider with password encoding and user details service.
+     *
+     * @param authService Authentication Service Implementation.
+     * @return AuthenticationProvider instance.
+     */
+    @Bean
+    public AuthenticationProvider provider(IAuthService authService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordManager.passwordEncoder());
+        provider.setUserDetailsService(authService);
+        return provider;
+    }
 }

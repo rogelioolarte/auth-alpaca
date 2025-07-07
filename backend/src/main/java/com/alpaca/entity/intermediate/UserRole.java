@@ -23,33 +23,33 @@ import lombok.Setter;
 @Table(name = "user_roles")
 public class UserRole {
 
-  /**
-   * Unique identifier for the UserRole association. This value is automatically generated using a
-   * UUID strategy.
-   */
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "user_role_id")
-  private UUID id;
+    /**
+     * Unique identifier for the UserRole association. This value is automatically generated using a
+     * UUID strategy.
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_role_id")
+    private UUID id;
 
-  /** The User associated with this UserRole. This field cannot be null. */
-  @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+    /** The User associated with this UserRole. This field cannot be null. */
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-  /** The Role associated with this UserRole. This field cannot be null. */
-  @ManyToOne
-  @JoinColumn(name = "role_id", nullable = false)
-  private Role role;
+    /** The Role associated with this UserRole. This field cannot be null. */
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
-  /**
-   * Constructs an instance of a new UserRole object with the specified attributes.
-   *
-   * @param user the User associated with this UserRole - must not be null
-   * @param role the Role associated with this UserRole - must not be null
-   */
-  public UserRole(User user, Role role) {
-    this.user = user;
-    this.role = role;
-  }
+    /**
+     * Constructs an instance of a new UserRole object with the specified attributes.
+     *
+     * @param user the User associated with this UserRole - must not be null
+     * @param role the Role associated with this UserRole - must not be null
+     */
+    public UserRole(User user, Role role) {
+        this.user = user;
+        this.role = role;
+    }
 }

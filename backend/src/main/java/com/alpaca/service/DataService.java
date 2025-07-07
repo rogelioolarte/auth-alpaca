@@ -9,12 +9,12 @@ package com.alpaca.service;
  */
 public interface DataService {
 
-  /**
-   * Initializes the application's default data.
-   *
-   * <p>This method is responsible for creating and saving initial roles, permissions, users, and
-   * profiles required for the proper functioning of the system. It should be executed only once
-   * upon application startup.
-   */
-  void initializeData();
+    /**
+     * Initializes the application's default data.
+     *
+     * <p>This method is responsible for creating and saving initial roles, permissions, users, and
+     * profiles required for the proper functioning of the system. It should be executed only once
+     * upon application startup.
+     */
+    void initializeData();
 }

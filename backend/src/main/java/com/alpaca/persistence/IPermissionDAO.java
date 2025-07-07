@@ -12,5 +12,5 @@ import java.util.UUID;
  */
 public interface IPermissionDAO extends IGenericDAO<Permission, UUID> {
 
-  Optional<Permission> findByPermissionName(String permissionName);
+    Optional<Permission> findByPermissionName(String permissionName);
 }

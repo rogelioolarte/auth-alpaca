@@ -38,55 +38,58 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
  * </ul>
  */
 public class AccessTokenResConverter
-    implements Converter<Map<String, Object>, OAuth2AccessTokenResponse> {
+        implements Converter<Map<String, Object>, OAuth2AccessTokenResponse> {
 
-  private static final Pattern SCOPE_DELIMITER = Pattern.compile("\\s+");
-  private static final long DEFAULT_EXPIRES_IN = 7200L;
-  private static final Set<String> TOKEN_RESPONSE_PARAMETER_NAMES =
-      Set.of(
-          OAuth2ParameterNames.ACCESS_TOKEN,
-          OAuth2ParameterNames.TOKEN_TYPE,
-          OAuth2ParameterNames.EXPIRES_IN,
-          OAuth2ParameterNames.REFRESH_TOKEN,
-          OAuth2ParameterNames.SCOPE);
+    private static final Pattern SCOPE_DELIMITER = Pattern.compile("\\s+");
+    private static final long DEFAULT_EXPIRES_IN = 7200L;
+    private static final Set<String> TOKEN_RESPONSE_PARAMETER_NAMES =
+            Set.of(
+                    OAuth2ParameterNames.ACCESS_TOKEN,
+                    OAuth2ParameterNames.TOKEN_TYPE,
+                    OAuth2ParameterNames.EXPIRES_IN,
+                    OAuth2ParameterNames.REFRESH_TOKEN,
+                    OAuth2ParameterNames.SCOPE);
 
-  @Override
-  public OAuth2AccessTokenResponse convert(@NonNull Map<String, Object> source) {
-    return OAuth2AccessTokenResponse.withToken(
-            (String) source.get(OAuth2ParameterNames.ACCESS_TOKEN))
-        .tokenType(OAuth2AccessToken.TokenType.BEARER)
-        .expiresIn(parseExpiresIn(source))
-        .scopes(parseScopes(source))
-        .additionalParameters(extractAdditionalParameters(source))
-        .refreshToken((String) source.get(OAuth2ParameterNames.REFRESH_TOKEN))
-        .build();
-  }
-
-  private long parseExpiresIn(Map<String, Object> source) {
-    var expiresInObj = source.get(OAuth2ParameterNames.EXPIRES_IN);
-    if (expiresInObj instanceof Number number) {
-      return number.longValue();
+    @Override
+    public OAuth2AccessTokenResponse convert(@NonNull Map<String, Object> source) {
+        return OAuth2AccessTokenResponse.withToken(
+                        (String) source.get(OAuth2ParameterNames.ACCESS_TOKEN))
+                .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                .expiresIn(parseExpiresIn(source))
+                .scopes(parseScopes(source))
+                .additionalParameters(extractAdditionalParameters(source))
+                .refreshToken((String) source.get(OAuth2ParameterNames.REFRESH_TOKEN))
+                .build();
     }
-    return DEFAULT_EXPIRES_IN;
-  }
 
-  private Set<String> parseScopes(Map<String, Object> source) {
-    var scopeObj = source.get(OAuth2ParameterNames.SCOPE);
-    if (scopeObj instanceof String scopeStr) {
-      return Set.copyOf(Set.of(SCOPE_DELIMITER.split(scopeStr.trim())));
+    private long parseExpiresIn(Map<String, Object> source) {
+        var expiresInObj = source.get(OAuth2ParameterNames.EXPIRES_IN);
+        if (expiresInObj instanceof Number number) {
+            return number.longValue();
+        }
+        return DEFAULT_EXPIRES_IN;
     }
-    if (scopeObj instanceof Collection<?> scopeCol) {
-      return Set.copyOf(scopeCol.stream().map(Object::toString).collect(Collectors.toSet()));
-    }
-    return Set.of();
-  }
 
-  private Map<String, Object> extractAdditionalParameters(Map<String, Object> source) {
-    return Map.copyOf(
-        source.entrySet().stream()
-            .filter(e -> !TOKEN_RESPONSE_PARAMETER_NAMES.contains(e.getKey()))
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, LinkedHashMap::new)));
-  }
+    private Set<String> parseScopes(Map<String, Object> source) {
+        var scopeObj = source.get(OAuth2ParameterNames.SCOPE);
+        if (scopeObj instanceof String scopeStr) {
+            return Set.copyOf(Set.of(SCOPE_DELIMITER.split(scopeStr.trim())));
+        }
+        if (scopeObj instanceof Collection<?> scopeCol) {
+            return Set.copyOf(scopeCol.stream().map(Object::toString).collect(Collectors.toSet()));
+        }
+        return Set.of();
+    }
+
+    private Map<String, Object> extractAdditionalParameters(Map<String, Object> source) {
+        return Map.copyOf(
+                source.entrySet().stream()
+                        .filter(e -> !TOKEN_RESPONSE_PARAMETER_NAMES.contains(e.getKey()))
+                        .collect(
+                                Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
+                                        (a, b) -> b,
+                                        LinkedHashMap::new)));
+    }
 }

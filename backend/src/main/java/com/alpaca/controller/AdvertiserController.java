@@ -19,43 +19,44 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdvertiserController {
 
-  private final IAdvertiserService service;
-  private final AdvertiserMapper mapper;
+    private final IAdvertiserService service;
+    private final AdvertiserMapper mapper;
 
-  @GetMapping("/{id}")
-  public ResponseEntity<AdvertiserResponseDTO> findById(@PathVariable UUID id) {
-    return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
-  }
+    @GetMapping("/{id}")
+    public ResponseEntity<AdvertiserResponseDTO> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
+    }
 
-  @PostMapping("/save")
-  public ResponseEntity<AdvertiserResponseDTO> save(
-      @Valid @RequestBody AdvertiserRequestDTO request) {
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
-  }
+    @PostMapping("/save")
+    public ResponseEntity<AdvertiserResponseDTO> save(
+            @Valid @RequestBody AdvertiserRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
+    }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<AdvertiserResponseDTO> updateById(
-      @Valid @RequestBody AdvertiserRequestDTO request, @PathVariable UUID id) {
-    return ResponseEntity.status(HttpStatus.OK)
-        .body(mapper.toResponseDTO(service.updateById(mapper.toEntity(request), id)));
-  }
+    @PutMapping("/{id}")
+    public ResponseEntity<AdvertiserResponseDTO> updateById(
+            @Valid @RequestBody AdvertiserRequestDTO request, @PathVariable UUID id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(mapper.toResponseDTO(service.updateById(mapper.toEntity(request), id)));
+    }
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable UUID id) {
-    service.deleteById(id);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-  }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
-  @GetMapping("/all")
-  public ResponseEntity<List<AdvertiserResponseDTO>> getAll() {
-    return ResponseEntity.status(HttpStatus.OK).body(mapper.toListResponseDTO(service.findAll()));
-  }
+    @GetMapping("/all")
+    public ResponseEntity<List<AdvertiserResponseDTO>> getAll() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(mapper.toListResponseDTO(service.findAll()));
+    }
 
-  @GetMapping("/all-page")
-  public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
-    ;
-    return ResponseEntity.status(HttpStatus.OK)
-        .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
-  }
+    @GetMapping("/all-page")
+    public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
+        ;
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+    }
 }

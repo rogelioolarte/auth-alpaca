@@ -5,9 +5,9 @@ import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
 
 public interface AdvertiserMapper
-    extends GenericMapper<Advertiser, AdvertiserResponseDTO, AdvertiserRequestDTO> {
+        extends GenericMapper<Advertiser, AdvertiserResponseDTO, AdvertiserRequestDTO> {
 
-  AdvertiserResponseDTO toResponseDTO(Advertiser entity);
+    AdvertiserResponseDTO toResponseDTO(Advertiser entity);
 
-  Advertiser toEntity(AdvertiserRequestDTO requestDTO);
+    Advertiser toEntity(AdvertiserRequestDTO requestDTO);
 }

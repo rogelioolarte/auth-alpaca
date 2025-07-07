@@ -15,25 +15,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PermissionMapperImpl implements PermissionMapper {
 
-  @Override
-  public PermissionResponseDTO toResponseDTO(Permission entity) {
-    if (entity == null) return null;
-    return new PermissionResponseDTO(entity.getId(), entity.getPermissionName());
-  }
-
-  @Override
-  public Permission toEntity(PermissionRequestDTO requestDTO) {
-    if (requestDTO == null) return null;
-    return new Permission(requestDTO.getPermissionName());
-  }
-
-  @Override
-  public List<PermissionResponseDTO> toListResponseDTO(Collection<Permission> entities) {
-    if (entities == null || entities.isEmpty()) return Collections.emptyList();
-    List<PermissionResponseDTO> permissionResponseDTOS = new ArrayList<>(entities.size());
-    for (Permission permission : entities) {
-      permissionResponseDTOS.add(toResponseDTO(permission));
+    @Override
+    public PermissionResponseDTO toResponseDTO(Permission entity) {
+        if (entity == null) return null;
+        return new PermissionResponseDTO(entity.getId(), entity.getPermissionName());
     }
-    return permissionResponseDTOS;
-  }
+
+    @Override
+    public Permission toEntity(PermissionRequestDTO requestDTO) {
+        if (requestDTO == null) return null;
+        return new Permission(requestDTO.getPermissionName());
+    }
+
+    @Override
+    public List<PermissionResponseDTO> toListResponseDTO(Collection<Permission> entities) {
+        if (entities == null || entities.isEmpty()) return Collections.emptyList();
+        List<PermissionResponseDTO> permissionResponseDTOS = new ArrayList<>(entities.size());
+        for (Permission permission : entities) {
+            permissionResponseDTOS.add(toResponseDTO(permission));
+        }
+        return permissionResponseDTOS;
+    }
 }
