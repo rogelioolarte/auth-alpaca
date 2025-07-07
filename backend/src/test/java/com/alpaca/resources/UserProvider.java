@@ -38,18 +38,18 @@ public class UserProvider {
 
     public static User alternativeTemplate() {
         return new User(
-            null,
-            "user@user.com",
-            "1234567890",
-            true,
-            true,
-            true,
-            true,
-            false,
-            false,
-            new HashSet<>(),
-            null,
-            null);
+                null,
+                "user@user.com",
+                "1234567890",
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                new HashSet<>(),
+                null,
+                null);
     }
 
     public static User singleEntity() {

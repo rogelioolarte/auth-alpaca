@@ -20,21 +20,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Integration tests for {@link com.alpaca.persistence.impl.ProfileDAOImpl}
- */
+/** Integration tests for {@link com.alpaca.persistence.impl.ProfileDAOImpl} */
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 class ProfileDAOImplIT {
 
-    @Autowired
-    private IProfileDAO dao;
+    @Autowired private IProfileDAO dao;
 
-    @Autowired
-    private ProfileRepo repo;
+    @Autowired private ProfileRepo repo;
 
-    @Autowired
-    private UserRepo userRepo;
+    @Autowired private UserRepo userRepo;
 
     private Profile saved;
     private User owner;
@@ -97,12 +92,13 @@ class ProfileDAOImplIT {
         assertEquals(out.getUser().getId(), outPartial.getUser().getId());
 
         // non-existing id
-        assertThrows(NotFoundException.class,
-            () -> dao.updateById(update, UUID.randomUUID()));
+        assertThrows(NotFoundException.class, () -> dao.updateById(update, UUID.randomUUID()));
     }
 
     @Test
-    @DisplayName("existsByUniqueProperties returns false for null user or missing id and true when exists")
+    @DisplayName(
+            "existsByUniqueProperties returns false for null user or missing id and true when"
+                    + " exists")
     @Transactional
     void existsByUniqueProperties() {
         // null user
