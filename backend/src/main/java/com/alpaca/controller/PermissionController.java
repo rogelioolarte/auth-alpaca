@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,14 +49,13 @@ public class PermissionController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<PermissionResponseDTO>> getAll() {
+    public ResponseEntity<List<PermissionResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
     }
 
     @GetMapping("/all-page")
     public ResponseEntity<PagedModel<PermissionResponseDTO>> findAllPage(Pageable pageable) {
-        ;
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }

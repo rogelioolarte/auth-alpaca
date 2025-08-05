@@ -35,6 +35,11 @@ public class DataServiceImpl implements DataService {
     @Transactional
     @Override
     public void initializeData() {
+
+        if(!userService.findAll().isEmpty()) {
+            return;
+        }
+
         Permission readPermission = permissionService.save(new Permission("READ"));
         Permission updatePermission = permissionService.save(new Permission("UPDATE"));
         Permission deletePermission = permissionService.save(new Permission("DELETE"));

@@ -47,14 +47,13 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<UserResponseDTO>> getAll() {
+    public ResponseEntity<List<UserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
     }
 
     @GetMapping("/all-page")
     public ResponseEntity<PagedModel<UserResponseDTO>> findAllPage(Pageable pageable) {
-        ;
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }

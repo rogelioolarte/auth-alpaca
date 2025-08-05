@@ -48,14 +48,13 @@ public class AdvertiserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<AdvertiserResponseDTO>> getAll() {
+    public ResponseEntity<List<AdvertiserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
     }
 
     @GetMapping("/all-page")
     public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
-        ;
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }

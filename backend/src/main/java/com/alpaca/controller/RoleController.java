@@ -47,14 +47,13 @@ public class RoleController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<RoleResponseDTO>> getAll() {
+    public ResponseEntity<List<RoleResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
     }
 
     @GetMapping("/all-page")
     public ResponseEntity<PagedModel<RoleResponseDTO>> findAllPage(Pageable pageable) {
-        ;
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }

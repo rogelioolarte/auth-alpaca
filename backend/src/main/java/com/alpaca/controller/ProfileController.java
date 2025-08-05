@@ -47,14 +47,13 @@ public class ProfileController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<ProfileResponseDTO>> getAll() {
+    public ResponseEntity<List<ProfileResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
     }
 
     @GetMapping("/all-page")
     public ResponseEntity<PagedModel<ProfileResponseDTO>> findAllPage(Pageable pageable) {
-        ;
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }
