@@ -3,9 +3,8 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
-import org.springframework.data.domain.PageImpl;
-
 import java.util.*;
+import org.springframework.data.domain.PageImpl;
 
 public class PermissionProvider {
 
@@ -42,14 +41,12 @@ public class PermissionProvider {
 
     public static Permission singleEntity() {
         return new Permission(
-                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"),
-            "CREATE", new HashSet<>());
+                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "CREATE", new HashSet<>());
     }
 
     public static Permission alternativeEntity() {
         return new Permission(
-                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"),
-            "READ", new HashSet<>());
+                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "READ", new HashSet<>());
     }
 
     public static PermissionRequestDTO singleRequest() {

@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/advertiser")
+@RequestMapping("/api/advertiser")
 @RequiredArgsConstructor
 public class AdvertiserController {
 

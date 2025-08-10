@@ -1,5 +1,11 @@
 package com.alpaca.unit.controller;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.alpaca.controller.PermissionController;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
@@ -7,156 +13,277 @@ import com.alpaca.entity.Permission;
 import com.alpaca.mapper.PermissionMapper;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.IPermissionService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(PermissionController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureJsonTesters
 class PermissionControllerTest {
 
-  @Autowired
-  MockMvc mockMvc;
-  @Autowired
-  ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private JacksonTester<PermissionRequestDTO> requestJson;
+    @Autowired private JacksonTester<PermissionResponseDTO> responseJson;
 
-  @MockitoBean
-  IPermissionService permissionService;
-  @MockitoBean
-  PermissionMapper permissionMapper;
+    @MockitoBean private IPermissionService service;
+    @MockitoBean private PermissionMapper mapper;
 
-  static final List<Permission> listEntities = PermissionProvider.listEntities();
-  static final PermissionResponseDTO firstResponseDTO = PermissionProvider.singleResponse();
-  static final PermissionResponseDTO alternativeResponseDTO = PermissionProvider.alternativeResponse();
-  static final List<PermissionResponseDTO> listResponseDTO = PermissionProvider.listResponse();
+    static final List<Permission> listEntities = PermissionProvider.listEntities();
+    static final PermissionResponseDTO firstResponse = PermissionProvider.singleResponse();
+    static final Permission singleEntity = PermissionProvider.singleEntity();
+    static final PermissionRequestDTO singleRequest = PermissionProvider.singleRequest();
 
-  @Test
-  @DisplayName("findById returns 200 and correct object")
-  void findById_returns_permission() throws Exception {
-    UUID id = firstResponseDTO.id();
-    when(permissionService.findById(id)).thenReturn(listEntities.getFirst());
-    when(permissionMapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponseDTO);
+    private void mockMapperAndServiceForSave() {
+        when(mapper.toEntity(
+                        argThat(
+                                r ->
+                                        r != null
+                                                && r.getPermissionName()
+                                                        .equals(
+                                                                PermissionControllerTest
+                                                                        .singleRequest
+                                                                        .getPermissionName()))))
+                .thenReturn(PermissionControllerTest.singleEntity);
+        when(service.save(PermissionControllerTest.singleEntity))
+                .thenReturn(PermissionControllerTest.singleEntity);
+        when(mapper.toResponseDTO(PermissionControllerTest.singleEntity))
+                .thenReturn(PermissionControllerTest.firstResponse);
+    }
 
-    mockMvc.perform(get("/api/permission/{id}", id)
-            .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(firstResponseDTO.id().toString())))
-        .andExpect(jsonPath("$.permissionName", is(firstResponseDTO.permissionName())));
-  }
+    private void mockMapperAndServiceForUpdate(UUID id) {
+        when(mapper.toEntity(
+                        argThat(
+                                r ->
+                                        r != null
+                                                && r.getPermissionName()
+                                                        .equals(
+                                                                PermissionControllerTest
+                                                                        .singleRequest
+                                                                        .getPermissionName()))))
+                .thenReturn(PermissionControllerTest.singleEntity);
+        when(service.updateById(PermissionControllerTest.singleEntity, id))
+                .thenReturn(PermissionControllerTest.singleEntity);
+        when(mapper.toResponseDTO(PermissionControllerTest.singleEntity))
+                .thenReturn(PermissionControllerTest.firstResponse);
+    }
 
-  @Test
-  @DisplayName("save returns 201 Created and JSON body")
-  void save_creates_permission() throws Exception {
-    PermissionRequestDTO req = PermissionProvider.singleRequest();
-    Permission permission = PermissionProvider.singleEntity();
+    @Test
+    @DisplayName("findById returns 200 and correct object")
+    void findByIdReturnsPermission() throws Exception {
+        when(service.findById(firstResponse.id())).thenReturn(listEntities.getFirst());
+        when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
-    when(permissionMapper.toEntity(req)).thenReturn(permission);
-    when(permissionService.save(permission)).thenReturn(permission);
-    when(permissionMapper.toResponseDTO(permission)).thenReturn(firstResponseDTO);
+        mockMvc.perform(
+                        get("/api/permission/{id}", firstResponse.id())
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
+                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
 
-    mockMvc.perform(post("/api/permission/save")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isCreated())
-        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id", is(firstResponseDTO.id().toString())))
-        .andExpect(jsonPath("$.permissionName", is(firstResponseDTO.permissionName())));
-  }
+        verify(service).findById(firstResponse.id());
+        verify(mapper).toResponseDTO(listEntities.getFirst());
+    }
 
-  @Test
-  @DisplayName("updateById returns 200 OK and updated object")
-  void updateById_updates_permission() throws Exception {
-    UUID id = firstResponseDTO.id();
-    PermissionRequestDTO req = PermissionProvider.singleRequest();
-    when(permissionMapper.toEntity(req)).thenReturn(listEntities.getFirst());
-    when(permissionService.updateById(listEntities.getFirst(), id)).thenReturn(listEntities.getFirst());
-    when(permissionMapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponseDTO);
+    @Test
+    @DisplayName("findById returns 404 Not Found when object does not exist")
+    void findByIdNotFound() throws Exception {
+        UUID id = firstResponse.id();
+        when(service.findById(id))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-    mockMvc.perform(put("/api/permission/{id}", id)
-            .with(csrf())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(firstResponseDTO.id().toString())))
-        .andExpect(jsonPath("$.permissionName", is(firstResponseDTO.permissionName())));
-  }
+        mockMvc.perform(get("/api/permission/{id}", id).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Not found")));
 
-  @Test
-  @DisplayName("delete returns 204 No Content")
-  void delete_deletes_permission() throws Exception {
-    UUID id = firstResponseDTO.id();
-    doNothing().when(permissionService).deleteById(id);
+        verify(service).findById(id);
+    }
 
-    mockMvc.perform(delete("/api/permission/{id}", id)
-            .with(csrf()))
-        .andExpect(status().isNoContent());
-  }
+    @Test
+    @DisplayName("save returns 201 when Object is created")
+    void saveCreatesPermission() throws Exception {
+        mockMapperAndServiceForSave();
 
-  @Test
-  @DisplayName("findAll returns an empty list when no persisted entities")
-  void findAll_returns_empty_list() throws Exception {
-    when(permissionService.findAll()).thenReturn(Collections.emptyList());
-    when(permissionMapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
+        mockMvc.perform(
+                        post("/api/permission/save")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(singleRequest).getJson()))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
+                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
 
-    mockMvc.perform(get("/api/permission/all"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$").isEmpty());
-  }
+        ArgumentCaptor<Permission> captor = ArgumentCaptor.forClass(Permission.class);
+        verify(mapper).toEntity(isA(PermissionRequestDTO.class));
+        verify(service).save(isA(Permission.class));
+        verify(service).save(captor.capture());
+        verify(mapper).toResponseDTO(isA(Permission.class));
 
-  @Test
-  @DisplayName("findAll returns all persisted entities")
-  void findAll_returns_persisted_list() throws Exception {
-    when(permissionService.findAll()).thenReturn(listEntities);
-    when(permissionMapper.toListResponseDTO(listEntities)).thenReturn(listResponseDTO);
+        assertNotNull(captor.getValue());
+        assertEquals(singleEntity.getId(), captor.getValue().getId());
+        assertEquals(singleEntity.getPermissionName(), captor.getValue().getPermissionName());
+    }
 
-    mockMvc.perform(get("/api/permission/all")
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$").isNotEmpty())
-        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].id", is(firstResponseDTO.id().toString())))
-        .andExpect(jsonPath("$[0].permissionName", is(firstResponseDTO.permissionName())))
-        .andExpect(jsonPath("$[1].id", is(alternativeResponseDTO.id().toString())))
-        .andExpect(jsonPath("$[1].permissionName", is(alternativeResponseDTO.permissionName())));
-  }
+    @Test
+    @DisplayName("save returns 409 Conflict when object already exists")
+    void saveConflictWhenAlreadyExists() throws Exception {
+        mockMapperAndServiceForSave();
+        doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already exists"))
+                .when(service)
+                .save(isA(Permission.class));
 
-  @Test
-  @DisplayName("findAllPage returns a paged list")
-  void findAllPage_returns_paged_list() throws Exception {
-    when(permissionService.findAllPage(any()))
-        .thenReturn(new PageImpl<>(listEntities));
-    when(permissionMapper.toPageResponseDTO(PermissionProvider.pageEntities()))
-        .thenReturn(PermissionProvider.pageResponse());
+        mockMvc.perform(
+                        post("/api/permission/save")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(singleRequest).getJson()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message", is("Already exists")));
 
-    mockMvc.perform(get("/api/permission/all-page?page=0&size=10")
-            .with(csrf())
-            .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id",
-            is(firstResponseDTO.id().toString())))
-        .andExpect(jsonPath("$.content[0].permissionName",
-            is(firstResponseDTO.permissionName())));
-  }
+        verify(service).save(isA(Permission.class));
+    }
+
+    @Test
+    @DisplayName("updateById returns 200 OK and updated object")
+    void updateByIdUpdatesPermission() throws Exception {
+        UUID id = firstResponse.id();
+        mockMapperAndServiceForUpdate(id);
+
+        mockMvc.perform(
+                        put("/api/permission/{id}", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(singleRequest).getJson()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
+                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
+
+        ArgumentCaptor<Permission> captor = ArgumentCaptor.forClass(Permission.class);
+        verify(mapper).toEntity(isA(PermissionRequestDTO.class));
+        verify(service).updateById(captor.capture(), eq(id));
+        verify(mapper).toResponseDTO(isA(Permission.class));
+
+        assertEquals(singleEntity.getId(), captor.getValue().getId());
+        assertEquals(singleEntity.getPermissionName(), captor.getValue().getPermissionName());
+    }
+
+    @Test
+    @DisplayName("updateById returns 404 Not Found when object to modify does not exist")
+    void updateByIdNotFound() throws Exception {
+        UUID id = firstResponse.id();
+        when(mapper.toEntity(
+                        argThat(
+                                r ->
+                                        r.getPermissionName()
+                                                .equals(singleRequest.getPermissionName()))))
+                .thenReturn(singleEntity);
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"))
+                .when(service)
+                .updateById(singleEntity, id);
+
+        mockMvc.perform(
+                        put("/api/permission/{id}", id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(singleRequest).getJson()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Not found")));
+
+        verify(service).updateById(singleEntity, id);
+    }
+
+    @Test
+    @DisplayName("delete returns 204 No Content when object exists")
+    void deleteDeletesPermission() throws Exception {
+        UUID id = firstResponse.id();
+        doNothing().when(service).deleteById(id);
+
+        mockMvc.perform(delete("/api/permission/{id}", id)).andExpect(status().isNoContent());
+
+        verify(service).deleteById(id);
+    }
+
+    @Test
+    @DisplayName("delete returns 400 Bad Request when object does not exist")
+    void deleteReturnsBadRequestWhenNotExist() throws Exception {
+        UUID id = firstResponse.id();
+
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request: not found"))
+                .when(service)
+                .deleteById(id);
+
+        mockMvc.perform(delete("/api/permission/{id}", id).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Bad request: not found")));
+
+        verify(service).deleteById(id);
+    }
+
+    @Test
+    @DisplayName("findAll returns an empty list when no persisted entities")
+    void findAllReturnsEmptyList() throws Exception {
+        when(service.findAll()).thenReturn(Collections.emptyList());
+        when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/permission/all"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+
+        verify(service).findAll();
+        verify(mapper).toListResponseDTO(Collections.emptyList());
+    }
+
+    @Test
+    @DisplayName("findAll returns all persisted entities")
+    void findAllReturnsPersistedList() throws Exception {
+        PermissionResponseDTO altResponse = PermissionProvider.alternativeResponse();
+        when(service.findAll()).thenReturn(listEntities);
+        when(mapper.toListResponseDTO(listEntities)).thenReturn(PermissionProvider.listResponse());
+
+        mockMvc.perform(get("/api/permission/all").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$[0].id", is(firstResponse.id().toString())))
+                .andExpect(jsonPath("$[0].permissionName", is(firstResponse.permissionName())))
+                .andExpect(jsonPath("$[1].id", is(altResponse.id().toString())))
+                .andExpect(jsonPath("$[1].permissionName", is(altResponse.permissionName())));
+
+        verify(service).findAll();
+        verify(mapper).toListResponseDTO(listEntities);
+    }
+
+    @Test
+    @DisplayName("findAllPage returns a paged list")
+    void findAllPageReturnsPagedList() throws Exception {
+        when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
+        when(mapper.toPageResponseDTO(PermissionProvider.pageEntities()))
+                .thenReturn(PermissionProvider.pageResponse());
+
+        mockMvc.perform(
+                        get("/api/permission/all-page?page=0&size=10")
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))
+                .andExpect(
+                        jsonPath(
+                                "$.content[0].permissionName", is(firstResponse.permissionName())));
+
+        verify(service).findAllPage(isA(Pageable.class));
+        verify(mapper).toPageResponseDTO(PermissionProvider.pageEntities());
+    }
 }

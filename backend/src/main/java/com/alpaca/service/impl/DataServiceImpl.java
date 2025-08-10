@@ -36,7 +36,7 @@ public class DataServiceImpl implements DataService {
     @Override
     public void initializeData() {
 
-        if(!userService.findAll().isEmpty()) {
+        if (!userService.findAll().isEmpty()) {
             return;
         }
 
