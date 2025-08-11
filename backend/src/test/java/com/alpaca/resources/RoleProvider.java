@@ -1,8 +1,12 @@
 package com.alpaca.resources;
 
 import com.alpaca.dto.request.RoleRequestDTO;
+import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
+import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
+import org.springframework.data.domain.PageImpl;
+
 import java.util.*;
 
 public class RoleProvider {
@@ -19,9 +23,16 @@ public class RoleProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static PageImpl<RoleResponseDTO> pageResponse() {
+      return new PageImpl<RoleResponseDTO>(listResponse());
+    }
+
+    public static PageImpl<Role> pageEntities() {
+      return new PageImpl<Role>(listEntities());
+    }
+
     public static Role singleTemplate() {
-        Role firstEntity = new Role(null, "ADMIN", "It's an admin", null, null);
-        return firstEntity;
+      return new Role(null, "ADMIN", "It's an admin", null, null);
     }
 
     public static Role singleEntity() {
@@ -58,8 +69,8 @@ public class RoleProvider {
 
     public static RoleRequestDTO alternativeRequest() {
         return new RoleRequestDTO(
-                "ADMIN",
-                "It's an admin",
+                "USER",
+                "It's an user",
                 new HashSet<>(Set.of(PermissionProvider.alternativeEntity().getId())));
     }
 
