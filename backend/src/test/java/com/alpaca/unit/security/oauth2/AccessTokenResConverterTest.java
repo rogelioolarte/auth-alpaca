@@ -1,17 +1,16 @@
 package com.alpaca.unit.security.oauth2;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.security.oauth2.AccessTokenResConverter;
+import java.lang.reflect.Method;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-
-import java.lang.reflect.Method;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Unit tests for {@link AccessTokenResConverter} */
 @DisplayName("AccessTokenResConverter Unit Tests")

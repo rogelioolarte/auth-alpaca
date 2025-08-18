@@ -1,5 +1,7 @@
 package com.alpaca.integration.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
 import com.alpaca.exception.NotFoundException;
@@ -8,6 +10,9 @@ import com.alpaca.repository.PermissionRepo;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.repository.intermediate.RolePermissionRepo;
 import com.alpaca.resources.RoleProvider;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,12 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link com.alpaca.persistence.impl.RoleDAOImpl} */
 @SpringBootTest

@@ -16,6 +16,8 @@ import com.alpaca.service.IAuthService;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.Map;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -27,22 +29,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Map;
-import java.util.UUID;
-
 /**
- * Implementation of the {@link IAuthService} interface that handles authentication, user
- * registration, and OAuth2 authentication processing.
+ * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
+ * login flows within a Spring Security context.
  *
- * <p>This service integrates with Spring Security and provides methods for handling login,
- * registration, and setting the security context for authenticated users.
+ * <p>Extends {@link DefaultOAuth2UserService} to support custom OAuth2 user processing, JWT token
+ * generation, and security context management.
  *
- * <p>It also extends {@link DefaultOAuth2UserService} to support OAuth2 authentication.
+ * @see DefaultOAuth2UserService
+ * @see IAuthService
  */
 @Service
 @RequiredArgsConstructor
@@ -55,11 +54,11 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     private final PasswordManager passwordManager;
 
     /**
-     * Sets the security context for an authenticated user.
+     * Sets the Spring Security context with the provided authentication object.
      *
-     * @param authentication the authentication object containing user details.
-     * @return the authenticated user's principal.
-     * @throws UnauthorizedException if the authentication object is null.
+     * @param authentication the authentication object; must not be {@code null}
+     * @return the authenticated user's principal
+     * @throws UnauthorizedException if the authentication object is {@code null}
      */
     public Object setSecurityContextBefore(Authentication authentication) {
         if (authentication == null) {
@@ -72,12 +71,12 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Authenticates a user and returns an authentication response containing a JWT token.
+     * Authenticates a user using email and password and returns a JWT token wrapped in DTO.
      *
-     * @param email the authentication request containing email.
-     * @param password the authentication request containing password.
-     * @return an {@link AuthResponseDTO} containing the generated JWT token.
-     * @throws NotFoundException if the email is not registered.
+     * @param email user's email
+     * @param password raw password
+     * @return {@link AuthResponseDTO} containing the JWT token
+     * @throws NotFoundException if the email is not registered
      */
     @Override
     public AuthResponseDTO login(String email, String password) {
@@ -87,17 +86,18 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Registers a new user and logs them in.
+     * Registers a new user, assigns default role, and logs them in returning a JWT token.
      *
-     * @param email the authentication request containing email.
-     * @param password the authentication request containing password.
-     * @return an {@link AuthResponseDTO} containing the generated JWT token for the new user.
-     * @throws BadRequestException if the email is already registered.
+     * @param email new user's email
+     * @param password raw password
+     * @return {@link AuthResponseDTO} for the newly registered user
+     * @throws BadRequestException if the email is already registered
      */
     @Override
     public AuthResponseDTO register(String email, String password) {
-        if (userService.existsByEmail(email))
+        if (userService.existsByEmail(email)) {
             throw new BadRequestException("Email already registered");
+        }
         userService.register(
                 new User(
                         email,
@@ -107,11 +107,11 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Loads a user by their username (email).
+     * Loads a user by username (email), required by Spring Security.
      *
-     * @param username the email of the user.
-     * @return the {@link UserDetails} object representing the authenticated user.
-     * @throws UsernameNotFoundException if the user is not found.
+     * @param username user's email
+     * @return {@link UserDetails} for authentication
+     * @throws UsernameNotFoundException if user is not found
      */
     @Override
     public UserDetails loadUserByUsername(String username) {
@@ -119,33 +119,38 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Validates a user's credentials.
+     * Validates raw password against stored user details and enforces account status checks.
      *
-     * @param userDetails the user details retrieved from the database.
-     * @param rawPassword the password provided by the user.
-     * @return the validated {@link UserDetails} object.
-     * @throws BadRequestException if the user is not found or the password is incorrect.
+     * @param rawPassword the entered password
+     * @param userDetails stored user details
+     * @return authenticated {@link UserDetails}
+     * @throws BadRequestException if validation fails
+     * @throws UnauthorizedException if account is disabled or locked
      */
     public UserDetails validateUserDetails(String rawPassword, UserDetails userDetails) {
-        if (userDetails == null) throw new BadRequestException("Invalid Username or Password");
+        if (userDetails == null) {
+            throw new BadRequestException("Invalid Username or Password");
+        }
         if (rawPassword == null
                 || rawPassword.isBlank()
-                || !passwordManager.matches(rawPassword, userDetails.getPassword()))
+                || !passwordManager.matches(rawPassword, userDetails.getPassword())) {
             throw new BadRequestException("Invalid Password");
+        }
         if (!(userDetails.isEnabled()
                 && userDetails.isAccountNonLocked()
                 && userDetails.isAccountNonExpired()
-                && userDetails.isCredentialsNonExpired()))
+                && userDetails.isCredentialsNonExpired())) {
             throw new UnauthorizedException("The account has been deactivated or blocked");
+        }
         return userDetails;
     }
 
     /**
-     * Authenticates a user and returns an {@link Authentication} object.
+     * Performs authentication using Spring's authentication token model.
      *
-     * @param username the email of the user.
-     * @param password the password of the user.
-     * @return an {@link Authentication} object containing the authenticated user's details.
+     * @param username user's email
+     * @param password raw password
+     * @return an {@link Authentication} object
      */
     public Authentication authenticate(String username, String password) {
         return new UsernamePasswordAuthenticationToken(
@@ -153,11 +158,10 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Loads a User from an OAuth2 authentication request.
+     * Handles OAuth2 login by processing the provider's user data and delegating logic.
      *
-     * @param userRequest the OAuth2 user request.
-     * @return an {@link OAuth2User} representing the authenticated user.
-     * @throws OAuth2AuthenticationException if authentication fails.
+     * @param userRequest the OAuth2 user request
+     * @return an authenticated {@link OAuth2User}
      */
     @Override
     @Generated
@@ -168,27 +172,27 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
             throw new InternalAuthenticationServiceException(e.getReason());
         } catch (Exception e) {
             throw new InternalAuthenticationServiceException(
-                    "Error while authentication", e.getCause());
+                    "Error during authentication", e.getCause());
         }
     }
 
     /**
-     * Processes an OAuth2 user by extracting their information and either registering a new profile
-     * or retrieving an existing user.
+     * Processes OAuth2 user data: registers or connects existing user based on attributes.
      *
-     * @param request the OAuth2 user request.
-     * @param user the authenticated OAuth2 user.
-     * @return an {@link OAuth2User} containing the authenticated user's details.
-     * @throws OAuth2AuthenticationProcessingException if the email is not found from the provider.
+     * @param request the OAuth2 user request
+     * @param user the authenticated OAuth2 user
+     * @return an {@link OAuth2User}
+     * @throws OAuth2AuthenticationProcessingException if required attributes are missing
      */
     @Generated
     public OAuth2User processOAuth2User(OAuth2UserRequest request, OAuth2User user) {
         OAuth2UserInfo userInfo =
                 OAuth2UserInfoFactory.getOAuth2UserInfo(
                         request.getClientRegistration().getRegistrationId(), user.getAttributes());
-        if (userInfo.getEmail() == null || userInfo.getEmail().isBlank())
+        if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
             throw new OAuth2AuthenticationProcessingException(
-                    "Email not found from Oauth2 Provider");
+                    "Email not found from OAuth2 Provider");
+        }
         return registerOrLoginOAuth2(
                 userInfo.getEmail(),
                 userInfo.getFirstName(),
@@ -198,6 +202,18 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
                 user.getAttributes());
     }
 
+    /**
+     * Registers or logs in a user based on OAuth2 information. Sets up profile as needed.
+     *
+     * @param email user's email
+     * @param firstName user's first name
+     * @param lastName user's last name
+     * @param imageURL profile image URL
+     * @param emailVerified email verification status
+     * @param attributes other OAuth2 attributes
+     * @return a new or existing {@link UserPrincipal}
+     * @throws BadRequestException if required fields are missing
+     */
     public UserPrincipal registerOrLoginOAuth2(
             String email,
             String firstName,
@@ -212,8 +228,10 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
                 || lastName == null
                 || lastName.isBlank()
                 || imageURL == null
-                || imageURL.isBlank())
+                || imageURL.isBlank()) {
             throw new BadRequestException("The account does not have enough information");
+        }
+
         if (!userService.existsByEmail(email)) {
             return new UserPrincipal(
                     registerProfile(
@@ -240,37 +258,39 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     }
 
     /**
-     * Registers a new profile for a user.
+     * Creates or updates a user's profile.
      *
-     * @param user the user entity to associate with the profile.
-     * @param firstName the First Name of user information.
-     * @param lastName the Last Name of user information.
-     * @param imageURL the Image URL of user information.
-     * @return the registered {@link User} entity.
-     * @throws BadRequestException if the user, userInfo, userId are null.
+     * @param user the user entity
+     * @param firstName user’s first name
+     * @param lastName user’s last name
+     * @param imageURL user's avatar URL
+     * @return updated {@link User} with profile
+     * @throws BadRequestException if the user or mandatory fields are invalid
      */
     public User registerProfile(User user, String firstName, String lastName, String imageURL) {
         if (user == null
                 || user.getId() == null
                 || firstName == null
                 || lastName == null
-                || imageURL == null)
-            throw new BadRequestException("Invalid credentials of OAuth2 Provider");
+                || imageURL == null) {
+            throw new BadRequestException("Invalid credentials from OAuth2 Provider");
+        }
         user.setProfile(profileService.save(new Profile(firstName, lastName, "", imageURL, user)));
         return user;
     }
 
     /**
-     * Checks if an existing user has connected their account to Google. If so, updates their
-     * account status and re-registers them.
+     * Updates an existing user's OAuth2 connection status and email verification flag.
      *
-     * @param user The existing user entity.
-     * @param emailVerified The existing user has verified email
-     * @return the updated {@link User} entity.
+     * @param user the existing user
+     * @param emailVerified OAuth2-provided email verification status
+     * @return updated {@link User}
+     * @throws UnauthorizedException if the user account is disabled or locked
      */
     public User checkExistingUser(User user, boolean emailVerified) {
-        if (!user.isAllowUser())
+        if (!user.isAllowUser()) {
             throw new UnauthorizedException("The account has been deactivated or blocked");
+        }
         if (!user.isGoogleConnected()) {
             user.setGoogleConnected(true);
             return userService.register(user);

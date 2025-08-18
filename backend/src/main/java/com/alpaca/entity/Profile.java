@@ -1,13 +1,12 @@
 package com.alpaca.entity;
 
 import jakarta.persistence.*;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Represents a Profile entity in the system. This entity is mapped to the "profiles" table in the

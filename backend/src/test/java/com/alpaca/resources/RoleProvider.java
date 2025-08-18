@@ -3,9 +3,8 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
-import org.springframework.data.domain.PageImpl;
-
 import java.util.*;
+import org.springframework.data.domain.PageImpl;
 
 public class RoleProvider {
 

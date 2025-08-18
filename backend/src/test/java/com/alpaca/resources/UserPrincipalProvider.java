@@ -2,7 +2,6 @@ package com.alpaca.resources;
 
 import com.alpaca.entity.User;
 import com.alpaca.model.UserPrincipal;
-
 import java.util.HashSet;
 import java.util.UUID;
 

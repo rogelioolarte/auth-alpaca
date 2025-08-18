@@ -1,10 +1,9 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.User;
-import org.springframework.stereotype.Repository;
-
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link User} entities.

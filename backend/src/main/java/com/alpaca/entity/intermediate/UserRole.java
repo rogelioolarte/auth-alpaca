@@ -3,12 +3,11 @@ package com.alpaca.entity.intermediate;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
 
 /**
  * Represents the association between a {@link User} and a {@link Role}.

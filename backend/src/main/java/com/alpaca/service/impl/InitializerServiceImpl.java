@@ -9,9 +9,16 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * Main Service to initialize actions to use the application.
+ * Spring Boot startup initializer for development environments.
  *
- * <p>It is implemented from {@link ApplicationRunner} to initialize at the beginning.
+ * <p>This component implements {@link ApplicationRunner}, making it execute startup logic once the
+ * Spring application context is fully initialized.
+ *
+ * <p>Annotated with {@code @Profile("dev")}, this initializer only runs in development mode,
+ * executing custom initialization logic via {@link DataService}.
+ *
+ * @see ApplicationRunner
+ * @see DataService
  */
 @Component
 @Profile("dev")
@@ -20,6 +27,11 @@ public class InitializerServiceImpl implements ApplicationRunner {
 
     private final DataService dataService;
 
+    /**
+     * Called automatically after application startup to initialize application data.
+     *
+     * @param args the {@link ApplicationArguments} passed to the application
+     */
     @Override
     @Generated
     public void run(ApplicationArguments args) {

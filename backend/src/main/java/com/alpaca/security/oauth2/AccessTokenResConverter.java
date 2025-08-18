@@ -1,45 +1,38 @@
 package com.alpaca.security.oauth2;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.NonNull;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.NonNull;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 
 /**
- * Converter that transforms a raw token response map into a structured {@link
+ * Converter that transforms a raw token response {@link Map} into a structured {@link
  * OAuth2AccessTokenResponse}.
  *
- * <p>This converter provides robust parsing and handling of standard OAuth2 token response
- * parameters:
+ * <p>This converter handles standard OAuth2 token response entries:
  *
  * <ul>
- *   <li><strong>access_token</strong>: the issued access token (String).
- *   <li><strong>token_type</strong>: the token type (Bearer is assumed).
- *   <li><strong>expires_in</strong>: lifetime of the access token in seconds (Number).
- *   <li><strong>refresh_token</strong>: the issued refresh token (String), if present.
- *   <li><strong>scope</strong>: one or more scope values, either as a space-delimited String or a
- *       Collection.
+ *   <li><strong>access_token</strong>: required access token string.
+ *   <li><strong>token_type</strong>: assigned as Bearer by default.
+ *   <li><strong>expires_in</strong>: duration in seconds (parsed via {@link Number#longValue()}),
+ *       with default fallback when missing.
+ *   <li><strong>refresh_token</strong>: optional refresh token string.
+ *   <li><strong>scope</strong>: parsed robustly from String or Collection inputs.
  * </ul>
  *
- * Any additional parameters returned by the provider are captured as a read-only map of {@code
- * additionalParameters}.
+ * All other entries in the source map are treated as additional parameters and included in the
+ * result as an immutable read-only map. This approach offers flexibility for OAuth2 providers
+ * returning non-standard fields or when additional metadata is needed alongside the access token.
  *
- * <p>Usage note:
- *
- * <ul>
- *   <li>Numeric values for {@code expires_in} are handled generically via {@link
- *       Number#longValue()}
- *   <li>Scope values are parsed flexibly from both String and Collection types
- *   <li>Resulting collections are immutable to prevent accidental modification.
- * </ul>
+ * @see OAuth2AccessTokenResponse
+ * @see Converter
  */
 public class AccessTokenResConverter
         implements Converter<Map<String, Object>, OAuth2AccessTokenResponse> {

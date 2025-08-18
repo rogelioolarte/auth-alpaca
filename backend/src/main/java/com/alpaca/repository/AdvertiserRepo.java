@@ -1,12 +1,19 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Advertiser;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.UUID;
-
+/**
+ * Repository interface for managing {@link Advertiser} entities.
+ *
+ * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
+ * for permission-specific operations.
+ *
+ * @see GenericRepo
+ */
 @Repository
 public interface AdvertiserRepo extends GenericRepo<Advertiser, UUID> {
 

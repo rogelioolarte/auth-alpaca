@@ -6,6 +6,8 @@ import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -13,13 +15,17 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * Main Service to manage the data ready to use the application.
+ * Service responsible for seeding essential application data upon startup.
  *
- * <p>It extends from {@link DataService} to inherit common operations.
+ * <p>Implements {@link DataService} and initializes default permissions, roles, users, and
+ * profiles. Listens for {@link ApplicationReadyEvent} to trigger post-startup actions, such as
+ * warming up caches or validating system readiness.
+ *
+ * <p>This ensures the application is populated with baseline data when it starts in a clean state.
+ *
+ * @see DataService
+ * @see ApplicationReadyEvent
  */
 @Slf4j
 @Service
@@ -32,11 +38,15 @@ public class DataServiceImpl implements DataService {
     private final IProfileService profileService;
     private final PasswordManager passwordManager;
 
-    /** Function to add basic data necessary to use the application. */
+    /**
+     * Seeds the database with default permissions, roles, users, and profiles, only if no user
+     * records already exist.
+     *
+     * <p>Marked {@link Transactional} to ensure atomicity and rollback safety.
+     */
     @Transactional
     @Override
     public void initializeData() {
-
         if (!userService.findAll().isEmpty()) {
             return;
         }
@@ -61,13 +71,13 @@ public class DataServiceImpl implements DataService {
                 roleService.save(
                         new Role(
                                 "USER",
-                                "It's an user",
+                                "It's a user",
                                 new HashSet<>(Set.of(readPermission, createPermission))));
         Role managerRole =
                 roleService.save(
                         new Role(
                                 "MANAGER",
-                                "it's a manager",
+                                "It's a manager",
                                 new HashSet<>(
                                         Set.of(
                                                 readPermission,
@@ -129,6 +139,13 @@ public class DataServiceImpl implements DataService {
                                 testGoogleUser));
     }
 
+    /**
+     * Invoked after the application is fully initialized and ready to serve requests. Triggers a
+     * base call to preload roles and logs system readiness.
+     *
+     * <p>Using {@link EventListener} with {@link ApplicationReadyEvent} ensures this runs only once
+     * the Spring context is fully set up.
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void warmUpHibernate() {
         roleService.findAll();

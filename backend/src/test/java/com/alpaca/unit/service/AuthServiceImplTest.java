@@ -1,5 +1,8 @@
 package com.alpaca.unit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
@@ -18,6 +21,8 @@ import com.alpaca.service.impl.AuthServiceImpl;
 import com.alpaca.service.impl.ProfileServiceImpl;
 import com.alpaca.service.impl.RoleServiceImpl;
 import com.alpaca.service.impl.UserServiceImpl;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,12 +33,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link AuthServiceImpl} */
 @ExtendWith(MockitoExtension.class)

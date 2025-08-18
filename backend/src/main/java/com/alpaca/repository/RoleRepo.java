@@ -1,10 +1,9 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Role;
-import org.springframework.stereotype.Repository;
-
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link Role} entities.

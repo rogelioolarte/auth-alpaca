@@ -1,7 +1,6 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.User;
-
 import java.util.Optional;
 import java.util.UUID;
 

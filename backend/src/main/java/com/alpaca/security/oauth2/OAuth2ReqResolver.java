@@ -1,6 +1,13 @@
 package com.alpaca.security.oauth2;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -9,21 +16,32 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
+/**
+ * Custom OAuth2 authorization request resolver that extends the default Spring Security behavior to
+ * support Proof Key for Code Exchange (PKCE) by adding `code_verifier`, `code_challenge`, and
+ * `code_challenge_method` parameters into the authorization request.
+ *
+ * <p>This resolver wraps the {@link DefaultOAuth2AuthorizationRequestResolver} and decorates each
+ * generated request with PKCE parameters to enhance security, as recommended by OAuth 2.0 best
+ * current practice. The `S256` method is used to generate the code challenge—using SHA-256 hash and
+ * Base64URL encoding.
+ *
+ * @see OAuth2AuthorizationRequestResolver
+ * @see DefaultOAuth2AuthorizationRequestResolver
+ * @see PkceParameterNames
+ */
 public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
 
     private final OAuth2AuthorizationRequestResolver defaultResolver;
     private final StringKeyGenerator securityKeyGenerator =
             new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
-    ;
 
+    /**
+     * Constructs the resolver using a repository of client registrations and a base URI.
+     *
+     * @param repository the {@link ClientRegistrationRepository} containing client configs
+     * @param authorizationRequestBaseURI the base URI for initiating authorization requests
+     */
     public OAuth2ReqResolver(
             ClientRegistrationRepository repository, String authorizationRequestBaseURI) {
         defaultResolver =

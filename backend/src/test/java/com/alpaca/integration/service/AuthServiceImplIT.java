@@ -1,5 +1,7 @@
 package com.alpaca.integration.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
@@ -17,6 +19,8 @@ import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.alpaca.service.impl.AuthServiceImpl;
 import com.alpaca.service.impl.RoleServiceImpl;
 import com.alpaca.service.impl.UserServiceImpl;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,11 +32,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link UserServiceImpl} */
 @SpringBootTest

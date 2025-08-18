@@ -1,14 +1,13 @@
 package com.alpaca.unit.security.oauth2.userinfo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.alpaca.security.oauth2.userinfo.GoogleUserInfo;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("GoogleUserInfo Unit Tests")
 class GoogleUserInfoTest {

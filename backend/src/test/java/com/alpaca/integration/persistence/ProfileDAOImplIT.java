@@ -1,5 +1,7 @@
 package com.alpaca.integration.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
@@ -8,6 +10,7 @@ import com.alpaca.repository.ProfileRepo;
 import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,10 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link com.alpaca.persistence.impl.ProfileDAOImpl} */
 @SpringBootTest

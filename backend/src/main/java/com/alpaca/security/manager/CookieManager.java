@@ -8,13 +8,24 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 
+/**
+ * Utility class for managing HTTP cookies and serializing/deserializing objects in a secure manner.
+ *
+ * <p>Supports operations to read, add, delete cookies, as well as to serialize Java objects into
+ * Base64-encoded JSON strings and to deserialize them back into objects. Custom Jackson
+ * deserializers are registered to handle OAuth2-specific types like {@link
+ * com.alpaca.security.oauth2.AuthRequestDeserializer}.
+ *
+ * @see AuthRequestDeserializer
+ * @see AuthResponseTypeDeserializer
+ * @since 1.0
+ */
 public class CookieManager {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -30,6 +41,13 @@ public class CookieManager {
                 .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
     }
 
+    /**
+     * Retrieves a cookie by name from the HTTP request.
+     *
+     * @param request the incoming {@link HttpServletRequest}
+     * @param name the name of the cookie to retrieve
+     * @return an {@link Optional} containing the cookie if found, otherwise empty
+     */
     public static Optional<Cookie> getCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -42,6 +60,14 @@ public class CookieManager {
         return Optional.empty();
     }
 
+    /**
+     * Adds a new cookie with specified attributes to the HTTP response.
+     *
+     * @param response the {@link HttpServletResponse} to which the cookie will be added
+     * @param name the name of the cookie
+     * @param value the value of the cookie
+     * @param maxAge maximum age in seconds for the cookie
+     */
     public static void addCookie(
             HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
@@ -50,6 +76,13 @@ public class CookieManager {
         response.addCookie(cookie);
     }
 
+    /**
+     * Deletes a cookie by name by setting its maximum age to zero and adding it to the response.
+     *
+     * @param request the {@link HttpServletRequest} containing existing cookies
+     * @param response the {@link HttpServletResponse} to which the deletion command is sent
+     * @param name the name of the cookie to delete
+     */
     public static void deleteCookie(
             HttpServletRequest request, HttpServletResponse response, String name) {
         Cookie[] cookies = request.getCookies();
@@ -65,6 +98,13 @@ public class CookieManager {
         }
     }
 
+    /**
+     * Serializes a Java object into a Base64-encoded JSON string suitable for cookie storage.
+     *
+     * @param object the object to serialize
+     * @return a Base64 URL-safe encoded JSON string
+     * @throws RuntimeException if serialization fails
+     */
     public static String serialize(Object object) {
         try {
             return Base64.getUrlEncoder()
@@ -77,6 +117,15 @@ public class CookieManager {
         }
     }
 
+    /**
+     * Deserializes a cookie’s Base64-encoded JSON value into a Java object of the specified type.
+     *
+     * @param cookie the cookie containing the encoded value
+     * @param t the target type to deserialize into
+     * @param <T> the generic type parameter
+     * @return the deserialized object
+     * @throws RuntimeException if deserialization fails
+     */
     public static <T> T deserialize(Cookie cookie, Class<T> t) {
         try {
             return objectMapper.readValue(
@@ -88,6 +137,13 @@ public class CookieManager {
         }
     }
 
+    /**
+     * Serializes a Java object to a standard JSON string without Base64 encoding.
+     *
+     * @param object the object to serialize
+     * @return the JSON string
+     * @throws RuntimeException if serialization fails
+     */
     public static String justSerialize(Object object) {
         try {
             return objectMapper.writeValueAsString(object);
