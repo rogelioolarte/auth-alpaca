@@ -1,4 +1,4 @@
-# Multiple Auth API
+# Auth Alpaca
 
 [![javadoc badge]][javadoc]
 [![release badge]][release]
@@ -14,19 +14,19 @@
 [license]: LICENSE
 [license badge]: https://img.shields.io/github/license/rogelioolarte/multiple-auth-api?color=blue
 
-- [Multiple Auth API](#multiple-auth-api)
-  - [What is Multiple Auth API?](#what-is-multiple-auth-api)
+- [Auth Alpaca](#auth-alpaca)
+  - [What is Auth Alpaca?](#what-is-auth-alpaca)
   - [Introduction to the project](#introduction-to-the-project)
   - [Dependencies](#dependencies)
   - [How it works the process of login with OAuth2?](#how-it-works-the-process-of-login-with-oauth2)
 - [Before to start to run the applications](#before-to-start-to-run-the-applications)
 - [1. **Start up the database and environment variables:**](#1-start-up-the-database-and-environment-variables)
-- [2. **Start up the multiple-auth-api (Backend):**](#2-start-up-the-multiple-auth-api-backend)
-- [3. **Start up the multiple-auth-ui (Frontend):**](#3-start-up-the-multiple-auth-ui-frontend)
+- [2. **Start up the auth-alpaca (Backend):**](#2-start-up-the-auth-alpaca-backend)
+- [3. **Start up the auth-alpaca-ui (Frontend):**](#3-start-up-the-auth-alpaca-ui-frontend)
 - [Are you curious about the Development Process?](#are-you-curious-about-the-development-process)
 - [Are you curious about OAuth2 Process?](#are-you-curious-about-oauth2-process)
 
-## What is Multiple Auth API?
+## What is Auth Alpaca?
 Spring Boot Application that focuses on implementing multiple authentication methods using OAuhth2 and JWT.
 
 ## Introduction to the project
@@ -35,11 +35,10 @@ The backend app is meant to be run together with the frontend Angular applicatio
 
 ## Dependencies 
   * Backend:
-    *  Java 21
+    * Java 21
     * Spring Boot 3.4
     * PostgreSQL
     * [JJWT 0.12.6](https://github.com/jwtk/jjwt)
-    * [Mapstruct 1.6.3](https://github.com/mapstruct/mapstruct)
   * Frontend:
     * Angular 18
     * [JWT-Decode](https://github.com/auth0/jwt-decode)
@@ -57,8 +56,8 @@ The backend app is meant to be run together with the frontend Angular applicatio
 <div align="center" >
   <img src="ouath2-diagram.png" alt="google oauth2 diagram">
 </div>
-
-[Base Image Source](https://developers.google.com/static/identity/protocols/oauth2/images/flows/authorization-code.png)
+<a href="https://developers.google.com/identity/protocols/oauth2" target="_blank" >Source</a> - 
+<a href="https://developers.google.com/static/identity/protocols/oauth2/images/flows/authorization-code.png" target="_blank" >Base Image Source</a>
 
 # Before to start to run the applications
  - **Note: Use a terminal with bash to run the scripts.**
@@ -67,7 +66,7 @@ The backend app is meant to be run together with the frontend Angular applicatio
  1. Run the following script to create the security variables:
  
 ```console
-bash generate_keys.sh
+bash backend/generate_keys.sh
 ```
 
  2. Create your credentials for using oauth2 in the google cloud console or follow the steps detailed [here](https://blog.devgenius.io/part-3-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-8716646ed062).
@@ -75,7 +74,7 @@ bash generate_keys.sh
   3. Run Postgresql docker container with the following command (replace _{PASSWORD}_ with your own password):
 
 ```console
-docker run --name multiple-auth-app-postgres -e POSTGRES_PASSWORD={PASSWORD} -d -p 127.0.0.1:5432:5432 postgres
+docker run --name auth-alpaca-app-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD={PASSWORD}  -e POSTGRES_DB=auth-alpaca -d -p 127.0.0.1:5432:5432 postgres
 ```
 
  - Don't change the port configuration when running in a local environment. The syntax of the mapping is for extra security, so that the database is not accessible from outside the container.
@@ -84,7 +83,7 @@ docker run --name multiple-auth-app-postgres -e POSTGRES_PASSWORD={PASSWORD} -d 
  - If you need to connect to the postgresql database container, run the following command:
 
 ```console
-docker exec -it multiple-auth-app-postgres bash
+docker exec -it auth-alpaca-app-postgres bash
 ```
 
  - Connect to postgresql database, once inside the container:
@@ -92,7 +91,7 @@ docker exec -it multiple-auth-app-postgres bash
 psql -U postgres
 ```
 
-# 2. **Start up the multiple-auth-api (Backend):**
+# 2. **Start up the auth-alpaca (Backend):**
   - Note: Currently, [dotenv-java](https://github.com/cdimascio/dotenv-java) is used to load environment variables. Please note that this library should not be used in a production environment.
   
   1. Make sure to create a _.env_ file in the root of the project, and list all the required properties there as key-value pairs (don't forget to exclude this file from version control):
@@ -105,17 +104,17 @@ psql -U postgres
 
  2. Run the following command from the root directory of the project or just press the start button in your IDE:
 
-```console
+```bash
 ./mvnw spring-boot:run
 ```
 
-  - Default port for the _multiple-auth-api_ is 8080. If you want to change the port, set the "server.port" property in the _application.properties_ file. If you change the port, make sure to update the port in the multiple-auth-ui project as well (_constants.ts_ file, "API_BASE_URL" parameter).
+  - Default port for the _multiple-auth-api_ is 8080. If you want to change the port, set the "server.port" property in the _application.properties_ file. If you change the port, make sure to update the port in the auth-alpaca-ui project as well (_constants.ts_ file, "API_BASE_URL" parameter).
   
  - As this project uses OAuth2, make sure to update the redirect-uri in the _application.properties_ file and in configurations at OAuth2 providers (Google, GitHub, Twitter, etc.) too.
   
  - If you checked out from _main_ branch, you will see that _application.properties_ contains references to environment variables.
 
-# 3. **Start up the multiple-auth-ui (Frontend):**
+# 3. **Start up the auth-alpaca-ui (Frontend):**
   1. Run the following command from the root directory of the project:
 
 ```console
@@ -127,7 +126,7 @@ npm install
 npm run start
 ```
 
-  - Default port for the multiple-auth-ui is 4200. If you want to change the port, update the port in the angular.json file. On the following path: _multiple-auth-ui -> architect -> serve_ add this:
+  - Default port for the auth-alpaca-ui is 4200. If you want to change the port, update the port in the angular.json file. On the following path: _auth-alpaca-ui -> architect -> serve_ add this:
   
 ```
 "options": {
@@ -138,8 +137,8 @@ npm run start
   - Make sure to update authorized redirect uri usage places in the _multiple-auth-api_ too.
 
 # Are you curious about the Development Process? 
-The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation project:
-You can find the corresponding repository [here](https://github.com/anitalakhadze/multiple-auth-ui).
+The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation project [here](https://blog.devgenius.io/part-4-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-df3fbb003946).
+You can find the corresponding repository [here](https://github.com/anitalakhadze/auth-alpaca-ui).
 
 # Are you curious about OAuth2 Process?
 Visit the documentation and explanation of Google OAuth2 [here](https://developers.google.com/identity/protocols/oauth2).
