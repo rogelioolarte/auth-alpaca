@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   run:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -14,14 +17,12 @@ jobs:
 
       - name: Install dependencies
         run: mvn install -B -V
-        working-directory: backend
 
       - name: Run tests and collect coverage
         run: mvn -B test
-        working-directory: backend
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_ORG_TOKEN }}
-        working-directory: backend
+
