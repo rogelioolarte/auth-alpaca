@@ -11,7 +11,7 @@ import com.alpaca.controller.ProfileController;
 import com.alpaca.dto.request.ProfileRequestDTO;
 import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
-import com.alpaca.mapper.ProfileMapper;
+import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.service.IProfileService;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class ProfileControllerTest {
     @Autowired private JacksonTester<ProfileResponseDTO> responseJson;
 
     @MockitoBean private IProfileService service;
-    @MockitoBean private ProfileMapper mapper;
+    @MockitoBean private IProfileMapper mapper;
 
     private static final List<Profile> listEntities = ProfileProvider.listEntities();
     private static final ProfileResponseDTO firstResponse = ProfileProvider.singleResponse();

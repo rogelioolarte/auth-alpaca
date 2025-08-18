@@ -3,14 +3,14 @@ package com.alpaca.mapper.impl;
 import com.alpaca.dto.request.AdvertiserRequestDTO;
 import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
-import com.alpaca.mapper.AdvertiserMapper;
+import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.service.IUserService;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of the {@link AdvertiserMapper} interface, responsible for converting between
+ * Implementation of the {@link IAdvertiserMapper} interface, responsible for converting between
  * {@link Advertiser} entities and their corresponding request and response DTOs.
  *
  * <p>This mapper relies on {@link IUserService} to resolve the associated User entity based on ID
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class AdvertiserMapperImpl implements AdvertiserMapper {
+public class AdvertiserMapperImpl implements IAdvertiserMapper {
 
     private final IUserService userService;
 

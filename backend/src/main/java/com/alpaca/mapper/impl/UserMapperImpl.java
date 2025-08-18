@@ -3,10 +3,10 @@ package com.alpaca.mapper.impl;
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
-import com.alpaca.mapper.AdvertiserMapper;
-import com.alpaca.mapper.ProfileMapper;
-import com.alpaca.mapper.RoleMapper;
-import com.alpaca.mapper.UserMapper;
+import com.alpaca.mapper.IAdvertiserMapper;
+import com.alpaca.mapper.IProfileMapper;
+import com.alpaca.mapper.IRoleMapper;
+import com.alpaca.mapper.IUserMapper;
 import com.alpaca.service.IRoleService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,15 +16,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of the {@link UserMapper} interface responsible for mapping between {@link User}
+ * Implementation of the {@link IUserMapper} interface responsible for mapping between {@link User}
  * entities and their corresponding request and response DTOs.
  *
  * <p>This mapper delegates nested object transformations to other mappers:
  *
  * <ul>
- *   <li>{@link RoleMapper} for mapping user roles.
- *   <li>{@link ProfileMapper} for mapping the user profile.
- *   <li>{@link AdvertiserMapper} for mapping advertiser-related data.
+ *   <li>{@link IRoleMapper} for mapping user roles.
+ *   <li>{@link IProfileMapper} for mapping the user profile.
+ *   <li>{@link IAdvertiserMapper} for mapping advertiser-related data.
  * </ul>
  *
  * <p>Additionally, it uses the {@link IRoleService} to retrieve role entities based on IDs provided
@@ -46,17 +46,17 @@ import org.springframework.stereotype.Component;
  * @see User
  * @see UserRequestDTO
  * @see UserResponseDTO
- * @see RoleMapper
- * @see ProfileMapper
- * @see AdvertiserMapper
+ * @see IRoleMapper
+ * @see IProfileMapper
+ * @see IAdvertiserMapper
  */
 @Component
 @RequiredArgsConstructor
-public class UserMapperImpl implements UserMapper {
+public class UserMapperImpl implements IUserMapper {
 
-    private final RoleMapper roleMapper;
-    private final ProfileMapper profileMapper;
-    private final AdvertiserMapper advertiserMapper;
+    private final IRoleMapper roleMapper;
+    private final IProfileMapper profileMapper;
+    private final IAdvertiserMapper IAdvertiserMapper;
     private final IRoleService roleService;
 
     /**
@@ -73,7 +73,7 @@ public class UserMapperImpl implements UserMapper {
                 entity.getEmail(),
                 roleMapper.toListResponseDTO(entity.getRoles()),
                 profileMapper.toResponseDTO(entity.getProfile()),
-                advertiserMapper.toResponseDTO(entity.getAdvertiser()));
+                IAdvertiserMapper.toResponseDTO(entity.getAdvertiser()));
     }
 
     /**

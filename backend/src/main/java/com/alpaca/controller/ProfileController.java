@@ -5,7 +5,7 @@ import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.mapper.ProfileMapper;
+import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.service.IProfileService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link Profile} entities.
  *
  * <p>Provides endpoints for CRUD operations and pagination of profiles. Utilizes {@link
- * IProfileService} for business logic and {@link ProfileMapper} for DTO conversions.
+ * IProfileService} for business logic and {@link IProfileMapper} for DTO conversions.
  *
  * @see IProfileService
- * @see ProfileMapper
+ * @see IProfileMapper
  */
 @RestController
 @RequestMapping("/api/profile")
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
 
     private final IProfileService service;
-    private final ProfileMapper mapper;
+    private final IProfileMapper mapper;
 
     /**
      * Retrieves a profile by its unique identifier.

@@ -11,7 +11,7 @@ import com.alpaca.controller.RoleController;
 import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
-import com.alpaca.mapper.RoleMapper;
+import com.alpaca.mapper.IRoleMapper;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.service.IRoleService;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class RoleControllerTest {
     @Autowired private JacksonTester<RoleResponseDTO> responseJson;
 
     @MockitoBean private IRoleService service;
-    @MockitoBean private RoleMapper mapper;
+    @MockitoBean private IRoleMapper mapper;
 
     private static final List<Role> listEntities = RoleProvider.listEntities();
     private static final RoleResponseDTO firstResponse = RoleProvider.singleResponse();

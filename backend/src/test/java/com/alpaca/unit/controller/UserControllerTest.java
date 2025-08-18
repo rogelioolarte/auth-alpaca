@@ -11,7 +11,7 @@ import com.alpaca.controller.UserController;
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
-import com.alpaca.mapper.UserMapper;
+import com.alpaca.mapper.IUserMapper;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.IUserService;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class UserControllerTest {
     @Autowired private JacksonTester<UserResponseDTO> responseJson;
 
     @MockitoBean private IUserService service;
-    @MockitoBean private UserMapper mapper;
+    @MockitoBean private IUserMapper mapper;
 
     private static final List<User> listEntities = UserProvider.listEntities();
     private static final UserResponseDTO firstResponse = UserProvider.singleResponse();

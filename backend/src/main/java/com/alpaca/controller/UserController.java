@@ -5,7 +5,7 @@ import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.mapper.UserMapper;
+import com.alpaca.mapper.IUserMapper;
 import com.alpaca.service.IUserService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link User} entities.
  *
  * <p>Provides endpoints for CRUD operations and pagination of users. Utilizes {@link IUserService}
- * for business logic and {@link UserMapper} for DTO conversions.
+ * for business logic and {@link IUserMapper} for DTO conversions.
  *
  * @see IUserService
- * @see UserMapper
+ * @see IUserMapper
  */
 @RestController
 @RequestMapping("/api/user")
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final IUserService service;
-    private final UserMapper mapper;
+    private final IUserMapper mapper;
 
     /**
      * Retrieves a user by its unique identifier.

@@ -5,7 +5,7 @@ import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.mapper.RoleMapper;
+import com.alpaca.mapper.IRoleMapper;
 import com.alpaca.service.IRoleService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link Role} entities.
  *
  * <p>Provides endpoints for CRUD operations and pagination of roles. Utilizes {@link IRoleService}
- * for business logic and {@link RoleMapper} for DTO conversions.
+ * for business logic and {@link IRoleMapper} for DTO conversions.
  *
  * @see IRoleService
- * @see RoleMapper
+ * @see IRoleMapper
  */
 @RestController
 @RequestMapping("/api/role")
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class RoleController {
 
     private final IRoleService service;
-    private final RoleMapper mapper;
+    private final IRoleMapper mapper;
 
     /**
      * Retrieves a {@link RoleResponseDTO} by its unique identifier.

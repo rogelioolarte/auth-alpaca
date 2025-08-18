@@ -34,38 +34,24 @@ public abstract class OAuth2UserInfo {
      */
     protected Map<String, Object> attributes;
 
-    /**
-     * @return the provider-specific unique identifier for the user
-     */
+    /** Returns the provider-specific unique identifier for the user */
     public abstract String getId();
 
-    /**
-     * @return the full name of the user
-     */
+    /** Returns the full name of the user */
     public abstract String getFullName();
 
-    /**
-     * @return the user's first name
-     */
+    /** Returns the user's first name */
     public abstract String getFirstName();
 
-    /**
-     * @return the user's last name
-     */
+    /** Returns the user's last name */
     public abstract String getLastName();
 
-    /**
-     * @return the user's email address
-     */
+    /** Returns the user's email address */
     public abstract String getEmail();
 
-    /**
-     * @return the URL of the user's profile image
-     */
+    /** Returns the URL of the user's profile image */
     public abstract String getImageUrl();
 
-    /**
-     * @return true if the user's email is verified; false otherwise
-     */
+    /** Returns true if the user's email is verified; false otherwise */
     public abstract boolean getEmailVerified();
 }

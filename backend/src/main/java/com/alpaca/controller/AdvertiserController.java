@@ -5,7 +5,7 @@ import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.mapper.AdvertiserMapper;
+import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.service.IAdvertiserService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link Advertiser} entities.
  *
  * <p>Provides endpoints for CRUD operations and pagination of advertisers. Utilizes {@link
- * IAdvertiserService} for business logic and {@link AdvertiserMapper} for DTO conversions.
+ * IAdvertiserService} for business logic and {@link IAdvertiserMapper} for DTO conversions.
  *
  * @see IAdvertiserService
- * @see AdvertiserMapper
+ * @see IAdvertiserMapper
  */
 @RestController
 @RequestMapping("/api/advertiser")
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdvertiserController {
 
     private final IAdvertiserService service;
-    private final AdvertiserMapper mapper;
+    private final IAdvertiserMapper mapper;
 
     /**
      * Retrieves an advertiser by its unique identifier.

@@ -5,7 +5,7 @@ import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.mapper.PermissionMapper;
+import com.alpaca.mapper.IPermissionMapper;
 import com.alpaca.service.IPermissionService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link Permission} entities.
  *
  * <p>Provides endpoints for CRUD operations and pagination of permissions. Utilizes {@link
- * IPermissionService} for business logic and {@link PermissionMapper} for DTO conversions.
+ * IPermissionService} for business logic and {@link IPermissionMapper} for DTO conversions.
  *
  * @see IPermissionService
- * @see PermissionMapper
+ * @see IPermissionMapper
  */
 @RestController
 @RequestMapping("/api/permission")
@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class PermissionController {
 
     private final IPermissionService service;
-    private final PermissionMapper mapper;
+    private final IPermissionMapper mapper;
 
     /**
      * Retrieves a {@link PermissionResponseDTO} by its unique identifier.

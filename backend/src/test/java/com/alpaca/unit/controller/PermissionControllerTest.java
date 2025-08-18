@@ -11,7 +11,7 @@ import com.alpaca.controller.PermissionController;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
-import com.alpaca.mapper.PermissionMapper;
+import com.alpaca.mapper.IPermissionMapper;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.IPermissionService;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class PermissionControllerTest {
     @Autowired private JacksonTester<PermissionResponseDTO> responseJson;
 
     @MockitoBean private IPermissionService service;
-    @MockitoBean private PermissionMapper mapper;
+    @MockitoBean private IPermissionMapper mapper;
 
     private static final List<Permission> listEntities = PermissionProvider.listEntities();
     private static final PermissionResponseDTO firstResponse = PermissionProvider.singleResponse();

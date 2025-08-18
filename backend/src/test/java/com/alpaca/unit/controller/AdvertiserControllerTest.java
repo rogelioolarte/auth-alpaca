@@ -11,7 +11,7 @@ import com.alpaca.controller.AdvertiserController;
 import com.alpaca.dto.request.AdvertiserRequestDTO;
 import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
-import com.alpaca.mapper.AdvertiserMapper;
+import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.service.IAdvertiserService;
 import java.util.Collections;
@@ -43,7 +43,7 @@ class AdvertiserControllerTest {
     @Autowired private JacksonTester<AdvertiserResponseDTO> responseJson;
 
     @MockitoBean private IAdvertiserService service;
-    @MockitoBean private AdvertiserMapper mapper;
+    @MockitoBean private IAdvertiserMapper mapper;
 
     private static final List<Advertiser> listEntities = AdvertiserProvider.listEntities();
     private static final AdvertiserResponseDTO firstResponse = AdvertiserProvider.singleResponse();

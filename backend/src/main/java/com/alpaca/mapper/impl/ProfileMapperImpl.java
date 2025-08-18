@@ -3,14 +3,14 @@ package com.alpaca.mapper.impl;
 import com.alpaca.dto.request.ProfileRequestDTO;
 import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
-import com.alpaca.mapper.ProfileMapper;
+import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.service.IUserService;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link ProfileMapper} for mapping between {@link Profile} entities and their
+ * Implementation of {@link IProfileMapper} for mapping between {@link Profile} entities and their
  * corresponding request and response DTOs.
  *
  * <p>This class uses {@link IUserService} to resolve the User entity from the given user ID in the
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProfileMapperImpl implements ProfileMapper {
+public class ProfileMapperImpl implements IProfileMapper {
 
     private final IUserService userService;
 

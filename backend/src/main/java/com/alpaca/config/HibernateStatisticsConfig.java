@@ -43,6 +43,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class HibernateStatisticsConfig {
 
+    /** Interface used to interact with the entity manager factory for the persistence unit. */
     private final EntityManagerFactory entityManagerFactory;
 
     /**

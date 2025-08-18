@@ -3,7 +3,7 @@ package com.alpaca.mapper.impl;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
-import com.alpaca.mapper.PermissionMapper;
+import com.alpaca.mapper.IPermissionMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of {@link PermissionMapper} focused on converting between {@link Permission}
+ * Implementation of {@link IPermissionMapper} focused on converting between {@link Permission}
  * entities and their associated request and response DTOs.
  *
  * <p>Responsibilities include:
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PermissionMapperImpl implements PermissionMapper {
+public class PermissionMapperImpl implements IPermissionMapper {
 
     /**
      * Maps a {@link Permission} entity to a {@link PermissionResponseDTO}.

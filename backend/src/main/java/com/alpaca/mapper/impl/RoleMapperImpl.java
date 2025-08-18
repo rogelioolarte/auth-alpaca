@@ -3,8 +3,8 @@ package com.alpaca.mapper.impl;
 import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
-import com.alpaca.mapper.PermissionMapper;
-import com.alpaca.mapper.RoleMapper;
+import com.alpaca.mapper.IPermissionMapper;
+import com.alpaca.mapper.IRoleMapper;
 import com.alpaca.service.IPermissionService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,13 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementation of the {@link RoleMapper} interface responsible for mapping between {@link Role}
+ * Implementation of the {@link IRoleMapper} interface responsible for mapping between {@link Role}
  * entities and their corresponding request and response DTOs.
  *
  * <p>This mapper uses:
  *
  * <ul>
- *   <li>{@link PermissionMapper} to handle nested permission mappings.
+ *   <li>{@link IPermissionMapper} to handle nested permission mappings.
  *   <li>{@link IPermissionService} to resolve permission entities from IDs provided in request
  *       DTOs.
  * </ul>
@@ -41,14 +41,14 @@ import org.springframework.stereotype.Component;
  * @see Role
  * @see RoleRequestDTO
  * @see RoleResponseDTO
- * @see PermissionMapper
+ * @see IPermissionMapper
  * @see IPermissionService
  */
 @Component
 @RequiredArgsConstructor
-public class RoleMapperImpl implements RoleMapper {
+public class RoleMapperImpl implements IRoleMapper {
 
-    private final PermissionMapper permissionMapper;
+    private final IPermissionMapper permissionMapper;
     private final IPermissionService permissionService;
 
     /**
