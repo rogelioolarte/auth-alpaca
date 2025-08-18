@@ -5,10 +5,11 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IProfileService;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * Main Service for managing {@link Profile} entities. Extends {@link IGenericService} to inherit

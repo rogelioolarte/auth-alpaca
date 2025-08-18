@@ -1,17 +1,18 @@
 package com.alpaca.unit.security.filter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.security.filter.SimpleCORSFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link SimpleCORSFilter}. */
 @DisplayName("SimpleCORSFilter Unit Tests")

@@ -4,6 +4,8 @@ import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
+import org.springframework.data.domain.PageImpl;
+
 import java.util.*;
 
 public class UserProvider {
@@ -18,6 +20,14 @@ public class UserProvider {
 
     public static List<UserResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
+    }
+
+    public static PageImpl<UserResponseDTO> pageResponse() {
+        return new PageImpl<UserResponseDTO>(listResponse());
+    }
+
+    public static PageImpl<User> pageEntities() {
+        return new PageImpl<User>(listEntities());
     }
 
     public static User singleTemplate() {

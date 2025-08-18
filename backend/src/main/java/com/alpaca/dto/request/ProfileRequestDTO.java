@@ -15,11 +15,11 @@ import org.hibernate.validator.constraints.UUID;
 @NoArgsConstructor
 public class ProfileRequestDTO {
 
-    @Size(min = 5, max = 250, message = "First Name must be at least 5 to 250 characters.")
+    @Size(min = 2, max = 250, message = "First Name must be at least 5 to 250 characters.")
     @NotBlank(message = "First Name is required.")
     private String firstName;
 
-    @Size(min = 5, max = 250, message = "Last Name must be at least 5 to 250 characters.")
+    @Size(min = 2, max = 250, message = "Last Name must be at least 5 to 250 characters.")
     @NotBlank(message = "Last Name is required.")
     private String lastName;
 

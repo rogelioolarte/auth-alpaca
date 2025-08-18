@@ -8,11 +8,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 
 public class CookieManager {
 

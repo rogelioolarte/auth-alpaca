@@ -1,20 +1,21 @@
 package com.alpaca.unit.security.manager;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link CookieManager} */
 @DisplayName("CookieManager Unit Tests")
@@ -105,6 +106,15 @@ class CookieManagerTest {
         Cookie other = new Cookie("other", "value");
 
         when(request.getCookies()).thenReturn(new Cookie[] {other});
+
+        CookieManager.deleteCookie(request, response, "nonexistent");
+        verify(response, never()).addCookie(any());
+    }
+
+    @Test
+    @DisplayName("deleteCookie does nothing when cookie is null")
+    void deleteCookieDoesNothingWhenNull() {
+        when(request.getCookies()).thenReturn(null);
 
         CookieManager.deleteCookie(request, response, "nonexistent");
         verify(response, never()).addCookie(any());

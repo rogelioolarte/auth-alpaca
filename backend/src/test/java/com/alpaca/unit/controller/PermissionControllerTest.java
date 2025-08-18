@@ -1,11 +1,5 @@
 package com.alpaca.unit.controller;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import com.alpaca.controller.PermissionController;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
@@ -13,9 +7,6 @@ import com.alpaca.entity.Permission;
 import com.alpaca.mapper.PermissionMapper;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.IPermissionService;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +23,17 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @WebMvcTest(PermissionController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureJsonTesters
@@ -44,10 +46,10 @@ class PermissionControllerTest {
     @MockitoBean private IPermissionService service;
     @MockitoBean private PermissionMapper mapper;
 
-    static final List<Permission> listEntities = PermissionProvider.listEntities();
-    static final PermissionResponseDTO firstResponse = PermissionProvider.singleResponse();
-    static final Permission singleEntity = PermissionProvider.singleEntity();
-    static final PermissionRequestDTO singleRequest = PermissionProvider.singleRequest();
+    private static final List<Permission> listEntities = PermissionProvider.listEntities();
+    private static final PermissionResponseDTO firstResponse = PermissionProvider.singleResponse();
+    private static final Permission singleEntity = PermissionProvider.singleEntity();
+    private static final PermissionRequestDTO singleRequest = PermissionProvider.singleRequest();
 
     private void mockMapperAndServiceForSave() {
         when(mapper.toEntity(

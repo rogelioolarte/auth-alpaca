@@ -1,23 +1,24 @@
 package com.alpaca.unit.security.manager;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Unit tests for {@link JJwtManager} */
 @DisplayName("JJwtManager Unit Tests")

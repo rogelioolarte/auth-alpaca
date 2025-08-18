@@ -1,6 +1,7 @@
 package com.alpaca.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class AdvertiserRequestDTO {
     @NotBlank(message = "Public URL Location is required.")
     private String publicUrlLocation;
 
-    @NotBlank(message = "Indexed State is required.")
+    @NotNull(message = "Indexed State is required.")
     private boolean indexed;
 
     @UUID(message = "UUID format is required.")

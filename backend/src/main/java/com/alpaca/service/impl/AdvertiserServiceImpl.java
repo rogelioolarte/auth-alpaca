@@ -5,10 +5,11 @@ import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.service.IAdvertiserService;
 import com.alpaca.service.IGenericService;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * Main Service for managing {@link Advertiser} entities. Extends {@link IGenericService} to inherit

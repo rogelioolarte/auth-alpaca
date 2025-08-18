@@ -1,13 +1,10 @@
 package com.alpaca.integration.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
 import com.alpaca.resources.PermissionProvider;
-import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +15,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link com.alpaca.persistence.impl.PermissionDAOImpl} */
 @SpringBootTest

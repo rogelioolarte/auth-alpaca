@@ -6,7 +6,6 @@ import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IAuthService;
 import com.alpaca.service.impl.AuthServiceImpl;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +32,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.client.RestClient;
+
+import java.util.List;
 
 /**
  * Configures security settings for the application, including authentication, authorization, OAuth2

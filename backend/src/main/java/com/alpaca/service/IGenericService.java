@@ -2,11 +2,12 @@ package com.alpaca.service;
 
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Generic service interface providing common CRUD operations.

@@ -1,14 +1,15 @@
 package com.alpaca.unit.security.oauth2.userinfo;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.security.oauth2.userinfo.GoogleUserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("OAuth2UserInfoFactory Unit Tests")
 class OAuth2UserInfoFactoryTest {

@@ -1,6 +1,7 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Profile;
+
 import java.util.UUID;
 
 /**

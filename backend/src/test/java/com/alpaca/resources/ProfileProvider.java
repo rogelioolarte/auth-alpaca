@@ -3,6 +3,8 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.ProfileRequestDTO;
 import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
+import org.springframework.data.domain.PageImpl;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,8 +23,16 @@ public class ProfileProvider {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
+    public static PageImpl<ProfileResponseDTO> pageResponse() {
+        return new PageImpl<ProfileResponseDTO>(listResponse());
+    }
+
+    public static PageImpl<Profile> pageEntities() {
+        return new PageImpl<Profile>(listEntities());
+    }
+
     public static Profile singleTemplate() {
-        return new Profile(null, "Admin", "Last", "https://foto.admin.com", "av admin 01", null);
+        return new Profile(null, "Admin", "Last", "av admin 01", "https://foto.admin.com", null);
     }
 
     public static Profile singleEntity() {
@@ -30,8 +40,8 @@ public class ProfileProvider {
                 UUID.fromString("fb2ba5e5-37c8-4645-994e-6a6953188801"),
                 "Admin",
                 "Last",
-                "https://foto.admin.com",
                 "av admin 01",
+                "https://foto.admin.com",
                 UserProvider.singleEntity());
     }
 
@@ -40,8 +50,8 @@ public class ProfileProvider {
                 UUID.fromString("3f95f801-160f-44a4-b8e0-81e29e9d83da"),
                 "User",
                 "Last",
-                "https://foto.user.com",
                 "av user 01",
+                "https://foto.user.com",
                 UserProvider.alternativeEntity());
     }
 
@@ -49,8 +59,8 @@ public class ProfileProvider {
         return new ProfileRequestDTO(
                 "Admin",
                 "Last",
-                "https://foto.admin.com",
                 "av admin 01",
+                "https://foto.admin.com",
                 UserProvider.singleEntity().getId().toString());
     }
 
@@ -58,8 +68,8 @@ public class ProfileProvider {
         return new ProfileRequestDTO(
                 "User",
                 "Last",
-                "https://foto.user.com",
                 "av user 01",
+                "https://foto.user.com",
                 UserProvider.alternativeEntity().getId().toString());
     }
 
@@ -68,8 +78,8 @@ public class ProfileProvider {
                 UUID.fromString("fb2ba5e5-37c8-4645-994e-6a6953188801"),
                 "Admin",
                 "Last",
-                "https://foto.admin.com",
                 "av admin 01",
+                "https://foto.admin.com",
                 UserProvider.singleResponse().id(),
                 UserProvider.singleResponse().email());
     }
@@ -79,8 +89,8 @@ public class ProfileProvider {
                 UUID.fromString("3f95f801-160f-44a4-b8e0-81e29e9d83da"),
                 "User",
                 "Last",
-                "https://foto.user.com",
                 "av user 01",
+                "https://foto.user.com",
                 UserProvider.alternativeResponse().id(),
                 UserProvider.alternativeResponse().email());
     }

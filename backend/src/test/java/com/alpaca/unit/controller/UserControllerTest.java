@@ -1,12 +1,12 @@
 package com.alpaca.unit.controller;
 
-import com.alpaca.controller.RoleController;
-import com.alpaca.dto.request.RoleRequestDTO;
-import com.alpaca.dto.response.RoleResponseDTO;
-import com.alpaca.entity.Role;
-import com.alpaca.mapper.RoleMapper;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.service.IRoleService;
+import com.alpaca.controller.UserController;
+import com.alpaca.dto.request.UserRequestDTO;
+import com.alpaca.dto.response.UserResponseDTO;
+import com.alpaca.entity.User;
+import com.alpaca.mapper.UserMapper;
+import com.alpaca.resources.UserProvider;
+import com.alpaca.service.IUserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,34 +34,31 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(RoleController.class)
+@WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureJsonTesters
-class RoleControllerTest {
+class UserControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @Autowired private JacksonTester<RoleRequestDTO> requestJson;
-    @Autowired private JacksonTester<RoleResponseDTO> responseJson;
+    @Autowired private JacksonTester<UserRequestDTO> requestJson;
+    @Autowired private JacksonTester<UserResponseDTO> responseJson;
 
-    @MockitoBean private IRoleService service;
-    @MockitoBean private RoleMapper mapper;
+    @MockitoBean private IUserService service;
+    @MockitoBean private UserMapper mapper;
 
-    private static final List<Role> listEntities = RoleProvider.listEntities();
-    private static final RoleResponseDTO firstResponse = RoleProvider.singleResponse();
-    private static final Role singleEntity = RoleProvider.singleEntity();
-    private static final RoleRequestDTO singleRequest = RoleProvider.singleRequest();
+    private static final List<User> listEntities = UserProvider.listEntities();
+    private static final UserResponseDTO firstResponse = UserProvider.singleResponse();
+    private static final User singleEntity = UserProvider.singleEntity();
+    private static final UserRequestDTO singleRequest = UserProvider.singleRequest();
 
     private void mockMapperAndServiceForSave() {
         when(mapper.toEntity(
                         argThat(
                                 r ->
                                         r != null
-                                                && r.getRoleName()
-                                                        .equals(singleRequest.getRoleName())
-                                                && r.getRoleDescription()
-                                                        .equals(
-                                                                singleRequest
-                                                                        .getRoleDescription()))))
+                                                && r.getEmail().equals(singleRequest.getEmail())
+                                                && r.getPassword()
+                                                        .equals(singleRequest.getPassword()))))
                 .thenReturn(singleEntity);
         when(service.save(singleEntity)).thenReturn(singleEntity);
         when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
@@ -72,12 +69,9 @@ class RoleControllerTest {
                         argThat(
                                 r ->
                                         r != null
-                                                && r.getRoleName()
-                                                        .equals(singleRequest.getRoleName())
-                                                && r.getRoleDescription()
-                                                        .equals(
-                                                                singleRequest
-                                                                        .getRoleDescription()))))
+                                                && r.getEmail().equals(singleRequest.getEmail())
+                                                && r.getPassword()
+                                                        .equals(singleRequest.getPassword()))))
                 .thenReturn(singleEntity);
         when(service.updateById(singleEntity, id)).thenReturn(singleEntity);
         when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
@@ -85,17 +79,21 @@ class RoleControllerTest {
 
     @Test
     @DisplayName("findById returns 200 and correct object")
-    void findByIdReturnsRole() throws Exception {
+    void findByIdReturnsUser() throws Exception {
         when(service.findById(firstResponse.id())).thenReturn(listEntities.getFirst());
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/role/{id}", firstResponse.id())
+                        get("/api/user/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.roleName", is(firstResponse.roleName())))
-                .andExpect(jsonPath("$.roleDescription", is(firstResponse.roleDescription())));
+                .andExpect(jsonPath("$.email", is(firstResponse.email())))
+                .andExpect(jsonPath("$.roles").isArray())
+                .andExpect(
+                        jsonPath(
+                                "$.roles[0].id",
+                                is(firstResponse.roles().getFirst().id().toString())));
 
         verify(service).findById(firstResponse.id());
         verify(mapper).toResponseDTO(listEntities.getFirst());
@@ -108,7 +106,7 @@ class RoleControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/role/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/user/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -117,28 +115,28 @@ class RoleControllerTest {
 
     @Test
     @DisplayName("save returns 201 when Object is created")
-    void saveCreatesRole() throws Exception {
+    void saveCreatesUser() throws Exception {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/role/save")
+                        post("/api/user/save")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.roleName", is(firstResponse.roleName())))
-                .andExpect(jsonPath("$.roleDescription", is(firstResponse.roleDescription())));
+                .andExpect(jsonPath("$.email", is(firstResponse.email())))
+                .andExpect(jsonPath("$.roles").isArray());
 
-        ArgumentCaptor<Role> captor = ArgumentCaptor.forClass(Role.class);
-        verify(mapper).toEntity(isA(RoleRequestDTO.class));
-        verify(service).save(isA(Role.class));
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(mapper).toEntity(isA(UserRequestDTO.class));
+        verify(service).save(isA(User.class));
         verify(service).save(captor.capture());
-        verify(mapper).toResponseDTO(isA(Role.class));
+        verify(mapper).toResponseDTO(isA(User.class));
 
         assertNotNull(captor.getValue());
         assertEquals(singleEntity.getId(), captor.getValue().getId());
-        assertEquals(singleEntity.getRoleName(), captor.getValue().getRoleName());
+        assertEquals(singleEntity.getEmail(), captor.getValue().getEmail());
     }
 
     @Test
@@ -147,54 +145,54 @@ class RoleControllerTest {
         mockMapperAndServiceForSave();
         doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already exists"))
                 .when(service)
-                .save(isA(Role.class));
+                .save(isA(User.class));
 
         mockMvc.perform(
-                        post("/api/role/save")
+                        post("/api/user/save")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", is("Already exists")));
 
-        verify(service).save(isA(Role.class));
+        verify(service).save(isA(User.class));
     }
 
     @Test
     @DisplayName("updateById returns 200 OK and updated object")
-    void updateByIdUpdatesRole() throws Exception {
+    void updateByIdUpdatesUser() throws Exception {
         UUID id = firstResponse.id();
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/role/{id}", id)
+                        put("/api/user/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.roleName", is(firstResponse.roleName())))
-                .andExpect(jsonPath("$.roleDescription", is(firstResponse.roleDescription())));
+                .andExpect(jsonPath("$.email", is(firstResponse.email())))
+                .andExpect(jsonPath("$.roles").isArray());
 
-        ArgumentCaptor<Role> captor = ArgumentCaptor.forClass(Role.class);
-        verify(mapper).toEntity(isA(RoleRequestDTO.class));
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(mapper).toEntity(isA(UserRequestDTO.class));
         verify(service).updateById(captor.capture(), eq(id));
-        verify(mapper).toResponseDTO(isA(Role.class));
+        verify(mapper).toResponseDTO(isA(User.class));
 
         assertEquals(singleEntity.getId(), captor.getValue().getId());
-        assertEquals(singleEntity.getRoleName(), captor.getValue().getRoleName());
+        assertEquals(singleEntity.getEmail(), captor.getValue().getEmail());
     }
 
     @Test
     @DisplayName("updateById returns 404 Not Found when object to modify does not exist")
     void updateByIdNotFound() throws Exception {
         UUID id = firstResponse.id();
-        when(mapper.toEntity(argThat(r -> r.getRoleName().equals(singleRequest.getRoleName()))))
+        when(mapper.toEntity(argThat(r -> r.getEmail().equals(singleRequest.getEmail()))))
                 .thenReturn(singleEntity);
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"))
                 .when(service)
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/role/{id}", id)
+                        put("/api/user/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -205,11 +203,11 @@ class RoleControllerTest {
 
     @Test
     @DisplayName("delete returns 204 No Content when object exists")
-    void deleteDeletesRole() throws Exception {
+    void deleteDeletesUser() throws Exception {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/role/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/user/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -223,7 +221,7 @@ class RoleControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/role/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/user/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -236,7 +234,7 @@ class RoleControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/role/all"))
+        mockMvc.perform(get("/api/user/all"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -248,18 +246,18 @@ class RoleControllerTest {
     @Test
     @DisplayName("findAll returns all persisted entities")
     void findAllReturnsPersistedList() throws Exception {
-        RoleResponseDTO altResponse = RoleProvider.alternativeResponse();
+        var altResponse = UserProvider.alternativeResponse();
         when(service.findAll()).thenReturn(listEntities);
-        when(mapper.toListResponseDTO(listEntities)).thenReturn(RoleProvider.listResponse());
+        when(mapper.toListResponseDTO(listEntities)).thenReturn(UserProvider.listResponse());
 
-        mockMvc.perform(get("/api/role/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/user/all").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
                 .andExpect(jsonPath("$[0].id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$[0].roleName", is(firstResponse.roleName())))
+                .andExpect(jsonPath("$[0].email", is(firstResponse.email())))
                 .andExpect(jsonPath("$[1].id", is(altResponse.id().toString())))
-                .andExpect(jsonPath("$[1].roleName", is(altResponse.roleName())));
+                .andExpect(jsonPath("$[1].email", is(altResponse.email())));
 
         verify(service).findAll();
         verify(mapper).toListResponseDTO(listEntities);
@@ -270,13 +268,13 @@ class RoleControllerTest {
     void findAllPageReturnsPagedList() throws Exception {
         when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
         when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
-                .thenReturn(RoleProvider.pageResponse());
+                .thenReturn(UserProvider.pageResponse());
 
-        mockMvc.perform(get("/api/role/all-page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/user/all-page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.content[0].roleName", is(firstResponse.roleName())));
+                .andExpect(jsonPath("$.content[0].email", is(firstResponse.email())));
 
         verify(service).findAllPage(isA(Pageable.class));
         verify(mapper).toPageResponseDTO(argThat(r -> r instanceof PageImpl));

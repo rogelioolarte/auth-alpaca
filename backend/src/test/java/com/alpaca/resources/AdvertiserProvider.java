@@ -3,6 +3,8 @@ package com.alpaca.resources;
 import com.alpaca.dto.request.AdvertiserRequestDTO;
 import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
+import org.springframework.data.domain.PageImpl;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +21,14 @@ public class AdvertiserProvider {
 
     public static List<AdvertiserResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
+    }
+
+    public static PageImpl<AdvertiserResponseDTO> pageResponse() {
+        return new PageImpl<AdvertiserResponseDTO>(listResponse());
+    }
+
+    public static PageImpl<Advertiser> pageEntities() {
+        return new PageImpl<Advertiser>(listEntities());
     }
 
     public static Advertiser singleTemplate() {

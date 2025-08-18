@@ -1,11 +1,11 @@
 package com.alpaca.unit.security.manager;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.alpaca.security.manager.PasswordManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Unit tests for {@link PasswordManager} */
 @DisplayName("PasswordManager Unit Tests")

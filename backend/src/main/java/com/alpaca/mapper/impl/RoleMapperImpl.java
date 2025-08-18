@@ -6,12 +6,13 @@ import com.alpaca.entity.Role;
 import com.alpaca.mapper.PermissionMapper;
 import com.alpaca.mapper.RoleMapper;
 import com.alpaca.service.IPermissionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

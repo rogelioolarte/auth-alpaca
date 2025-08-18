@@ -1,11 +1,12 @@
 package com.alpaca.entity;
 
 import jakarta.persistence.*;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.UUID;
 
 /**
  * Represents an Advertiser entity in the system. This entity is mapped to the "advertisers" table

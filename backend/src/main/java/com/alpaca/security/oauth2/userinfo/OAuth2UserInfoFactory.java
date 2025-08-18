@@ -1,6 +1,7 @@
 package com.alpaca.security.oauth2.userinfo;
 
 import com.alpaca.exception.BadRequestException;
+
 import java.util.Map;
 
 public class OAuth2UserInfoFactory {

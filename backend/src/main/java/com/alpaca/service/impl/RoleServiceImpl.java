@@ -7,13 +7,14 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRoleService;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Main Service for managing {@link Role} entities. Extends {@link IGenericService} to inherit
