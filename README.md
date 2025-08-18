@@ -137,7 +137,7 @@ npm run start
   - Make sure to update authorized redirect uri usage places in the _multiple-auth-api_ too.
 
 # Are you curious about the Development Process? 
-The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation project [here](https://blog.devgenius.io/part-4-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-df3fbb003946).
+The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation articles [here](https://blog.devgenius.io/part-4-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-df3fbb003946).
 You can find the corresponding repository [here](https://github.com/anitalakhadze/auth-alpaca-ui).
 
 # Are you curious about OAuth2 Process?
