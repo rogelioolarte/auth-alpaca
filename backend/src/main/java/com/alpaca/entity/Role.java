@@ -1,7 +1,5 @@
 package com.alpaca.entity;
 
-import com.alpaca.entity.intermediate.RolePermission;
-import com.alpaca.entity.intermediate.UserRole;
 import jakarta.persistence.*;
 import java.util.*;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,5 @@
 package com.alpaca.entity;
 
-import com.alpaca.entity.intermediate.RolePermission;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Objects;

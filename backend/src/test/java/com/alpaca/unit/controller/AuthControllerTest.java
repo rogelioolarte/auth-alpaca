@@ -170,7 +170,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("root returns API Online")
     void rootReturnsApiOnline() throws Exception {
-        mockMvc.perform(get("/auth/").accept(MediaType.TEXT_PLAIN))
+        mockMvc.perform(get("/auth").accept(MediaType.TEXT_PLAIN))
                 .andExpect(status().isOk())
                 .andExpect(content().string("API Online"));
     }

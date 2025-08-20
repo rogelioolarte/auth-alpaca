@@ -89,7 +89,7 @@ class RoleControllerTest {
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/role/{id}", firstResponse.id())
+                        get("/api/roles/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
@@ -107,7 +107,7 @@ class RoleControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/role/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/roles/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -120,7 +120,7 @@ class RoleControllerTest {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/role/save")
+                        post("/api/roles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
@@ -149,7 +149,7 @@ class RoleControllerTest {
                 .save(isA(Role.class));
 
         mockMvc.perform(
-                        post("/api/role/save")
+                        post("/api/roles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
@@ -165,7 +165,7 @@ class RoleControllerTest {
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/role/{id}", id)
+                        put("/api/roles/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
@@ -193,7 +193,7 @@ class RoleControllerTest {
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/role/{id}", id)
+                        put("/api/roles/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -208,7 +208,7 @@ class RoleControllerTest {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/role/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/roles/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -222,7 +222,7 @@ class RoleControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/role/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/roles/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -235,7 +235,7 @@ class RoleControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/role/all"))
+        mockMvc.perform(get("/api/roles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -251,7 +251,7 @@ class RoleControllerTest {
         when(service.findAll()).thenReturn(listEntities);
         when(mapper.toListResponseDTO(listEntities)).thenReturn(RoleProvider.listResponse());
 
-        mockMvc.perform(get("/api/role/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/roles").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -271,7 +271,7 @@ class RoleControllerTest {
         when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
                 .thenReturn(RoleProvider.pageResponse());
 
-        mockMvc.perform(get("/api/role/all-page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/roles/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))

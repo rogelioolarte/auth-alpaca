@@ -1,7 +1,5 @@
-package com.alpaca.entity.intermediate;
+package com.alpaca.entity;
 
-import com.alpaca.entity.Permission;
-import com.alpaca.entity.Role;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AllArgsConstructor;

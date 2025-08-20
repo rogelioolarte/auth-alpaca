@@ -1,7 +1,6 @@
-package com.alpaca.repository.intermediate;
+package com.alpaca.repository;
 
-import com.alpaca.entity.intermediate.RolePermission;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.entity.RolePermission;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 

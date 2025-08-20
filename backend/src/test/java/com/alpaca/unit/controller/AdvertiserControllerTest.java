@@ -91,7 +91,7 @@ class AdvertiserControllerTest {
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/advertiser/{id}", firstResponse.id())
+                        get("/api/advertisers/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
@@ -116,7 +116,7 @@ class AdvertiserControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/advertiser/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/advertisers/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -129,7 +129,7 @@ class AdvertiserControllerTest {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/advertiser/save")
+                        post("/api/advertisers")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
@@ -165,7 +165,7 @@ class AdvertiserControllerTest {
                 .save(isA(Advertiser.class));
 
         mockMvc.perform(
-                        post("/api/advertiser/save")
+                        post("/api/advertisers")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
@@ -181,7 +181,7 @@ class AdvertiserControllerTest {
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/advertiser/{id}", id)
+                        put("/api/advertisers/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
@@ -216,7 +216,7 @@ class AdvertiserControllerTest {
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/advertiser/{id}", id)
+                        put("/api/advertisers/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -231,7 +231,7 @@ class AdvertiserControllerTest {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/advertiser/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/advertisers/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -245,7 +245,7 @@ class AdvertiserControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/advertiser/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/advertisers/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -258,7 +258,7 @@ class AdvertiserControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/advertiser/all"))
+        mockMvc.perform(get("/api/advertisers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -274,7 +274,7 @@ class AdvertiserControllerTest {
         when(service.findAll()).thenReturn(listEntities);
         when(mapper.toListResponseDTO(listEntities)).thenReturn(AdvertiserProvider.listResponse());
 
-        mockMvc.perform(get("/api/advertiser/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/advertisers").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -295,7 +295,7 @@ class AdvertiserControllerTest {
                 .thenReturn(AdvertiserProvider.pageResponse());
 
         mockMvc.perform(
-                        get("/api/advertiser/all-page?page=0&size=10")
+                        get("/api/advertisers/page?page=0&size=10")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())

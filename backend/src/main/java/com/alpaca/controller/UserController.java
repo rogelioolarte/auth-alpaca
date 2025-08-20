@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @see IUserMapper
  */
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -56,7 +56,7 @@ public class UserController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity<UserResponseDTO> save(@Valid @RequestBody UserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
@@ -99,7 +99,7 @@ public class UserController {
      * @return {@link ResponseEntity} containing a list of {@link UserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
@@ -112,7 +112,7 @@ public class UserController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link UserResponseDTO}
      *     with status {@link HttpStatus#OK}
      */
-    @GetMapping("/all-page")
+    @GetMapping("/page")
     public ResponseEntity<PagedModel<UserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));

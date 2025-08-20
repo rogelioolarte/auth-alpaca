@@ -91,7 +91,7 @@ class PermissionControllerTest {
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/permission/{id}", firstResponse.id())
+                        get("/api/permissions/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
@@ -108,7 +108,7 @@ class PermissionControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/permission/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/permissions/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -121,7 +121,7 @@ class PermissionControllerTest {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/permission/save")
+                        post("/api/permissions")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
@@ -149,7 +149,7 @@ class PermissionControllerTest {
                 .save(isA(Permission.class));
 
         mockMvc.perform(
-                        post("/api/permission/save")
+                        post("/api/permissions")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
@@ -165,7 +165,7 @@ class PermissionControllerTest {
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/permission/{id}", id)
+                        put("/api/permissions/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
@@ -196,7 +196,7 @@ class PermissionControllerTest {
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/permission/{id}", id)
+                        put("/api/permissions/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -211,7 +211,7 @@ class PermissionControllerTest {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/permission/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/permissions/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -225,7 +225,7 @@ class PermissionControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/permission/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/permissions/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -238,7 +238,7 @@ class PermissionControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/permission/all"))
+        mockMvc.perform(get("/api/permissions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -254,7 +254,7 @@ class PermissionControllerTest {
         when(service.findAll()).thenReturn(listEntities);
         when(mapper.toListResponseDTO(listEntities)).thenReturn(PermissionProvider.listResponse());
 
-        mockMvc.perform(get("/api/permission/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/permissions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -275,7 +275,7 @@ class PermissionControllerTest {
                 .thenReturn(PermissionProvider.pageResponse());
 
         mockMvc.perform(
-                        get("/api/permission/all-page?page=0&size=10")
+                        get("/api/permissions/page?page=0&size=10")
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())

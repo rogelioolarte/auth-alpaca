@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @see IPermissionMapper
  */
 @RestController
-@RequestMapping("/api/permission")
+@RequestMapping("/api/permissions")
 @RequiredArgsConstructor
 public class PermissionController {
 
@@ -56,7 +56,7 @@ public class PermissionController {
      *     status {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity<PermissionResponseDTO> save(
             @Valid @RequestBody PermissionRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -100,7 +100,7 @@ public class PermissionController {
      * @return {@link ResponseEntity} containing a list of {@link PermissionResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<PermissionResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
@@ -113,7 +113,7 @@ public class PermissionController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
      *     PermissionResponseDTO} with status {@link HttpStatus#OK}
      */
-    @GetMapping("/all-page")
+    @GetMapping("/page")
     public ResponseEntity<PagedModel<PermissionResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @see IAdvertiserMapper
  */
 @RestController
-@RequestMapping("/api/advertiser")
+@RequestMapping("/api/advertisers")
 @RequiredArgsConstructor
 public class AdvertiserController {
 
@@ -56,7 +56,7 @@ public class AdvertiserController {
      *     status {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity<AdvertiserResponseDTO> save(
             @Valid @RequestBody AdvertiserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -100,7 +100,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} containing a list of {@link AdvertiserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<AdvertiserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
@@ -113,7 +113,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
      *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
      */
-    @GetMapping("/all-page")
+    @GetMapping("/page")
     public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));

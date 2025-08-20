@@ -4,7 +4,6 @@ com.alpaca.controller
 com.alpaca.dto.request
 com.alpaca.dto.response
 com.alpaca.entity
-com.alpaca.entity.intermediate
 com.alpaca.exception
 com.alpaca.mapper
 com.alpaca.mapper.impl
@@ -12,7 +11,6 @@ com.alpaca.model
 com.alpaca.persistence
 com.alpaca.persistence.impl
 com.alpaca.repository
-com.alpaca.repository.intermediate
 com.alpaca.security.filter
 com.alpaca.security.manager
 com.alpaca.security.oauth2

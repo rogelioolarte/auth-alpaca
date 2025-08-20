@@ -83,7 +83,7 @@ class UserControllerTest {
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/user/{id}", firstResponse.id())
+                        get("/api/users/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
@@ -105,7 +105,7 @@ class UserControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/user/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/users/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -118,7 +118,7 @@ class UserControllerTest {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/user/save")
+                        post("/api/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
@@ -147,7 +147,7 @@ class UserControllerTest {
                 .save(isA(User.class));
 
         mockMvc.perform(
-                        post("/api/user/save")
+                        post("/api/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
@@ -163,7 +163,7 @@ class UserControllerTest {
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/user/{id}", id)
+                        put("/api/users/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
@@ -191,7 +191,7 @@ class UserControllerTest {
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/user/{id}", id)
+                        put("/api/users/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -206,7 +206,7 @@ class UserControllerTest {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/user/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/users/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -220,7 +220,7 @@ class UserControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/user/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/users/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -233,7 +233,7 @@ class UserControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/user/all"))
+        mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -249,7 +249,7 @@ class UserControllerTest {
         when(service.findAll()).thenReturn(listEntities);
         when(mapper.toListResponseDTO(listEntities)).thenReturn(UserProvider.listResponse());
 
-        mockMvc.perform(get("/api/user/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/users").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -269,7 +269,7 @@ class UserControllerTest {
         when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
                 .thenReturn(UserProvider.pageResponse());
 
-        mockMvc.perform(get("/api/user/all-page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/users/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))

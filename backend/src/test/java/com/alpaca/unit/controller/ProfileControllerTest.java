@@ -89,7 +89,7 @@ class ProfileControllerTest {
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
 
         mockMvc.perform(
-                        get("/api/profile/{id}", firstResponse.id())
+                        get("/api/profiles/{id}", firstResponse.id())
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
@@ -111,7 +111,7 @@ class ProfileControllerTest {
         when(service.findById(id))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
 
-        mockMvc.perform(get("/api/profile/{id}", id).contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/profiles/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message", is("Not found")));
 
@@ -124,7 +124,7 @@ class ProfileControllerTest {
         mockMapperAndServiceForSave();
 
         mockMvc.perform(
-                        post("/api/profile/save")
+                        post("/api/profiles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
@@ -157,7 +157,7 @@ class ProfileControllerTest {
                 .save(isA(Profile.class));
 
         mockMvc.perform(
-                        post("/api/profile/save")
+                        post("/api/profiles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isConflict())
@@ -173,7 +173,7 @@ class ProfileControllerTest {
         mockMapperAndServiceForUpdate(id);
 
         mockMvc.perform(
-                        put("/api/profile/{id}", id)
+                        put("/api/profiles/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
@@ -205,7 +205,7 @@ class ProfileControllerTest {
                 .updateById(singleEntity, id);
 
         mockMvc.perform(
-                        put("/api/profile/{id}", id)
+                        put("/api/profiles/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isNotFound())
@@ -220,7 +220,7 @@ class ProfileControllerTest {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
-        mockMvc.perform(delete("/api/profile/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/profiles/{id}", id)).andExpect(status().isNoContent());
 
         verify(service).deleteById(id);
     }
@@ -234,7 +234,7 @@ class ProfileControllerTest {
                 .when(service)
                 .deleteById(id);
 
-        mockMvc.perform(delete("/api/profile/{id}", id).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/api/profiles/{id}", id).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Bad request: not found")));
 
@@ -247,7 +247,7 @@ class ProfileControllerTest {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/profile/all"))
+        mockMvc.perform(get("/api/profiles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -263,7 +263,7 @@ class ProfileControllerTest {
         when(service.findAll()).thenReturn(listEntities);
         when(mapper.toListResponseDTO(listEntities)).thenReturn(ProfileProvider.listResponse());
 
-        mockMvc.perform(get("/api/profile/all").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/profiles").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -283,9 +283,7 @@ class ProfileControllerTest {
         when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
                 .thenReturn(ProfileProvider.pageResponse());
 
-        mockMvc.perform(
-                        get("/api/profile/all-page?page=0&size=10")
-                                .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/profiles/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))

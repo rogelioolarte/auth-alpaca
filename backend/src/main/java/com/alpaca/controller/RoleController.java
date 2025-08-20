@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @see IRoleMapper
  */
 @RestController
-@RequestMapping("/api/role")
+@RequestMapping("/api/roles")
 @RequiredArgsConstructor
 public class RoleController {
 
@@ -56,7 +56,7 @@ public class RoleController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity<RoleResponseDTO> save(@Valid @RequestBody RoleRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
@@ -99,7 +99,7 @@ public class RoleController {
      * @return {@link ResponseEntity} containing a list of {@link RoleResponseDTO}s with status
      *     {@link HttpStatus#OK}
      */
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<RoleResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toListResponseDTO(service.findAll()));
@@ -112,7 +112,7 @@ public class RoleController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link RoleResponseDTO}s
      *     with status {@link HttpStatus#OK}
      */
-    @GetMapping("/all-page")
+    @GetMapping("/page")
     public ResponseEntity<PagedModel<RoleResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));

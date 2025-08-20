@@ -79,7 +79,7 @@ public class AuthController {
      * @return {@link ResponseEntity} containing a simple string message with status {@link
      *     HttpStatus#OK}
      */
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<String> health() {
         return new ResponseEntity<>("API Online", HttpStatus.OK);
     }
