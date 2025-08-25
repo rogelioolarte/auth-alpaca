@@ -6,8 +6,20 @@ export enum AuthProvider {
 }
 
 export interface UserProfile {
-  id: number,
-  email: string,
-  firstname: string,
-  lastname: string
+  accountNonExpired: boolean,
+  accountNonLocked: boolean,
+  advertiserId: string,
+  attributes: string,
+  authorities: Authority[],
+  credentialsNonExpired: boolean,
+  enabled: boolean,
+  id: string,
+  name: string,
+  password: string,
+  profileId: string,
+  username: string
+}
+
+export interface Authority {
+  authority: string
 }

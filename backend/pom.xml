@@ -9,27 +9,48 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<artifactId>multiple-auth-api</artifactId>
+	<version>1.0.0</version>
+	<name>Multiple Auth API</name>
+	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.</description>
 	<url/>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Rogelio Olarte</name>
+			<url>https://github.com/rogelioolarte</url>
+			<email>rogelioolarte2222@gmail.com</email>
+			<roles>
+				<role>DEVELOPER</role>
+				<role>MAINTAINER</role>
+			</roles>
+		</developer><developer>
+			<name>Lewis Florez Renza</name>
+			<url>https://github.com/gasperlf</url>
+			<email>gasper_lf@hotmail.com</email>
+			<roles>
+				<role>ADVISOR</role>
+				<role>REVIEWER</role>
+			</roles>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/rogelioolarte/multiple-auth-api.git</connection>
+		<developerConnection>scm:git:ssh://github.com:rogelioolarte/multiple-auth-api.git</developerConnection>
+		<url>https://github.com/rogelioolarte/multiple-auth-api</url>
+		<tag>HEAD</tag>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<jjwt.version>0.12.6</jjwt.version>
+		<spotless.version>2.44.2</spotless.version>
+		<jacoco.agent.it></jacoco.agent.it>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -80,17 +101,7 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-			<version>${org.mapstruct.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct-processor</artifactId>
-			<version>${org.mapstruct.version}</version>
-			<scope>provided</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -106,10 +117,102 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>dotenv-java</artifactId>
+			<version>3.1.0</version>
+		</dependency>
 	</dependencies>
+	<profiles>
+		<!-- Profile for Unit Tests -->
+		<profile>
+			<id>unit-tests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.12</version>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+								<phase>none</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Profile for Integration Tests -->
+		<profile>
+			<id>integration-tests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.12</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+									<goal>report</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+								<configuration>
+									<excludes>
+										<exclude>**/DemoApplication.class</exclude>
+										<exclude>**/DataServiceImpl.class</exclude>
+										<exclude>**/entity/**</exclude>
+										<exclude>**/model/**</exclude>
+										<exclude>**/dto/**</exclude>
+										<exclude>**/controller/**</exclude>
+										<exclude>**/exception/**</exclude>
+										<exclude>**/repository/**</exclude>
+										<exclude>**/config/**</exclude>
+										<exclude>**/utils/**</exclude>
+									</excludes>
+									<outputDirectory>${project.build.directory}/site-integration</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+						<configuration>
+							<rules>
+								<rule>
+									<element>PACKAGE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.80</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>
+			<!-- Maven Compiler Plugin -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -119,14 +222,10 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>${org.mapstruct.version}</version>
-						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			<!-- SpringBoot Maven Plugin -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -138,6 +237,184 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+
+			<!-- Spotless auto formatting -->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.44.3</version>
+				<configuration>
+					<markdown>
+						<includes>
+							<include>**/*.md</include>
+						</includes>
+						<flexmark/>
+					</markdown>
+					<formats>
+						<format>
+							<includes>
+								<include>*.md</include>
+								<include>*.json</include>
+								<include>.gitattributes</include>
+								<include>.gitignore</include>
+							</includes>
+							<trimTrailingWhitespace/>
+							<endWithNewline/>
+							<indent>
+								<tabs>true</tabs>
+								<spacesPerTab>4</spacesPerTab>
+							</indent>
+						</format>
+					</formats>
+					<java>
+						<googleJavaFormat>
+							<version>1.26.0</version>
+							<style>AOSP</style>
+							<reflowLongStrings>true</reflowLongStrings>
+						</googleJavaFormat>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>apply</id>
+						<goals>
+							<goal>apply</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- JaCoCo Plugin for both unit and integration test coverage -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
+				<executions>
+					<!-- Attach the Java agent to both test phases -->
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+
+					<!-- Report for Unit Tests -->
+					<execution>
+						<id>report-unit</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${project.build.directory}/jacoco.exec</dataFile>
+							<outputDirectory>${project.build.directory}/jacoco-report/unit</outputDirectory>
+							<excludes>
+								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/DataServiceImpl.class</exclude>
+								<exclude>**/entity/**</exclude>
+								<exclude>**/model/**</exclude>
+								<exclude>**/dto/**</exclude>
+								<exclude>**/exception/**</exclude>
+								<exclude>**/repository/**</exclude>
+								<exclude>**/config/**</exclude>
+								<exclude>**/utils/**</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+
+					<!-- Report for Integration Tests -->
+					<execution>
+						<id>prepare-agent-integration</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<propertyName>jacoco.agent.it</propertyName>
+							<destFile>${project.build.directory}/jacoco-it.exec</destFile>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>report-integration</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
+							<outputDirectory>${project.build.directory}/jacoco-report/integration</outputDirectory>
+							<excludes>
+								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/DataServiceImpl.class</exclude>
+								<exclude>**/entity/**</exclude>
+								<exclude>**/model/**</exclude>
+								<exclude>**/dto/**</exclude>
+								<exclude>**/controller/**</exclude>
+								<exclude>**/exception/**</exclude>
+								<exclude>**/repository/**</exclude>
+								<exclude>**/config/**</exclude>
+								<exclude>**/utils/**</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Failsafe Plugin for Integration Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.5.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>integration/**/*IT.java</include>
+					</includes>
+					<excludes>
+						<exclude>unit/**</exclude>
+					</excludes>
+					<reportsDirectory>${project.build.directory}/failsafe-reports/integration</reportsDirectory>
+					<argLine>${jacoco.agent.it}</argLine>
+				</configuration>
+			</plugin>
+
+			<!-- Surefire Plugin for Unit Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>unit/**/*Test.java</include>
+					</includes>
+					<argLine>
+						@{argLine}
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+						-Xshare:off -XX:+EnableDynamicAgentLoading
+					</argLine>
+				</configuration>
+			</plugin>
+
+			<!-- Dependency plugin to resolve variables -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>properties</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

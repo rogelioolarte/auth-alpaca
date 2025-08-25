@@ -1,21 +1,33 @@
 #!/bin/bash
 
-# Generate pem private key in PEM-encoded X.509 format
-openssl genrsa -out refresh.pem 4096
-# generate public key
-openssl rsa -in refresh.pem -out refresh.pub -pubout
-# Convert the private key to PKCS#8 format
-openssl pkcs8 -topk8 -inform PEM -in refresh.pem -outform PEM -out refresh.key -nocrypt
+# Enable "strict mode" to catch errors and prevent failed commands from continuing
+set -euo pipefail
 
-PRIVATE_KEY=$(sed '1d;$d' refresh.key | tr -d '\n')
-PUBLIC_KEY=$(sed '1d;$d' refresh.pub | tr -d '\n')
+# Create temporary files for key storage
+PRIVATE_PEM=$(mktemp)
+PUBLIC_PEM=$(mktemp)
+PRIVATE_PKCS8=$(mktemp)
 
+# Generate a 4096-bit RSA private key in PEM format
+openssl genrsa -out "$PRIVATE_PEM" 4096
+
+# Generate the corresponding public key
+openssl rsa -in "$PRIVATE_PEM" -out "$PUBLIC_PEM" -pubout
+
+# Convert the private key to PKCS#8 format (without encryption)
+openssl pkcs8 -topk8 -inform PEM -in "$PRIVATE_PEM" -outform PEM -out "$PRIVATE_PKCS8" -nocrypt
+
+# Extract and format the keys as environment variables
+PRIVATE_KEY=$(sed '1d;$d' "$PRIVATE_PKCS8" | tr -d '\n')
+PUBLIC_KEY=$(sed '1d;$d' "$PUBLIC_PEM" | tr -d '\n')
+
+# Print the environment variables
 echo "JWT_BE_PRIVATE_KEY=${PRIVATE_KEY}"
 echo "JWT_BE_PUBLIC_KEY=${PUBLIC_KEY}"
 
-rm refresh.pem refresh.key refresh.pub
+# Securely remove temporary files
+rm -f "$PRIVATE_PEM" "$PUBLIC_PEM" "$PRIVATE_PKCS8"
 
-# Generate a HS512 key in base64 format
-SECRET_KEY=$(openssl rand -base64 64 | tr -d '\n')
-
+# Generate a secure HS512 secret key in base64 format without unsafe characters
+SECRET_KEY=$(openssl rand -base64 64 | tr -d '+/=' | head -c 64)
 echo "SPRING_DATASOURCE_SECRET_KEY=${SECRET_KEY}"
