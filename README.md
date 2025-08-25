@@ -5,14 +5,14 @@
 [![codecov badge]][codecov]
 [![license badge]][license]
 
-[javadoc]: https://rogelioolarte.github.io/multiple-auth-api/
-[javadoc badge]: https://img.shields.io/github/v/release/rogelioolarte/multiple-auth-api?label=javadoc&labelColor=grey&color=brightgreen
-[release]: https://github.com/rogelioolarte/multiple-auth-api/releases
-[release badge]: https://img.shields.io/github/v/release/rogelioolarte/multiple-auth-api?color=brightgreen&sort=semver
-[codecov]: https://codecov.io/gh/rogelioolarte/multiple-auth-api
-[codecov badge]: https://codecov.io/gh/rogelioolarte/multiple-auth-api/branch/main/graph/badge.svg
+[javadoc]: https://rogelioolarte.github.io/auth-alpaca/
+[javadoc badge]: https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen
+[release]: https://github.com/rogelioolarte/auth-alpaca/releases
+[release badge]: https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver
+[codecov]: https://codecov.io/gh/rogelioolarte/auth-alpaca
+[codecov badge]: https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg
 [license]: LICENSE
-[license badge]: https://img.shields.io/github/license/rogelioolarte/multiple-auth-api?color=blue
+[license badge]: https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue
 
 - [Auth Alpaca](#auth-alpaca)
   - [What is Auth Alpaca?](#what-is-auth-alpaca)
@@ -79,7 +79,7 @@ docker run --name auth-alpaca-app-postgres -e POSTGRES_USER=postgres -e POSTGRES
 
  - Don't change the port configuration when running in a local environment. The syntax of the mapping is for extra security, so that the database is not accessible from outside the container.
 
- - If you change the password to the postgresql database, make sure to update the password in the application.properties file of the **_multiple-auth-api_** project.
+ - If you change the password to the postgresql database, make sure to update the password in the application.properties file of the **_auth-alpaca-api_** project.
  - If you need to connect to the postgresql database container, run the following command:
 
 ```console
@@ -108,7 +108,7 @@ psql -U postgres
 ./mvnw spring-boot:run
 ```
 
-  - Default port for the _multiple-auth-api_ is 8080. If you want to change the port, set the "server.port" property in the _application.properties_ file. If you change the port, make sure to update the port in the auth-alpaca-ui project as well (_constants.ts_ file, "API_BASE_URL" parameter).
+  - Default port for the _auth-alpaca-api_ is 8080. If you want to change the port, set the "server.port" property in the _application.properties_ file. If you change the port, make sure to update the port in the auth-alpaca-ui project as well (_constants.ts_ file, "API_BASE_URL" parameter).
   
  - As this project uses OAuth2, make sure to update the redirect-uri in the _application.properties_ file and in configurations at OAuth2 providers (Google, GitHub, Twitter, etc.) too.
   
@@ -134,7 +134,7 @@ npm run start
 }
 ```
 
-  - Make sure to update authorized redirect uri usage places in the _multiple-auth-api_ too.
+  - Make sure to update authorized redirect uri usage places in the _auth-alpaca-api_ too.
 
 # Are you curious about the Development Process? 
 The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation articles [here](https://blog.devgenius.io/part-4-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-df3fbb003946).

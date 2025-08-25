@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>multiple-auth-api</artifactId>
+	<artifactId>auth-alpaca-api</artifactId>
 	<version>1.0.0</version>
-	<name>Multiple Auth API</name>
+	<name>Auth Alpaca API</name>
 	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.</description>
 	<url/>
 	<licenses>
@@ -41,9 +41,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:https://github.com/rogelioolarte/multiple-auth-api.git</connection>
-		<developerConnection>scm:git:ssh://github.com:rogelioolarte/multiple-auth-api.git</developerConnection>
-		<url>https://github.com/rogelioolarte/multiple-auth-api</url>
+		<connection>scm:git:https://github.com/rogelioolarte/auth-alpaca.git</connection>
+		<developerConnection>scm:git:ssh://github.com:rogelioolarte/auth-alpaca.git</developerConnection>
+		<url>https://github.com/rogelioolarte/auth-alpaca</url>
 		<tag>HEAD</tag>
 	</scm>
 	<properties>

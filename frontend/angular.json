@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "multiple-auth-ui": {
+    "auth-alpaca-ui": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/multiple-auth-ui",
+            "outputPath": "dist/auth-alpaca-ui",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -66,10 +66,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "multiple-auth-ui:build:production"
+              "buildTarget": "auth-alpaca-ui:build:production"
             },
             "development": {
-              "buildTarget": "multiple-auth-ui:build:development"
+              "buildTarget": "auth-alpaca-ui:build:development"
             }
           },
           "defaultConfiguration": "development"
