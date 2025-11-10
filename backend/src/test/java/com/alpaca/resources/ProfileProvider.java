@@ -23,11 +23,11 @@ public class ProfileProvider {
     }
 
     public static PageImpl<ProfileResponseDTO> pageResponse() {
-        return new PageImpl<ProfileResponseDTO>(listResponse());
+        return new PageImpl<>(listResponse());
     }
 
     public static PageImpl<Profile> pageEntities() {
-        return new PageImpl<Profile>(listEntities());
+        return new PageImpl<>(listEntities());
     }
 
     public static Profile singleTemplate() {

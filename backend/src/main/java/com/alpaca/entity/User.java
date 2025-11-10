@@ -211,15 +211,35 @@ public class User {
             for (UserRole userRole : userRoles) {
                 authorities.add(
                         new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-                //             Uncomment the following code if permissions should be included in
+            }
+        }
+        return authorities;
+    }
+
+    /**
+     * Retrieves the authorities granted and Permissions to the User based on their assigned roles.
+     * Each role is prefixed with "ROLE_" as per Spring Security conventions.
+     *
+     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
+     */
+    public Set<SimpleGrantedAuthority> getAuthoritiesWithPermissions() {
+        if (userRoles.isEmpty()) return Collections.emptySet();
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
+        if (userRoles.size() == 1) {
+            authorities.add(
+                    new SimpleGrantedAuthority(
+                            "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
+        } else {
+            for (UserRole userRole : userRoles) {
+                authorities.add(
+                        new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
+                // Uncomment the following code if permissions should be included in
                 // authorities
-                //             If we add this for cycle to the function it will have a time
-                // complexity of
+                // If we add this for cycle to the function it will have a time complexity of
                 // O(n^2)
-                //             for (Permission permission : userRole.getRole().getPermissions()) {
-                //                 authorities.add(new
-                // SimpleGrantedAuthority(permission.getPermissionName()));
-                //             }
+                for (Permission permission : userRole.getRole().getPermissions()) {
+                    authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+                }
             }
         }
         return authorities;

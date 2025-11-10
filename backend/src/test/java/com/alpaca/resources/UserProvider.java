@@ -22,11 +22,11 @@ public class UserProvider {
     }
 
     public static PageImpl<UserResponseDTO> pageResponse() {
-        return new PageImpl<UserResponseDTO>(listResponse());
+        return new PageImpl<>(listResponse());
     }
 
     public static PageImpl<User> pageEntities() {
-        return new PageImpl<User>(listEntities());
+        return new PageImpl<>(listEntities());
     }
 
     public static User singleTemplate() {
@@ -178,14 +178,6 @@ public class UserProvider {
                 "email_verified", emailVerified);
     }
 
-    public static String getEmail() {
-        return "test@example.com";
-    }
-
-    public static String getPassword() {
-        return "encodedPassword";
-    }
-
     /** Utility to create a User entity * */
     public static User createUser(
             boolean enabled,
@@ -195,8 +187,8 @@ public class UserProvider {
             boolean emailVerified,
             boolean googleConnected) {
         return new User(
-                getEmail(),
-                getPassword(),
+                "test@example.com",
+                "encodedPassword",
                 enabled,
                 accountNonExpired,
                 accountNonLocked,

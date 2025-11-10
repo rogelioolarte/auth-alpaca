@@ -38,13 +38,12 @@ class UserDAOImplIT {
 
     @Autowired private AdvertiserRepo advertiserRepo;
 
-    private User template;
     private User persisted;
 
     @BeforeEach
     void setUp() {
         // prepare a user for update and findByEmail
-        template = UserProvider.singleTemplate();
+        User template = UserProvider.singleTemplate();
         persisted = userRepo.save(template);
     }
 
@@ -75,19 +74,7 @@ class UserDAOImplIT {
         Profile profile = profileRepo.save(templateProfile);
         Advertiser adv = advertiserRepo.save(templateAdvertiser);
 
-        // Full update request
-        User update = new User();
-        update.setEmail("new@example.com");
-        update.setPassword("newPass");
-        update.setUserRoles(Collections.emptySet());
-        update.setProfile(profile);
-        update.setAdvertiser(adv);
-        update.setEnabled(!persisted.isEnabled());
-        update.setAccountNoLocked(!persisted.isAccountNoLocked());
-        update.setAccountNoExpired(!persisted.isAccountNoExpired());
-        update.setCredentialNoExpired(!persisted.isCredentialNoExpired());
-        update.setEmailVerified(!persisted.isEmailVerified());
-        update.setGoogleConnected(!persisted.isGoogleConnected());
+        User update = getUser(profile, adv);
 
         User out = dao.updateById(update, id);
         assertEquals(id, out.getId());
@@ -112,6 +99,22 @@ class UserDAOImplIT {
 
         // non-existing id
         assertThrows(NotFoundException.class, () -> dao.updateById(update, UUID.randomUUID()));
+    }
+
+    private User getUser(Profile profile, Advertiser adv) {
+        User update = new User();
+        update.setEmail("new@example.com");
+        update.setPassword("newPass");
+        update.setUserRoles(Collections.emptySet());
+        update.setProfile(profile);
+        update.setAdvertiser(adv);
+        update.setEnabled(!persisted.isEnabled());
+        update.setAccountNoLocked(!persisted.isAccountNoLocked());
+        update.setAccountNoExpired(!persisted.isAccountNoExpired());
+        update.setCredentialNoExpired(!persisted.isCredentialNoExpired());
+        update.setEmailVerified(!persisted.isEmailVerified());
+        update.setGoogleConnected(!persisted.isGoogleConnected());
+        return update;
     }
 
     @Test
