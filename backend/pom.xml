@@ -41,9 +41,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:https://github.com/rogelioolarte/multiple-auth-api.git</connection>
-		<developerConnection>scm:git:ssh://github.com:rogelioolarte/multiple-auth-api.git</developerConnection>
-		<url>https://github.com/rogelioolarte/multiple-auth-api</url>
+		<connection>scm:git:https://github.com/rogelioolarte/auth-alpaca.git</connection>
+		<developerConnection>scm:git:ssh://github.com:rogelioolarte/auth-alpaca.git</developerConnection>
+		<url>https://github.com/rogelioolarte/auth-alpaca</url>
 		<tag>HEAD</tag>
 	</scm>
 	<properties>

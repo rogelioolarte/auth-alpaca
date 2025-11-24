@@ -11,7 +11,7 @@ import {DomSanitizer} from "@angular/platform-browser";
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'multiple-auth-ui';
+  title = 'auth-alpaca-ui';
 
   private matIconRegistry = inject(MatIconRegistry);
   private domSanitizer = inject(DomSanitizer);
