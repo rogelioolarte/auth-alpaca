@@ -23,11 +23,11 @@ public class AdvertiserProvider {
     }
 
     public static PageImpl<AdvertiserResponseDTO> pageResponse() {
-        return new PageImpl<AdvertiserResponseDTO>(listResponse());
+        return new PageImpl<>(listResponse());
     }
 
     public static PageImpl<Advertiser> pageEntities() {
-        return new PageImpl<Advertiser>(listEntities());
+        return new PageImpl<>(listEntities());
     }
 
     public static Advertiser singleTemplate() {

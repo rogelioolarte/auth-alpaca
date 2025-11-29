@@ -27,11 +27,11 @@ public class PermissionProvider {
     }
 
     public static PageImpl<PermissionResponseDTO> pageResponse() {
-        return new PageImpl<PermissionResponseDTO>(listResponse());
+        return new PageImpl<>(listResponse());
     }
 
     public static PageImpl<Permission> pageEntities() {
-        return new PageImpl<Permission>(listEntities());
+        return new PageImpl<>(listEntities());
     }
 
     public static Permission templateSingleEntity() {

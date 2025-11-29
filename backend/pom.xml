@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0</version>
+		<version>3.5.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>auth-alpaca-api</artifactId>
-	<version>1.0.0</version>
-	<name>Auth Alpaca API</name>
-	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuhth2 and JWT.</description>
+	<artifactId>multiple-auth-api</artifactId>
+	<version>2.0.0</version>
+	<name>Multiple Auth API</name>
+	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuth2 and JWT.</description>
 	<url/>
 	<licenses>
 		<license>
@@ -47,10 +47,11 @@
 		<tag>HEAD</tag>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
-		<jjwt.version>0.12.6</jjwt.version>
-		<spotless.version>2.44.2</spotless.version>
-		<jacoco.agent.it></jacoco.agent.it>
+		<java.version>25</java.version>
+		<jjwt.version>0.13.0</jjwt.version>
+		<spotless.version>3.0.0</spotless.version>
+        <google-java-format.version>1.27.0</google-java-format.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -120,7 +121,7 @@
 		<dependency>
 			<groupId>io.github.cdimascio</groupId>
 			<artifactId>dotenv-java</artifactId>
-			<version>3.1.0</version>
+			<version>3.2.0</version>
 		</dependency>
 	</dependencies>
 	<profiles>
@@ -159,7 +160,7 @@
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.8.12</version>
+						<version>${jacoco-maven-plugin.version}</version>
 						<executions>
 							<execution>
 								<goals>
@@ -243,7 +244,7 @@
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
-				<version>2.44.3</version>
+				<version>${spotless.version}</version>
 				<configuration>
 					<markdown>
 						<includes>
@@ -254,11 +255,13 @@
 					<formats>
 						<format>
 							<includes>
-								<include>*.md</include>
 								<include>*.json</include>
 								<include>.gitattributes</include>
 								<include>.gitignore</include>
 							</includes>
+                            <excludes>
+                                <exclude>javadoc/**</exclude>
+                            </excludes>
 							<trimTrailingWhitespace/>
 							<endWithNewline/>
 							<indent>
@@ -269,7 +272,7 @@
 					</formats>
 					<java>
 						<googleJavaFormat>
-							<version>1.26.0</version>
+                            <version>${google-java-format.version}</version>
 							<style>AOSP</style>
 							<reflowLongStrings>true</reflowLongStrings>
 						</googleJavaFormat>
@@ -290,7 +293,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.12</version>
+                <version>${jacoco-maven-plugin.version}</version>
 				<executions>
 					<!-- Attach the Java agent to both test phases -->
 					<execution>
@@ -384,7 +387,6 @@
 						<exclude>unit/**</exclude>
 					</excludes>
 					<reportsDirectory>${project.build.directory}/failsafe-reports/integration</reportsDirectory>
-					<argLine>${jacoco.agent.it}</argLine>
 				</configuration>
 			</plugin>
 

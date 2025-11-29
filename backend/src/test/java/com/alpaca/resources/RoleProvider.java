@@ -21,11 +21,11 @@ public class RoleProvider {
     }
 
     public static PageImpl<RoleResponseDTO> pageResponse() {
-        return new PageImpl<RoleResponseDTO>(listResponse());
+        return new PageImpl<>(listResponse());
     }
 
     public static PageImpl<Role> pageEntities() {
-        return new PageImpl<Role>(listEntities());
+        return new PageImpl<>(listEntities());
     }
 
     public static Role singleTemplate() {
