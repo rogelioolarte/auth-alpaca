@@ -1,0 +1,52 @@
+package com.alpaca.utils;
+
+import com.fasterxml.uuid.Generators;
+import com.fasterxml.uuid.impl.TimeBasedEpochGenerator;
+import java.io.Serializable;
+import java.util.UUID;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.id.IdentifierGenerator;
+
+/**
+ * Custom Hibernate Identifier Generator that produces UUID v7.
+ *
+ * <p>This generator uses the <a href="https://github.com/cowtowncoder/java-uuid-generator">JUG
+ * library</a> to create time-ordered, epoch-based UUIDs.
+ *
+ * <p>UUID v7 structure provides:
+ *
+ * <ul>
+ *   <li>48-bit Unix Timestamp (milliseconds precision).
+ *   <li>Monotonic sequence counter (to handle multiple generations within the same millisecond).
+ *   <li>Random data for uniqueness.
+ * </ul>
+ *
+ * <p>This implementation is thread-safe and ensures monotonicity by using a static generator
+ * instance.
+ */
+public class UUIDv7Generator implements IdentifierGenerator {
+
+    /**
+     * Singleton instance of the JUG TimeBasedEpochGenerator.
+     *
+     * <p>It is crucial to keep this instance static/shared. If instantiated per call, the internal
+     * counter for sub-millisecond sorting would reset, defeating the purpose of the monotonic
+     * logic.
+     */
+    private static final TimeBasedEpochGenerator GENERATOR = Generators.timeBasedEpochGenerator();
+
+    /**
+     * Generates a new UUID v7.
+     *
+     * @param session The session from which the request originates.
+     * @param object The entity or object for which the id is being generated.
+     * @return A new {@link UUID} (v7) instance.
+     * @throws HibernateException Indicates trouble generating the identifier.
+     */
+    @Override
+    public Serializable generate(SharedSessionContractImplementor session, Object object)
+            throws HibernateException {
+        return GENERATOR.generate();
+    }
+}

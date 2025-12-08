@@ -52,6 +52,7 @@
 		<spotless.version>3.0.0</spotless.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+		<uuid-generator-version>5.1.1</uuid-generator-version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -82,6 +83,11 @@
 			<artifactId>jjwt-jackson</artifactId>
 			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.uuid</groupId>
+			<artifactId>java-uuid-generator</artifactId>
+			<version>${uuid-generator-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

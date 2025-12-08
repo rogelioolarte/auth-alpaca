@@ -19,9 +19,12 @@ public class UserPrincipalProvider {
                         true,
                         false,
                         false,
+                        null,
                         new HashSet<>(),
                         null,
-                        null),
+                        null,
+                        new HashSet<>(),
+                        new HashSet<>()),
                 null);
     }
 
@@ -37,9 +40,12 @@ public class UserPrincipalProvider {
                         true,
                         false,
                         false,
+                        null,
                         new HashSet<>(),
                         null,
-                        null),
+                        null,
+                        new HashSet<>(),
+                        new HashSet<>()),
                 null);
     }
 }

@@ -1,6 +1,8 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,13 +21,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends Auditable {
 
     /**
      * Unique identifier for the User. This value is automatically generated using a UUID strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratorUUIDv7
     @Column(name = "user_id")
     private UUID id;
 
@@ -64,6 +66,17 @@ public class User {
     private boolean googleConnected = false;
 
     /**
+     * Timestamp before which all issued tokens (access or refresh) for this user should be
+     * considered invalid.
+     *
+     * <p>Useful for enforcing global logout or invalidating all sessions/tokens when a critical
+     * change happens, such as password reset, role changes or security incident. Any token created
+     * before this instant should be rejected.
+     */
+    @Column(name = "tokens_invalid_before")
+    private Instant tokensInvalidBefore;
+
+    /**
      * Indicates the set of Role has the User.
      *
      * <p>A User has a many-to-many relationship with an {@link Role} through {@link UserRole}
@@ -98,6 +111,25 @@ public class User {
             fetch = FetchType.LAZY,
             orphanRemoval = true)
     private Advertiser advertiser;
+
+    /**
+     * The set of refresh tokens associated with this user across sessions/families.
+     *
+     * <p>Used for managing, revoking or auditing refresh tokens when implementing rotation and
+     * reuse-detection.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RefreshToken> refreshTokens = new HashSet<>();
+
+    /**
+     * The set of session / token-family records associated with this user.
+     *
+     * <p>Each session typically represents a logical login context (device, client, browser, etc.).
+     * This allows tracking active sessions, revoking an entire session (all its tokens), and
+     * auditing session metadata.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Session> sessions = new HashSet<>();
 
     /**
      * Constructs an instance of a new User object with the specified attributes. The generated
@@ -233,7 +265,7 @@ public class User {
             for (UserRole userRole : userRoles) {
                 authorities.add(
                         new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-                // Uncomment the following code if permissions should be included in
+                // Use the following function if permissions should be included in
                 // authorities
                 // If we add this for cycle to the function it will have a time complexity of
                 // O(n^2)

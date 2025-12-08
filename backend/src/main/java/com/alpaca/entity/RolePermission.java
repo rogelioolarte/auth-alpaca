@@ -1,11 +1,15 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Represents the association between a {@link Role} and a {@link Permission}.
@@ -19,6 +23,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "role_permissions")
+@EntityListeners(AuditingEntityListener.class)
 public class RolePermission {
 
     /**
@@ -26,7 +31,7 @@ public class RolePermission {
      * using a UUID strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratorUUIDv7
     @Column(name = "role_permission_id")
     private UUID id;
 
@@ -39,6 +44,14 @@ public class RolePermission {
     @ManyToOne
     @JoinColumn(name = "permission_id", nullable = false)
     private Permission permission;
+
+    /**
+     * The date and time when the entity was first persisted. This field is managed automatically by
+     * Spring Data JPA Auditing. It is set on creation and cannot be updated afterward.
+     */
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     /**
      * Constructs an instance of a new RolePermission object with the specified attributes.

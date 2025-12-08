@@ -1,5 +1,6 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -18,14 +19,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "advertisers")
-public class Advertiser {
+public class Advertiser extends Auditable {
 
     /**
      * Unique identifier for the Advertiser. This value is automatically generated using a UUID
      * strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratorUUIDv7
     @Column(name = "advertiser_id")
     private UUID id;
 

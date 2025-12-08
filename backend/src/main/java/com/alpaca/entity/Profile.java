@@ -1,5 +1,6 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.Objects;
 import java.util.UUID;
@@ -19,14 +20,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
-public class Profile {
+public class Profile extends Auditable {
 
     /**
      * Unique identifier for the Profile. This value is automatically generated using a UUID
      * strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratorUUIDv7
     @Column(name = "profile_id")
     private UUID id;
 

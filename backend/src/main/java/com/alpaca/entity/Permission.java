@@ -1,5 +1,6 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Objects;
@@ -20,14 +21,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "permissions")
-public class Permission {
+public class Permission extends Auditable {
 
     /**
      * Unique identifier for the Permission. This value is automatically generated using a UUID
      * strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratorUUIDv7
     @Column(name = "permission_id")
     private UUID id;
 

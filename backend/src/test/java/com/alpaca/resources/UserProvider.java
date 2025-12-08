@@ -40,9 +40,12 @@ public class UserProvider {
                 true,
                 false,
                 false,
+                null,
                 new HashSet<>(),
                 null,
-                null);
+                null,
+                new HashSet<>(),
+                new HashSet<>());
     }
 
     public static User alternativeTemplate() {
@@ -56,9 +59,12 @@ public class UserProvider {
                 true,
                 false,
                 false,
+                null,
                 new HashSet<>(),
                 null,
-                null);
+                null,
+                new HashSet<>(),
+                new HashSet<>());
     }
 
     public static User singleEntity() {
@@ -72,9 +78,12 @@ public class UserProvider {
                 true,
                 false,
                 false,
+                null,
                 new HashSet<>(),
                 null,
-                null);
+                null,
+                new HashSet<>(),
+                new HashSet<>());
     }
 
     public static User alternativeEntity() {
@@ -88,9 +97,12 @@ public class UserProvider {
                 true,
                 false,
                 false,
+                null,
                 new HashSet<>(),
                 null,
-                null);
+                null,
+                new HashSet<>(),
+                new HashSet<>());
     }
 
     public static User completeEntity() {
@@ -105,9 +117,12 @@ public class UserProvider {
                         true,
                         false,
                         false,
+                        null,
                         new HashSet<>(),
                         null,
-                        null);
+                        null,
+                        new HashSet<>(),
+                        new HashSet<>());
         secondEntity.setUserRoles(
                 new HashSet<>(
                         Set.of(RoleProvider.alternativeEntity(), RoleProvider.singleEntity())));
@@ -126,9 +141,12 @@ public class UserProvider {
                         false,
                         false,
                         false,
+                        null,
                         new HashSet<>(),
                         null,
-                        null);
+                        null,
+                        new HashSet<>(),
+                        new HashSet<>());
         secondEntity.setUserRoles(new HashSet<>(Set.of(RoleProvider.alternativeEntity())));
         return secondEntity;
     }
