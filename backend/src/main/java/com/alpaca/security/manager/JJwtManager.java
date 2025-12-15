@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -59,43 +60,63 @@ public class JJwtManager {
     private final SignatureAlgorithm alg = Jwts.SIG.RS512;
 
     /** RSA private key used to sign tokens. */
-    private final RSAPrivateKey privateKey;
+    private final RSAPrivateKey privateKeyA;
 
     /** RSA public key used to verify tokens. */
-    private final RSAPublicKey publicKey;
+    private final RSAPublicKey publicKeyA;
 
     /** The issuer (generator) identifier included in the token payload. */
     private final String jwtUserGenerator;
 
     /** Token expiration time (in milliseconds), configured via properties. */
-    private final String jwtTimeExpiration;
+    private final Long jwtTimeExpirationA;
 
     /**
-     * Constructs a {@code JJwtManager} with the necessary RSA keys and configuration.
+     * Constructs a {@code JJwtManager} with the necessary RSA key resources and configuration.
      *
-     * @param jwtPrivateKey Base64-encoded RSA private key (PKCS#8 format)
-     * @param jwtPublicKey Base64-encoded RSA public key (X.509 format)
-     * @param jwtUSerGenerator Issuer name to include in JWT tokens
-     * @param jwtTimeExpiration Expiration time in milliseconds for tokens
-     * @throws Exception if the provided keys cannot be parsed or decoded
+     * <p>This constructor loads the RSA private and public keys for Access Token and Refresh Token from Spring {@link Resource}
+     * locations. Keys must be in standard PEM formats.
+     *
+     * <p>It also sets the issuer and token expiration time.
+     *
+     * @param accessPrivateKeyResource the resource location for the RSA private key of Access Token.
+     * @param accessPublicKeyResource the resource location for the RSA public key of Access Token.
+     * @param jwtUserGenerator identifier to include in the "iss" claim
+     * @param jwtTimeExpirationA expiration duration (ms) of Access Token.
+     * @throws Exception if keys cannot be loaded or parsed
      */
     public JJwtManager(
-            @Value("${app.jwtPrivateKey}") @NotNull String jwtPrivateKey,
-            @Value("${app.jwtPublicKey}") @NotNull String jwtPublicKey,
-            @Value("${app.jwtUserGenerator}") @NotNull String jwtUSerGenerator,
-            @Value("${app.jwtTimeExpiration}") @NotNull String jwtTimeExpiration)
+            @Value("${security.jwt.access.private-key-path}") Resource accessPrivateKeyResource,
+            @Value("${security.jwt.access.public-key-path}") Resource accessPublicKeyResource,
+            @Value("${security.jwt.user-generator}") @NotNull String jwtUserGenerator,
+            @Value("${security.jwt.access.expiration}") @NotNull String jwtTimeExpirationA)
             throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        this.publicKey =
-                (RSAPublicKey)
-                        keyFactory.generatePublic(
-                                new X509EncodedKeySpec(Decoders.BASE64.decode(jwtPublicKey)));
-        this.privateKey =
-                (RSAPrivateKey)
-                        keyFactory.generatePrivate(
-                                new PKCS8EncodedKeySpec(Decoders.BASE64.decode(jwtPrivateKey)));
-        this.jwtUserGenerator = jwtUSerGenerator;
-        this.jwtTimeExpiration = jwtTimeExpiration;
+
+        // Load and parse the private key PEM
+        byte[] privateBytes = accessPrivateKeyResource.getInputStream().readAllBytes();
+        String privatePem =
+                new String(privateBytes)
+                        .replace("-----BEGIN PRIVATE KEY-----", "")
+                        .replace("-----END PRIVATE KEY-----", "")
+                        .replaceAll("\\s+", "");
+        PKCS8EncodedKeySpec privateSpec =
+                new PKCS8EncodedKeySpec(Decoders.BASE64.decode(privatePem));
+        this.privateKeyA = (RSAPrivateKey) keyFactory.generatePrivate(privateSpec);
+
+        // Load and parse the public key PEM
+        byte[] publicBytes = accessPublicKeyResource.getInputStream().readAllBytes();
+        String publicPem =
+                new String(publicBytes)
+                        .replace("-----BEGIN PUBLIC KEY-----", "")
+                        .replace("-----END PUBLIC KEY-----", "")
+                        .replaceAll("\\s+", "");
+        X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(Decoders.BASE64.decode(publicPem));
+        this.publicKeyA = (RSAPublicKey) keyFactory.generatePublic(publicSpec);
+
+        // Set issuer and expiration
+        this.jwtUserGenerator = jwtUserGenerator;
+        this.jwtTimeExpirationA = Long.parseLong(jwtTimeExpirationA);
     }
 
     /**
@@ -117,10 +138,9 @@ public class JJwtManager {
                         "advertiserId",
                         user.getAdvertiserId() != null ? user.getAdvertiserId().toString() : "")
                 .issuedAt(new Date())
-                .expiration(
-                        new Date(System.currentTimeMillis() + Long.parseLong(jwtTimeExpiration)))
+                .expiration(new Date(System.currentTimeMillis() + jwtTimeExpirationA))
                 .notBefore(new Date(System.currentTimeMillis()))
-                .signWith(privateKey, alg)
+                .signWith(privateKeyA, alg)
                 .compact();
     }
 
@@ -134,7 +154,7 @@ public class JJwtManager {
     public Jws<Claims> validateToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(publicKey)
+                    .verifyWith(publicKeyA)
                     .requireIssuer(jwtUserGenerator)
                     .build()
                     .parseSignedClaims(token);

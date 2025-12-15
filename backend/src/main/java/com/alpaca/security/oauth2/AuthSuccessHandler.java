@@ -52,7 +52,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     public AuthSuccessHandler(
             JJwtManager jwtManager,
             CookieAuthReqRepo repository,
-            @Value("${app.oauth2AuthorizedRedirectURI}") @NonNull List<URI> redirectUris) {
+            @Value("${app.authorized-redirect-uri}") @NonNull List<URI> redirectUris) {
         this.jwtManager = jwtManager;
         this.repository = repository;
         this.authorizedRedirectUris = Set.copyOf(redirectUris);

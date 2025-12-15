@@ -140,7 +140,7 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color"><code><a href="#ERROR_SANITIZER" class="member-name-link">ERROR_SANITIZER</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>private final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#frontendUri" class="member-name-link">frontendUri</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#frontend.uri" class="member-name-link">frontend.uri</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code>private final <a href="CookieAuthReqRepo.html" title="class in com.alpaca.security.oauth2">CookieAuthReqRepo</a></code></div>
 <div class="col-second even-row-color"><code><a href="#repository" class="member-name-link">repository</a></code></div>
@@ -160,7 +160,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(com.alpaca.security.oauth2.CookieAuthReqRepo,java.lang.String)" class="member-name-link">AuthFailureHandler</a><wbr>(<a href="CookieAuthReqRepo.html" title="class in com.alpaca.security.oauth2">CookieAuthReqRepo</a>&nbsp;repository,
- @NotNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;frontendUri)</code></div>
+ @NotNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;frontend.uri)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Constructs the handler with required dependencies.</div>
 </div>
@@ -221,9 +221,9 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="frontendUri">
-<h3>frontendUri</h3>
-<div class="member-signature"><span class="modifiers">private final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">frontendUri</span></div>
+<section class="detail" id="frontend.uri">
+<h3>frontend.uri</h3>
+<div class="member-signature"><span class="modifiers">private final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">frontend.uri</span></div>
 </section>
 </li>
 <li>
@@ -244,13 +244,13 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="&lt;init&gt;(com.alpaca.security.oauth2.CookieAuthReqRepo,java.lang.String)">
 <h3>AuthFailureHandler</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AuthFailureHandler</span><wbr><span class="parameters">(<a href="CookieAuthReqRepo.html" title="class in com.alpaca.security.oauth2">CookieAuthReqRepo</a>&nbsp;repository,
- @Value("${app.frontendURI}") @NotNull
- @NotNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;frontendUri)</span></div>
+ @Value("${app.frontend.uri}") @NotNull
+ @NotNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;frontend.uri)</span></div>
 <div class="block">Constructs the handler with required dependencies.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>repository</code> - the repository for handling OAuth2 auth request cookies</dd>
-<dd><code>frontendUri</code> - the default frontend URI to redirect to upon failure</dd>
+<dd><code>frontend.uri</code> - the default frontend URI to redirect to upon failure</dd>
 </dl>
 </section>
 </li>
@@ -284,7 +284,7 @@ loadScripts(document, 'script');</script>
 <h3>resolveTargetUrl</h3>
 <div class="member-signature"><span class="modifiers">private</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">resolveTargetUrl</span><wbr><span class="parameters">(jakarta.servlet.http.HttpServletRequest&nbsp;request)</span></div>
 <div class="block">Determines the target URL for redirection after failure. Prefers the "redirect_uri" request
- parameter or cookie, and falls back to <code>frontendUri</code>.</div>
+ parameter or cookie, and falls back to <code>frontend.uri</code>.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>request</code> - the incoming HTTP request</dd>

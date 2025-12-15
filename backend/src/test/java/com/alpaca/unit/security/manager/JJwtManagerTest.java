@@ -7,14 +7,11 @@ import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -29,21 +26,18 @@ class JJwtManagerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Generate an RSA key pair for signing/verifying
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
-        KeyPair keyPair = kpg.generateKeyPair();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        // Load keys from classpath test resources
+        ClassPathResource privateKeyResource = new ClassPathResource("keys/access_private.pem");
+        ClassPathResource publicKeyResource = new ClassPathResource("keys/access_public.pem");
 
-        String base64PrivateKey = Base64.getEncoder().encodeToString(privateKey.getEncoded());
-        String base64PublicKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        assertTrue(privateKeyResource.exists(), "access_private.pem should be on test classpath");
+        assertTrue(publicKeyResource.exists(), "access_public.pem should be on test classpath");
 
-        // Instantiate JJwtManager with our generated keys, issuer, and expiration
+        // Instantiate manager using Resource instances carried from classpath
         jwtManager =
                 new JJwtManager(
-                        base64PrivateKey,
-                        base64PublicKey,
+                        privateKeyResource,
+                        publicKeyResource,
                         ISSUER,
                         String.valueOf(EXPIRATION_MILLIS));
     }

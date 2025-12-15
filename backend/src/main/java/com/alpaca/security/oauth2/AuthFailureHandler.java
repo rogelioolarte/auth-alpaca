@@ -52,7 +52,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
      */
     public AuthFailureHandler(
             CookieAuthReqRepo repository,
-            @Value("${app.frontendURI}") @NotNull String frontendUri) {
+            @Value("${app.frontend.uri}") @NotNull String frontendUri) {
         this.repository = repository;
         this.frontendUri = frontendUri;
     }
