@@ -93,11 +93,7 @@ public class User extends Auditable {
      *
      * <p>A User has a one-to-one relationship with a {@link Profile}.
      */
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.MERGE,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     private Profile profile;
 
     /**
@@ -105,11 +101,7 @@ public class User extends Auditable {
      *
      * <p>A User has a one-to-one relationship with an {@link Advertiser}.
      */
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.MERGE,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     private Advertiser advertiser;
 
     /**

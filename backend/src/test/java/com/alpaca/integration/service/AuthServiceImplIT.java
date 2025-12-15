@@ -243,7 +243,7 @@ public class AuthServiceImplIT {
                 service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
         assertNotNull(auth);
         assertNotNull(auth.getPrincipal());
-        assertEquals(new UserPrincipal(newUser, null), (UserPrincipal) auth.getPrincipal());
+        assertEquals(new UserPrincipal(newUser, null), auth.getPrincipal());
     }
 
     // --- registerOrLoginOAuth2 ---

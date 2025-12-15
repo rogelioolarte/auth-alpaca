@@ -74,12 +74,13 @@ public class JJwtManager {
     /**
      * Constructs a {@code JJwtManager} with the necessary RSA key resources and configuration.
      *
-     * <p>This constructor loads the RSA private and public keys for Access Token and Refresh Token from Spring {@link Resource}
-     * locations. Keys must be in standard PEM formats.
+     * <p>This constructor loads the RSA private and public keys for Access Token and Refresh Token
+     * from Spring {@link Resource} locations. Keys must be in standard PEM formats.
      *
      * <p>It also sets the issuer and token expiration time.
      *
-     * @param accessPrivateKeyResource the resource location for the RSA private key of Access Token.
+     * @param accessPrivateKeyResource the resource location for the RSA private key of Access
+     *     Token.
      * @param accessPublicKeyResource the resource location for the RSA public key of Access Token.
      * @param jwtUserGenerator identifier to include in the "iss" claim
      * @param jwtTimeExpirationA expiration duration (ms) of Access Token.

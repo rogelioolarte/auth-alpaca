@@ -105,34 +105,10 @@ public class UserProvider {
                 new HashSet<>());
     }
 
-    public static User completeEntity() {
-        User secondEntity =
-                new User(
-                        UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
-                        "user@user.com",
-                        "123456789",
-                        true,
-                        true,
-                        true,
-                        true,
-                        false,
-                        false,
-                        null,
-                        new HashSet<>(),
-                        null,
-                        null,
-                        new HashSet<>(),
-                        new HashSet<>());
-        secondEntity.setUserRoles(
-                new HashSet<>(
-                        Set.of(RoleProvider.alternativeEntity(), RoleProvider.singleEntity())));
-        return secondEntity;
-    }
-
     public static User notAllowEntity() {
         User secondEntity =
                 new User(
-                        UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
+                        UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"),
                         "user@user.com",
                         "123456789",
                         false,
