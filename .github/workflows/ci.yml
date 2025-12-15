@@ -14,9 +14,9 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 25
-      
+
       - name: Run key generation script
-        run: bash generate_keys.sh
+        run: bash generate_keys_test.sh
 
       - name: Install dependencies
         run: mvn install -B -V
