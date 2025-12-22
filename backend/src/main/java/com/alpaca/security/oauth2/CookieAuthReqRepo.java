@@ -33,9 +33,9 @@ import org.springframework.stereotype.Component;
 public class CookieAuthReqRepo
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-    public static final String AuthorizationCookieName = "oauth2_auth_request";
-    public static final String RedirectCookieName = "redirect_uri";
-    public static final int cookieExpiredSeconds = 180;
+    public static final String AUTHORIZATION_COOKIE_NAME = "oauth2_auth_request";
+    public static final String REDIRECT_COOKIE_NAME = "redirect_uri";
+    public static final int COOKIE_EXPIRED_SECONDS = 180;
 
     /**
      * Loads the {@link OAuth2AuthorizationRequest} from the cookie if present.
@@ -45,7 +45,7 @@ public class CookieAuthReqRepo
      */
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        Cookie cookie = CookieManager.getCookie(request, AuthorizationCookieName).orElse(null);
+        Cookie cookie = CookieManager.getCookie(request, AUTHORIZATION_COOKIE_NAME).orElse(null);
         if (cookie != null) {
             return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
         }
@@ -68,20 +68,20 @@ public class CookieAuthReqRepo
             HttpServletRequest request,
             HttpServletResponse response) {
         if (authorizationRequest == null) {
-            CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-            CookieManager.deleteCookie(request, response, RedirectCookieName);
+            CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
+            CookieManager.deleteCookie(request, response, REDIRECT_COOKIE_NAME);
             return;
         }
         CookieManager.addCookie(
                 response,
-                AuthorizationCookieName,
+                AUTHORIZATION_COOKIE_NAME,
                 CookieManager.serialize(authorizationRequest),
-                cookieExpiredSeconds);
+                COOKIE_EXPIRED_SECONDS);
 
-        String redirectURIAfterLogin = request.getParameter(RedirectCookieName);
+        String redirectURIAfterLogin = request.getParameter(REDIRECT_COOKIE_NAME);
         if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
             CookieManager.addCookie(
-                    response, RedirectCookieName, redirectURIAfterLogin, cookieExpiredSeconds);
+                    response, REDIRECT_COOKIE_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
         }
     }
 
@@ -108,7 +108,7 @@ public class CookieAuthReqRepo
      */
     public void removeAuthorizationRequestCookies(
             HttpServletRequest request, HttpServletResponse response) {
-        CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-        CookieManager.deleteCookie(request, response, RedirectCookieName);
+        CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
+        CookieManager.deleteCookie(request, response, REDIRECT_COOKIE_NAME);
     }
 }

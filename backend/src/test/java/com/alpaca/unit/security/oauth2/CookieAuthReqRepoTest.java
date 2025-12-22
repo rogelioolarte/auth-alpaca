@@ -43,14 +43,15 @@ class CookieAuthReqRepoTest {
                 "Given an existing auth cookie, returns the deserialized"
                         + " OAuth2AuthorizationRequest")
         void givenAuthCookiePresent_whenLoadAuthorizationRequest_thenReturnDeserializedRequest() {
-            Cookie cookie = new Cookie(CookieAuthReqRepo.AuthorizationCookieName, "cookie-value");
+            Cookie cookie = new Cookie(CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME, "cookie-value");
             OAuth2AuthorizationRequest expected = mock(OAuth2AuthorizationRequest.class);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.AuthorizationCookieName))
+                                                request,
+                                                CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME))
                         .thenReturn(Optional.of(cookie));
                 cm.when(() -> CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class))
                         .thenReturn(expected);
@@ -71,7 +72,8 @@ class CookieAuthReqRepoTest {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.AuthorizationCookieName))
+                                                request,
+                                                CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME))
                         .thenReturn(Optional.empty());
 
                 assertNull(
@@ -96,12 +98,12 @@ class CookieAuthReqRepoTest {
                                 CookieManager.deleteCookie(
                                         request,
                                         response,
-                                        CookieAuthReqRepo.AuthorizationCookieName),
+                                        CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME),
                         times(1));
                 cm.verify(
                         () ->
                                 CookieManager.deleteCookie(
-                                        request, response, CookieAuthReqRepo.RedirectCookieName),
+                                        request, response, CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
                         times(1));
 
                 // Should not add any cookies when auth request is null
@@ -123,7 +125,7 @@ class CookieAuthReqRepoTest {
                 String redirectUri) {
 
             OAuth2AuthorizationRequest authReq = mock(OAuth2AuthorizationRequest.class);
-            request.addParameter(CookieAuthReqRepo.RedirectCookieName, redirectUri);
+            request.addParameter(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, redirectUri);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(() -> CookieManager.serialize(authReq)).thenReturn("serialized-value");
@@ -134,16 +136,16 @@ class CookieAuthReqRepoTest {
                         () ->
                                 CookieManager.addCookie(
                                         response,
-                                        CookieAuthReqRepo.AuthorizationCookieName,
+                                        CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME,
                                         "serialized-value",
-                                        CookieAuthReqRepo.cookieExpiredSeconds),
+                                        CookieAuthReqRepo.COOKIE_EXPIRED_SECONDS),
                         times(1));
 
                 cm.verify(
                         () ->
                                 CookieManager.addCookie(
                                         eq(response),
-                                        eq(CookieAuthReqRepo.RedirectCookieName),
+                                        eq(CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
                                         anyString(),
                                         anyInt()),
                         never());
@@ -155,7 +157,7 @@ class CookieAuthReqRepoTest {
         void givenValidRedirectUri_whenSaveAuthorizationRequest_thenAddAuthAndRedirectCookies() {
             OAuth2AuthorizationRequest authReq = mock(OAuth2AuthorizationRequest.class);
             String redirect = "/home";
-            request.addParameter(CookieAuthReqRepo.RedirectCookieName, redirect);
+            request.addParameter(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, redirect);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(() -> CookieManager.serialize(authReq)).thenReturn("serialized-value");
@@ -166,17 +168,17 @@ class CookieAuthReqRepoTest {
                         () ->
                                 CookieManager.addCookie(
                                         response,
-                                        CookieAuthReqRepo.AuthorizationCookieName,
+                                        CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME,
                                         "serialized-value",
-                                        CookieAuthReqRepo.cookieExpiredSeconds),
+                                        CookieAuthReqRepo.COOKIE_EXPIRED_SECONDS),
                         times(1));
                 cm.verify(
                         () ->
                                 CookieManager.addCookie(
                                         response,
-                                        CookieAuthReqRepo.RedirectCookieName,
+                                        CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
                                         redirect,
-                                        CookieAuthReqRepo.cookieExpiredSeconds),
+                                        CookieAuthReqRepo.COOKIE_EXPIRED_SECONDS),
                         times(1));
             }
         }
@@ -189,14 +191,15 @@ class CookieAuthReqRepoTest {
         @Test
         @DisplayName("Delegates to loadAuthorizationRequest()")
         void whenRemoveAuthorizationRequest_thenReturnLoadedRequest() {
-            Cookie cookie = new Cookie(CookieAuthReqRepo.AuthorizationCookieName, "cookie-value");
+            Cookie cookie = new Cookie(CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME, "cookie-value");
             OAuth2AuthorizationRequest expected = mock(OAuth2AuthorizationRequest.class);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.AuthorizationCookieName))
+                                                request,
+                                                CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME))
                         .thenReturn(Optional.of(cookie));
                 cm.when(() -> CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class))
                         .thenReturn(expected);
@@ -225,12 +228,12 @@ class CookieAuthReqRepoTest {
                                 CookieManager.deleteCookie(
                                         request,
                                         response,
-                                        CookieAuthReqRepo.AuthorizationCookieName),
+                                        CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME),
                         times(1));
                 cm.verify(
                         () ->
                                 CookieManager.deleteCookie(
-                                        request, response, CookieAuthReqRepo.RedirectCookieName),
+                                        request, response, CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
                         times(1));
             }
         }

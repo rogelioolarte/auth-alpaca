@@ -3,6 +3,7 @@ package com.alpaca.config;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
  *   <li><a href="https://vladmihalcea.com/hibernate-statistics/">Hibernate Statistics</a>
  * </ul>
  */
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class HibernateStatisticsConfig {
@@ -62,6 +64,6 @@ public class HibernateStatisticsConfig {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         Statistics stats = sessionFactory.getStatistics();
         stats.setStatisticsEnabled(true);
-        System.out.println("Hibernate Statistics enabled");
+        log.info("Hibernate Statistics enabled");
     }
 }

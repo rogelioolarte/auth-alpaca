@@ -1,17 +1,17 @@
 package com.alpaca.repository;
 
-import com.alpaca.entity.RolePermission;
+import com.alpaca.entity.Session;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 /**
- * Repository interface for managing {@link RolePermission} entities.
+ * Repository interface for managing {@link Session} entities.
  *
  * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
- * for rolePermission-specific operations.
+ * for session-specific operations.
  *
  * @see GenericRepo
  */
 @Repository
-public interface RolePermissionRepo extends GenericRepo<RolePermission, UUID> {}
+public interface SessionRepo extends GenericRepo<Session, UUID> {}

@@ -4,12 +4,12 @@ import com.alpaca.entity.Role;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.repository.GenericRepo;
-import com.alpaca.repository.RolePermissionRepo;
 import com.alpaca.repository.RoleRepo;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implementation of the {@link IRoleDAO} interface for managing {@link Role} entities. This class
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO {
 
     private final RoleRepo repo;
-    private final RolePermissionRepo rolePermissionRepo;
 
     /**
      * Provides the specific repository used by the generic DAO system.
@@ -78,12 +77,12 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
 
-        if (role.getRoleName() != null && !role.getRoleName().isBlank()) {
-            existingRole.setRoleName(role.getRoleName());
-        }
-        if (role.getRoleDescription() != null && !role.getRoleDescription().isBlank()) {
-            existingRole.setRoleDescription(role.getRoleDescription());
-        }
+        updateTextIfExists(
+                existingRole.getRoleName(), role.getRoleName(), existingRole::setRoleName);
+        updateTextIfExists(
+                existingRole.getRoleDescription(),
+                role.getRoleDescription(),
+                existingRole::setRoleDescription);
         if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
             existingRole.setRolePermissions(role.getPermissions());
         }

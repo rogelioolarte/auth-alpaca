@@ -1,7 +1,6 @@
 package com.alpaca.model;
 
 import com.alpaca.entity.User;
-import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +8,8 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.*;
 
 /**
  * Represents the Principal User Details in the security context. This class implements both {@link
@@ -51,8 +52,14 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     /** The authorities granted to the user for authorization purposes. */
     private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
 
-    /** Additional attributes provided by an OAuth2 authentication provider. */
-    private Map<String, Object> attributes = new HashMap<>();
+    /**
+     * Additional attributes provided by the OAuth2 authentication provider.
+     *
+     * <p>These attributes are used only during the OAuth2 authentication flow and are marked as
+     * {@code transient} to prevent serialization or persistence in the security context or HTTP
+     * session.
+     */
+    private transient Map<String, Object> attributes = new HashMap<>();
 
     /**
      * Constructs a new {@code UserPrincipal} instance using a {@link User} entity. This constructor

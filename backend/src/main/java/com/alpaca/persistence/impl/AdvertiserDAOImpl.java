@@ -5,9 +5,10 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.repository.GenericRepo;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 /**
  * Implementation of the {@link IAdvertiserDAO} interface for managing {@link Advertiser} entities.
@@ -63,32 +64,28 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
 
-        if (advertiser.getTitle() != null && !advertiser.getTitle().isBlank()) {
-            existing.setTitle(advertiser.getTitle());
-        }
-        if (advertiser.getDescription() != null && !advertiser.getDescription().isBlank()) {
-            existing.setDescription(advertiser.getDescription());
-        }
-        if (advertiser.getAvatarUrl() != null && !advertiser.getAvatarUrl().isBlank()) {
-            existing.setAvatarUrl(advertiser.getAvatarUrl());
-        }
-        if (advertiser.getBannerUrl() != null && !advertiser.getBannerUrl().isBlank()) {
-            existing.setBannerUrl(advertiser.getBannerUrl());
-        }
-        if (advertiser.getPublicLocation() != null && !advertiser.getPublicLocation().isBlank()) {
-            existing.setPublicLocation(advertiser.getPublicLocation());
-        }
-        if (advertiser.getPublicUrlLocation() != null
-                && !advertiser.getPublicUrlLocation().isBlank()) {
-            existing.setPublicUrlLocation(advertiser.getPublicUrlLocation());
-        }
-        if (advertiser.isIndexed() != existing.isIndexed()) {
-            existing.setIndexed(advertiser.isIndexed());
-        }
-        if (advertiser.getUser() != null && advertiser.getUser().getId() != null) {
+        updateTextIfExists(existing.getTitle(), advertiser.getTitle(), existing::setTitle);
+        updateTextIfExists(
+                existing.getDescription(), advertiser.getDescription(), existing::setDescription);
+        updateTextIfExists(
+                existing.getAvatarUrl(), advertiser.getAvatarUrl(), existing::setAvatarUrl);
+        updateTextIfExists(
+                existing.getBannerUrl(), advertiser.getBannerUrl(), existing::setBannerUrl);
+        updateTextIfExists(
+                existing.getPublicLocation(),
+                advertiser.getPublicLocation(),
+                existing::setPublicLocation);
+        updateTextIfExists(
+                existing.getPublicUrlLocation(),
+                advertiser.getPublicUrlLocation(),
+                existing::setPublicUrlLocation);
+        updateIfDifferent(existing.isIndexed(), advertiser.isIndexed(), existing::setIndexed);
+
+        if (advertiser.getUser() != null
+                && advertiser.getUser().getId() != null
+                && existing.getUser().getId().equals(advertiser.getUser().getId())) {
             existing.setUser(advertiser.getUser());
         }
-
         return repo.save(existing);
     }
 

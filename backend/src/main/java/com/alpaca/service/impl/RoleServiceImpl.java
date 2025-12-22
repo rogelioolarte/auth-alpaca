@@ -7,13 +7,14 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRoleService;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link Role} entities and encapsulating business logic
@@ -62,7 +63,7 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      */
     @Override
     public Set<Role> getUserRoles() {
-        Set<Role> roles = new HashSet<>();
+        Set<Role> roles = HashSet.newHashSet(1);
         roles.add(findByRoleName("USER"));
         return roles;
     }

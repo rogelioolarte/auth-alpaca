@@ -5,10 +5,11 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IPermissionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.PermissionRepo;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implementation of the {@link IPermissionDAO} interface for managing {@link Permission} entities.
@@ -62,10 +63,10 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
 
-        if (permission.getPermissionName() != null && !permission.getPermissionName().isBlank()) {
-            existingPermission.setPermissionName(permission.getPermissionName());
-        }
-
+        updateTextIfExists(
+                existingPermission.getPermissionName(),
+                permission.getPermissionName(),
+                existingPermission::setPermissionName);
         return save(existingPermission);
     }
 

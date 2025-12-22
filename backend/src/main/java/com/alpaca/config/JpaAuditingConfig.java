@@ -4,8 +4,6 @@ import com.alpaca.model.UserPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.util.Optional;
-import java.util.TimeZone;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -13,6 +11,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Optional;
+import java.util.TimeZone;
 
 /**
  * Configuration class for enabling and customizing Spring Data JPA Auditing.
@@ -45,7 +46,7 @@ public class JpaAuditingConfig {
      * @return An {@link AuditorAware} bean that provides the ID of the current auditor.
      */
     @Bean
-    public AuditorAware<String> AuditorAware() {
+    public AuditorAware<String> auditorAware() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {

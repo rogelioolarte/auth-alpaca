@@ -2,13 +2,14 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the

@@ -2,14 +2,15 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents a user session / token-family in the system.
@@ -27,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "sessions")
 @EntityListeners(AuditingEntityListener.class)
-public class Session {
+public class Session extends Auditable {
 
     /**
      * Primary key (UUID) of the session/family. This identifies uniquely a login session or

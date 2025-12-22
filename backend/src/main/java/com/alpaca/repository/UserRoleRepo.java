@@ -1,14 +1,15 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.UserRole;
-import java.util.UUID;
 import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
 
 /**
  * Repository interface for managing {@link UserRole} entities.
  *
  * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
- * for user-specific operations.
+ * for userRole-specific operations.
  *
  * @see GenericRepo
  */

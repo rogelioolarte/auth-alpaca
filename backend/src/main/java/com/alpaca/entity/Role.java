@@ -2,11 +2,12 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.*;
 
 /**
  * Represents a Role entity in the system. This entity is mapped to the "roles" table in the
@@ -92,11 +93,11 @@ public class Role extends Auditable {
      */
     public Set<RolePermission> permissionsToRolePermissions(Collection<Permission> permissions) {
         if (permissions.isEmpty()) return Collections.emptySet();
-        Set<RolePermission> rolePermissions = new HashSet<>(permissions.size());
+        Set<RolePermission> rolePermissionSet = HashSet.newHashSet(permissions.size());
         for (Permission permission : permissions) {
-            rolePermissions.add(new RolePermission(this, permission));
+            rolePermissionSet.add(new RolePermission(this, permission));
         }
-        return rolePermissions;
+        return rolePermissionSet;
     }
 
     /**

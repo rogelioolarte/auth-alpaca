@@ -2,15 +2,15 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents a stored refresh token in the system, used for refresh-token rotation and reuse
@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "refresh_tokens")
 @EntityListeners(AuditingEntityListener.class)
-public class RefreshToken {
+public class RefreshToken extends Auditable {
 
     /**
      * Primary key (UUID) of the refresh token record. Identifies uniquely this token entry in the
@@ -97,11 +97,6 @@ public class RefreshToken {
      */
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
-
-    /** Timestamp when this token record was created (i.e. when token was issued). */
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
 
     /**
      * Timestamp when this token was last used (e.g. for refresh). Useful for auditing and token-use

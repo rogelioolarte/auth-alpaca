@@ -82,7 +82,7 @@ class AuthSuccessHandlerTest {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(Optional.empty());
                 assertThrows(
                         UnauthorizedException.class,
@@ -102,7 +102,7 @@ class AuthSuccessHandlerTest {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(Optional.empty());
                 String target = handler.invokeDetermineTarget(request, response, authentication);
                 assertEquals(DEFAULT_TARGET + "?token=tok", target);
@@ -117,12 +117,12 @@ class AuthSuccessHandlerTest {
                             jwtManager, repository, List.of(URI.create("http://localhost")));
             String cookieUrl = "http://localhost/path";
             when(jwtManager.createToken(principal)).thenReturn("tok2");
-            Cookie cookie = new Cookie(CookieAuthReqRepo.RedirectCookieName, cookieUrl);
+            Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, cookieUrl);
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(Optional.of(cookie));
                 String target = handler.invokeDetermineTarget(request, response, authentication);
                 assertTrue(target.startsWith(cookieUrl + "?token="));
@@ -134,13 +134,13 @@ class AuthSuccessHandlerTest {
         void invalidCookie_throws() {
             TestableHandler handler =
                     new TestableHandler(jwtManager, repository, List.of(URI.create("http://foo")));
-            Cookie cookie = new Cookie(CookieAuthReqRepo.RedirectCookieName, "http://bar");
+            Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, "http://bar");
             when(jwtManager.createToken(principal)).thenReturn("tok3");
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(Optional.of(cookie));
                 assertThrows(
                         UnauthorizedException.class,
@@ -181,11 +181,12 @@ class AuthSuccessHandlerTest {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(
                                 Optional.of(
                                         new Cookie(
-                                                CookieAuthReqRepo.RedirectCookieName, cookieUrl)));
+                                                CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
+                                                cookieUrl)));
                 handler.onAuthenticationSuccess(request, response, authentication);
                 verify(strategy).sendRedirect(request, response, cookieUrl + "?token=abc");
             }
@@ -220,11 +221,11 @@ class AuthSuccessHandlerTest {
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(
                                 Optional.of(
                                         new Cookie(
-                                                CookieAuthReqRepo.RedirectCookieName,
+                                                CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
                                                 "http://bar")));
                 assertThrows(
                         UnauthorizedException.class,

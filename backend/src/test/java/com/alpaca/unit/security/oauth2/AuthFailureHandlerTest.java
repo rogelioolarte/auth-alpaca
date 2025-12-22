@@ -78,11 +78,11 @@ class AuthFailureHandlerTest {
         @DisplayName("Given cookie 'redirect_uri' if param absent")
         void cookieRedirectUri_andExceptionMessage() throws IOException {
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-                Cookie c = new Cookie(CookieAuthReqRepo.RedirectCookieName, "http://cookie/uri");
+                Cookie c = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, "http://cookie/uri");
                 cm.when(
                                 () ->
                                         CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
                         .thenReturn(Optional.of(c));
 
                 handler.onAuthenticationFailure(request, response, exception);

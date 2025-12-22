@@ -6,7 +6,6 @@ import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IAuthService;
 import com.alpaca.service.impl.AuthServiceImpl;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +33,8 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 /**
  * Configures security settings for the application, including authentication, authorization, OAuth2
  * login, and JWT token validation.
@@ -43,8 +44,9 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String oAuth2BaseURI = "/oauth2/authorize";
-    private static final String oAuth2RedirectionEndPoint = "/oauth2/callback/*";
+    private static final String O_AUTH_2_BASE_URI = "/oauth2/authorize";
+    private static final String O_AUTH_2_REDIRECTION_END_POINT = "/oauth2/callback/*";
+    private static final String ADMIN_ROLE = "ADMIN";
 
     private final JJwtManager manager;
     private final PasswordManager passwordManager;
@@ -71,23 +73,23 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                 auth -> {
                     auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
-                    auth.requestMatchers("/api/profile/**").hasAnyRole("ADMIN", "USER");
-                    auth.requestMatchers("/api/user/**").hasAnyRole("ADMIN", "USER");
-                    auth.requestMatchers("/api/role/**").hasAnyRole("ADMIN");
-                    auth.requestMatchers("/api/permission/**").hasAnyRole("ADMIN");
+                    auth.requestMatchers("/api/profile/**").hasAnyRole(ADMIN_ROLE, "USER");
+                    auth.requestMatchers("/api/user/**").hasAnyRole(ADMIN_ROLE, "USER");
+                    auth.requestMatchers("/api/role/**").hasAnyRole(ADMIN_ROLE);
+                    auth.requestMatchers("/api/permission/**").hasAnyRole(ADMIN_ROLE);
                     auth.anyRequest().denyAll();
                 });
         http.oauth2Login(
                 oauth2 -> {
                     oauth2.authorizationEndpoint(
                             c -> {
-                                c.baseUri(oAuth2BaseURI);
+                                c.baseUri(O_AUTH_2_BASE_URI);
                                 c.authorizationRequestRepository(cookieAuthReqRepo);
                                 c.authorizationRequestResolver(
                                         new OAuth2ReqResolver(
-                                                clientRegistrationRepository, oAuth2BaseURI));
+                                                clientRegistrationRepository, O_AUTH_2_BASE_URI));
                             });
-                    oauth2.redirectionEndpoint(c -> c.baseUri(oAuth2RedirectionEndPoint));
+                    oauth2.redirectionEndpoint(c -> c.baseUri(O_AUTH_2_REDIRECTION_END_POINT));
                     oauth2.userInfoEndpoint(c -> c.userService(authService));
                     oauth2.tokenEndpoint(
                             c ->
@@ -137,7 +139,7 @@ public class SecurityConfig {
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) -> {
+        return (_, response, accessDeniedException) -> {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.getWriter()
                     .write("403 Forbidden Access: " + accessDeniedException.getMessage());

@@ -5,11 +5,12 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implementation of the {@link IUserDAO} interface for managing {@link User} entities. Extends the
@@ -79,39 +80,47 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
                                                 String.format(
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
-        if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            existingUser.setEmail(user.getEmail());
-        }
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            existingUser.setPassword(user.getPassword());
-        }
-        if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
+
+        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
+        updateTextIfExists(
+                existingUser.getPassword(), user.getPassword(), existingUser::setPassword);
+
+        if (user.getRoles() != null
+                && !user.getRoles().isEmpty()
+                && !existingUser.getRoles().equals(user.getRoles())) {
             existingUser.setUserRoles(user.getRoles());
         }
-        if (user.getProfile() != null && user.getProfile().getId() != null) {
+        if (user.getProfile() != null
+                && user.getProfile().getId() != null
+                && !existingUser.getProfile().getId().equals(user.getProfile().getId())) {
             existingUser.setProfile(user.getProfile());
         }
-        if (user.getAdvertiser() != null && user.getAdvertiser().getId() != null) {
+        if (user.getAdvertiser() != null
+                && user.getAdvertiser().getId() != null
+                && !existingUser.getAdvertiser().getId().equals(user.getAdvertiser().getId())) {
             existingUser.setAdvertiser(user.getAdvertiser());
         }
-        if (existingUser.isEnabled() != user.isEnabled()) {
-            existingUser.setEnabled(user.isEnabled());
-        }
-        if (existingUser.isAccountNoLocked() != user.isAccountNoLocked()) {
-            existingUser.setAccountNoLocked(user.isAccountNoLocked());
-        }
-        if (existingUser.isAccountNoExpired() != user.isAccountNoExpired()) {
-            existingUser.setAccountNoExpired(user.isAccountNoExpired());
-        }
-        if (existingUser.isCredentialNoExpired() != user.isCredentialNoExpired()) {
-            existingUser.setCredentialNoExpired(user.isCredentialNoExpired());
-        }
-        if (existingUser.isEmailVerified() != user.isEmailVerified()) {
-            existingUser.setEmailVerified(user.isEmailVerified());
-        }
-        if (existingUser.isGoogleConnected() != user.isGoogleConnected()) {
-            existingUser.setGoogleConnected(user.isGoogleConnected());
-        }
+        updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
+        updateIfDifferent(
+                existingUser.isAccountNoLocked(),
+                user.isAccountNoLocked(),
+                existingUser::setAccountNoLocked);
+        updateIfDifferent(
+                existingUser.isAccountNoExpired(),
+                user.isAccountNoExpired(),
+                existingUser::setAccountNoExpired);
+        updateIfDifferent(
+                existingUser.isCredentialNoExpired(),
+                user.isCredentialNoExpired(),
+                existingUser::setCredentialNoExpired);
+        updateIfDifferent(
+                existingUser.isEmailVerified(),
+                user.isEmailVerified(),
+                existingUser::setEmailVerified);
+        updateIfDifferent(
+                existingUser.isGoogleConnected(),
+                user.isGoogleConnected(),
+                existingUser::setGoogleConnected);
         return save(existingUser);
     }
 

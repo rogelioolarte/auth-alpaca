@@ -1,20 +1,21 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.RedirectCookieName;
-
 import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+import static com.alpaca.security.oauth2.CookieAuthReqRepo.REDIRECT_COOKIE_NAME;
 
 /**
  * Custom authentication failure handler for OAuth2 login flows.
@@ -89,7 +90,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         return Optional.ofNullable(request.getParameter("redirect_uri"))
                 .or(
                         () ->
-                                CookieManager.getCookie(request, RedirectCookieName)
+                                CookieManager.getCookie(request, REDIRECT_COOKIE_NAME)
                                         .map(Cookie::getValue))
                 .orElse(frontendUri);
     }
