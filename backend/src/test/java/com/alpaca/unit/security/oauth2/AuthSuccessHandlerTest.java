@@ -77,7 +77,7 @@ class AuthSuccessHandlerTest {
             TestableHandler handler =
                     new TestableHandler(
                             jwtManager, repository, List.of(URI.create("http://example.com")));
-            when(jwtManager.createToken(principal)).thenReturn("tok");
+            when(jwtManager.createAccessToken(principal)).thenReturn("tok");
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
@@ -97,7 +97,7 @@ class AuthSuccessHandlerTest {
             TestableHandler handler =
                     new TestableHandler(jwtManager, repository, Collections.emptyList());
             handler.setDefaultTargetUrl(DEFAULT_TARGET);
-            when(jwtManager.createToken(principal)).thenReturn("tok");
+            when(jwtManager.createAccessToken(principal)).thenReturn("tok");
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
@@ -116,7 +116,7 @@ class AuthSuccessHandlerTest {
                     new TestableHandler(
                             jwtManager, repository, List.of(URI.create("http://localhost")));
             String cookieUrl = "http://localhost/path";
-            when(jwtManager.createToken(principal)).thenReturn("tok2");
+            when(jwtManager.createAccessToken(principal)).thenReturn("tok2");
             Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, cookieUrl);
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
@@ -135,7 +135,7 @@ class AuthSuccessHandlerTest {
             TestableHandler handler =
                     new TestableHandler(jwtManager, repository, List.of(URI.create("http://foo")));
             Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, "http://bar");
-            when(jwtManager.createToken(principal)).thenReturn("tok3");
+            when(jwtManager.createAccessToken(principal)).thenReturn("tok3");
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
@@ -176,7 +176,7 @@ class AuthSuccessHandlerTest {
             handler.setRedirectStrategy(strategy);
             handler.setDefaultTargetUrl(DEFAULT_TARGET);
             String cookieUrl = "http://localhost/ok";
-            when(jwtManager.createToken(principal)).thenReturn("abc");
+            when(jwtManager.createAccessToken(principal)).thenReturn("abc");
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(
                                 () ->
@@ -214,7 +214,7 @@ class AuthSuccessHandlerTest {
         void exceptionWhenUnauthorized() throws IOException {
             TestableHandler handler =
                     new TestableHandler(jwtManager, repository, List.of(URI.create("http://foo")));
-            when(jwtManager.createToken(principal)).thenReturn("t");
+            when(jwtManager.createAccessToken(principal)).thenReturn("t");
             RedirectStrategy strategy = mock(RedirectStrategy.class);
             handler.setRedirectStrategy(strategy);
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {

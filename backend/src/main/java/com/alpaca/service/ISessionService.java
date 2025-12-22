@@ -1,7 +1,6 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Session;
-
 import java.util.UUID;
 
 /**
@@ -10,5 +9,4 @@ import java.util.UUID;
  *
  * @see IGenericService
  */
-public interface ISessionService extends IGenericService<Session, UUID> {
-}
+public interface ISessionService extends IGenericService<Session, UUID> {}

@@ -1,7 +1,6 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.RefreshToken;
-
 import java.util.UUID;
 
 /**

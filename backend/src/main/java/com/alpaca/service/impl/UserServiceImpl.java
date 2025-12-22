@@ -7,12 +7,11 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic

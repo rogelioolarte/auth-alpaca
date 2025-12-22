@@ -1,7 +1,6 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Session;
-
 import java.util.UUID;
 
 /**

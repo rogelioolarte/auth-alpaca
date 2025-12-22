@@ -1,9 +1,8 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Session;
-import org.springframework.stereotype.Repository;
-
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link Session} entities.

@@ -5,20 +5,19 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * Implementation of the {@link IRefreshTokenDAO} interface for managing {@link RefreshToken}
  * entities. This class extends the generic DAO implementation ({@link GenericDAOImpl}) to provide
  * standard CRUD operations along with custom refresh-token-specific persistence logic.
  *
- * <p>Update operations in this DAO perform selective field updates: only non-null/meaningful
- * values (and values that differ from the existing ones) are applied to the persisted entity. The
- * class relies on helper methods provided by the superclass (e.g. {@code updateIfNotNull},
- * {@code updateIfDifferent}, {@code updateTextIfExists}) to centralize common update semantics.
+ * <p>Update operations in this DAO perform selective field updates: only non-null/meaningful values
+ * (and values that differ from the existing ones) are applied to the persisted entity. The class
+ * relies on helper methods provided by the superclass (e.g. {@code updateIfNotNull}, {@code
+ * updateIfDifferent}, {@code updateTextIfExists}) to centralize common update semantics.
  */
 @Component
 @RequiredArgsConstructor
@@ -28,7 +27,8 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     private final RefreshTokenRepo repo;
 
     /**
-     * Provides the {@link GenericRepo} instance backing the DAO operations for {@link RefreshToken}.
+     * Provides the {@link GenericRepo} instance backing the DAO operations for {@link
+     * RefreshToken}.
      *
      * @return the repository used to perform CRUD operations for {@link RefreshToken}
      */
@@ -38,8 +38,8 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     }
 
     /**
-     * Returns the {@code Class} object representing the {@link RefreshToken} entity managed by
-     * this DAO.
+     * Returns the {@code Class} object representing the {@link RefreshToken} entity managed by this
+     * DAO.
      *
      * @return {@code RefreshToken.class}
      */
@@ -61,17 +61,17 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
      *       existing value (see {@code updateTextIfExists}).
      * </ul>
      *
-     * <p>The specific fields that may be updated include:
-     * {@code user}, {@code replacedBy}, {@code tokenJti}, {@code familyId}, {@code revoked},
-     * {@code revokedAt}, {@code expiresAt}, {@code lastUsedAt}, {@code tokenHash}, {@code clientId},
-     * {@code ipAddress}, {@code userAgent}, and {@code revokeReason}.
+     * <p>The specific fields that may be updated include: {@code user}, {@code replacedBy}, {@code
+     * tokenJti}, {@code familyId}, {@code revoked}, {@code revokedAt}, {@code expiresAt}, {@code
+     * lastUsedAt}, {@code tokenHash}, {@code clientId}, {@code ipAddress}, {@code userAgent}, and
+     * {@code revokeReason}.
      *
      * @param refreshToken the {@link RefreshToken} containing new values to apply; may include
-     *                     nulls for fields that should remain unchanged
+     *     nulls for fields that should remain unchanged
      * @param id the unique identifier of the persisted {@link RefreshToken} to update
      * @return the updated and saved {@link RefreshToken} instance
      * @throws NotFoundException if a {@link RefreshToken} with the supplied {@code id} does not
-     *                           exist
+     *     exist
      */
     @Override
     public RefreshToken updateById(RefreshToken refreshToken, UUID id) {
@@ -91,9 +91,9 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
         if (refreshToken.getReplacedBy() != null
                 && refreshToken.getReplacedBy().getId() != null
                 && !existingRefreshToken
-                .getReplacedBy()
-                .getId()
-                .equals(refreshToken.getReplacedBy().getId())) {
+                        .getReplacedBy()
+                        .getId()
+                        .equals(refreshToken.getReplacedBy().getId())) {
             existingRefreshToken.setReplacedBy(refreshToken.getReplacedBy());
         }
 
@@ -150,8 +150,8 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
      * the persistence store.
      *
      * @param refreshToken the {@link RefreshToken} whose unique properties should be checked
-     * @return {@code true} if a refresh token with equivalent unique properties exists,
-     *         {@code false} otherwise
+     * @return {@code true} if a refresh token with equivalent unique properties exists, {@code
+     *     false} otherwise
      */
     @Override
     public boolean existsByUniqueProperties(RefreshToken refreshToken) {

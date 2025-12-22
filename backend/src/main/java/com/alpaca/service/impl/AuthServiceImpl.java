@@ -16,6 +16,8 @@ import com.alpaca.service.IAuthService;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.Map;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -30,9 +32,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
@@ -82,7 +81,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     @Override
     public AuthResponseDTO login(String email, String password) {
         return new AuthResponseDTO(
-                manager.createToken(
+                manager.createAccessToken(
                         (UserPrincipal) setSecurityContextBefore(authenticate(email, password))));
     }
 

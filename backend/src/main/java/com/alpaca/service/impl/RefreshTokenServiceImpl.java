@@ -5,10 +5,9 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD
@@ -23,17 +22,17 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UUID>
-		implements IRefreshTokenService {
+        implements IRefreshTokenService {
 
-	private final IRefreshTokenDAO dao;
+    private final IRefreshTokenDAO dao;
 
-	@Override
-	protected IGenericDAO<RefreshToken, UUID> getDAO() {
-		return dao;
-	}
+    @Override
+    protected IGenericDAO<RefreshToken, UUID> getDAO() {
+        return dao;
+    }
 
-	@Override
-	protected String getEntityName() {
-		return "RefreshToken";
-	}
+    @Override
+    protected String getEntityName() {
+        return "RefreshToken";
+    }
 }

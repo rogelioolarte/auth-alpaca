@@ -5,21 +5,19 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 /**
- * Implementation of the {@link ISessionDAO} interface for managing {@link Session} entities.
- * This class extends the generic DAO implementation ({@link GenericDAOImpl}) to provide standard
- * CRUD operations together with session-specific persistence and selective-update semantics.
+ * Implementation of the {@link ISessionDAO} interface for managing {@link Session} entities. This
+ * class extends the generic DAO implementation ({@link GenericDAOImpl}) to provide standard CRUD
+ * operations together with session-specific persistence and selective-update semantics.
  *
- * <p>Update operations performed by this DAO apply changes selectively: only non-null or
- * meaningful incoming values that differ from the persisted values are applied. The class relies
- * on helper methods in the superclass (for example {@code updateIfNotNull},
- * {@code updateIfDifferent} and {@code updateTextIfExists}) to centralize and standardize update
- * behavior across entities.
+ * <p>Update operations performed by this DAO apply changes selectively: only non-null or meaningful
+ * incoming values that differ from the persisted values are applied. The class relies on helper
+ * methods in the superclass (for example {@code updateIfNotNull}, {@code updateIfDifferent} and
+ * {@code updateTextIfExists}) to centralize and standardize update behavior across entities.
  */
 @Component
 @RequiredArgsConstructor
@@ -28,7 +26,8 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     private final SessionRepo repo;
 
     /**
-     * Returns the repository instance backing this DAO's persistence operations for {@link Session}.
+     * Returns the repository instance backing this DAO's persistence operations for {@link
+     * Session}.
      *
      * @return the {@link GenericRepo} implementation used for CRUD operations on {@link Session}
      */
@@ -60,12 +59,12 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      *       stored value (via {@code updateTextIfExists}).
      * </ul>
      *
-     * <p>The fields considered for update include {@code user}, {@code familyId}, {@code ipAddress},
-     * {@code userAgent}, {@code clientId}, {@code revoked}, {@code revokedAt} and
+     * <p>The fields considered for update include {@code user}, {@code familyId}, {@code
+     * ipAddress}, {@code userAgent}, {@code clientId}, {@code revoked}, {@code revokedAt} and
      * {@code revokeReason}.
      *
      * @param session the {@link Session} instance containing new values to apply; fields may be
-     *                {@code null} to indicate they should remain unchanged
+     *     {@code null} to indicate they should remain unchanged
      * @param id the unique identifier of the persisted {@link Session} to update
      * @return the updated and persisted {@link Session} instance
      * @throws NotFoundException if no {@link Session} with the supplied {@code id} exists
@@ -116,7 +115,7 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      *
      * @param session the {@link Session} whose unique properties should be validated
      * @return {@code true} if a session with equivalent unique properties exists; {@code false}
-     *         otherwise
+     *     otherwise
      */
     @Override
     public boolean existsByUniqueProperties(Session session) {

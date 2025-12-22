@@ -21,30 +21,43 @@ import org.springframework.security.core.authority.AuthorityUtils;
 class JJwtManagerTest {
 
     private static final String ISSUER = "testIssuer";
-    private static final long EXPIRATION_MILLIS = 2_000; // 2s
+    private static final String USER_GENERATOR = "testGenerator";
+    private static final long EXPIRATION_MILLIS_ACCESS = 2_000; // 2s
+    private static final long EXPIRATION_MILLIS_REFRESH = 600000; // 10 min
     private JJwtManager jwtManager;
 
     @BeforeEach
     void setUp() throws Exception {
         // Load keys from classpath test resources
-        ClassPathResource privateKeyResource = new ClassPathResource("keys/access_private.pem");
-        ClassPathResource publicKeyResource = new ClassPathResource("keys/access_public.pem");
+        ClassPathResource privateKeyResourceAccess =
+                new ClassPathResource("keys/access_private.pem");
+        ClassPathResource publicKeyResourceAccess = new ClassPathResource("keys/access_public.pem");
+        ClassPathResource privateKeyResourceRefresh =
+                new ClassPathResource("keys/refresh_private.pem");
+        ClassPathResource publicKeyResourceRefresh =
+                new ClassPathResource("keys/refresh_public.pem");
 
-        assertTrue(privateKeyResource.exists(), "access_private.pem should be on test classpath");
-        assertTrue(publicKeyResource.exists(), "access_public.pem should be on test classpath");
+        assertTrue(
+                privateKeyResourceAccess.exists(),
+                "access_private.pem should be on test classpath");
+        assertTrue(
+                publicKeyResourceAccess.exists(), "access_public.pem should be on test classpath");
 
         // Instantiate manager using Resource instances carried from classpath
         jwtManager =
                 new JJwtManager(
-                        privateKeyResource,
-                        publicKeyResource,
-                        ISSUER,
-                        String.valueOf(EXPIRATION_MILLIS));
+                        privateKeyResourceAccess,
+                        publicKeyResourceAccess,
+                        String.valueOf(EXPIRATION_MILLIS_ACCESS),
+                        privateKeyResourceRefresh,
+                        publicKeyResourceRefresh,
+                        String.valueOf(EXPIRATION_MILLIS_REFRESH),
+                        ISSUER);
     }
 
     @Test
     @DisplayName("createToken should produce a valid JWT containing the expected claims")
-    void createTokenProducesValidJwt() {
+    void createAccessTokenProducesValidJwt() {
         UUID userId = UUID.randomUUID();
         UUID profileId = UUID.randomUUID();
         UUID advertiserId = UUID.randomUUID();
@@ -56,12 +69,12 @@ class JJwtManagerTest {
                 new UserPrincipal(
                         userId, profileId, advertiserId, username, null, authorities, null);
 
-        String token = jwtManager.createToken(principal);
+        String token = jwtManager.createAccessToken(principal);
         assertNotNull(token, "Token should not be null or empty");
         assertFalse(token.isBlank(), "Token should not be blank");
 
         // Parse the token directly to inspect claims
-        Claims claims = jwtManager.validateToken(token).getPayload();
+        Claims claims = jwtManager.validateAccessToken(token);
 
         assertEquals(ISSUER, claims.getIssuer(), "Issuer claim must match");
         assertEquals(username, claims.getSubject(), "Subject must be the username");
@@ -94,26 +107,23 @@ class JJwtManagerTest {
 
     @Test
     @DisplayName("validateToken should throw UnauthorizedException on invalid token")
-    void validateTokenThrowsOnInvalidToken() {
+    void validateTokenThrowsOnInvalidAccessToken() {
         String badToken = "this.is.not.a.valid.jwt";
-        assertThrows(UnauthorizedException.class, () -> jwtManager.validateToken(badToken));
+        assertThrows(UnauthorizedException.class, () -> jwtManager.validateAccessToken(badToken));
     }
 
     @Test
     @DisplayName("manageAuthentication should return a valid Authentication when token is valid")
     void manageAuthenticationReturnsValidAuthentication() {
         UUID userId = UUID.randomUUID();
-        UUID profileId = null;
-        UUID advertiserId = null;
         String username = "anotherUser";
         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_X", "ROLE_Y");
 
         // allow advertiserId to be null in this test
         UserPrincipal principal =
-                new UserPrincipal(
-                        userId, profileId, advertiserId, username, null, authorities, null);
+                new UserPrincipal(userId, null, null, username, null, authorities, null);
 
-        String token = jwtManager.createToken(principal);
+        String token = jwtManager.createAccessToken(principal);
         UsernamePasswordAuthenticationToken auth = jwtManager.manageAuthentication(token);
 
         assertNotNull(auth, "Authentication token should not be null");
@@ -158,33 +168,8 @@ class JJwtManagerTest {
     }
 
     @Test
-    @DisplayName("authoritiesToString should join authority names with commas")
-    void authoritiesToStringJoinsCorrectly() {
-        List<GrantedAuthority> list = AuthorityUtils.createAuthorityList("A", "B", "C");
-        String joined = jwtManager.authoritiesToString(list);
-        assertEquals("A,B,C", joined);
-    }
-
-    @Test
-    @DisplayName("existString returns false for null or blank, true otherwise")
-    void existStringBehaviour() {
-        assertFalse(jwtManager.existString(null), "null should return false");
-        assertFalse(jwtManager.existString(""), "empty string should return false");
-        assertFalse(jwtManager.existString("   "), "blank string should return false");
-        assertTrue(jwtManager.existString("hello"), "non-empty non-blank should return true");
-    }
-
-    @Test
-    @DisplayName("getSpecificClaim retrieves the correct value from Claims")
-    void getSpecificClaimRetrievesCorrectly() {
-        Claims claims = Jwts.claims().add("foo", 12345).build();
-        Integer val = jwtManager.getSpecificClaim(claims, "foo", Integer.class);
-        assertEquals(12345, val);
-    }
-
-    @Test
     @DisplayName("isValidToken returns false when expiration is null")
-    void isValidTokenFalseWhenExpirationNull() {
+    void isValidAccessTokenFalseWhenExpirationNull() {
         Claims claims =
                 Jwts.claims()
                         .subject("validUser")
@@ -192,12 +177,13 @@ class JJwtManagerTest {
                         .add("authorities", "ROLE_TEST")
                         .build();
 
-        assertFalse(jwtManager.isValidToken(claims), "Should return false if expiration is null");
+        assertFalse(
+                jwtManager.isValidAccessToken(claims), "Should return false if expiration is null");
     }
 
     @Test
     @DisplayName("isValidToken returns false when expiration is in the past")
-    void isValidTokenFalseWhenExpirationInPast() {
+    void isValidAccessTokenFalseWhenExpirationInPast() {
         Claims claims =
                 Jwts.claims()
                         .subject("validUser")
@@ -207,13 +193,13 @@ class JJwtManagerTest {
                         .build();
 
         assertFalse(
-                jwtManager.isValidToken(claims),
+                jwtManager.isValidAccessToken(claims),
                 "Should return false if the expiration is in the past");
     }
 
     @Test
     @DisplayName("isValidToken returns false when subject (username) is blank or null")
-    void isValidTokenFalseWhenSubjectBlankOrNull() {
+    void isValidAccessTokenFalseWhenSubjectBlankOrNull() {
         // Case: subject null
         Claims noSub =
                 Jwts.claims()
@@ -223,7 +209,7 @@ class JJwtManagerTest {
                         .build();
 
         assertFalse(
-                jwtManager.isValidToken(noSub),
+                jwtManager.isValidAccessToken(noSub),
                 "Must return false if the subject (username) is null");
 
         // Case: subject blank
@@ -236,13 +222,13 @@ class JJwtManagerTest {
                         .build();
 
         assertFalse(
-                jwtManager.isValidToken(blankSub),
+                jwtManager.isValidAccessToken(blankSub),
                 "Should return false if the subject (username) is blank");
     }
 
     @Test
     @DisplayName("isValidToken returns false when userId claim is blank or null")
-    void isValidTokenFalseWhenUserIdBlankOrNull() {
+    void isValidAccessTokenFalseWhenUserIdBlankOrNull() {
         // userId null
         Claims noUserId =
                 Jwts.claims()
@@ -251,7 +237,7 @@ class JJwtManagerTest {
                         .add("userId", null)
                         .add("authorities", "ROLE_TEST")
                         .build();
-        assertFalse(jwtManager.isValidToken(noUserId), "Must return false if userId is null");
+        assertFalse(jwtManager.isValidAccessToken(noUserId), "Must return false if userId is null");
 
         // userId is blank
         Claims blankUserId =
@@ -262,12 +248,14 @@ class JJwtManagerTest {
                         .add("authorities", "ROLE_TEST")
                         .build();
 
-        assertFalse(jwtManager.isValidToken(blankUserId), "Should return false if userId is blank");
+        assertFalse(
+                jwtManager.isValidAccessToken(blankUserId),
+                "Should return false if userId is blank");
     }
 
     @Test
     @DisplayName("isValidToken returns false when authorities claim is blank or null")
-    void isValidTokenFalseWhenAuthoritiesBlankOrNull() {
+    void isValidAccessTokenFalseWhenAuthoritiesBlankOrNull() {
         // authorities null
         Claims noAuth =
                 Jwts.claims()
@@ -277,7 +265,9 @@ class JJwtManagerTest {
                         .add("authorities", null)
                         .build();
 
-        assertFalse(jwtManager.isValidToken(noAuth), "Should return false if authorities is null");
+        assertFalse(
+                jwtManager.isValidAccessToken(noAuth),
+                "Should return false if authorities is null");
 
         // authorities are blank
         Claims blankAuth =
@@ -289,24 +279,25 @@ class JJwtManagerTest {
                         .build();
 
         assertFalse(
-                jwtManager.isValidToken(blankAuth), "Should return false if authorities is blank");
+                jwtManager.isValidAccessToken(blankAuth),
+                "Should return false if authorities is blank");
     }
 
     @Test
     @DisplayName(
             "isValidToken returns true when all required fields are set and expiration is in the"
                     + " future")
-    void isValidTokenTrueForValidClaims() {
+    void isValidTokenTrueForValidAccessClaims() {
         Claims valid =
                 Jwts.claims()
                         .subject("goodUser")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000)) // futuro
+                        .expiration(new Date(System.currentTimeMillis() + 10_000)) // future
                         .add("userId", UUID.randomUUID().toString())
                         .add("authorities", "ROLE_ONE,ROLE_TWO")
                         .build();
 
         assertTrue(
-                jwtManager.isValidToken(valid),
+                jwtManager.isValidAccessToken(valid),
                 "Should return true if expiration > now, subject, userId and authorities are"
                         + " correctly set");
     }

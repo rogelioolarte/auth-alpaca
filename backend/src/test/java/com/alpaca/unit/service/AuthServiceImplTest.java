@@ -97,13 +97,13 @@ class AuthServiceImplTest {
         when(userService.findByEmail(firstEntity.getEmail())).thenReturn(firstEntity);
         when(passwordManager.matches(firstEntity.getPassword(), firstEntity.getPassword()))
                 .thenReturn(true);
-        when(jJwtManager.createToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
+        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
         AuthResponseDTO response = service.login(firstEntity.getEmail(), firstEntity.getPassword());
         assertNotNull(response);
         assertEquals(MOCKED_JWT, response.token());
         verify(userService).findByEmail(firstEntity.getEmail());
         verify(passwordManager).matches(firstEntity.getPassword(), firstEntity.getPassword());
-        verify(jJwtManager).createToken(any(UserPrincipal.class));
+        verify(jJwtManager).createAccessToken(any(UserPrincipal.class));
     }
 
     // --- register ---
@@ -125,7 +125,7 @@ class AuthServiceImplTest {
         when(userService.findByEmail(secondEntity.getEmail())).thenReturn(secondEntity);
         when(passwordManager.matches(secondEntity.getPassword(), secondEntity.getPassword()))
                 .thenReturn(true);
-        when(jJwtManager.createToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
+        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
         AuthResponseDTO response =
                 service.register(secondEntity.getEmail(), secondEntity.getPassword());
         assertNotNull(response);

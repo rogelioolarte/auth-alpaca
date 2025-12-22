@@ -1,323 +1,319 @@
 package com.alpaca.security.manager;
 
+import com.alpaca.entity.RefreshToken;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
-
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import org.springframework.util.StringUtils;
 
 /**
- * {@code JJwtManager} is a Spring component responsible for managing JSON Web Tokens (JWT) using
- * asymmetric RSA key pairs for signing and verification.
+ * Central manager for issuing, validating, and parsing JSON Web Tokens (JWT) using RSA keys.
  *
- * <p>This class provides methods to:
+ * <p>This Spring-managed component handles both Access and Refresh tokens. Tokens are signed
+ * with RSA private keys and verified with RSA public keys using the RS512 signature algorithm
+ * (RSA with SHA-512). Claims such as issuer, subject, authorities, and custom fields are
+ * automatically set when tokens are created.
  *
- * <ul>
- *   <li>Generate signed JWT tokens from {@link UserPrincipal} instances.
- *   <li>Validate and parse tokens using the configured RSA public key.
- *   <li>Extract claims and build authentication objects compatible with Spring Security.
- * </ul>
+ * <p>The class maintains separate keys and expiration times for Access and Refresh tokens, which
+ * must be provided via Spring configuration properties. It builds {@code JwtParser} instances
+ * for validating incoming tokens, ensuring that only tokens with the correct issuer and
+ * signature are accepted.
  *
- * <p>Security is enforced using the {@code RS512} algorithm ({@link SignatureAlgorithm}) which
- * leverages RSA with SHA-512 hashing. Keys are injected via application properties and decoded
- * using the {@link KeyFactory} standard mechanism.
+ * <p>Typical usage includes creating tokens upon successful authentication, hashing refresh
+ * tokens for persistence, validating incoming tokens, and building Spring Security
+ * authentication objects from valid JWTs.
  *
- * <p><strong>Configuration properties required:</strong>
- *
- * <ul>
- *   <li>{@code app.jwtPrivateKey}: Base64-encoded RSA private key in PKCS#8 format.
- *   <li>{@code app.jwtPublicKey}: Base64-encoded RSA public key in X.509 format.
- *   <li>{@code app.jwtUserGenerator}: Identifier of the issuer of tokens.
- *   <li>{@code app.jwtTimeExpiration}: Token expiration time in milliseconds.
- * </ul>
- *
+ * @see io.jsonwebtoken.Jwts
+ * @see io.jsonwebtoken.JwtParser
+ * @see SignatureAlgorithm
  * @see UserPrincipal
  * @see UnauthorizedException
- * @see io.jsonwebtoken.JwtParser
  */
 @Component
 public class JJwtManager {
 
-    /** The signature algorithm used for JWT creation: RS512 (RSA + SHA-512). */
-    private final SignatureAlgorithm alg = Jwts.SIG.RS512;
+    /** The signature algorithm used for token signing: RS512 (RSA with SHA-512). */
+    private static final SignatureAlgorithm alg = Jwts.SIG.RS512;
 
-    /** RSA private key used to sign tokens. */
-    private final RSAPrivateKey privateKeyA;
+    /** RSA private key used to sign Access Tokens. */
+    private final RSAPrivateKey privateKeyAccess;
 
-    /** RSA public key used to verify tokens. */
-    private final RSAPublicKey publicKeyA;
+    /** RSA public key used to verify Access Tokens. */
+    private final RSAPublicKey publicKeyAccess;
 
-    /** The issuer (generator) identifier included in the token payload. */
-    private final String jwtUserGenerator;
+    /** Expiration time in milliseconds for Access Tokens. */
+    private final Long jwtTimeExpAccess;
 
-    /** Token expiration time (in milliseconds), configured via properties. */
-    private final Long jwtTimeExpirationA;
+    /** RSA private key used to sign Refresh Tokens. */
+    private final RSAPrivateKey privateKeyRefresh;
+
+    /** RSA public key used to verify Refresh Tokens. */
+    private final RSAPublicKey publicKeyRefresh;
+
+    /** Expiration time in milliseconds for Refresh Tokens. */
+    private final Long jwtTimeExpRefresh;
+
+    /** Issuer identifier to include in the “iss” claim of tokens. */
+    private final String jwtIssuer;
+
+    private static final String CLAIM_KEY_USER_ID= "userId";
+    private static final String CLAIM_KEY_AUTHORITIES = "authorities";
+
+    private final JwtParser jwtAccessParser;
+    private final JwtParser jwtRefreshParser;
 
     /**
-     * Constructs a {@code JJwtManager} with the necessary RSA key resources and configuration.
+     * Constructs a new {@code JJwtManager}, loading RSA key pairs for access and refresh tokens,
+     * and configuring the issuer and expiration settings.
      *
-     * <p>This constructor loads the RSA private and public keys for Access Token and Refresh Token
-     * from Spring {@link Resource} locations. Keys must be in standard PEM formats.
+     * <p>Both private and public keys must be provided in Base64-encoded format via Spring
+     * {@code Resource} locations. Keys must follow standard PKCS8 (private) or X.509 (public)
+     * PEM formatting.
      *
-     * <p>It also sets the issuer and token expiration time.
-     *
-     * @param accessPrivateKeyResource the resource location for the RSA private key of Access
-     *     Token.
-     * @param accessPublicKeyResource the resource location for the RSA public key of Access Token.
-     * @param jwtUserGenerator identifier to include in the "iss" claim
-     * @param jwtTimeExpirationA expiration duration (ms) of Access Token.
-     * @throws Exception if keys cannot be loaded or parsed
+     * @param accessPrivateKR resource representing the access token RSA private key
+     * @param accessPublicKR resource representing the access token RSA public key
+     * @param jwtTimeExpAccess string value representing access token expiration in ms
+     * @param refreshPrivateKR resource representing the refresh token RSA private key
+     * @param refreshPublicKR resource representing the refresh token RSA public key
+     * @param jwtTimeExpRefresh string value representing refresh token expiration in ms
+     * @param jwtIssuer token issuer identifier to be included in all generated tokens
+     * @throws NoSuchAlgorithmException if RSA key instance cannot be created
+     * @throws IOException if any of the supplied resources cannot be read
+     * @throws InvalidKeySpecException if any key spec cannot be parsed into a key
      */
     public JJwtManager(
-            @Value("${security.jwt.access.private-key-path}") Resource accessPrivateKeyResource,
-            @Value("${security.jwt.access.public-key-path}") Resource accessPublicKeyResource,
-            @Value("${security.jwt.user-generator}") @NotNull String jwtUserGenerator,
-            @Value("${security.jwt.access.expiration}") @NotNull String jwtTimeExpirationA)
-            throws Exception {
+            @Value("${security.jwt.access.private-key-path}") Resource accessPrivateKR,
+            @Value("${security.jwt.access.public-key-path}") Resource accessPublicKR,
+            @Value("${security.jwt.access.expiration}") @NotNull String jwtTimeExpAccess,
+            @Value("${security.jwt.refresh.private-key-path}") Resource refreshPrivateKR,
+            @Value("${security.jwt.refresh.public-key-path}") Resource refreshPublicKR,
+            @Value("${security.jwt.refresh.expiration}") @NotNull String jwtTimeExpRefresh,
+            @Value("${security.jwt.issuer}") @NotNull String jwtIssuer)
+            throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-        // Load and parse the private key PEM
-        byte[] privateBytes = accessPrivateKeyResource.getInputStream().readAllBytes();
-        String privatePem =
-                new String(privateBytes)
-                        .replace("-----BEGIN PRIVATE KEY-----", "")
-                        .replace("-----END PRIVATE KEY-----", "")
-                        .replaceAll("\\s+", "");
-        PKCS8EncodedKeySpec privateSpec =
-                new PKCS8EncodedKeySpec(Decoders.BASE64.decode(privatePem));
-        this.privateKeyA = (RSAPrivateKey) keyFactory.generatePrivate(privateSpec);
+        this.privateKeyAccess = createPrivateKey(accessPrivateKR, keyFactory);
+        this.publicKeyAccess = createPublicKey(accessPublicKR, keyFactory);
 
-        // Load and parse the public key PEM
-        byte[] publicBytes = accessPublicKeyResource.getInputStream().readAllBytes();
-        String publicPem =
-                new String(publicBytes)
-                        .replace("-----BEGIN PUBLIC KEY-----", "")
-                        .replace("-----END PUBLIC KEY-----", "")
-                        .replaceAll("\\s+", "");
-        X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(Decoders.BASE64.decode(publicPem));
-        this.publicKeyA = (RSAPublicKey) keyFactory.generatePublic(publicSpec);
+        this.privateKeyRefresh = createPrivateKey(refreshPrivateKR, keyFactory);
+        this.publicKeyRefresh = createPublicKey(refreshPublicKR, keyFactory);
 
-        // Set issuer and expiration
-        this.jwtUserGenerator = jwtUserGenerator;
-        this.jwtTimeExpirationA = Long.parseLong(jwtTimeExpirationA);
+        this.jwtIssuer = jwtIssuer;
+        this.jwtTimeExpAccess = Long.parseLong(jwtTimeExpAccess);
+        this.jwtTimeExpRefresh = Long.parseLong(jwtTimeExpRefresh);
+
+        // Build parsers that require valid issuer and key verification
+        this.jwtAccessParser = Jwts.parser()
+                .verifyWith(publicKeyAccess)
+                .requireIssuer(jwtIssuer)
+                .build();
+
+        this.jwtRefreshParser = Jwts.parser()
+                .verifyWith(publicKeyRefresh)
+                .requireIssuer(jwtIssuer)
+                .build();
     }
 
     /**
-     * Creates a new signed JWT token containing information about a {@link UserPrincipal}.
+     * Generates a signed JWT Access token for the given authenticated user.
      *
-     * @param user the authenticated user
-     * @return a signed JWT as a String
+     * @param user authenticated user information
+     * @return a signed Access JWT
      */
-    public String createToken(UserPrincipal user) {
+    public String createAccessToken(UserPrincipal user) {
         return Jwts.builder()
-                .issuer(jwtUserGenerator)
+                .issuer(jwtIssuer)
                 .subject(user.getUsername())
-                .claim("authorities", authoritiesToString(user.getAuthorities()))
-                .claim("userId", user.getId().toString())
-                .claim(
-                        "profileId",
+                .claim(CLAIM_KEY_AUTHORITIES,
+                        StringUtils.collectionToCommaDelimitedString(user.getAuthorities()))
+                .claim(CLAIM_KEY_USER_ID, user.getId().toString())
+                .claim("profileId",
                         user.getProfileId() != null ? user.getProfileId().toString() : "")
-                .claim(
-                        "advertiserId",
+                .claim("advertiserId",
                         user.getAdvertiserId() != null ? user.getAdvertiserId().toString() : "")
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtTimeExpirationA))
                 .notBefore(new Date(System.currentTimeMillis()))
-                .signWith(privateKeyA, alg)
+                .expiration(new Date(System.currentTimeMillis() + jwtTimeExpAccess))
+                .signWith(privateKeyAccess, alg)
                 .compact();
     }
 
     /**
-     * Validates and parses a JWT token using the public key.
+     * Creates a signed Refresh token embedding refresh token metadata.
      *
-     * @param token the token to validate
-     * @return a {@link Jws} containing the claims if valid
-     * @throws UnauthorizedException if the token is invalid or expired
+     * @param refreshToken refresh token entity
+     * @param user authenticated user information
+     * @return a signed Refresh JWT
      */
-    public Jws<Claims> validateToken(String token) {
+    public String createRefreshToken(RefreshToken refreshToken,
+                                     UserPrincipal user) {
+        return Jwts.builder()
+                .issuer(jwtIssuer)
+                .subject(refreshToken.getUser().getEmail())
+                .claim(CLAIM_KEY_USER_ID, user.getId())
+                .claim("jti", refreshToken.getTokenJti())
+                .claim("familyId", refreshToken.getFamilyId())
+                .issuedAt(new Date())
+                .notBefore(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + jwtTimeExpRefresh))
+                .claim("typ", "refresh")
+                .claim("clientId", refreshToken.getClientId())
+                .signWith(privateKeyRefresh, alg)
+                .compact();
+    }
+
+    /**
+     * Computes the SHA-256 hash of a refresh token string.
+     *
+     * <p>Useful for storing refresh tokens securely in a database without storing raw tokens.
+     *
+     * @param refreshToken the raw refresh token
+     * @return a hex-encoded SHA-256 digest, or empty string if algorithm unavailable
+     */
+    public String createRefreshTokenHash(String refreshToken) {
         try {
-            return Jwts.parser()
-                    .verifyWith(publicKeyA)
-                    .requireIssuer(jwtUserGenerator)
-                    .build()
-                    .parseSignedClaims(token);
-        } catch (Exception exception) {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : md.digest(refreshToken.getBytes(StandardCharsets.UTF_8))) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException _) {
+            return "";
+        }
+    }
+
+    /**
+     * Validates the given Access token and returns its claims if valid.
+     *
+     * @param token the signed JWT to validate
+     * @return claims extracted from the valid token
+     * @throws UnauthorizedException if token validation fails
+     */
+    public Claims validateAccessToken(String token) {
+        try {
+            return jwtAccessParser.parseSignedClaims(token).getPayload();
+        } catch (Exception _) {
             throw new UnauthorizedException("Token Invalid, Unauthorized");
         }
     }
 
     /**
-     * Builds a Spring Security authentication object from a JWT token.
+     * Validates the given Refresh token and returns its claims if valid.
      *
-     * @param token the JWT token
-     * @return a populated {@link UsernamePasswordAuthenticationToken}
+     * @param token the signed JWT to validate
+     * @return claims extracted from the valid token
+     * @throws UnauthorizedException if token validation fails
      */
-    public UsernamePasswordAuthenticationToken manageAuthentication(String token) {
-        return createAuthentication(getAllClaims(validateToken(token)));
+    public Claims validateRefreshToken(String token) {
+        try {
+            return jwtRefreshParser.parseSignedClaims(token).getPayload();
+        } catch (Exception _) {
+            throw new UnauthorizedException("Token Invalid, Unauthorized");
+        }
     }
 
     /**
-     * Creates an authentication object if the claims represent a valid token.
+     * Checks essential conditions to determine if the token represents a valid refresh token.
      *
-     * @param claims the JWT claims
-     * @return a {@link UsernamePasswordAuthenticationToken} or {@code null} if invalid
+     * @param claims the parsed JWT claims
+     * @return {@code true} if token appears valid, otherwise {@code false}
+     */
+    public boolean isValidAccessToken(Claims claims) {
+        return claims.getExpiration() != null
+                && claims.getExpiration().after(new Date())
+                && StringUtils.hasText(claims.getSubject())
+                && StringUtils.hasText(claims.get(CLAIM_KEY_USER_ID, String.class))
+                && StringUtils.hasText(claims.get("jti", String.class))
+                && StringUtils.hasText(claims.get("familyId", String.class))
+                && StringUtils.hasText(claims.get("clientId", String.class));
+    }
+
+    /**
+     * Checks essential conditions to determine if the token represents a valid access token.
+     *
+     * @param claims the parsed JWT claims
+     * @return {@code true} if token appears valid, otherwise {@code false}
+     */
+    public boolean isValidRefreshToken(Claims claims) {
+        return claims.getExpiration() != null
+                && claims.getExpiration().after(new Date())
+                && StringUtils.hasText(claims.getSubject())
+                && StringUtils.hasText(claims.get(CLAIM_KEY_USER_ID, String.class))
+                && StringUtils.hasText(claims.get(CLAIM_KEY_AUTHORITIES, String.class));
+    }
+
+    /**
+     * Constructs Spring Security authentication from a validated JWT.
+     *
+     * @param token the signed JWT
+     * @return an authentication token suitable for Spring Security context
+     */
+    public UsernamePasswordAuthenticationToken manageAuthentication(String token) {
+        return createAuthentication(validateAccessToken(token));
+    }
+
+    /**
+     * Builds a {@code UsernamePasswordAuthenticationToken} if claims represent a valid access token.
+     *
+     * @param claims parsed JWT claims
+     * @return authentication object or {@code null} if claims are invalid
      */
     public UsernamePasswordAuthenticationToken createAuthentication(Claims claims) {
-        return isValidToken(claims)
+        return isValidAccessToken(claims)
                 ? new UsernamePasswordAuthenticationToken(
-                        getUserPrincipal(claims), null, getAuthoritiesList(claims))
+                new UserPrincipal(claims), null,
+                AuthorityUtils.commaSeparatedStringToAuthorityList(
+                        claims.get(CLAIM_KEY_AUTHORITIES, String.class)))
                 : null;
     }
 
-    /**
-     * Verifies whether the claims represent a valid token.
-     *
-     * @param claims the token claims
-     * @return {@code true} if valid, otherwise {@code false}
-     */
-    public boolean isValidToken(Claims claims) {
-        return claims.getExpiration() != null
-                && claims.getExpiration().after(new Date())
-                && existString(getUsername(claims))
-                && existString(getUserId(claims))
-                && existString(getAuthorities(claims));
-        // Optional: enforce at least profileId or advertiserId presence.
+    /** Internal helper to generate a private key from a PEM resource. */
+    private RSAPrivateKey createPrivateKey(Resource keyResource, KeyFactory keyfactory)
+            throws IOException, InvalidKeySpecException {
+        return (RSAPrivateKey)
+                keyfactory.generatePrivate(
+                        new PKCS8EncodedKeySpec(Decoders.BASE64.decode(readPEM(keyResource))));
     }
 
-    /**
-     * @return the username (JWT subject).
-     */
-    public String getUsername(Claims claims) {
-        return claims.getSubject();
+    /** Internal helper to generate a public key from a PEM resource. */
+    private RSAPublicKey createPublicKey(Resource keyResource, KeyFactory keyfactory)
+            throws IOException, InvalidKeySpecException {
+        return (RSAPublicKey)
+                keyfactory.generatePublic(
+                        new X509EncodedKeySpec(Decoders.BASE64.decode(readPEM(keyResource))));
     }
 
-    /**
-     * @return the raw authorities string (comma-separated).
-     */
-    public String getAuthorities(Claims claims) {
-        return getSpecificClaim(claims, "authorities", String.class);
-    }
-
-    /**
-     * @return the authorities as a {@link List} of Spring Security {@link GrantedAuthority}.
-     */
-    public List<? extends GrantedAuthority> getAuthoritiesList(Claims claims) {
-        return AuthorityUtils.commaSeparatedStringToAuthorityList(getAuthorities(claims));
-    }
-
-    /**
-     * @return the userId claim as a String.
-     */
-    public String getUserId(Claims claims) {
-        return getSpecificClaim(claims, "userId", String.class);
-    }
-
-    /**
-     * @return the profileId claim as a String.
-     */
-    public String getProfileId(Claims claims) {
-        return getSpecificClaim(claims, "profileId", String.class);
-    }
-
-    /**
-     * @return the advertiserId claim as a String.
-     */
-    public String getAdvertiserId(Claims claims) {
-        return getSpecificClaim(claims, "advertiserId", String.class);
-    }
-
-    /**
-     * Converts a claim string to a {@link UUID}.
-     *
-     * @param claim the string claim value
-     * @return a UUID or {@code null} if blank
-     */
-    public UUID getUUIDFromClaim(String claim) {
-        return !claim.isBlank() ? UUID.fromString(claim) : null;
-    }
-
-    /**
-     * Checks whether a string is non-null and non-blank.
-     *
-     * @param string the string to check
-     * @return {@code true} if non-empty, otherwise {@code false}
-     */
-    public boolean existString(String string) {
-        return string != null && !string.isBlank();
-    }
-
-    /**
-     * Builds a {@link UserPrincipal} from JWT claims.
-     *
-     * @param claims the token claims
-     * @return a {@link UserPrincipal} populated with claim values
-     */
-    public UserPrincipal getUserPrincipal(Claims claims) {
-        return new UserPrincipal(
-                getUUIDFromClaim(getUserId(claims)),
-                getUUIDFromClaim(getProfileId(claims)),
-                getUUIDFromClaim(getAdvertiserId(claims)),
-                getUsername(claims),
-                null,
-                getAuthoritiesList(claims),
-                null);
-    }
-
-    /**
-     * Retrieves a specific claim from JWT claims.
-     *
-     * @param claims the claims object
-     * @param claimName the name of the claim
-     * @param t the type to cast the claim value
-     * @return the claim value cast to type {@code T}
-     */
-    public <T> T getSpecificClaim(Claims claims, String claimName, Class<T> t) {
-        return claims.get(claimName, t);
-    }
-
-    /**
-     * Extracts the payload (claims) from a signed JWS token.
-     *
-     * @param claims the signed claims wrapper
-     * @return the {@link Claims} payload
-     */
-    public Claims getAllClaims(Jws<Claims> claims) {
-        return claims.getPayload();
-    }
-
-    /**
-     * Converts a collection of {@link GrantedAuthority} objects into a comma-separated string.
-     *
-     * @param grantedAuthorities the authorities collection
-     * @return a string representation of authorities
-     */
-    public String authoritiesToString(Collection<? extends GrantedAuthority> grantedAuthorities) {
-        StringBuilder result = new StringBuilder();
-        for (GrantedAuthority simpleGrantedAuthority : grantedAuthorities) {
-            if (!result.isEmpty()) {
-                result.append(",");
-            }
-            result.append(simpleGrantedAuthority.getAuthority());
+    /** Reads a PEM file and strips header/footer and whitespace to return Base64 content. */
+    private String readPEM(Resource resource) throws IOException {
+        try (InputStream is = resource.getInputStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8)
+                    .replaceAll("-{5}(BEGIN|END).+?-{5}", "")
+                    .replaceAll("\\s+", "");
         }
-        return result.toString();
     }
 }

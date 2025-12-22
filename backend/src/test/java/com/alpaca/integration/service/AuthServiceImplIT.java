@@ -101,8 +101,8 @@ public class AuthServiceImplIT {
         assertNotNull(response);
         assertNotNull(response.token());
         assertTrue(
-                jJwtManager.isValidToken(
-                        jJwtManager.getAllClaims(jJwtManager.validateToken(response.token()))));
+                jJwtManager.isValidAccessToken(
+                                jJwtManager.validateAccessToken(response.token())));
     }
 
     // --- register ---
@@ -126,8 +126,8 @@ public class AuthServiceImplIT {
                 service.register(secondEntity.getEmail(), secondEntity.getPassword());
         assertNotNull(response);
         assertTrue(
-                jJwtManager.isValidToken(
-                        jJwtManager.getAllClaims(jJwtManager.validateToken(response.token()))));
+                jJwtManager.isValidAccessToken(
+                                jJwtManager.validateAccessToken(response.token())));
     }
 
     // --- loadUserByUsername ---

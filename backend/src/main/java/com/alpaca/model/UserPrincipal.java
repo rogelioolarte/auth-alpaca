@@ -1,15 +1,16 @@
 package com.alpaca.model;
 
 import com.alpaca.entity.User;
+import io.jsonwebtoken.Claims;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-
-import java.util.*;
 
 /**
  * Represents the Principal User Details in the security context. This class implements both {@link
@@ -111,6 +112,33 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.password = password;
         this.authorities = authoritiesList;
         this.attributes = attributes;
+    }
+
+    /**
+     * Builds a {@link UserPrincipal} from JWT claims.
+     *
+     * @param claims the token claims
+	 */
+    public UserPrincipal(Claims claims) {
+        if (claims == null) {
+            this.username = "anonymous";
+            this.authorities = Collections.emptyList();
+            return;
+        }
+        this.id = getUUIDFromClaim(claims, "userId");
+        this.profileId = getUUIDFromClaim(claims, "profileId");
+        this.advertiserId = getUUIDFromClaim(claims, "advertiserId");
+        this.username = claims.getSubject();
+        this.password = null;
+        this.authorities =
+                AuthorityUtils.commaSeparatedStringToAuthorityList(
+                        claims.get("authorities", String.class));
+        this.attributes = null;
+    }
+
+    private UUID getUUIDFromClaim(Claims claims, String key) {
+        String value = claims.get(key, String.class);
+        return (value != null && !value.isEmpty()) ? UUID.fromString(value) : null;
     }
 
     /**
