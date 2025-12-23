@@ -1,6 +1,6 @@
 package com.alpaca.security.ratelimit;
 
-import com.alpaca.model.RateLimitResult;
+import com.alpaca.dto.response.RateLimitResult;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import java.time.Duration;

@@ -2,7 +2,7 @@ package com.alpaca.controller;
 
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.exception.RateLimitExceededException;
-import com.alpaca.model.RateLimitResult;
+import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
