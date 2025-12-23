@@ -3,16 +3,15 @@ package com.alpaca.repository;
 import com.alpaca.entity.Session;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Repository interface for managing {@link Session} entities.
@@ -58,7 +57,8 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "0"))
-    @Query(""" 
+    @Query(
+            """
               SELECT s
                 FROM Session s
                WHERE s.user.id = :userId
@@ -69,7 +69,5 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
     Optional<Session> findByUniqueProperties(
             @Param("userId") UUID userId,
             @Param("userAgent") String userAgent,
-            @Param("clientId") String clientId
-    );
-
+            @Param("clientId") String clientId);
 }

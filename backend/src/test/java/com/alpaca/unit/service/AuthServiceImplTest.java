@@ -3,7 +3,6 @@ package com.alpaca.unit.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
@@ -22,16 +21,13 @@ import com.alpaca.service.impl.ProfileServiceImpl;
 import com.alpaca.service.impl.RoleServiceImpl;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /** Unit tests for {@link AuthServiceImpl} */
@@ -82,55 +78,56 @@ class AuthServiceImplTest {
         assertThrows(UnauthorizedException.class, () -> service.setSecurityContextBefore(null));
     }
 
-//    @Test
-//    void setSecurityContextBeforeCaseTwo() {
-//        UserPrincipal userDetails = new UserPrincipal(firstEntity, null);
-//        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-//        Object result = service.setSecurityContextBefore(auth);
-//        assertEquals(userDetails, result);
-//        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
-//    }
+    //    @Test
+    //    void setSecurityContextBeforeCaseTwo() {
+    //        UserPrincipal userDetails = new UserPrincipal(firstEntity, null);
+    //        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+    //        Object result = service.setSecurityContextBefore(auth);
+    //        assertEquals(userDetails, result);
+    //        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
+    //    }
 
     // --- login ---
-//    @Test
-//    void loginCaseOne() {
-//        when(userService.findByEmail(firstEntity.getEmail())).thenReturn(firstEntity);
-//        when(passwordManager.matches(firstEntity.getPassword(), firstEntity.getPassword()))
-//                .thenReturn(true);
-//        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
-//        AuthResponseDTO response = service.login(firstEntity.getEmail(), firstEntity.getPassword());
-//        assertNotNull(response);
-//        assertEquals(MOCKED_JWT, response.token());
-//        verify(userService).findByEmail(firstEntity.getEmail());
-//        verify(passwordManager).matches(firstEntity.getPassword(), firstEntity.getPassword());
-//        verify(jJwtManager).createAccessToken(any(UserPrincipal.class));
-//    }
+    //    @Test
+    //    void loginCaseOne() {
+    //        when(userService.findByEmail(firstEntity.getEmail())).thenReturn(firstEntity);
+    //        when(passwordManager.matches(firstEntity.getPassword(), firstEntity.getPassword()))
+    //                .thenReturn(true);
+    //        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
+    //        AuthResponseDTO response = service.login(firstEntity.getEmail(),
+    // firstEntity.getPassword());
+    //        assertNotNull(response);
+    //        assertEquals(MOCKED_JWT, response.token());
+    //        verify(userService).findByEmail(firstEntity.getEmail());
+    //        verify(passwordManager).matches(firstEntity.getPassword(), firstEntity.getPassword());
+    //        verify(jJwtManager).createAccessToken(any(UserPrincipal.class));
+    //    }
 
     // --- register ---
-//    @Test
-//    void registerCaseOne() {
-//        when(userService.existsByEmail(firstEntity.getEmail())).thenReturn(true);
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.register(firstEntity.getEmail(), firstEntity.getPassword()));
-//        verify(userService).existsByEmail(firstEntity.getEmail());
-//    }
+    //    @Test
+    //    void registerCaseOne() {
+    //        when(userService.existsByEmail(firstEntity.getEmail())).thenReturn(true);
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.register(firstEntity.getEmail(), firstEntity.getPassword()));
+    //        verify(userService).existsByEmail(firstEntity.getEmail());
+    //    }
 
-//    @Test
-//    void registerCaseTwo() {
-//        secondEntity.setUserRoles(Set.of(role));
-//        when(userService.existsByEmail(secondEntity.getEmail())).thenReturn(false);
-//        when(roleService.getUserRoles()).thenReturn(Set.of(role));
-//        when(userService.register(any(User.class))).thenReturn(secondEntity);
-//        when(userService.findByEmail(secondEntity.getEmail())).thenReturn(secondEntity);
-//        when(passwordManager.matches(secondEntity.getPassword(), secondEntity.getPassword()))
-//                .thenReturn(true);
-//        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
-//        AuthResponseDTO response =
-//                service.register(secondEntity.getEmail(), secondEntity.getPassword());
-//        assertNotNull(response);
-//        assertEquals(MOCKED_JWT, response.token());
-//    }
+    //    @Test
+    //    void registerCaseTwo() {
+    //        secondEntity.setUserRoles(Set.of(role));
+    //        when(userService.existsByEmail(secondEntity.getEmail())).thenReturn(false);
+    //        when(roleService.getUserRoles()).thenReturn(Set.of(role));
+    //        when(userService.register(any(User.class))).thenReturn(secondEntity);
+    //        when(userService.findByEmail(secondEntity.getEmail())).thenReturn(secondEntity);
+    //        when(passwordManager.matches(secondEntity.getPassword(), secondEntity.getPassword()))
+    //                .thenReturn(true);
+    //        when(jJwtManager.createAccessToken(any(UserPrincipal.class))).thenReturn(MOCKED_JWT);
+    //        AuthResponseDTO response =
+    //                service.register(secondEntity.getEmail(), secondEntity.getPassword());
+    //        assertNotNull(response);
+    //        assertEquals(MOCKED_JWT, response.token());
+    //    }
 
     // --- loadUserByUsername ---
     @Test

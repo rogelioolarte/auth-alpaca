@@ -25,9 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,52 +78,58 @@ public class AuthServiceImplIT {
         assertThrows(UnauthorizedException.class, () -> service.setSecurityContextBefore(null));
     }
 
-//    @Test
-//    void setSecurityContextBeforeCaseTwo() {
-//        UserPrincipal userDetails = new UserPrincipal(firstEntity, null);
-//        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-//        Object result = service.setSecurityContextBefore(auth);
-//        assertEquals(userDetails, result);
-//        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
-//    }
+    //    @Test
+    //    void setSecurityContextBeforeCaseTwo() {
+    //        UserPrincipal userDetails = new UserPrincipal(firstEntity, null);
+    //        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
+    //        Object result = service.setSecurityContextBefore(auth);
+    //        assertEquals(userDetails, result);
+    //        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
+    //    }
 
     // --- login ---
-//    @Test
-//    @Transactional
-//    void loginCaseOne() {
-//        roleService.save(
-//                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-//        service.register(firstEntity.getEmail(), firstEntity.getPassword());
-//        AuthResponseDTO response = service.login(firstEntity.getEmail(), firstEntity.getPassword());
-//        assertNotNull(response);
-//        assertNotNull(response.token());
-//        assertTrue(
-//                jJwtManager.isValidAccessToken(jJwtManager.validateAccessToken(response.token())));
-//    }
+    //    @Test
+    //    @Transactional
+    //    void loginCaseOne() {
+    //        roleService.save(
+    //                new Role(role.getRoleName(), role.getRoleDescription(),
+    // Collections.emptySet()));
+    //        service.register(firstEntity.getEmail(), firstEntity.getPassword());
+    //        AuthResponseDTO response = service.login(firstEntity.getEmail(),
+    // firstEntity.getPassword());
+    //        assertNotNull(response);
+    //        assertNotNull(response.token());
+    //        assertTrue(
+    //
+    // jJwtManager.isValidAccessToken(jJwtManager.validateAccessToken(response.token())));
+    //    }
 
     // --- register ---
-//    @Test
-//    @Transactional
-//    void registerCaseOne() {
-//        roleService.save(
-//                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-//        service.register(firstEntity.getEmail(), firstEntity.getPassword());
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.register(firstEntity.getEmail(), firstEntity.getPassword()));
-//    }
+    //    @Test
+    //    @Transactional
+    //    void registerCaseOne() {
+    //        roleService.save(
+    //                new Role(role.getRoleName(), role.getRoleDescription(),
+    // Collections.emptySet()));
+    //        service.register(firstEntity.getEmail(), firstEntity.getPassword());
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.register(firstEntity.getEmail(), firstEntity.getPassword()));
+    //    }
 
-//    @Test
-//    @Transactional
-//    void registerCaseTwo() {
-//        roleService.save(
-//                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-//        AuthResponseDTO response =
-//                service.register(secondEntity.getEmail(), secondEntity.getPassword());
-//        assertNotNull(response);
-//        assertTrue(
-//                jJwtManager.isValidAccessToken(jJwtManager.validateAccessToken(response.token())));
-//    }
+    //    @Test
+    //    @Transactional
+    //    void registerCaseTwo() {
+    //        roleService.save(
+    //                new Role(role.getRoleName(), role.getRoleDescription(),
+    // Collections.emptySet()));
+    //        AuthResponseDTO response =
+    //                service.register(secondEntity.getEmail(), secondEntity.getPassword());
+    //        assertNotNull(response);
+    //        assertTrue(
+    //
+    // jJwtManager.isValidAccessToken(jJwtManager.validateAccessToken(response.token())));
+    //    }
 
     // --- loadUserByUsername ---
     @Test

@@ -14,6 +14,8 @@ import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.alpaca.service.*;
+import java.util.Map;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,9 +30,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
@@ -78,8 +77,12 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
         Authentication authentication = authenticate(requestDTO.email(), requestDTO.password());
         setSecurityContextBefore(authentication);
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        Session savedSession = sessionService.createSession(userPrincipal.getId(),
-                requestDTO.userAgent(), requestDTO.clientId(), requestDTO.clientIp());
+        Session savedSession =
+                sessionService.createSession(
+                        userPrincipal.getId(),
+                        requestDTO.userAgent(),
+                        requestDTO.clientId(),
+                        requestDTO.clientIp());
         return refreshTokenService.generateJWTTokens(savedSession);
     }
 

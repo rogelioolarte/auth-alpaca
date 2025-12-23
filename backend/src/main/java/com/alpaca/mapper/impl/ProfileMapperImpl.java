@@ -5,10 +5,9 @@ import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.service.IUserService;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * Implementation of {@link IProfileMapper} for mapping between {@link Profile} entities and their

@@ -19,14 +19,12 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -45,76 +43,83 @@ class AuthControllerTest {
     private static final AuthRequestDTO invalidPasswordRequest =
             new AuthRequestDTO("admin@admin.com", "short");
 
-//    @Test
-//    @DisplayName("login returns 200 and token when credentials are valid")
-//    void loginReturnsToken() throws Exception {
-//        var token = new AuthResponseDTO("jwt-token-123", null);
-//        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//                .thenReturn(token);
-//
-//        mockMvc.perform(
-//                        post("/auth/login")
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(requestJson.write(validRequest).getJson()))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$.token", is("jwt-token-123")));
-//
-//        verify(authService).login(eq(validRequest.getEmail()), eq(validRequest.getPassword()));
-//    }
+    //    @Test
+    //    @DisplayName("login returns 200 and token when credentials are valid")
+    //    void loginReturnsToken() throws Exception {
+    //        var token = new AuthResponseDTO("jwt-token-123", null);
+    //        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
+    //                .thenReturn(token);
+    //
+    //        mockMvc.perform(
+    //                        post("/auth/login")
+    //                                .contentType(MediaType.APPLICATION_JSON)
+    //                                .content(requestJson.write(validRequest).getJson()))
+    //                .andExpect(status().isOk())
+    //                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+    //                .andExpect(jsonPath("$.token", is("jwt-token-123")));
+    //
+    //        verify(authService).login(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword()));
+    //    }
 
-//    @Test
-//    @DisplayName("login returns 401 when credentials are invalid")
-//    void loginUnauthorizedWhenInvalidCredentials() throws Exception {
-//        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//                .thenThrow(
-//                        new ResponseStatusException(
-//                                HttpStatus.UNAUTHORIZED, "Invalid credentials"));
-//
-//        mockMvc.perform(
-//                        post("/auth/login")
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(requestJson.write(validRequest).getJson()))
-//                .andExpect(status().isUnauthorized())
-//                .andExpect(jsonPath("$.message", is("Invalid credentials")));
-//
-//        verify(authService).login(eq(validRequest.getEmail()), eq(validRequest.getPassword()));
-//        verify(authService, never()).register(any(), any());
-//    }
+    //    @Test
+    //    @DisplayName("login returns 401 when credentials are invalid")
+    //    void loginUnauthorizedWhenInvalidCredentials() throws Exception {
+    //        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
+    //                .thenThrow(
+    //                        new ResponseStatusException(
+    //                                HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+    //
+    //        mockMvc.perform(
+    //                        post("/auth/login")
+    //                                .contentType(MediaType.APPLICATION_JSON)
+    //                                .content(requestJson.write(validRequest).getJson()))
+    //                .andExpect(status().isUnauthorized())
+    //                .andExpect(jsonPath("$.message", is("Invalid credentials")));
+    //
+    //        verify(authService).login(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword()));
+    //        verify(authService, never()).register(any(), any());
+    //    }
 
-//    @Test
-//    @DisplayName("register returns 200 and token when registration succeeds")
-//    void registerReturnsToken() throws Exception {
-//        var token = new AuthResponseDTO("register-token-xyz", null);
-//        when(authService.register(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//                .thenReturn(token);
-//
-//        mockMvc.perform(
-//                        post("/auth/register")
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(requestJson.write(validRequest).getJson()))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$.token", is("register-token-xyz")));
-//
-//        verify(authService).register(eq(validRequest.getEmail()), eq(validRequest.getPassword()));
-//    }
+    //    @Test
+    //    @DisplayName("register returns 200 and token when registration succeeds")
+    //    void registerReturnsToken() throws Exception {
+    //        var token = new AuthResponseDTO("register-token-xyz", null);
+    //        when(authService.register(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword())))
+    //                .thenReturn(token);
+    //
+    //        mockMvc.perform(
+    //                        post("/auth/register")
+    //                                .contentType(MediaType.APPLICATION_JSON)
+    //                                .content(requestJson.write(validRequest).getJson()))
+    //                .andExpect(status().isOk())
+    //                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+    //                .andExpect(jsonPath("$.token", is("register-token-xyz")));
+    //
+    //        verify(authService).register(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword()));
+    //    }
 
-//    @Test
-//    @DisplayName("register returns 409 Conflict when user already exists")
-//    void registerConflictWhenAlreadyExists() throws Exception {
-//        when(authService.register(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//                .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "User already exists"));
-//
-//        mockMvc.perform(
-//                        post("/auth/register")
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(requestJson.write(validRequest).getJson()))
-//                .andExpect(status().isConflict())
-//                .andExpect(jsonPath("$.message", is("User already exists")));
-//
-//        verify(authService).register(eq(validRequest.getEmail()), eq(validRequest.getPassword()));
-//    }
+    //    @Test
+    //    @DisplayName("register returns 409 Conflict when user already exists")
+    //    void registerConflictWhenAlreadyExists() throws Exception {
+    //        when(authService.register(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword())))
+    //                .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "User already
+    // exists"));
+    //
+    //        mockMvc.perform(
+    //                        post("/auth/register")
+    //                                .contentType(MediaType.APPLICATION_JSON)
+    //                                .content(requestJson.write(validRequest).getJson()))
+    //                .andExpect(status().isConflict())
+    //                .andExpect(jsonPath("$.message", is("User already exists")));
+    //
+    //        verify(authService).register(eq(validRequest.getEmail()),
+    // eq(validRequest.getPassword()));
+    //    }
 
     @Test
     @DisplayName("register returns 400 when password does not meet validation rules")

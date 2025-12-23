@@ -48,12 +48,13 @@ public class AuthController {
             HttpServletRequest request) {
         return new ResponseEntity<>(
                 authService.login(
-                        new AuthLoginRequestDTO(requestDTO.getEmail(),
+                        new AuthLoginRequestDTO(
+                                requestDTO.getEmail(),
                                 requestDTO.getPassword(),
                                 clientId,
                                 userAgent,
-                                Utils.extractClientIP(request))
-                ), HttpStatus.OK);
+                                Utils.extractClientIP(request))),
+                HttpStatus.OK);
     }
 
     /**
@@ -73,7 +74,8 @@ public class AuthController {
             HttpServletRequest request) {
         return ResponseEntity.ok(
                 authService.register(
-                        new AuthLoginRequestDTO(requestDTO.getEmail(),
+                        new AuthLoginRequestDTO(
+                                requestDTO.getEmail(),
                                 requestDTO.getPassword(),
                                 clientId,
                                 userAgent,

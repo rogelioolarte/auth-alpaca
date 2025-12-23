@@ -8,14 +8,13 @@ import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link Session} entities. Inherits common CRUD
@@ -67,7 +66,8 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     }
 
     @Override
-    public Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId) {
+    public Optional<Session> findByUniqueProperties(
+            UUID userId, String userAgent, String clientId) {
         return dao.findByUniqueProperties(userId, userAgent, clientId);
     }
 
@@ -76,9 +76,10 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     public Session createSession(UUID userId, String userAgent, String clientId, String clientIp) {
         Optional<Session> sessionOp = dao.findByUniqueProperties(userId, userAgent, clientId);
         Instant now = Instant.now();
-        sessionOp.ifPresent(actualSession ->
-                refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
-                        actualSession.getFamilyId(), now, "new-session"));
+        sessionOp.ifPresent(
+                actualSession ->
+                        refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
+                                actualSession.getFamilyId(), now, "new-session"));
         User user = new User();
         user.setId(userId);
         Session newSession = new Session();

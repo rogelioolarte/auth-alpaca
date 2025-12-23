@@ -3,11 +3,10 @@ package com.alpaca.security.ratelimit;
 import com.alpaca.dto.response.RateLimitResult;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Component;
 
 @Component
 public class IPRateLimit {
@@ -25,9 +24,8 @@ public class IPRateLimit {
             return new RateLimitResult(true, 0);
         }
 
-        long retryAfterSeconds = Duration.ofNanos(probe.getNanosToWaitForRefill()).getSeconds();
-
-        return new RateLimitResult(false, retryAfterSeconds);
+        return new RateLimitResult(
+                false, Duration.ofNanos(probe.getNanosToWaitForRefill()).getSeconds());
     }
 
     private Bucket createBucket(String ip) {

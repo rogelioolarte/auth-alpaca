@@ -2,15 +2,14 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Represents a stored refresh token in the system, used for refresh-token rotation and reuse
@@ -153,11 +152,7 @@ public class RefreshToken extends Auditable {
         this.revoked = false;
     }
 
-    public RefreshToken(
-            Session session,
-            UUID tokenJti,
-            Instant expiresAt,
-            Instant lastUsedAt) {
+    public RefreshToken(Session session, UUID tokenJti, Instant expiresAt, Instant lastUsedAt) {
         this.user = session.getUser();
         this.tokenJti = tokenJti;
         this.familyId = session.getFamilyId();

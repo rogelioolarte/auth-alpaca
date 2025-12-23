@@ -1,7 +1,6 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Session;
-
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,5 +20,4 @@ public interface ISessionService extends IGenericService<Session, UUID> {
     Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId);
 
     Session createSession(UUID userId, String userAgent, String clientId, String clientIp);
-
 }
