@@ -1,13 +1,18 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Session;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link Session} entities.
@@ -49,5 +54,22 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
 
-    Optional<Session> findSessionByFamilyId(String familyId);
+    Optional<Session> findSessionByFamilyId(UUID familyId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "0"))
+    @Query(""" 
+              SELECT s
+                FROM Session s
+               WHERE s.user.id = :userId
+                 AND s.userAgent = :userAgent
+                 AND s.clientId = :clientId
+                 AND s.revoked = false
+            """)
+    Optional<Session> findByUniqueProperties(
+            @Param("userId") UUID userId,
+            @Param("userAgent") String userAgent,
+            @Param("clientId") String clientId
+    );
+
 }

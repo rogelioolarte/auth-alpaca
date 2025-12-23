@@ -1,10 +1,11 @@
 package com.alpaca.controller;
 
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.exception.RateLimitExceededException;
 import com.alpaca.dto.response.RateLimitResult;
+import com.alpaca.exception.RateLimitExceededException;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class RefreshTokenController {
             @RequestHeader(value = "User-Agent") String userAgent,
             HttpServletRequest request) {
 
-        String clientIp = extractClientIP(request);
+        String clientIp = Utils.extractClientIP(request);
         RateLimitResult result = rateLimit.check(clientIp);
         if (!result.allowed()) {
             throw new RateLimitExceededException(result.retryAfterSeconds());
@@ -36,13 +37,5 @@ public class RefreshTokenController {
 
         return ResponseEntity.ok(
                 service.rotateRefreshToken(refreshToken, clientId, userAgent, clientIp));
-    }
-
-    private String extractClientIP(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

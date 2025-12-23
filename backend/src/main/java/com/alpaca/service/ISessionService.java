@@ -1,7 +1,9 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Session;
+
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -12,7 +14,12 @@ import java.util.UUID;
  */
 public interface ISessionService extends IGenericService<Session, UUID> {
 
-    int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason);
+    void revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason);
 
-    Session findSessionByFamilyId(String familyId);
+    Optional<Session> findSessionByFamilyId(UUID familyId);
+
+    Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId);
+
+    Session createSession(UUID userId, String userAgent, String clientId, String clientIp);
+
 }

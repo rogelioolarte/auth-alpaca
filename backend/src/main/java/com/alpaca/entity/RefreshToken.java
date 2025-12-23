@@ -2,14 +2,15 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents a stored refresh token in the system, used for refresh-token rotation and reuse
@@ -136,6 +137,7 @@ public class RefreshToken extends Auditable {
             RefreshToken previous,
             UUID tokenJti,
             Instant expiresAt,
+            Instant lastUsedAt,
             String clientId,
             String userAgent,
             String ipAddress) {
@@ -144,10 +146,27 @@ public class RefreshToken extends Auditable {
         this.familyId = previous.getFamilyId();
         this.revoked = false;
         this.expiresAt = expiresAt;
-        this.lastUsedAt = Instant.now();
+        this.lastUsedAt = lastUsedAt;
         this.clientId = clientId;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
+        this.revoked = false;
+    }
+
+    public RefreshToken(
+            Session session,
+            UUID tokenJti,
+            Instant expiresAt,
+            Instant lastUsedAt) {
+        this.user = session.getUser();
+        this.tokenJti = tokenJti;
+        this.familyId = session.getFamilyId();
+        this.revoked = false;
+        this.expiresAt = expiresAt;
+        this.lastUsedAt = lastUsedAt;
+        this.clientId = session.getClientId();
+        this.ipAddress = session.getIpAddress();
+        this.userAgent = session.getUserAgent();
         this.revoked = false;
     }
 

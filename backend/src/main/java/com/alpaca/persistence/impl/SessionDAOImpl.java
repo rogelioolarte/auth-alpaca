@@ -5,10 +5,12 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
-import java.time.Instant;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implementation of the {@link ISessionDAO} interface for managing {@link Session} entities. This
@@ -124,18 +126,17 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     }
 
     @Override
-    public int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason) {
-        return repo.revokeSessionByFamilyId(familyId, revokedAt, reason);
+    public void revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason) {
+        repo.revokeSessionByFamilyId(familyId, revokedAt, reason);
     }
 
     @Override
-    public Session findSessionByFamilyId(String familyId) {
-        return repo.findSessionByFamilyId(familyId)
-                .orElseThrow(
-                        () ->
-                                new NotFoundException(
-                                        String.format(
-                                                "%s by FamilyId %s not found",
-                                                getEntity().getName(), familyId)));
+    public Optional<Session> findSessionByFamilyId(UUID familyId) {
+        return repo.findSessionByFamilyId(familyId);
+    }
+
+    @Override
+    public Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId) {
+        return repo.findByUniqueProperties(userId, userAgent, clientId);
     }
 }

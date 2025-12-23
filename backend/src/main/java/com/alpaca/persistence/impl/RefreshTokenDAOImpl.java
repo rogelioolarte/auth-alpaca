@@ -5,11 +5,12 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Implementation of the {@link IRefreshTokenDAO} interface for managing {@link RefreshToken}

@@ -1,10 +1,13 @@
 package com.alpaca.controller;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IAuthService;
 import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.utils.Utils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,9 +41,19 @@ public class AuthController {
      * @throws IllegalArgumentException if the provided credentials are invalid
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO requestDTO) {
+    public ResponseEntity<AuthResponseDTO> login(
+            @Valid @RequestBody AuthRequestDTO requestDTO,
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            HttpServletRequest request) {
         return new ResponseEntity<>(
-                authService.login(requestDTO.getEmail(), requestDTO.getPassword()), HttpStatus.OK);
+                authService.login(
+                        new AuthLoginRequestDTO(requestDTO.getEmail(),
+                                requestDTO.getPassword(),
+                                clientId,
+                                userAgent,
+                                Utils.extractClientIP(request))
+                ), HttpStatus.OK);
     }
 
     /**
@@ -53,10 +66,18 @@ public class AuthController {
      * @throws IllegalArgumentException if the provided credentials are invalid
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody AuthRequestDTO requestDTO) {
-        return new ResponseEntity<>(
-                authService.register(requestDTO.getEmail(), requestDTO.getPassword()),
-                HttpStatus.OK);
+    public ResponseEntity<AuthResponseDTO> register(
+            @Valid @RequestBody AuthRequestDTO requestDTO,
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            HttpServletRequest request) {
+        return ResponseEntity.ok(
+                authService.register(
+                        new AuthLoginRequestDTO(requestDTO.getEmail(),
+                                requestDTO.getPassword(),
+                                clientId,
+                                userAgent,
+                                Utils.extractClientIP(request))));
     }
 
     /**

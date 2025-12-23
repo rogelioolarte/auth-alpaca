@@ -1,29 +1,25 @@
 package com.alpaca.service.impl;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
+import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
-import com.alpaca.service.IAuthService;
-import com.alpaca.service.IProfileService;
-import com.alpaca.service.IRoleService;
-import com.alpaca.service.IUserService;
-import java.util.Map;
-import java.util.UUID;
+import com.alpaca.service.*;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,6 +28,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
@@ -50,61 +49,57 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     private final IRoleService roleService;
     private final IUserService userService;
     private final IProfileService profileService;
-    private final JJwtManager manager;
+    private final ISessionService sessionService;
+    private final IRefreshTokenService refreshTokenService;
     private final PasswordManager passwordManager;
+    private final AuthenticationManager authenticationManager;
 
     /**
      * Sets the Spring Security context with the provided authentication object.
      *
      * @param authentication the authentication object; must not be {@code null}
-     * @return the authenticated user's principal
      * @throws UnauthorizedException if the authentication object is {@code null}
      */
-    public Object setSecurityContextBefore(Authentication authentication) {
+    public void setSecurityContextBefore(Authentication authentication) {
         if (authentication == null) {
             throw new UnauthorizedException("The account has been deactivated or blocked");
         }
-        SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        return authentication.getPrincipal();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     /**
      * Authenticates a user using email and password and returns a JWT token wrapped in DTO.
      *
-     * @param email user's email
-     * @param password raw password
      * @return {@link AuthResponseDTO} containing the JWT token
      * @throws NotFoundException if the email is not registered
      */
     @Override
-    public AuthResponseDTO login(String email, String password) {
-        return new AuthResponseDTO(
-                manager.createAccessToken(
-                        (UserPrincipal) setSecurityContextBefore(authenticate(email, password))),
-                null);
+    public AuthResponseDTO login(AuthLoginRequestDTO requestDTO) {
+        Authentication authentication = authenticate(requestDTO.email(), requestDTO.password());
+        setSecurityContextBefore(authentication);
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Session savedSession = sessionService.createSession(userPrincipal.getId(),
+                requestDTO.userAgent(), requestDTO.clientId(), requestDTO.clientIp());
+        return refreshTokenService.generateJWTTokens(savedSession);
     }
 
     /**
      * Registers a new user, assigns default role, and logs them in returning a JWT token.
      *
-     * @param email new user's email
-     * @param password raw password
      * @return {@link AuthResponseDTO} for the newly registered user
      * @throws BadRequestException if the email is already registered
      */
     @Override
-    public AuthResponseDTO register(String email, String password) {
-        if (userService.existsByEmail(email)) {
+    public AuthResponseDTO register(AuthLoginRequestDTO requestDTO) {
+        if (userService.existsByEmail(requestDTO.email())) {
             throw new BadRequestException("Email already registered");
         }
         userService.register(
                 new User(
-                        email,
-                        passwordManager.encodePassword(password),
+                        requestDTO.email(),
+                        passwordManager.encodePassword(requestDTO.password()),
                         roleService.getUserRoles()));
-        return login(email, password);
+        return login(requestDTO);
     }
 
     /**
@@ -116,7 +111,7 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      */
     @Override
     public UserDetails loadUserByUsername(String username) {
-        return new UserPrincipal(userService.findByEmail(username), null);
+        return new UserPrincipal(userService.findByEmail(username));
     }
 
     /**
@@ -154,8 +149,8 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @return an {@link Authentication} object
      */
     public Authentication authenticate(String username, String password) {
-        return new UsernamePasswordAuthenticationToken(
-                validateUserDetails(password, loadUserByUsername(username)), null);
+        return authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
     }
 
     /**

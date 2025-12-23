@@ -9,6 +9,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -22,13 +30,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HexFormat;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * Central manager for issuing, validating, and parsing JSON Web Tokens (JWT) using RSA keys.
@@ -63,7 +64,8 @@ public class JJwtManager {
     private final RSAPrivateKey privateKeyRefresh;
 
     /** Expiration time in milliseconds configured for Refresh Tokens. */
-    private final Long jwtTimeExpRefresh;
+    @Getter
+	private final Long jwtTimeExpRefresh;
 
     /** Issuer identifier included in the "iss" claim of tokens. */
     private final String jwtIssuer;
@@ -175,7 +177,7 @@ public class JJwtManager {
     public String createRefreshToken(RefreshToken refreshToken) {
         return Jwts.builder()
                 .issuer(jwtIssuer)
-                .subject(refreshToken.getUser().getEmail())
+                .subject(refreshToken.getUser().getId().toString())
                 .claim(CLAIM_KEY_USER_ID, refreshToken.getUser().getId())
                 .claim("jti", refreshToken.getTokenJti())
                 .claim("familyId", refreshToken.getFamilyId())
@@ -203,24 +205,11 @@ public class JJwtManager {
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(refreshToken.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
+            return Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(md.digest(refreshToken.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }
-    }
-
-    /**
-     * Compares the hash of a raw refresh token with a stored Base64-encoded hash.
-     *
-     * @param refreshToken raw token to hash and compare
-     * @param storedHashBase64 stored hashed value in Base64 URL encoding
-     * @return true if hashes match, false otherwise
-     */
-    public boolean matchesHash(String refreshToken, String storedHashBase64) {
-        return MessageDigest.isEqual(
-                Base64.getUrlDecoder().decode(createRefreshTokenHash(refreshToken)),
-                Base64.getUrlDecoder().decode(storedHashBase64));
     }
 
     /**
@@ -333,4 +322,5 @@ public class JJwtManager {
                     .replaceAll("\\s+", "");
         }
     }
+
 }

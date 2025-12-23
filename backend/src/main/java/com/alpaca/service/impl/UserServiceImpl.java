@@ -7,11 +7,13 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic
@@ -86,12 +88,12 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if the email is {@code null} or blank
      * @throws NotFoundException if no user is found with the given email
      */
-    @Transactional
+    @Transactional(readOnly = true)
     @Override
     public User findByEmail(String email) {
         if (email == null || email.isBlank())
-            throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
+            throw new BadRequestException("Email must not be null or blank");
         return dao.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("The email does not match any account"));
+                .orElseThrow(() -> new UsernameNotFoundException("The email does not match any account"));
     }
 }
