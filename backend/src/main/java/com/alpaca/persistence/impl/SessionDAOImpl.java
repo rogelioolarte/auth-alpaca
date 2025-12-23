@@ -6,9 +6,11 @@ import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -138,5 +140,15 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     public Optional<Session> findByUniqueProperties(
             UUID userId, String userAgent, String clientId) {
         return repo.findByUniqueProperties(userId, userAgent, clientId);
+    }
+
+    @Override
+    public long countActiveSessionsByUser(UUID userId) {
+        return repo.countActiveSessionsByUser(userId);
+    }
+
+    @Override
+    public List<Session> findActiveSessionsByUserOrderByLastSeen(UUID userId, Pageable pageable) {
+        return repo.findActiveSessionsByUserOrderByLastSeen(userId, pageable);
     }
 }

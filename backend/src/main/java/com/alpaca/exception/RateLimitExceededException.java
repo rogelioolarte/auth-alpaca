@@ -1,8 +1,10 @@
 package com.alpaca.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+@Getter
 public class RateLimitExceededException extends ResponseStatusException {
 
     private final long retryAfterSeconds;
@@ -12,7 +14,4 @@ public class RateLimitExceededException extends ResponseStatusException {
         this.retryAfterSeconds = retryAfterSeconds;
     }
 
-    public long getRetryAfterSeconds() {
-        return retryAfterSeconds;
-    }
 }
