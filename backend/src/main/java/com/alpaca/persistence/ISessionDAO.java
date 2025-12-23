@@ -1,6 +1,7 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Session;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -11,4 +12,9 @@ import java.util.UUID;
  *
  * @see IGenericDAO
  */
-public interface ISessionDAO extends IGenericDAO<Session, UUID> {}
+public interface ISessionDAO extends IGenericDAO<Session, UUID> {
+
+    int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason);
+
+    Session findSessionByFamilyId(String familyId);
+}

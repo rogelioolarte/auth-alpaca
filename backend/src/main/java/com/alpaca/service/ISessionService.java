@@ -1,6 +1,7 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Session;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -9,4 +10,9 @@ import java.util.UUID;
  *
  * @see IGenericService
  */
-public interface ISessionService extends IGenericService<Session, UUID> {}
+public interface ISessionService extends IGenericService<Session, UUID> {
+
+    int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason);
+
+    Session findSessionByFamilyId(String familyId);
+}

@@ -2,7 +2,6 @@ package com.alpaca.utils;
 
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedEpochGenerator;
-import java.io.Serializable;
 import java.util.UUID;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -45,8 +44,12 @@ public class UUIDv7Generator implements IdentifierGenerator {
      * @throws HibernateException Indicates trouble generating the identifier.
      */
     @Override
-    public Serializable generate(SharedSessionContractImplementor session, Object object)
+    public UUID generate(SharedSessionContractImplementor session, Object object)
             throws HibernateException {
+        return GENERATOR.generate();
+    }
+
+    public UUID generate() {
         return GENERATOR.generate();
     }
 }

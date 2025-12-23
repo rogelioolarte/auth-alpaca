@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -119,6 +120,22 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      */
     @Override
     public boolean existsByUniqueProperties(Session session) {
-        return false;
+        return repo.existsById(session.getId());
+    }
+
+    @Override
+    public int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason) {
+        return repo.revokeSessionByFamilyId(familyId, revokedAt, reason);
+    }
+
+    @Override
+    public Session findSessionByFamilyId(String familyId) {
+        return repo.findSessionByFamilyId(familyId)
+                .orElseThrow(
+                        () ->
+                                new NotFoundException(
+                                        String.format(
+                                                "%s by FamilyId %s not found",
+                                                getEntity().getName(), familyId)));
     }
 }

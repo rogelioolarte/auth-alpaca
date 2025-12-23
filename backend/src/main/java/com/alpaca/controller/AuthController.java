@@ -4,6 +4,7 @@ import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IAuthService;
+import com.alpaca.service.IRefreshTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final IAuthService authService;
+    private final IRefreshTokenService refreshTokenService;
 
     /**
      * Authenticates a user based on provided credentials.

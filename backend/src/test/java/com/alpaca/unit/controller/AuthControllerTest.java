@@ -48,7 +48,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("login returns 200 and token when credentials are valid")
     void loginReturnsToken() throws Exception {
-        var token = new AuthResponseDTO("jwt-token-123");
+        var token = new AuthResponseDTO("jwt-token-123", null);
         when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
                 .thenReturn(token);
 
@@ -85,7 +85,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("register returns 200 and token when registration succeeds")
     void registerReturnsToken() throws Exception {
-        var token = new AuthResponseDTO("register-token-xyz");
+        var token = new AuthResponseDTO("register-token-xyz", null);
         when(authService.register(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
                 .thenReturn(token);
 

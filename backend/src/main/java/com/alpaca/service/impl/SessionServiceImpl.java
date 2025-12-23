@@ -6,6 +6,7 @@ import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,5 +46,15 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     @Override
     protected String getEntityName() {
         return "Session";
+    }
+
+    @Override
+    public int revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason) {
+        return dao.revokeSessionByFamilyId(familyId, revokedAt, reason);
+    }
+
+    @Override
+    public Session findSessionByFamilyId(String familyId) {
+        return dao.findSessionByFamilyId(familyId);
     }
 }

@@ -36,7 +36,7 @@ public class Session extends Auditable {
     @Id
     @GeneratorUUIDv7
     @Column(name = "session_id", updatable = false, nullable = false)
-    private UUID sessionId;
+    private UUID id;
 
     /** The {@link User} this session belongs to. Many sessions may belong to a single user. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -105,18 +105,18 @@ public class Session extends Auditable {
         if (this == o) return true;
         if (!(o instanceof Session session)) return false;
         return revoked == session.revoked
-                && Objects.equals(sessionId, session.sessionId)
-                && Objects.equals(user, session.user)
+                && Objects.equals(id, session.id)
                 && Objects.equals(familyId, session.familyId)
                 && Objects.equals(ipAddress, session.ipAddress)
                 && Objects.equals(userAgent, session.userAgent)
                 && Objects.equals(clientId, session.clientId)
-                && Objects.equals(revokeReason, session.revokeReason);
+                && Objects.equals(revokeReason, session.revokeReason)
+                && Objects.equals(user, session.user);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                sessionId, user, familyId, ipAddress, userAgent, clientId, revoked, revokeReason);
+                id, user, familyId, ipAddress, userAgent, clientId, revoked, revokeReason);
     }
 }

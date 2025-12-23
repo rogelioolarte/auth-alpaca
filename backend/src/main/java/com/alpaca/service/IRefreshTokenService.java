@@ -1,5 +1,6 @@
 package com.alpaca.service;
 
+import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import java.util.UUID;
 
@@ -9,4 +10,8 @@ import java.util.UUID;
  *
  * @see IGenericService
  */
-public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID> {}
+public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID> {
+
+    AuthResponseDTO rotateRefreshToken(
+            String refreshToken, String clientId, String userAgent, String clientIp);
+}

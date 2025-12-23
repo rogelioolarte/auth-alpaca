@@ -82,7 +82,8 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
     public AuthResponseDTO login(String email, String password) {
         return new AuthResponseDTO(
                 manager.createAccessToken(
-                        (UserPrincipal) setSecurityContextBefore(authenticate(email, password))));
+                        (UserPrincipal) setSecurityContextBefore(authenticate(email, password))),
+                null);
     }
 
     /**

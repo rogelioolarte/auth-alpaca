@@ -114,11 +114,25 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.attributes = attributes;
     }
 
+    public UserPrincipal(User user) {
+        this.id = user.getId();
+        this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
+        this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
+        this.username = user.getEmail();
+        this.password = user.getPassword();
+        this.enabled = user.isEnabled();
+        this.accountNoLocked = user.isAccountNoLocked();
+        this.accountNoExpired = user.isAccountNoExpired();
+        this.credentialNoExpired = user.isCredentialNoExpired();
+        this.authorities = user.getAuthorities();
+        this.attributes = null;
+    }
+
     /**
      * Builds a {@link UserPrincipal} from JWT claims.
      *
      * @param claims the token claims
-	 */
+     */
     public UserPrincipal(Claims claims) {
         if (claims == null) {
             this.username = "anonymous";

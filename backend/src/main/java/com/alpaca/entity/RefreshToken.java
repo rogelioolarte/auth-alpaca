@@ -56,8 +56,8 @@ public class RefreshToken extends Auditable {
     private String tokenHash;
 
     /**
-     * Optional JTI (JWT ID) or unique identifier embedded inside the token, if your token includes
-     * one. Useful for traceability or cross-referencing with other token metadata.
+     * JTI (JWT ID) or unique identifier embedded inside the token, if your token includes one.
+     * Useful for traceability or cross-referencing with other token metadata.
      */
     @Column(name = "token_jti")
     private UUID tokenJti;
@@ -132,12 +132,30 @@ public class RefreshToken extends Auditable {
     @Column(name = "revoke_reason")
     private String revokeReason;
 
+    public RefreshToken(
+            RefreshToken previous,
+            UUID tokenJti,
+            Instant expiresAt,
+            String clientId,
+            String userAgent,
+            String ipAddress) {
+        this.user = previous.getUser();
+        this.tokenJti = tokenJti;
+        this.familyId = previous.getFamilyId();
+        this.revoked = false;
+        this.expiresAt = expiresAt;
+        this.lastUsedAt = Instant.now();
+        this.clientId = clientId;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.revoked = false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RefreshToken that)) return false;
         return Objects.equals(id, that.id)
-                && Objects.equals(user, that.user)
                 && Objects.equals(tokenHash, that.tokenHash)
                 && Objects.equals(tokenJti, that.tokenJti)
                 && Objects.equals(familyId, that.familyId)
@@ -145,7 +163,8 @@ public class RefreshToken extends Auditable {
                 && Objects.equals(clientId, that.clientId)
                 && Objects.equals(ipAddress, that.ipAddress)
                 && Objects.equals(userAgent, that.userAgent)
-                && Objects.equals(revokeReason, that.revokeReason);
+                && Objects.equals(revokeReason, that.revokeReason)
+                && Objects.equals(user, that.user);
     }
 
     @Override

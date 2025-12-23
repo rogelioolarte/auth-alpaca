@@ -1,13 +1,27 @@
 package com.alpaca.service.impl;
 
+import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
+import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRefreshTokenDAO;
+import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.service.ISessionService;
+import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD
@@ -19,12 +33,22 @@ import org.springframework.stereotype.Service;
  * @see IGenericService
  * @see IRefreshTokenService
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UUID>
         implements IRefreshTokenService {
 
     private final IRefreshTokenDAO dao;
+    private final ISessionService sessionService;
+    private final JJwtManager manager;
+    private final UUIDv7Generator uuidv7Generator;
+
+    @Value("${security.jwt.refresh.expiration:2592000000}")
+    private long jwtTimeExpRefresh; // 30 days
+
+    private static final String MESSAGE_REUSE_REASON = "reuse-detected";
+    private static final String REVOKE_REASON_ROTATION = "rotation";
 
     @Override
     protected IGenericDAO<RefreshToken, UUID> getDAO() {
@@ -34,5 +58,110 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
     @Override
     protected String getEntityName() {
         return "RefreshToken";
+    }
+
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Override
+    public AuthResponseDTO rotateRefreshToken(
+            String oldRefreshToken, String clientId, String userAgent, String clientIp) {
+
+        if (!StringUtils.hasText(oldRefreshToken)) {
+            throw new BadRequestException("Invalid Refresh Token");
+        }
+        if (!StringUtils.hasText(clientId)) {
+            throw new BadRequestException("Invalid Client ID");
+        }
+        if (!StringUtils.hasText(userAgent)) {
+            throw new BadRequestException("Invalid User Agent");
+        }
+        if (!StringUtils.hasText(clientIp)) {
+            throw new BadRequestException("Invalid Client IP");
+        }
+
+        Instant now = Instant.now();
+
+        String actualHash = manager.createRefreshTokenHash(oldRefreshToken);
+        Optional<RefreshToken> optToken = dao.findByTokenHashSecure(actualHash);
+        if (optToken.isEmpty()) {
+            dao.findFamilyIdByTokenHash(actualHash)
+                    .ifPresent(
+                            familyId -> {
+                                logWhenReuseDetected(familyId.toString(), clientIp, userAgent);
+                                revokeFamily(familyId, now, MESSAGE_REUSE_REASON);
+                            });
+            throw new UnauthorizedException("Reuse Detected Refresh Token");
+        }
+
+        RefreshToken actualRefreshToken = optToken.get();
+        validateRefreshToken(clientId, actualRefreshToken, now, clientIp, userAgent);
+
+        actualRefreshToken.setRevoked(true);
+        actualRefreshToken.setRevokedAt(now);
+        actualRefreshToken.setRevokeReason(REVOKE_REASON_ROTATION);
+        actualRefreshToken.setLastUsedAt(now);
+        actualRefreshToken.setIpAddress(clientIp);
+        actualRefreshToken.setUserAgent(userAgent);
+
+        RefreshToken newRefreshToken =
+                new RefreshToken(
+                        actualRefreshToken,
+                        uuidv7Generator.generate(),
+                        now.plusMillis(jwtTimeExpRefresh),
+                        clientId,
+                        userAgent,
+                        clientIp);
+        newRefreshToken.setCreatedAt(now);
+        String jwtRefreshToken = manager.createRefreshToken(newRefreshToken);
+        String newRefreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
+        newRefreshToken.setTokenHash(newRefreshTokenHash);
+        RefreshToken savedRefreshToken = dao.save(newRefreshToken);
+        actualRefreshToken.setReplacedBy(savedRefreshToken);
+        dao.save(actualRefreshToken);
+        String accessToken =
+                manager.createAccessToken(new UserPrincipal(newRefreshToken.getUser()));
+        return new AuthResponseDTO(accessToken, jwtRefreshToken);
+    }
+
+    private void validateRefreshToken(
+            String clientId, RefreshToken token, Instant now, String clientIp, String userAgent) {
+        if (token.getFamilyId() == null) {
+            throw new BadRequestException("RefreshToken without familyId");
+        }
+        if (token.getRevoked()) {
+            if (token.getReplacedBy() != null) {
+                revokeFamily(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
+                logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+                throw new UnauthorizedException("Reuse Detected Refresh Token");
+            } else {
+                throw new UnauthorizedException("Revoked Refresh Token");
+            }
+        }
+        if (token.getExpiresAt().isBefore(now)) {
+            throw new UnauthorizedException("Expired Refresh Token");
+        }
+        if (token.getUser() != null
+                && token.getUser().getTokensInvalidBefore() != null
+                && token.getCreatedAt() != null
+                && token.getCreatedAt().isBefore(token.getUser().getTokensInvalidBefore())) {
+            throw new UnauthorizedException("Refresh Token issued before tokens_invalid_before");
+        }
+        if (token.getClientId() != null && !token.getClientId().equals(clientId)) {
+            revokeFamily(token.getFamilyId(), now, "client-mismatch");
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+            throw new UnauthorizedException("Client mismatch");
+        }
+    }
+
+    private void revokeFamily(UUID familyId, Instant now, String reason) {
+        dao.revokeFamilyWithReason(familyId, now, reason);
+        sessionService.revokeSessionByFamilyId(familyId, now, reason);
+    }
+
+    private void logWhenReuseDetected(String familyId, String clientIp, String userAgent) {
+        log.warn(
+                "Refresh token reuse detected. familyId={}, ip={}, userAgent={}",
+                familyId,
+                clientIp,
+                userAgent);
     }
 }

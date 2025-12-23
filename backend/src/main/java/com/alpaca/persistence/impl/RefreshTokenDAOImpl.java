@@ -5,6 +5,8 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -155,6 +157,26 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
      */
     @Override
     public boolean existsByUniqueProperties(RefreshToken refreshToken) {
-        return false;
+        return repo.existsByTokenHash(refreshToken.getTokenHash());
+    }
+
+    @Override
+    public Optional<RefreshToken> findByTokenHashSecure(String hash) {
+        return repo.findByTokenHashSecure(hash);
+    }
+
+    @Override
+    public Optional<UUID> findFamilyIdByTokenHash(String hash) {
+        return repo.findFamilyIdByTokenHash(hash);
+    }
+
+    @Override
+    public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
+        repo.revokeFamilyOnReuse(familyId, revokedAt, reason);
+    }
+
+    @Override
+    public int revokeByIdWithReason(UUID id, Instant revokedAt, String reason) {
+        return repo.revokeByIdWithReason(id, revokedAt, reason);
     }
 }

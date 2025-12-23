@@ -18,17 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
  * and entity names for exception messages.
  *
  * @param <T> the type of entity managed
- * @param <ID> the type of the entity's identifier
+ * @param <I> the type of the entity's identifier
  * @see IGenericService
  */
-public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID> {
+public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> {
 
     /**
      * Supplies the DAO component for data access operations.
      *
      * @return the {@link IGenericDAO} corresponding to the entity type {@code T}
      */
-    protected abstract IGenericDAO<T, ID> getDAO();
+    protected abstract IGenericDAO<T, I> getDAO();
 
     /**
      * Provides a human-readable entity name to be used in exception messages.
@@ -40,30 +40,30 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
     /**
      * Retrieves an entity by its identifier with validation and error handling.
      *
-     * @param id the entity identifier to find; must not be {@code null}
+     * @param i the entity identifier to find; must not be {@code null}
      * @return the entity if found
      * @throws BadRequestException if {@code id} is {@code null}
      * @throws NotFoundException if no entity is found for the given {@code id}
      */
     @Transactional
     @Override
-    public T findById(ID id) {
-        if (id == null) {
+    public T findById(I i) {
+        if (i == null) {
             throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
         }
-        return getDAO().findById(id)
+        return getDAO().findById(i)
                 .orElseThrow(
                         () ->
                                 new NotFoundException(
                                         String.format(
-                                                "%s with ID %s not found", getEntityName(), id)));
+                                                "%s with ID %s not found", getEntityName(), i)));
     }
 
     /**
      * Fetches all entities matching the provided collection of IDs, with validation and existence
      * check.
      *
-     * @param ids the collection of identifiers; must not be {@code null}, empty, or contain {@code
+     * @param is the collection of identifiers; must not be {@code null}, empty, or contain {@code
      *     null}
      * @return a list of entities matching the provided IDs
      * @throws BadRequestException if validation fails
@@ -71,25 +71,25 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
      */
     @Transactional
     @Override
-    public List<T> findAllByIds(Collection<ID> ids) {
-        if (ids == null || ids.isEmpty() || ids.contains(null)) {
+    public List<T> findAllByIds(Collection<I> is) {
+        if (is == null || is.isEmpty() || is.contains(null)) {
             throw new BadRequestException(String.format("%s(s) cannot be found", getEntityName()));
         }
-        if (!existsAllByIds(ids)) {
+        if (!existsAllByIds(is)) {
             throw new NotFoundException(
                     String.format("Some %s(s) cannot be found", getEntityName()));
         }
-        return getDAO().findAllByIds(ids);
+        return getDAO().findAllByIds(is);
     }
 
     /**
      * Retrieves entities by IDs and returns them as a {@link Set}.
      *
-     * @param ids the collection of identifiers
+     * @param is the collection of identifiers
      * @return a set of entities corresponding to the provided IDs
      */
-    public Set<T> findAllByIdsToSet(Collection<ID> ids) {
-        return new HashSet<>(findAllByIds(ids));
+    public Set<T> findAllByIdsToSet(Collection<I> is) {
+        return new HashSet<>(findAllByIds(is));
     }
 
     /**
@@ -131,41 +131,41 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
      * Updates an entity identified by its ID using the provided updated entity.
      *
      * @param t the entity with updated information; must not be {@code null}
-     * @param id the identifier of the entity to update; must not be {@code null}
+     * @param i the identifier of the entity to update; must not be {@code null}
      * @return the updated entity
      * @throws BadRequestException if validation fails or the entity cannot be updated
      */
     @Transactional
     @Override
-    public T updateById(T t, ID id) {
-        if (id == null || t == null) {
+    public T updateById(T t, I i) {
+        if (i == null || t == null) {
             throw new BadRequestException(String.format("%s cannot be updated", getEntityName()));
         }
-        return Optional.ofNullable(getDAO().updateById(t, id))
+        return Optional.ofNullable(getDAO().updateById(t, i))
                 .orElseThrow(
                         () ->
                                 new BadRequestException(
                                         String.format(
                                                 "%s with ID %s cannot be updated",
-                                                getEntityName(), id)));
+                                                getEntityName(), i)));
     }
 
     /**
      * Deletes an entity by its ID with validation of existence.
      *
-     * @param id the identifier of the entity to delete; must not be {@code null}
+     * @param i the identifier of the entity to delete; must not be {@code null}
      * @throws BadRequestException if {@code id} is {@code null} or does not exist
      */
     @Transactional
     @Override
-    public void deleteById(ID id) {
-        if (id == null) {
+    public void deleteById(I i) {
+        if (i == null) {
             throw new BadRequestException(String.format("%s cannot be deleted", getEntityName()));
         }
-        if (!existsById(id)) {
+        if (!existsById(i)) {
             throw new BadRequestException(String.format("%s not exists", getEntityName()));
         }
-        getDAO().deleteById(id);
+        getDAO().deleteById(i);
     }
 
     /**
@@ -199,27 +199,27 @@ public abstract class GenericServiceImpl<T, ID> implements IGenericService<T, ID
     /**
      * Checks whether an entity exists by its ID.
      *
-     * @param id the identifier to check; may be {@code null}
+     * @param i the identifier to check; may be {@code null}
      * @return {@code true} if entity exists, {@code false} otherwise
      */
     @Transactional
     @Override
-    public boolean existsById(ID id) {
-        if (id == null) return false;
-        return getDAO().existsById(id);
+    public boolean existsById(I i) {
+        if (i == null) return false;
+        return getDAO().existsById(i);
     }
 
     /**
      * Verifies that all provided IDs correspond to existing entities.
      *
-     * @param ids the collection of IDs; must not be {@code null}, empty, or contain {@code null}
+     * @param is the collection of IDs; must not be {@code null}, empty, or contain {@code null}
      * @return {@code true} if all IDs exist; {@code false} otherwise
      */
     @Transactional
     @Override
-    public boolean existsAllByIds(Collection<ID> ids) {
-        if (ids == null || ids.isEmpty() || ids.contains(null)) return false;
-        return getDAO().existsAllByIds(ids);
+    public boolean existsAllByIds(Collection<I> is) {
+        if (is == null || is.isEmpty() || is.contains(null)) return false;
+        return getDAO().existsAllByIds(is);
     }
 
     /**

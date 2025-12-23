@@ -3,6 +3,7 @@ package com.alpaca.exception;
 import com.alpaca.dto.response.ErrorResponseDTO;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -105,5 +106,12 @@ public class GlobalExceptionHandler {
                         exception.getReason(),
                         LocalDateTime.now()),
                 HttpStatus.valueOf(exception.getStatusCode().value()));
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Object> handleRateLimit(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body("Too many requests, try again later");
     }
 }
