@@ -6,14 +6,15 @@ import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.*;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Service responsible for seeding essential application data upon startup.
@@ -109,34 +110,24 @@ public class DataServiceImpl implements DataService {
                                 passwordManager.encodePassword("123456789"),
                                 new HashSet<>(Set.of(userRole))));
 
-        Profile adminProfile =
-                profileService.save(
-                        new Profile(
-                                "Admin",
-                                "Last",
-                                "https://foto.admin.com",
-                                "av admin 01",
-                                adminUser));
-        Profile userProfile =
-                profileService.save(
-                        new Profile(
-                                "User", "Last", "https://foto.user.com", "av user 01", userUser));
-        Profile managerProfile =
-                profileService.save(
-                        new Profile(
-                                "Manager",
-                                "Last",
-                                "https://foto.invited.com",
-                                "av manager 01",
-                                managerUser));
-        Profile testingGoogleProfile =
-                profileService.save(
-                        new Profile(
-                                "Testing Profile",
-                                "Last",
-                                "https://foto.testing.com",
-                                "av testing 01",
-                                testGoogleUser));
+        profileService.save(
+                new Profile("Admin", "Last", "https://foto.admin.com", "av admin 01", adminUser));
+        profileService.save(
+                new Profile("User", "Last", "https://foto.user.com", "av user 01", userUser));
+        profileService.save(
+                new Profile(
+                        "Manager",
+                        "Last",
+                        "https://foto.invited.com",
+                        "av manager 01",
+                        managerUser));
+        profileService.save(
+                new Profile(
+                        "Testing Profile",
+                        "Last",
+                        "https://foto.testing.com",
+                        "av testing 01",
+                        testGoogleUser));
     }
 
     /**

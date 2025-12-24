@@ -13,16 +13,17 @@ import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD
@@ -135,7 +136,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public AuthResponseDTO generateJWTTokens(Session session) {
-
         RefreshToken refreshToken =
                 new RefreshToken(
                         session,
@@ -155,7 +155,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         if (token.getFamilyId() == null) {
             throw new BadRequestException("RefreshToken without familyId");
         }
-        if (token.getRevoked()) {
+        if (Boolean.TRUE.equals(token.getRevoked())) {
             if (token.getReplacedBy() != null) {
                 revokeRefreshTokensAndSessionByFamilyId(
                         token.getFamilyId(), now, MESSAGE_REUSE_REASON);
@@ -186,7 +186,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
     }
 
     @Override
-    @Transactional
     public void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason) {
         dao.revokeFamilyWithReason(familyId, now, reason);
         sessionService.revokeSessionByFamilyId(familyId, now, reason);

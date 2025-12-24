@@ -2,15 +2,15 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Represents the association between a {@link User} and a {@link Role}.
@@ -63,22 +63,5 @@ public class UserRole {
     public UserRole(User user, Role role) {
         this.user = user;
         this.role = role;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserRole userRole)) return false;
-        return id != null
-                && id.equals(userRole.id)
-                && user != null
-                && user.equals(userRole.user)
-                && role != null
-                && role.equals(userRole.role);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user, role, createdAt);
     }
 }

@@ -2,19 +2,18 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.time.Instant;
 import java.util.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the
  * database and stores authentication and authorization details. It includes information about
  * roles, entity status, and authentication settings.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
@@ -123,6 +122,8 @@ public class User extends Auditable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Session> sessions = new HashSet<>();
 
+    public static final String ROLE_KEY_AUTHORITY = "ROLE_";
+
     /**
      * Constructs an instance of a new User object with the specified attributes. The generated
      * object is ready to be used by default.
@@ -143,10 +144,6 @@ public class User extends Auditable {
      *
      * @param email the User's email - must not be null
      * @param password the User's encrypted password - must not be null
-     * @param enabled indicates whether the entity is enabled
-     * @param accountNoExpired indicates whether the entity is not expired
-     * @param accountNoLocked indicates whether the entity is not locked
-     * @param credentialNoExpired indicates whether the credentials are not expired
      * @param emailVerified indicates whether the email has been verified
      * @param googleConnected indicates whether the User has connected with Google
      * @param roles Set of Roles assigned to the User
@@ -154,19 +151,15 @@ public class User extends Auditable {
     public User(
             String email,
             String password,
-            boolean enabled,
-            boolean accountNoExpired,
-            boolean accountNoLocked,
-            boolean credentialNoExpired,
             boolean emailVerified,
             boolean googleConnected,
             Set<Role> roles) {
         this.email = email;
         this.password = password;
-        this.enabled = enabled;
-        this.accountNoExpired = accountNoExpired;
-        this.accountNoLocked = accountNoLocked;
-        this.credentialNoExpired = credentialNoExpired;
+        this.enabled = true;
+        this.accountNoExpired = true;
+        this.accountNoLocked = true;
+        this.credentialNoExpired = true;
         this.emailVerified = emailVerified;
         this.googleConnected = googleConnected;
         this.userRoles = rolesToUserRoles(roles);
@@ -189,15 +182,15 @@ public class User extends Auditable {
      */
     private Set<UserRole> rolesToUserRoles(Collection<Role> roles) {
         if (roles.isEmpty()) return Collections.emptySet();
-        Set<UserRole> userRoles = new HashSet<>(roles.size());
+        Set<UserRole> newUserRoles = HashSet.newHashSet(roles.size());
         if (roles.size() == 1) {
-            userRoles.add(new UserRole(this, roles.iterator().next()));
+            newUserRoles.add(new UserRole(this, roles.iterator().next()));
         } else {
             for (Role role : roles) {
-                userRoles.add(new UserRole(this, role));
+                newUserRoles.add(new UserRole(this, role));
             }
         }
-        return userRoles;
+        return newUserRoles;
     }
 
     /**
@@ -219,44 +212,24 @@ public class User extends Auditable {
     }
 
     /**
-     * Retrieves the authorities granted to the User based on their assigned roles. Each role is
-     * prefixed with "ROLE_" as per Spring Security conventions.
+     * Retrieves the authorities granted and Permissions to the User based
+     * on their assigned roles and permissions.
+     * Each role is prefixed with "ROLE_" as per Spring Security conventions.
+     * Each role is prefixed with "PERMISSION_" as per Spring Security conventions.
      *
-     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
+     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions and roles.
      */
     public Set<SimpleGrantedAuthority> getAuthorities() {
         if (userRoles.isEmpty()) return Collections.emptySet();
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
+        Set<SimpleGrantedAuthority> authorities = HashSet.newHashSet(userRoles.size());
         if (userRoles.size() == 1) {
             authorities.add(
                     new SimpleGrantedAuthority(
-                            "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
+                            ROLE_KEY_AUTHORITY+ userRoles.iterator().next().getRole().getRoleName()));
         } else {
             for (UserRole userRole : userRoles) {
                 authorities.add(
-                        new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-            }
-        }
-        return authorities;
-    }
-
-    /**
-     * Retrieves the authorities granted and Permissions to the User based on their assigned roles.
-     * Each role is prefixed with "ROLE_" as per Spring Security conventions.
-     *
-     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
-     */
-    public Set<SimpleGrantedAuthority> getAuthoritiesWithPermissions() {
-        if (userRoles.isEmpty()) return Collections.emptySet();
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
-        if (userRoles.size() == 1) {
-            authorities.add(
-                    new SimpleGrantedAuthority(
-                            "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
-        } else {
-            for (UserRole userRole : userRoles) {
-                authorities.add(
-                        new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
+                        new SimpleGrantedAuthority(ROLE_KEY_AUTHORITY + userRole.getRole().getRoleName()));
                 // Use the following function if permissions should be included in
                 // authorities
                 // If we add this for cycle to the function it will have a time complexity of

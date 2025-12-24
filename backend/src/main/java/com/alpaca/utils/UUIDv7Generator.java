@@ -2,10 +2,12 @@ package com.alpaca.utils;
 
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedEpochGenerator;
-import java.util.UUID;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
+import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 /**
  * Custom Hibernate Identifier Generator that produces UUID v7.
@@ -24,6 +26,7 @@ import org.hibernate.id.IdentifierGenerator;
  * <p>This implementation is thread-safe and ensures monotonicity by using a static generator
  * instance.
  */
+@Component
 public class UUIDv7Generator implements IdentifierGenerator {
 
     /**

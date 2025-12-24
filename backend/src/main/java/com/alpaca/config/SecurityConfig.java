@@ -5,8 +5,7 @@ import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IAuthService;
-import com.alpaca.service.impl.AuthServiceImpl;
-import java.util.List;
+import com.alpaca.service.IOAuth2Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +33,8 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 /**
  * Configures security settings for the application, including authentication, authorization, OAuth2
  * login, and JWT token validation.
@@ -49,7 +50,8 @@ public class SecurityConfig {
 
     private final JJwtManager manager;
     private final PasswordManager passwordManager;
-    private final AuthServiceImpl authService;
+    private final IAuthService authService;
+    private final IOAuth2Service securityService;
     private final AuthFailureHandler oauth2FailureHandler;
     private final AuthSuccessHandler oauth2SuccessHandler;
     private final CookieAuthReqRepo cookieAuthReqRepo;
@@ -89,7 +91,7 @@ public class SecurityConfig {
                                                 clientRegistrationRepository, O_AUTH_2_BASE_URI));
                             });
                     oauth2.redirectionEndpoint(c -> c.baseUri(O_AUTH_2_REDIRECTION_END_POINT));
-                    oauth2.userInfoEndpoint(c -> c.userService(authService));
+                    oauth2.userInfoEndpoint(c -> c.userService(securityService));
                     oauth2.tokenEndpoint(
                             c ->
                                     c.accessTokenResponseClient(

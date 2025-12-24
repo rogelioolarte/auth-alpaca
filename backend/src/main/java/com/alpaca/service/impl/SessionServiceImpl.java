@@ -9,11 +9,6 @@ import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link Session} entities. Inherits common CRUD
@@ -37,26 +37,24 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         implements ISessionService {
 
     private final ISessionDAO dao;
-    private final IRefreshTokenService refreshTokenService;
     private final UUIDv7Generator uuidv7Generator;
 
     private final int maxSessionsPerUser;
     private final Pageable pageableForMaxSessions;
 
-    public SessionServiceImpl(ISessionDAO dao,
-							  IRefreshTokenService refreshTokenService,
-							  UUIDv7Generator uuidv7Generator,
-							  @Value("${security.max.session.per.user:10}") @NotNull int maxSessionsPerUser) {
+    public SessionServiceImpl(
+            ISessionDAO dao,
+            UUIDv7Generator uuidv7Generator,
+            @Value("${security.max.session.per.user:10}") @NotNull int maxSessionsPerUser) {
         if (maxSessionsPerUser < 1) {
             throw new IllegalStateException("security.max.session.per.user must be >= 1");
         }
         this.dao = dao;
-        this.refreshTokenService = refreshTokenService;
         this.uuidv7Generator = uuidv7Generator;
         this.maxSessionsPerUser = maxSessionsPerUser;
         // Fetch maxSessionsPerUser + 1 to detect limit overflow without COUNT(*)
-		this.pageableForMaxSessions = PageRequest.of(0, maxSessionsPerUser+1);
-	}
+        this.pageableForMaxSessions = PageRequest.of(0, maxSessionsPerUser + 1);
+    }
 
     /**
      * Supplies the DAO component for data access operations.
@@ -99,13 +97,14 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     public Session createSession(UUID userId, String userAgent, String clientId, String clientIp) {
         Instant now = Instant.now();
         // Revoke existing session for same device/client before enforcing limits
-        dao.findByUniqueProperties(userId, userAgent, clientId).ifPresent(
-                actualSession ->
-                        refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
-                                actualSession.getFamilyId(), now, "new-session"));
-        List<Session> activeSessions = dao.findActiveSessionsByUserOrderByLastSeen(
-                userId, pageableForMaxSessions);
-        if(activeSessions.size() >= maxSessionsPerUser) {
+        dao.findByUniqueProperties(userId, userAgent, clientId)
+                .ifPresent(
+                        actualSession ->
+                                dao.revokeSessionByFamilyId(
+                                        actualSession.getFamilyId(), now, "new-session"));
+        List<Session> activeSessions =
+                dao.findActiveSessionsByUserOrderByLastSeen(userId, pageableForMaxSessions);
+        if (activeSessions.size() >= maxSessionsPerUser) {
             throw new ExceededSessionsException(maxSessionsPerUser);
         }
         User user = new User();

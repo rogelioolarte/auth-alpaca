@@ -5,14 +5,17 @@ import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IAuthService;
-import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -29,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final IAuthService authService;
-    private final IRefreshTokenService refreshTokenService;
+    private final AuthenticationManager manager;
 
     /**
      * Authenticates a user based on provided credentials.
@@ -46,8 +49,12 @@ public class AuthController {
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader(value = "User-Agent") String userAgent,
             HttpServletRequest request) {
+        Authentication authentication = manager.authenticate(
+                new UsernamePasswordAuthenticationToken(requestDTO.getEmail(), requestDTO.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return new ResponseEntity<>(
-                authService.login(
+                authService.login(userPrincipal.getId(),
                         new AuthLoginRequestDTO(
                                 requestDTO.getEmail(),
                                 requestDTO.getPassword(),

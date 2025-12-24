@@ -13,5 +13,4 @@ public class RateLimitExceededException extends ResponseStatusException {
         super(HttpStatus.TOO_MANY_REQUESTS);
         this.retryAfterSeconds = retryAfterSeconds;
     }
-
 }

@@ -8,12 +8,13 @@ import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.mapper.IRoleMapper;
 import com.alpaca.mapper.IUserMapper;
 import com.alpaca.service.IRoleService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Implementation of the {@link IUserMapper} interface responsible for mapping between {@link User}
