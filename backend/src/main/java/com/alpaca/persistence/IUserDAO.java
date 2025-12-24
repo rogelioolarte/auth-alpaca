@@ -1,6 +1,7 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.User;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -31,4 +32,8 @@ public interface IUserDAO extends IGenericDAO<User, UUID> {
      * @return {@code true} if a user with the given email exists, {@code false} otherwise.
      */
     boolean existsByEmail(String email);
+
+    Optional<User> findByIdWithAuthorities(UUID id);
+
+    Optional<User> findByEmailWithAuthorities(String email);
 }

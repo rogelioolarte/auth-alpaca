@@ -134,7 +134,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
-    public AuthResponseDTO generateJWTTokens(Session session) {
+    public AuthResponseDTO generateJWTTokens(UserPrincipal userPrincipal, Session session) {
         RefreshToken refreshToken =
                 new RefreshToken(
                         session,
@@ -145,7 +145,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);
         dao.save(refreshToken);
-        String accessToken = manager.createAccessToken(new UserPrincipal(refreshToken.getUser()));
+        String accessToken = manager.createAccessToken(userPrincipal);
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 

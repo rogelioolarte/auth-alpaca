@@ -28,6 +28,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
@@ -147,6 +148,7 @@ public class JJwtManager {
      * @return JWT string representing the signed Access Token
      */
     public String createAccessToken(UserPrincipal user) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .issuer(jwtIssuer)
                 .subject(user.getUsername())
@@ -160,9 +162,9 @@ public class JJwtManager {
                 .claim(
                         "advertiserId",
                         user.getAdvertiserId() != null ? user.getAdvertiserId().toString() : "")
-                .issuedAt(new Date())
-                .notBefore(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtTimeExpAccess))
+                .issuedAt(Date.from(now))
+                .notBefore(Date.from(now))
+                .expiration(Date.from(now.plusMillis(jwtTimeExpAccess)))
                 .signWith(privateKeyAccess, SIGNATURE_ALGORITHM)
                 .compact();
     }

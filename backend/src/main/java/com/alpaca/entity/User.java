@@ -226,6 +226,9 @@ public class User extends Auditable {
             authorities.add(
                     new SimpleGrantedAuthority(
                             ROLE_KEY_AUTHORITY+ userRoles.iterator().next().getRole().getRoleName()));
+            for (Permission permission : userRoles.iterator().next().getRole().getPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+            }
         } else {
             for (UserRole userRole : userRoles) {
                 authorities.add(

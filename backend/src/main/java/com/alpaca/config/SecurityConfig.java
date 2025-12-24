@@ -48,7 +48,7 @@ public class SecurityConfig {
     private static final String O_AUTH_2_REDIRECTION_END_POINT = "/oauth2/callback/*";
     private static final String ADMIN_ROLE = "ADMIN";
 
-    private final JJwtManager manager;
+    private final JJwtManager jwtManager;
     private final PasswordManager passwordManager;
     private final IAuthService authService;
     private final IOAuth2Service securityService;
@@ -105,7 +105,7 @@ public class SecurityConfig {
                                 .accessDeniedHandler(accessDeniedHandler())
                                 .authenticationEntryPoint(authenticationEntryPoint()));
         http.authenticationProvider(provider(authService));
-        http.addFilterBefore(new JwtTokenValidatorFilter(manager), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new JwtTokenValidatorFilter(jwtManager), BasicAuthenticationFilter.class);
         return http.build();
     }
 
@@ -165,7 +165,7 @@ public class SecurityConfig {
      * @throws Exception if an error occurs.
      */
     @Bean
-    public AuthenticationManager getManager(AuthenticationConfiguration configuration)
+    public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration)
             throws Exception {
         return configuration.getAuthenticationManager();
     }

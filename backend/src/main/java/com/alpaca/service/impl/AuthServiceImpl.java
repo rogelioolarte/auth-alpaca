@@ -16,8 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
  * login flows within a Spring Security context.
@@ -54,10 +52,11 @@ public class AuthServiceImpl implements IAuthService {
 	 * @throws NotFoundException if the email is not registered
 	 */
 	@Override
-	public AuthResponseDTO login(UUID userId, AuthLoginRequestDTO requestDTO) {
+	public AuthResponseDTO login(UserPrincipal userPrincipal, AuthLoginRequestDTO requestDTO) {
 		return refreshTokenService.generateJWTTokens(
+				userPrincipal,
 				sessionService.createSession(
-						userId,
+						userPrincipal.getId(),
 						requestDTO.userAgent(),
 						requestDTO.clientId(),
 						requestDTO.clientIp()));
@@ -74,10 +73,11 @@ public class AuthServiceImpl implements IAuthService {
         if (userService.existsByEmail(requestDTO.email())) {
             throw new BadRequestException("Email already registered");
         }
-        return login(userService.register(
-                        new User(requestDTO.email(),
-                                passwordManager.encodePassword(requestDTO.password()),
-                                roleService.getUserRoles())).getId(), requestDTO);
+		User user = userService.register(
+				new User(requestDTO.email(),
+						passwordManager.encodePassword(requestDTO.password()),
+						roleService.getUserRoles()));
+        return login(new UserPrincipal(user), requestDTO);
     }
 
 	/**

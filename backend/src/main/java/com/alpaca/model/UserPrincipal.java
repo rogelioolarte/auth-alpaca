@@ -43,13 +43,13 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private boolean enabled = true;
 
     /** Indicates whether the User's entity is not expired. Defaults to {@code true}. */
-    private boolean accountNoExpired = true;
+    private boolean accountNonExpired = true;
 
     /** Indicates whether the User's entity is not locked. Defaults to {@code true}. */
-    private boolean accountNoLocked = true;
+    private boolean accountNonLocked = true;
 
     /** Indicates whether the User's credentials are not expired. Defaults to {@code true}. */
-    private boolean credentialNoExpired = true;
+    private boolean credentialsNonExpired = true;
 
     /** The authorities granted to the user for authorization purposes. */
     private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
@@ -78,9 +78,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.username = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
-        this.accountNoLocked = user.isAccountNoLocked();
-        this.accountNoExpired = user.isAccountNoExpired();
-        this.credentialNoExpired = user.isCredentialNoExpired();
+        this.accountNonLocked = user.isAccountNoLocked();
+        this.accountNonExpired = user.isAccountNoExpired();
+        this.credentialsNonExpired = user.isCredentialNoExpired();
         this.authorities = user.getAuthorities();
         this.attributes = attributes;
     }
@@ -122,9 +122,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.username = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
-        this.accountNoLocked = user.isAccountNoLocked();
-        this.accountNoExpired = user.isAccountNoExpired();
-        this.credentialNoExpired = user.isCredentialNoExpired();
+        this.accountNonLocked = user.isAccountNoLocked();
+        this.accountNonExpired = user.isAccountNoExpired();
+        this.credentialsNonExpired = user.isCredentialNoExpired();
         this.authorities = user.getAuthorities();
         this.attributes = null;
     }
@@ -178,17 +178,17 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return accountNoExpired;
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return accountNoLocked;
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return credentialNoExpired;
+        return credentialsNonExpired;
     }
 
     @Override
@@ -204,9 +204,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         result = 31 * result + username.hashCode();
         result = 31 * result + password.hashCode();
         result = 31 * result + Boolean.hashCode(enabled);
-        result = 31 * result + Boolean.hashCode(accountNoExpired);
-        result = 31 * result + Boolean.hashCode(accountNoLocked);
-        result = 31 * result + Boolean.hashCode(credentialNoExpired);
+        result = 31 * result + Boolean.hashCode(accountNonExpired);
+        result = 31 * result + Boolean.hashCode(accountNonLocked);
+        result = 31 * result + Boolean.hashCode(credentialsNonExpired);
         result = 31 * result + (authorities != null ? authorities.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;
@@ -217,9 +217,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         if (this == o) return true;
         if (!(o instanceof UserPrincipal that)) return false;
         return enabled == that.enabled
-                && accountNoExpired == that.accountNoExpired
-                && accountNoLocked == that.accountNoLocked
-                && credentialNoExpired == that.credentialNoExpired
+                && accountNonExpired == that.accountNonExpired
+                && accountNonLocked == that.accountNonLocked
+                && credentialsNonExpired == that.credentialsNonExpired
                 && username != null
                 && username.equals(that.username)
                 && password != null

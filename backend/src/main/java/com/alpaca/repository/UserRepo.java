@@ -1,6 +1,8 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.User;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -16,6 +18,26 @@ import java.util.UUID;
  */
 @Repository
 public interface UserRepo extends GenericRepo<User, UUID> {
+
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        LEFT JOIN FETCH u.userRoles ur
+        LEFT JOIN FETCH ur.role r
+        LEFT JOIN FETCH r.rolePermissions rp
+        LEFT JOIN FETCH rp.permission p
+        WHERE u.email = :email
+        """)
+    Optional<User> findByEmailWithAuthorities(@Param("email") String email);
+
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        LEFT JOIN FETCH u.userRoles ur
+        LEFT JOIN FETCH ur.role r
+        LEFT JOIN FETCH r.rolePermissions rp
+        LEFT JOIN FETCH rp.permission p
+        WHERE u.id = :id
+        """)
+    Optional<User> findByIdWithAuthorities(@Param("id") UUID id);
 
     /**
      * Retrieves a user by their email address.

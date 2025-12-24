@@ -3,6 +3,7 @@ package com.alpaca.service;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
+import com.alpaca.model.UserPrincipal;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID
     AuthResponseDTO rotateRefreshToken(
             String refreshToken, String clientId, String userAgent, String clientIp);
 
-    AuthResponseDTO generateJWTTokens(Session session);
+    AuthResponseDTO generateJWTTokens(UserPrincipal userPrincipal, Session session);
 
     void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason);
 }

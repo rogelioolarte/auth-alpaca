@@ -148,4 +148,14 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         }
         return repo.existsByEmail(email);
     }
+
+    @Override
+    public Optional<User> findByIdWithAuthorities(UUID id) {
+        return repo.findByIdWithAuthorities(id);
+    }
+
+    @Override
+    public Optional<User> findByEmailWithAuthorities(String email) {
+        return repo.findByEmailWithAuthorities(email);
+    }
 }

@@ -53,7 +53,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(requestDTO.getEmail(), requestDTO.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return new ResponseEntity<>(
-                authService.login(((UserPrincipal) authentication.getPrincipal()).getId(),
+                authService.login(((UserPrincipal) authentication.getPrincipal()),
                         new AuthLoginRequestDTO(
                                 requestDTO.getEmail(),
                                 requestDTO.getPassword(),
