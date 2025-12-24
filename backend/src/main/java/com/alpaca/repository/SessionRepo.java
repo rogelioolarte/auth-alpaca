@@ -58,7 +58,7 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "0"))
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(
             """
               SELECT s
@@ -83,7 +83,7 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
     long countActiveSessionsByUser(@Param("userId") UUID userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "0"))
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(
             """
               SELECT s

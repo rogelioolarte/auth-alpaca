@@ -112,7 +112,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         Session newSession = new Session();
         newSession.setUser(user);
         newSession.setFamilyId(uuidv7Generator.generate());
-        newSession.setCreatedAt(now);
+        newSession.setLastSeenAt(now);
         newSession.setIpAddress(clientIp);
         newSession.setUserAgent(userAgent);
         newSession.setClientId(clientId);

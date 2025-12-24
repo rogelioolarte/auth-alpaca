@@ -121,7 +121,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                         clientId,
                         userAgent,
                         clientIp);
-        newRefreshToken.setCreatedAt(now);
         String jwtRefreshToken = manager.createRefreshToken(newRefreshToken);
         String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
         newRefreshToken.setTokenHash(refreshTokenHash);
@@ -140,8 +139,8 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                 new RefreshToken(
                         session,
                         uuidv7Generator.generate(),
-                        session.getCreatedAt().plusMillis(manager.getJwtTimeExpRefresh()),
-                        session.getCreatedAt());
+                        session.getLastSeenAt().plusMillis(manager.getJwtTimeExpRefresh()),
+                        session.getLastSeenAt());
         String jwtRefreshToken = manager.createRefreshToken(refreshToken);
         String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);

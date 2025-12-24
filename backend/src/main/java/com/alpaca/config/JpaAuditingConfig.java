@@ -47,14 +47,19 @@ public class JpaAuditingConfig {
      */
     @Bean
     public AuditorAware<String> auditorAware() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return () -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return Optional.empty();
+            }
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return Optional::empty;
-        }
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserPrincipal up) {
+                return Optional.ofNullable(up.getId()).map(Object::toString);
+            }
 
-        return () ->
-                Optional.of(((UserPrincipal) authentication.getPrincipal()).getId().toString());
+            return Optional.ofNullable(authentication.getName());
+        };
     }
 
     /**

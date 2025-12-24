@@ -55,7 +55,7 @@ public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
      *     Optional.empty()} if none found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0")})
     @Query("SELECT r from RefreshToken r WHERE r.tokenHash = :hash")
     Optional<RefreshToken> findByTokenHashSecure(@Param("hash") String hash);
 

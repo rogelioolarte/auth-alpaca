@@ -52,9 +52,8 @@ public class AuthController {
         Authentication authentication = manager.authenticate(
                 new UsernamePasswordAuthenticationToken(requestDTO.getEmail(), requestDTO.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return new ResponseEntity<>(
-                authService.login(userPrincipal.getId(),
+                authService.login(((UserPrincipal) authentication.getPrincipal()).getId(),
                         new AuthLoginRequestDTO(
                                 requestDTO.getEmail(),
                                 requestDTO.getPassword(),

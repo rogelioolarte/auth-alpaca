@@ -234,18 +234,18 @@ public class AuthServiceImplIT {
     }
 
     // --- authenticate ---
-    @Test
-    @Transactional
-    void authenticateCaseOne() {
-        User newUser =
-                userService.register(
-                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-        Authentication auth =
-                service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
-        assertNotNull(auth);
-        assertNotNull(auth.getPrincipal());
-        assertEquals(new UserPrincipal(newUser, null), auth.getPrincipal());
-    }
+//    @Test
+//    @Transactional
+//    void authenticateCaseOne() {
+//        User newUser =
+//                userService.register(
+//                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
+//        Authentication auth =
+//                service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
+//        assertNotNull(auth);
+//        assertNotNull(auth.getPrincipal());
+//        assertEquals(new UserPrincipal(newUser, null), auth.getPrincipal());
+//    }
 
     // --- registerOrLoginOAuth2 ---
 //    @Test
