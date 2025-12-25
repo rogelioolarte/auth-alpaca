@@ -194,6 +194,16 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         dao.revokeFamilyWithReason(familyId, revokedAt, reason);
     }
 
+    @Override
+    public Optional<UUID> findFamilyIdByTokenHash(String hash) {
+        return dao.findFamilyIdByTokenHash(hash);
+    }
+
+    @Override
+    public Optional<RefreshToken> findByTokenHashSecure(String hash) {
+        return dao.findByTokenHashSecure(hash);
+    }
+
     private void logWhenReuseDetected(String familyId, String clientIp, String userAgent) {
         log.warn(
                 "Refresh token reuse detected. familyId={}, ip={}, userAgent={}",

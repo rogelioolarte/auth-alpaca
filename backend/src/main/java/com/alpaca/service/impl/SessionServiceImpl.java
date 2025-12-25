@@ -95,12 +95,6 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         return dao.findSessionByFamilyId(familyId);
     }
 
-    @Override
-    public Optional<Session> findByUniqueProperties(
-            UUID userId, String userAgent, String clientId) {
-        return dao.findByUniqueProperties(userId, userAgent, clientId);
-    }
-
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public Session createSession(UUID userId, String userAgent, String clientId, String clientIp) {

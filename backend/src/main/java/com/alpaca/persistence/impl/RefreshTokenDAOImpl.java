@@ -174,9 +174,4 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
         repo.revokeFamilyOnReuse(familyId, revokedAt, reason);
     }
-
-    @Override
-    public int revokeByIdWithReason(UUID id, Instant revokedAt, String reason) {
-        return repo.revokeByIdWithReason(id, revokedAt, reason);
-    }
 }

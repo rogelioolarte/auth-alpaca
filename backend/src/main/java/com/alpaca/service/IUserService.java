@@ -3,7 +3,6 @@ package com.alpaca.service;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -44,6 +43,4 @@ public interface IUserService extends IGenericService<User, UUID> {
      * @return {@code true} if a user with the given email exists, otherwise {@code false}.
      */
     boolean existsByEmail(String email);
-
-    Optional<User> lockFindUserById(UUID userId);
 }

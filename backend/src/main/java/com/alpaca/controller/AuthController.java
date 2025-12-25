@@ -91,6 +91,16 @@ public class AuthController {
                                 Utils.extractClientIP(request))));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @RequestHeader("X-Refresh-Token") String refreshToken,
+            @RequestHeader("X-Client-Id") String clientId,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            HttpServletRequest request) {
+        authService.logout(refreshToken, clientId, userAgent, Utils.extractClientIP(request));
+        return ResponseEntity.ok("{\"message\":\"Logout successful\"}");
+    }
+
     /**
      * Retrieves the current authenticated user.
      *

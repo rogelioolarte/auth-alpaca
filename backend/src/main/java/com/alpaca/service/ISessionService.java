@@ -17,7 +17,5 @@ public interface ISessionService extends IGenericService<Session, UUID> {
 
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
-    Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId);
-
     Session createSession(UUID userId, String userAgent, String clientId, String clientIp);
 }

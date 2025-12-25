@@ -5,6 +5,7 @@ import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
 import com.alpaca.model.UserPrincipal;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,4 +24,8 @@ public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID
     void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason);
 
     void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
+
+    Optional<UUID> findFamilyIdByTokenHash(String hash);
+
+    Optional<RefreshToken> findByTokenHashSecure(String hash);
 }

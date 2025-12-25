@@ -2,19 +2,26 @@ package com.alpaca.service.impl;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.*;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
@@ -22,6 +29,7 @@ import org.springframework.stereotype.Service;
  *
  * @see IAuthService
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
@@ -31,6 +39,7 @@ public class AuthServiceImpl implements IAuthService {
     private final ISessionService sessionService;
     private final IRefreshTokenService refreshTokenService;
     private final PasswordManager passwordManager;
+    private final JJwtManager manager;
 
     /**
      * Sets the Spring Security context with the provided authentication object.
@@ -80,6 +89,24 @@ public class AuthServiceImpl implements IAuthService {
                                 passwordManager.encodePassword(requestDTO.password()),
                                 roleService.getUserRoles()));
         return login(new UserPrincipal(user), requestDTO);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Override
+    public void logout(String refreshToken, String clientId, String userAgent, String ipAddress) {
+        if (!StringUtils.hasText(refreshToken)) {
+            throw new BadRequestException("Invalid Refresh Token");
+        }
+        RefreshToken actualrefreshToken =
+                refreshTokenService
+                        .findByTokenHashSecure(manager.createRefreshTokenHash(refreshToken))
+                        .orElseThrow(() -> new NotFoundException("Refresh Token Not Found"));
+        if (Boolean.TRUE.equals(actualrefreshToken.getRevoked())) {
+            throw new BadRequestException("Refresh Token already revoked");
+        }
+        refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
+                actualrefreshToken.getFamilyId(), Instant.now(), "logout-session");
+        SecurityContextHolder.clearContext();
     }
 
     /**

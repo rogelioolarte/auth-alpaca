@@ -35,4 +35,6 @@ public interface IAuthService extends UserDetailsService {
      * @throws BadRequestException If a user with their unique field already exists.
      */
     AuthResponseDTO register(AuthLoginRequestDTO requestDTO);
+
+    void logout(String refreshToken, String clientId, String userAgent, String ipAddress);
 }

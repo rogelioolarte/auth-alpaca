@@ -20,6 +20,4 @@ public interface IRefreshTokenDAO extends IGenericDAO<RefreshToken, UUID> {
     Optional<UUID> findFamilyIdByTokenHash(String hash);
 
     void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
-
-    int revokeByIdWithReason(UUID id, Instant revokedAt, String reason);
 }
