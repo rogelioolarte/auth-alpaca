@@ -1,8 +1,6 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.User;
-import org.springframework.data.repository.query.Param;
-
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +34,6 @@ public interface IUserDAO extends IGenericDAO<User, UUID> {
     Optional<User> findByIdWithAuthorities(UUID id);
 
     Optional<User> findByEmailWithAuthorities(String email);
+
+    Optional<User> lockFindUserById(UUID userId);
 }

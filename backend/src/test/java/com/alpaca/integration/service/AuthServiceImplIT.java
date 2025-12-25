@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -234,212 +233,228 @@ public class AuthServiceImplIT {
     }
 
     // --- authenticate ---
-//    @Test
-//    @Transactional
-//    void authenticateCaseOne() {
-//        User newUser =
-//                userService.register(
-//                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-//        Authentication auth =
-//                service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
-//        assertNotNull(auth);
-//        assertNotNull(auth.getPrincipal());
-//        assertEquals(new UserPrincipal(newUser, null), auth.getPrincipal());
-//    }
+    //    @Test
+    //    @Transactional
+    //    void authenticateCaseOne() {
+    //        User newUser =
+    //                userService.register(
+    //                        new User(user.getEmail(), user.getPassword(),
+    // Collections.emptySet()));
+    //        Authentication auth =
+    //                service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
+    //        assertNotNull(auth);
+    //        assertNotNull(auth.getPrincipal());
+    //        assertEquals(new UserPrincipal(newUser, null), auth.getPrincipal());
+    //    }
 
     // --- registerOrLoginOAuth2 ---
-//    @Test
-//    void registerOrLoginOAuth2CaseOne() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2(null, "first", "last", "image", false, null));
-//
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2(" ", "first", "last", "image", false, null));
-//    }
-//
-//    @Test
-//    void registerOrLoginOAuth2CaseTwo() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", null, "last", "image", false, null));
-//
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", " ", "last", "image", false, null));
-//    }
-//
-//    @Test
-//    void registerOrLoginOAuth2CaseThree() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", "first", null, "image", false, null));
-//
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", "first", " ", "image", false, null));
-//    }
-//
-//    @Test
-//    void registerOrLoginOAuth2CaseFour() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", "first", "last", null, false, null));
-//
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerOrLoginOAuth2("email", "first", "last", " ", false, null));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void registerOrLoginOAuth2CaseFive() {
-//        roleService.save(
-//                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-//        UserPrincipal userPrincipal =
-//                service.registerOrLoginOAuth2(
-//                        userInfoGoogleNotVerified.getEmail(),
-//                        userInfoGoogleNotVerified.getFirstName(),
-//                        userInfoGoogleNotVerified.getLastName(),
-//                        userInfoGoogleNotVerified.getImageUrl(),
-//                        userInfoGoogleNotVerified.getEmailVerified(),
-//                        attributesNotVerified);
-//        User newUser = userService.findByEmail(userInfoGoogleNotVerified.getEmail());
-//        assertNotNull(userPrincipal);
-//        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
-//    }
+    //    @Test
+    //    void registerOrLoginOAuth2CaseOne() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2(null, "first", "last", "image", false,
+    // null));
+    //
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2(" ", "first", "last", "image", false,
+    // null));
+    //    }
+    //
+    //    @Test
+    //    void registerOrLoginOAuth2CaseTwo() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", null, "last", "image", false,
+    // null));
+    //
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", " ", "last", "image", false,
+    // null));
+    //    }
+    //
+    //    @Test
+    //    void registerOrLoginOAuth2CaseThree() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", "first", null, "image", false,
+    // null));
+    //
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", "first", " ", "image", false,
+    // null));
+    //    }
+    //
+    //    @Test
+    //    void registerOrLoginOAuth2CaseFour() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", "first", "last", null, false,
+    // null));
+    //
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerOrLoginOAuth2("email", "first", "last", " ", false,
+    // null));
+    //    }
+    //
+    //    @Test
+    //    @Transactional
+    //    void registerOrLoginOAuth2CaseFive() {
+    //        roleService.save(
+    //                new Role(role.getRoleName(), role.getRoleDescription(),
+    // Collections.emptySet()));
+    //        UserPrincipal userPrincipal =
+    //                service.registerOrLoginOAuth2(
+    //                        userInfoGoogleNotVerified.getEmail(),
+    //                        userInfoGoogleNotVerified.getFirstName(),
+    //                        userInfoGoogleNotVerified.getLastName(),
+    //                        userInfoGoogleNotVerified.getImageUrl(),
+    //                        userInfoGoogleNotVerified.getEmailVerified(),
+    //                        attributesNotVerified);
+    //        User newUser = userService.findByEmail(userInfoGoogleNotVerified.getEmail());
+    //        assertNotNull(userPrincipal);
+    //        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
+    //    }
 
-//    @Test
-//    @Transactional
-//    void registerOrLoginOAuth2CaseSix() {
-//        User newUser =
-//                userService.register(
-//                        new User(
-//                                secondEntity.getEmail(),
-//                                secondEntity.getPassword(),
-//                                Collections.emptySet()));
-//        UserPrincipal userPrincipal =
-//                service.registerOrLoginOAuth2(
-//                        userInfoGoogle.getEmail(),
-//                        userInfoGoogle.getFirstName(),
-//                        userInfoGoogle.getLastName(),
-//                        userInfoGoogle.getImageUrl(),
-//                        userInfoGoogle.getEmailVerified(),
-//                        attributesVerified);
-//        assertNotNull(userPrincipal);
-//        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
-//    }
+    //    @Test
+    //    @Transactional
+    //    void registerOrLoginOAuth2CaseSix() {
+    //        User newUser =
+    //                userService.register(
+    //                        new User(
+    //                                secondEntity.getEmail(),
+    //                                secondEntity.getPassword(),
+    //                                Collections.emptySet()));
+    //        UserPrincipal userPrincipal =
+    //                service.registerOrLoginOAuth2(
+    //                        userInfoGoogle.getEmail(),
+    //                        userInfoGoogle.getFirstName(),
+    //                        userInfoGoogle.getLastName(),
+    //                        userInfoGoogle.getImageUrl(),
+    //                        userInfoGoogle.getEmailVerified(),
+    //                        attributesVerified);
+    //        assertNotNull(userPrincipal);
+    //        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
+    //    }
 
     // --- registerProfile ---
-//    @Test
-//    void registerProfileCaseOne() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerProfile(null, "first", "last", "image"));
-//    }
-//
-//    @Test
-//    void registerProfileCaseTwo() {
-//        user.setId(null);
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerProfile(user, "first", "last", "image"));
-//    }
-//
-//    @Test
-//    void registerProfileCaseThree() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerProfile(user, null, "last", "image"));
-//    }
+    //    @Test
+    //    void registerProfileCaseOne() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerProfile(null, "first", "last", "image"));
+    //    }
+    //
+    //    @Test
+    //    void registerProfileCaseTwo() {
+    //        user.setId(null);
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerProfile(user, "first", "last", "image"));
+    //    }
+    //
+    //    @Test
+    //    void registerProfileCaseThree() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerProfile(user, null, "last", "image"));
+    //    }
 
-//    @Test
-//    void registerProfileCaseFour() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerProfile(user, "first", null, "image"));
-//    }
-//
-//    @Test
-//    void registerProfileCaseFive() {
-//        assertThrows(
-//                BadRequestException.class,
-//                () -> service.registerProfile(user, "first", "last", null));
-//    }
+    //    @Test
+    //    void registerProfileCaseFour() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerProfile(user, "first", null, "image"));
+    //    }
+    //
+    //    @Test
+    //    void registerProfileCaseFive() {
+    //        assertThrows(
+    //                BadRequestException.class,
+    //                () -> service.registerProfile(user, "first", "last", null));
+    //    }
 
-//    @Test
-//    @Transactional
-//    void registerProfileCaseSix() {
-//        roleService.save(
-//                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-//        User newUser =
-//                service.registerProfile(
-//                        user,
-//                        userInfoGoogle.getFirstName(),
-//                        userInfoGoogle.getLastName(),
-//                        userInfoGoogle.getImageUrl());
-//        assertNotNull(newUser);
-//        assertNotNull(newUser.getProfile());
-//        assertEquals(userInfoGoogle.getFirstName(), newUser.getProfile().getFirstName());
-//        assertEquals(userInfoGoogle.getLastName(), newUser.getProfile().getLastName());
-//        assertEquals(userInfoGoogle.getImageUrl(), newUser.getProfile().getAvatarUrl());
-//    }
+    //    @Test
+    //    @Transactional
+    //    void registerProfileCaseSix() {
+    //        roleService.save(
+    //                new Role(role.getRoleName(), role.getRoleDescription(),
+    // Collections.emptySet()));
+    //        User newUser =
+    //                service.registerProfile(
+    //                        user,
+    //                        userInfoGoogle.getFirstName(),
+    //                        userInfoGoogle.getLastName(),
+    //                        userInfoGoogle.getImageUrl());
+    //        assertNotNull(newUser);
+    //        assertNotNull(newUser.getProfile());
+    //        assertEquals(userInfoGoogle.getFirstName(), newUser.getProfile().getFirstName());
+    //        assertEquals(userInfoGoogle.getLastName(), newUser.getProfile().getLastName());
+    //        assertEquals(userInfoGoogle.getImageUrl(), newUser.getProfile().getAvatarUrl());
+    //    }
 
     // --- checkExistingUser ---
-//    @Test
-//    void checkExistingUserCaseOne() {
-//        assertThrows(
-//                UnauthorizedException.class,
-//                () -> service.checkExistingUser(thirdEntity, userInfoGoogle.getEmailVerified()));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void checkExistingUserCaseTwo() {
-//        User beforeUser =
-//                userService.register(
-//                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-//        beforeUser.setGoogleConnected(false);
-//        beforeUser.setEmailVerified(true);
-//        User afterUser = userService.register(beforeUser);
-//        User newUser = service.checkExistingUser(afterUser, userInfoGoogle.getEmailVerified());
-//        assertEquals(beforeUser.getId(), newUser.getId());
-//        assertTrue(newUser.isGoogleConnected());
-//    }
+    //    @Test
+    //    void checkExistingUserCaseOne() {
+    //        assertThrows(
+    //                UnauthorizedException.class,
+    //                () -> service.checkExistingUser(thirdEntity,
+    // userInfoGoogle.getEmailVerified()));
+    //    }
+    //
+    //    @Test
+    //    @Transactional
+    //    void checkExistingUserCaseTwo() {
+    //        User beforeUser =
+    //                userService.register(
+    //                        new User(user.getEmail(), user.getPassword(),
+    // Collections.emptySet()));
+    //        beforeUser.setGoogleConnected(false);
+    //        beforeUser.setEmailVerified(true);
+    //        User afterUser = userService.register(beforeUser);
+    //        User newUser = service.checkExistingUser(afterUser,
+    // userInfoGoogle.getEmailVerified());
+    //        assertEquals(beforeUser.getId(), newUser.getId());
+    //        assertTrue(newUser.isGoogleConnected());
+    //    }
 
-//    @Test
-//    @Transactional
-//    void checkExistingUserCaseThree() {
-//        User beforeUser =
-//                userService.register(
-//                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-//        beforeUser.setGoogleConnected(true);
-//        beforeUser.setEmailVerified(false);
-//        User afterUser = userService.register(beforeUser);
-//        User newUser = service.checkExistingUser(afterUser, userInfoGoogle.getEmailVerified());
-//        assertEquals(beforeUser.getId(), newUser.getId());
-//        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
-//    }
+    //    @Test
+    //    @Transactional
+    //    void checkExistingUserCaseThree() {
+    //        User beforeUser =
+    //                userService.register(
+    //                        new User(user.getEmail(), user.getPassword(),
+    // Collections.emptySet()));
+    //        beforeUser.setGoogleConnected(true);
+    //        beforeUser.setEmailVerified(false);
+    //        User afterUser = userService.register(beforeUser);
+    //        User newUser = service.checkExistingUser(afterUser,
+    // userInfoGoogle.getEmailVerified());
+    //        assertEquals(beforeUser.getId(), newUser.getId());
+    //        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
+    //    }
 
-//    @Test
-//    @Transactional
-//    void checkExistingUserCaseFour() {
-//        user.setGoogleConnected(true);
-//        user.setEmailVerified(false);
-//        User newUser =
-//                service.checkExistingUser(user, userInfoGoogleNotVerified.getEmailVerified());
-//        assertEquals(user.getId(), newUser.getId());
-//        assertEquals(userInfoGoogleNotVerified.getEmailVerified(), newUser.isEmailVerified());
-//    }
+    //    @Test
+    //    @Transactional
+    //    void checkExistingUserCaseFour() {
+    //        user.setGoogleConnected(true);
+    //        user.setEmailVerified(false);
+    //        User newUser =
+    //                service.checkExistingUser(user, userInfoGoogleNotVerified.getEmailVerified());
+    //        assertEquals(user.getId(), newUser.getId());
+    //        assertEquals(userInfoGoogleNotVerified.getEmailVerified(), newUser.isEmailVerified());
+    //    }
 
-//    @Test
-//    @Transactional
-//    void checkExistingUserCaseFive() {
-//        user.setGoogleConnected(true);
-//        user.setEmailVerified(true);
-//        User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
-//        assertEquals(user.getId(), newUser.getId());
-//        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
-//    }
+    //    @Test
+    //    @Transactional
+    //    void checkExistingUserCaseFive() {
+    //        user.setGoogleConnected(true);
+    //        user.setEmailVerified(true);
+    //        User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
+    //        assertEquals(user.getId(), newUser.getId());
+    //        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
+    //    }
 }

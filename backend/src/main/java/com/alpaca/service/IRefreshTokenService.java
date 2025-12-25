@@ -4,7 +4,6 @@ import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
 import com.alpaca.model.UserPrincipal;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -22,4 +21,6 @@ public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID
     AuthResponseDTO generateJWTTokens(UserPrincipal userPrincipal, Session session);
 
     void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason);
+
+    void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
 }

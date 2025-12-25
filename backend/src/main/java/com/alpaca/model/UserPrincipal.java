@@ -2,6 +2,7 @@ package com.alpaca.model;
 
 import com.alpaca.entity.User;
 import io.jsonwebtoken.Claims;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,8 +11,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-
-import java.util.*;
 
 /**
  * Represents the Principal User Details in the security context. This class implements both {@link
@@ -82,36 +81,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.accountNonExpired = user.isAccountNoExpired();
         this.credentialsNonExpired = user.isCredentialNoExpired();
         this.authorities = user.getAuthorities();
-        this.attributes = attributes;
-    }
-
-    /**
-     * Constructs a new {@code UserPrincipal} instance using a decoded JWT token values. This
-     * constructor extracts relevant information from the {@code User} object and assigns it to the
-     * corresponding fields in {@code UserPrincipal}.
-     *
-     * @param userId the {@link UUID} id of the User.
-     * @param profileId the {@link UUID} id of the Profile.
-     * @param advertiserId the {@link UUID} id of the Advertiser.
-     * @param username the username of the User.
-     * @param password the encoded password of the User.
-     * @param authoritiesList the list of authorities of the User.
-     * @param attributes additional attributes obtained from an OAuth2 authentication provider.
-     */
-    public UserPrincipal(
-            UUID userId,
-            UUID profileId,
-            UUID advertiserId,
-            String username,
-            String password,
-            Collection<? extends GrantedAuthority> authoritiesList,
-            Map<String, Object> attributes) {
-        this.id = userId;
-        this.profileId = profileId;
-        this.advertiserId = advertiserId;
-        this.username = username;
-        this.password = password;
-        this.authorities = authoritiesList;
         this.attributes = attributes;
     }
 

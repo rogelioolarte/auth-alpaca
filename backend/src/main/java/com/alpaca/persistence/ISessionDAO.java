@@ -1,15 +1,14 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Session;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Data Access Object (DAO) interface for managing {@link Session} entities.
@@ -39,8 +38,6 @@ public interface ISessionDAO extends IGenericDAO<Session, UUID> {
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
     Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId);
-
-    long countActiveSessionsByUser(UUID userId);
 
     List<Session> findActiveSessionsByUserOrderByLastSeen(UUID userId, Pageable pageable);
 }

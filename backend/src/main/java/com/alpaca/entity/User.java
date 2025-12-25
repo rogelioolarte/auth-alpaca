@@ -2,11 +2,10 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import java.time.Instant;
 import java.util.*;
+import lombok.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the
@@ -212,33 +211,27 @@ public class User extends Auditable {
     }
 
     /**
-     * Retrieves the authorities granted and Permissions to the User based
-     * on their assigned roles and permissions.
-     * Each role is prefixed with "ROLE_" as per Spring Security conventions.
-     * Each role is prefixed with "PERMISSION_" as per Spring Security conventions.
+     * Retrieves the authorities granted and Permissions to the User based on their assigned roles
+     * and permissions. Each role is prefixed with "ROLE_" as per Spring Security conventions. Each
+     * role is prefixed with "PERMISSION_" as per Spring Security conventions.
      *
-     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions and roles.
+     * @return List of {@link SimpleGrantedAuthority} representing the User's permissions and roles.
      */
-    public Set<SimpleGrantedAuthority> getAuthorities() {
-        if (userRoles.isEmpty()) return Collections.emptySet();
-        Set<SimpleGrantedAuthority> authorities = HashSet.newHashSet(userRoles.size());
-        if (userRoles.size() == 1) {
-            authorities.add(
-                    new SimpleGrantedAuthority(
-                            ROLE_KEY_AUTHORITY+ userRoles.iterator().next().getRole().getRoleName()));
-            for (Permission permission : userRoles.iterator().next().getRole().getPermissions()) {
-                authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+    public List<SimpleGrantedAuthority> getAuthorities() {
+        if (userRoles == null || userRoles.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Set<String> seen = new HashSet<>();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        for (UserRole userRole : userRoles) {
+            String roleKey = ROLE_KEY_AUTHORITY + userRole.getRole().getRoleName();
+            if (seen.add(roleKey)) {
+                authorities.add(new SimpleGrantedAuthority(roleKey));
             }
-        } else {
-            for (UserRole userRole : userRoles) {
-                authorities.add(
-                        new SimpleGrantedAuthority(ROLE_KEY_AUTHORITY + userRole.getRole().getRoleName()));
-                // Use the following function if permissions should be included in
-                // authorities
-                // If we add this for cycle to the function it will have a time complexity of
-                // O(n^2)
-                for (Permission permission : userRole.getRole().getPermissions()) {
-                    authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+            for (Permission permission : userRole.getRole().getPermissions()) {
+                String permKey = permission.getPermissionName();
+                if (seen.add(permKey)) {
+                    authorities.add(new SimpleGrantedAuthority(permKey));
                 }
             }
         }

@@ -2,15 +2,14 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.repository.GenericRepo;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.util.StringUtils;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.util.StringUtils;
 
 /**
  * Abstract base implementation of {@link IGenericDAO}, providing generic CRUD and pagination

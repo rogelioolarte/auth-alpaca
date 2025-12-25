@@ -7,8 +7,6 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.model.UserPrincipal;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import java.util.UUID;
-
 /**
  * Service interface for authentication operations.
  *

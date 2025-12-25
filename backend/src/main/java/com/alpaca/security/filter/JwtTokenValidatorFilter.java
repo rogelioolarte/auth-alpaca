@@ -6,18 +6,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 /**
  * A servlet filter that validates JWT tokens in incoming requests and populates the Spring Security
@@ -60,8 +57,9 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (isAToken(jwtToken)) {
-            UsernamePasswordAuthenticationToken userToken = jwtManager.manageAuthentication(jwtToken.substring(7));
-            if(userToken == null) {
+            UsernamePasswordAuthenticationToken userToken =
+                    jwtManager.manageAuthentication(jwtToken.substring(7));
+            if (userToken == null) {
                 throw new UnauthorizedException("Invalid Access Token");
             }
             userToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

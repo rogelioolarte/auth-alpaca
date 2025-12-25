@@ -5,14 +5,13 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
 /**
  * Implementation of the {@link ISessionDAO} interface for managing {@link Session} entities. This
@@ -141,11 +140,6 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     public Optional<Session> findByUniqueProperties(
             UUID userId, String userAgent, String clientId) {
         return repo.findByUniqueProperties(userId, userAgent, clientId);
-    }
-
-    @Override
-    public long countActiveSessionsByUser(UUID userId) {
-        return repo.countActiveSessionsByUser(userId);
     }
 
     @Override

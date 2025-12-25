@@ -49,11 +49,14 @@ public class AuthController {
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader(value = "User-Agent") String userAgent,
             HttpServletRequest request) {
-        Authentication authentication = manager.authenticate(
-                new UsernamePasswordAuthenticationToken(requestDTO.getEmail(), requestDTO.getPassword()));
+        Authentication authentication =
+                manager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                requestDTO.getEmail(), requestDTO.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return new ResponseEntity<>(
-                authService.login(((UserPrincipal) authentication.getPrincipal()),
+                authService.login(
+                        ((UserPrincipal) authentication.getPrincipal()),
                         new AuthLoginRequestDTO(
                                 requestDTO.getEmail(),
                                 requestDTO.getPassword(),

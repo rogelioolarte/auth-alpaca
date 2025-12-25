@@ -1,12 +1,13 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.User;
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Repository interface for managing {@link User} entities.
@@ -19,24 +20,26 @@ import java.util.UUID;
 @Repository
 public interface UserRepo extends GenericRepo<User, UUID> {
 
-    @Query("""
-        SELECT DISTINCT u FROM User u
-        LEFT JOIN FETCH u.userRoles ur
-        LEFT JOIN FETCH ur.role r
-        LEFT JOIN FETCH r.rolePermissions rp
-        LEFT JOIN FETCH rp.permission p
-        WHERE u.email = :email
-        """)
+    @Query(
+            """
+            SELECT DISTINCT u FROM User u
+            LEFT JOIN FETCH u.userRoles ur
+            LEFT JOIN FETCH ur.role r
+            LEFT JOIN FETCH r.rolePermissions rp
+            LEFT JOIN FETCH rp.permission p
+            WHERE u.email = :email
+            """)
     Optional<User> findByEmailWithAuthorities(@Param("email") String email);
 
-    @Query("""
-        SELECT DISTINCT u FROM User u
-        LEFT JOIN FETCH u.userRoles ur
-        LEFT JOIN FETCH ur.role r
-        LEFT JOIN FETCH r.rolePermissions rp
-        LEFT JOIN FETCH rp.permission p
-        WHERE u.id = :id
-        """)
+    @Query(
+            """
+            SELECT DISTINCT u FROM User u
+            LEFT JOIN FETCH u.userRoles ur
+            LEFT JOIN FETCH ur.role r
+            LEFT JOIN FETCH r.rolePermissions rp
+            LEFT JOIN FETCH rp.permission p
+            WHERE u.id = :id
+            """)
     Optional<User> findByIdWithAuthorities(@Param("id") UUID id);
 
     /**
@@ -54,4 +57,8 @@ public interface UserRepo extends GenericRepo<User, UUID> {
      * @return {@code true} if a user with the given email exists, {@code false} otherwise.
      */
     boolean existsByEmail(String email);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.id = :userId")
+    Optional<User> lockFindUserById(@Param("userId") UUID userId);
 }

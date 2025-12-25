@@ -1,7 +1,6 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Advertiser;
-
 import java.util.UUID;
 
 /**

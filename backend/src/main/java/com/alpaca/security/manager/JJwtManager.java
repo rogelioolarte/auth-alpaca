@@ -9,14 +9,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +23,13 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Central manager for issuing, validating, and parsing JSON Web Tokens (JWT) using RSA keys.
@@ -147,8 +146,7 @@ public class JJwtManager {
      * @param user authenticated user details
      * @return JWT string representing the signed Access Token
      */
-    public String createAccessToken(UserPrincipal user) {
-        Instant now = Instant.now();
+    public String createAccessToken(UserPrincipal user, Instant now) {
         return Jwts.builder()
                 .issuer(jwtIssuer)
                 .subject(user.getUsername())

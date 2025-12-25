@@ -5,12 +5,11 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Implementation of the {@link IUserDAO} interface for managing {@link User} entities. Extends the
@@ -157,5 +156,10 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     @Override
     public Optional<User> findByEmailWithAuthorities(String email) {
         return repo.findByEmailWithAuthorities(email);
+    }
+
+    @Override
+    public Optional<User> lockFindUserById(UUID userId) {
+        return repo.lockFindUserById(userId);
     }
 }

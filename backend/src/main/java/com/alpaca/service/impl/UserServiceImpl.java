@@ -7,13 +7,13 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic
@@ -78,6 +78,11 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     @Override
     public boolean existsByEmail(String email) {
         return dao.existsByEmail(email);
+    }
+
+    @Override
+    public Optional<User> lockFindUserById(UUID userId) {
+        return dao.lockFindUserById(userId);
     }
 
     /**

@@ -13,17 +13,16 @@ import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD
@@ -128,7 +127,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         actualRefreshToken.setReplacedBy(savedRefreshToken);
         dao.save(actualRefreshToken);
         String accessToken =
-                manager.createAccessToken(new UserPrincipal(newRefreshToken.getUser()));
+                manager.createAccessToken(new UserPrincipal(newRefreshToken.getUser()), now);
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
@@ -145,7 +144,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);
         dao.save(refreshToken);
-        String accessToken = manager.createAccessToken(userPrincipal);
+        String accessToken = manager.createAccessToken(userPrincipal, session.getLastSeenAt());
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
@@ -186,8 +185,13 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
     @Override
     public void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason) {
-        dao.revokeFamilyWithReason(familyId, now, reason);
+        revokeFamilyWithReason(familyId, now, reason);
         sessionService.revokeSessionByFamilyId(familyId, now, reason);
+    }
+
+    @Override
+    public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
+        dao.revokeFamilyWithReason(familyId, revokedAt, reason);
     }
 
     private void logWhenReuseDetected(String familyId, String clientIp, String userAgent) {
