@@ -1,8 +1,11 @@
 package com.alpaca.unit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
+import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
@@ -11,6 +14,7 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.SessionProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
@@ -18,7 +22,9 @@ import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.alpaca.service.impl.AuthServiceImpl;
 import com.alpaca.service.impl.ProfileServiceImpl;
+import com.alpaca.service.impl.RefreshTokenServiceImpl;
 import com.alpaca.service.impl.RoleServiceImpl;
+import com.alpaca.service.impl.SessionServiceImpl;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +33,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /** Unit tests for {@link AuthServiceImpl} */
@@ -37,6 +42,8 @@ class AuthServiceImplTest {
     @Mock private RoleServiceImpl roleService;
     @Mock private UserServiceImpl userService;
     @Mock private ProfileServiceImpl profileService;
+    @Mock private SessionServiceImpl sessionService;
+    @Mock private RefreshTokenServiceImpl refreshTokenService;
     @Mock private JJwtManager jJwtManager;
     @Mock private PasswordManager passwordManager;
 
@@ -232,14 +239,24 @@ class AuthServiceImplTest {
         assertEquals(userDetails, result);
     }
 
-    // --- authenticate ---
+    // --- login ---
     @Test
-    void authenticateCaseOne() {
-        when(userService.findByEmail(user.getEmail())).thenReturn(user);
-        when(passwordManager.matches(user.getPassword(), user.getPassword())).thenReturn(true);
-        Authentication auth = service.authenticate(user.getEmail(), user.getPassword());
-        assertNotNull(auth);
-        assertEquals(new UserPrincipal(user, null), auth.getPrincipal());
+    void loginCaseOne() {
+        UserPrincipal userPrincipal = new UserPrincipal(user, null);
+        AuthLoginRequestDTO requestDTO =
+                new AuthLoginRequestDTO(
+                        "test@example.com", "password", "clientId", "userAgent", "127.0.0.1");
+
+        when(sessionService.createSession(any(), any(), any(), any()))
+                .thenReturn(SessionProvider.singleEntity());
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
+                .thenReturn(new AuthResponseDTO("access-token", "refresh-token"));
+
+        AuthResponseDTO response = service.login(userPrincipal, requestDTO);
+
+        assertNotNull(response);
+        assertNotNull(response.accessToken());
+        assertNotNull(response.refreshToken());
     }
 
     // --- registerOrLoginOAuth2 ---

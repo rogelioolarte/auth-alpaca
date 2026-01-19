@@ -38,28 +38,34 @@ public class User extends Auditable {
     private String password;
 
     /** Indicates whether the User's entity is enabled. Defaults to {@code true}. */
+    @Builder.Default
     @Column(name = "enable", nullable = false)
     private boolean enabled = true;
 
     /** Indicates whether the User's entity is not expired. Defaults to {@code true}. */
+    @Builder.Default
     @Column(name = "account_no_expired", nullable = false)
     private boolean accountNoExpired = true;
 
     /** Indicates whether the User's entity is not locked. Defaults to {@code true}. */
+    @Builder.Default
     @Column(name = "account_no_locked", nullable = false)
     private boolean accountNoLocked = true;
 
     /** Indicates whether the User's credentials are not expired. Defaults to {@code true}. */
+    @Builder.Default
     @Column(name = "credential_no_expired", nullable = false)
     private boolean credentialNoExpired = true;
 
     /** Indicates whether the User's email has been verified. Defaults to {@code false}. */
+    @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
     /**
      * Indicates whether the User has connected their account to Google. Defaults to {@code false}.
      */
+    @Builder.Default
     @Column(name = "google_connected", nullable = false)
     private boolean googleConnected = false;
 
@@ -79,6 +85,7 @@ public class User extends Auditable {
      *
      * <p>A User has a many-to-many relationship with an {@link Role} through {@link UserRole}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
@@ -108,6 +115,7 @@ public class User extends Auditable {
      * <p>Used for managing, revoking or auditing refresh tokens when implementing rotation and
      * reuse-detection.
      */
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RefreshToken> refreshTokens = new HashSet<>();
 
@@ -118,6 +126,7 @@ public class User extends Auditable {
      * This allows tracking active sessions, revoking an entire session (all its tokens), and
      * auditing session metadata.
      */
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Session> sessions = new HashSet<>();
 

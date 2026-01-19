@@ -30,99 +30,87 @@ public class UserProvider {
     }
 
     public static User singleTemplate() {
-        return new User(
-                null,
-                "admin@admin.com",
-                "123456789",
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                null,
-                new HashSet<>(),
-                null,
-                null,
-                new HashSet<>(),
-                new HashSet<>());
+        return User.builder()
+                .email("admin@admin.com")
+                .password("123456789")
+                .enabled(true)
+                .accountNoExpired(true)
+                .accountNoLocked(true)
+                .credentialNoExpired(true)
+                .emailVerified(false)
+                .googleConnected(false)
+                .userRoles(new HashSet<>())
+                .refreshTokens(new HashSet<>())
+                .sessions(new HashSet<>())
+                .build();
     }
 
     public static User alternativeTemplate() {
-        return new User(
-                null,
-                "user@user.com",
-                "1234567890",
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                null,
-                new HashSet<>(),
-                null,
-                null,
-                new HashSet<>(),
-                new HashSet<>());
+        return User.builder()
+                .email("user@user.com")
+                .password("1234567890")
+                .enabled(true)
+                .accountNoExpired(true)
+                .accountNoLocked(true)
+                .credentialNoExpired(true)
+                .emailVerified(false)
+                .googleConnected(false)
+                .userRoles(new HashSet<>())
+                .refreshTokens(new HashSet<>())
+                .sessions(new HashSet<>())
+                .build();
     }
 
     public static User singleEntity() {
-        return new User(
-                UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"),
-                "admin@admin.com",
-                "123456789",
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                null,
-                new HashSet<>(),
-                null,
-                null,
-                new HashSet<>(),
-                new HashSet<>());
+        return User.builder()
+                .id(UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"))
+                .email("admin@admin.com")
+                .password("123456789")
+                .enabled(true)
+                .accountNoExpired(true)
+                .accountNoLocked(true)
+                .credentialNoExpired(true)
+                .emailVerified(false)
+                .googleConnected(false)
+                .userRoles(new HashSet<>())
+                .refreshTokens(new HashSet<>())
+                .sessions(new HashSet<>())
+                .build();
     }
 
     public static User alternativeEntity() {
-        return new User(
-                UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
-                "user@user.com",
-                "1234567890",
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                null,
-                new HashSet<>(),
-                null,
-                null,
-                new HashSet<>(),
-                new HashSet<>());
+        return User.builder()
+                .id(UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"))
+                .email("user@user.com")
+                .password("1234567890")
+                .enabled(true)
+                .accountNoExpired(true)
+                .accountNoLocked(true)
+                .credentialNoExpired(true)
+                .emailVerified(false)
+                .googleConnected(false)
+                .userRoles(new HashSet<>())
+                .refreshTokens(new HashSet<>())
+                .sessions(new HashSet<>())
+                .build();
     }
 
     public static User notAllowEntity() {
         User secondEntity =
-                new User(
-                        UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"),
-                        "user@user.com",
-                        "123456789",
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        null,
-                        new HashSet<>(),
-                        null,
-                        null,
-                        new HashSet<>(),
-                        new HashSet<>());
+                User.builder()
+                        .id(UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"))
+                        .email("user@user.com")
+                        .password("123456789")
+                        .enabled(false)
+                        .accountNoExpired(false)
+                        .accountNoLocked(false)
+                        .credentialNoExpired(false)
+                        .emailVerified(false)
+                        .googleConnected(false)
+                        .userRoles(new HashSet<>())
+                        .refreshTokens(new HashSet<>())
+                        .sessions(new HashSet<>())
+                        .build();
         secondEntity.setUserRoles(new HashSet<>(Set.of(RoleProvider.alternativeEntity())));
         return secondEntity;
     }
@@ -180,15 +168,18 @@ public class UserProvider {
             boolean credentialsNonExpired,
             boolean emailVerified,
             boolean googleConnected) {
-        return new User(
-                "test@example.com",
-                "encodedPassword",
-                enabled,
-                accountNonExpired,
-                accountNonLocked,
-                credentialsNonExpired,
-                emailVerified,
-                googleConnected,
-                new HashSet<>());
+        return User.builder()
+                .email("test@example.com")
+                .password("encodedPassword")
+                .enabled(enabled)
+                .accountNoExpired(accountNonExpired)
+                .accountNoLocked(accountNonLocked)
+                .credentialNoExpired(credentialsNonExpired)
+                .emailVerified(emailVerified)
+                .googleConnected(googleConnected)
+                .userRoles(new HashSet<>())
+                .refreshTokens(new HashSet<>())
+                .sessions(new HashSet<>())
+                .build();
     }
 }

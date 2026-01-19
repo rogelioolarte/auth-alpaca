@@ -6,17 +6,20 @@ import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
+import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.UserServiceImpl;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /** Unit tests for {@link UserServiceImpl} */
 @ExtendWith(MockitoExtension.class)
@@ -84,16 +87,43 @@ class UserServiceImplTest {
 
     @Test
     void findByEmailCaseThree() {
-        when(dao.findByEmail(secondEntity.getEmail())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> service.findByEmail(secondEntity.getEmail()));
-        verify(dao).findByEmail(secondEntity.getEmail());
+        when(dao.findByEmailWithAuthorities(secondEntity.getEmail())).thenReturn(Optional.empty());
+        assertThrows(
+                UsernameNotFoundException.class,
+                () -> service.findByEmail(secondEntity.getEmail()));
+        verify(dao).findByEmailWithAuthorities(secondEntity.getEmail());
     }
 
     @Test
     void findByEmailCaseFour() {
-        when(dao.findByEmail(firstEntity.getEmail())).thenReturn(Optional.of(firstEntity));
+        when(dao.findByEmailWithAuthorities(firstEntity.getEmail()))
+                .thenReturn(Optional.ofNullable(firstEntity));
         User entityFound = service.findByEmail(firstEntity.getEmail());
         assertEquals(firstEntity, entityFound);
-        verify(dao).findByEmail(firstEntity.getEmail());
+        verify(dao).findByEmailWithAuthorities(firstEntity.getEmail());
+    }
+
+    // --- isAllowUser ---
+    @Test
+    void isAllowUserCaseOne() {
+        assertTrue(firstEntity.isAllowUser());
+    }
+
+    @Test
+    void isAllowUserCaseTwo() {
+        assertFalse(UserProvider.notAllowEntity().isAllowUser());
+    }
+
+    // --- getAuthorities ---
+    @Test
+    void getAuthoritiesCaseOne() {
+        assertTrue(firstEntity.getAuthorities().isEmpty());
+    }
+
+    @Test
+    void getAuthoritiesCaseTwo() {
+        User userWithRoles = UserProvider.singleEntity();
+        userWithRoles.setUserRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
+        assertFalse(userWithRoles.getAuthorities().isEmpty());
     }
 }

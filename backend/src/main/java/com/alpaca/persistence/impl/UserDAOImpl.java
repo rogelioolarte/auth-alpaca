@@ -91,12 +91,17 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         }
         if (user.getProfile() != null
                 && user.getProfile().getId() != null
-                && !existingUser.getProfile().getId().equals(user.getProfile().getId())) {
+                && (existingUser.getProfile() == null
+                        || !existingUser.getProfile().getId().equals(user.getProfile().getId()))) {
             existingUser.setProfile(user.getProfile());
         }
         if (user.getAdvertiser() != null
                 && user.getAdvertiser().getId() != null
-                && !existingUser.getAdvertiser().getId().equals(user.getAdvertiser().getId())) {
+                && (existingUser.getAdvertiser() == null
+                        || !existingUser
+                                .getAdvertiser()
+                                .getId()
+                                .equals(user.getAdvertiser().getId()))) {
             existingUser.setAdvertiser(user.getAdvertiser());
         }
         updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);

@@ -48,12 +48,14 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<maven.compiler.args>--enable-preview</maven.compiler.args>
 		<jjwt.version>0.13.0</jjwt.version>
 		<spotless.version>3.0.0</spotless.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 		<uuid-generator-version>5.1.1</uuid-generator-version>
-		<maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <dotenv-version>3.2.0</dotenv-version>
+        <bucket4j-version>8.10.1</bucket4j-version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -128,12 +130,12 @@
 		<dependency>
 			<groupId>io.github.cdimascio</groupId>
 			<artifactId>dotenv-java</artifactId>
-			<version>3.2.0</version>
+			<version>${dotenv-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>8.10.1</version>
+			<version>${bucket4j-version}</version>
 		</dependency>
 	</dependencies>
 	<profiles>
@@ -229,18 +231,13 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<release>${java.version}</release>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
-
 				</configuration>
 			</plugin>
 			<!-- SpringBoot Maven Plugin -->
@@ -256,7 +253,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
 			<!-- Spotless auto formatting -->
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
@@ -387,7 +383,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.5.3</version>
+                <version>3.5.4</version>
 				<executions>
 					<execution>
 						<goals>
@@ -411,6 +407,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
 				<configuration>
 					<includes>
 						<include>unit/**/*Test.java</include>
@@ -419,6 +416,7 @@
 						@{argLine}
 						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
 						-Xshare:off -XX:+EnableDynamicAgentLoading
+						--sun-misc-unsafe-memory-access=allow
 					</argLine>
 				</configuration>
 			</plugin>
