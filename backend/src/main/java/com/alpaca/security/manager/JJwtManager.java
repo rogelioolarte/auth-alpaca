@@ -58,13 +58,13 @@ public class JJwtManager {
     private final RSAPrivateKey privateKeyAccess;
 
     /** Expiration time in milliseconds configured for Access Tokens. */
-    private final Long jwtTimeExpAccess;
-
-    /** RSA private key used to sign Refresh Tokens. */
-    private final RSAPrivateKey privateKeyRefresh;
+    @Getter private final Long jwtTimeExpAccess;
 
     /** Expiration time in milliseconds configured for Refresh Tokens. */
     @Getter private final Long jwtTimeExpRefresh;
+
+    /** RSA private key used to sign Refresh Tokens. */
+    private final RSAPrivateKey privateKeyRefresh;
 
     /** Issuer identifier included in the "iss" claim of tokens. */
     private final String jwtIssuer;

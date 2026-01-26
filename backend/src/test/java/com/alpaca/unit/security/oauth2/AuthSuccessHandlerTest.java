@@ -1,250 +1,245 @@
 package com.alpaca.unit.security.oauth2;
 
+import static com.alpaca.security.oauth2.CookieAuthReqRepo.REDIRECT_COOKIE_NAME;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
+import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.exception.InternalErrorException;
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.security.manager.JJwtManager;
+import com.alpaca.security.manager.CookieManager;
 import com.alpaca.security.oauth2.AuthSuccessHandler;
 import com.alpaca.security.oauth2.CookieAuthReqRepo;
+import com.alpaca.service.IAuthService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.RedirectStrategy;
 
 @DisplayName("AuthSuccessHandler Unit Tests")
 class AuthSuccessHandlerTest {
 
-    // Subclass to expose protected methods for testing
     private static class TestableHandler extends AuthSuccessHandler {
-        TestableHandler(
-                JJwtManager jwtManager, CookieAuthReqRepo repository, List<URI> redirectUris) {
-            super(jwtManager, repository, redirectUris);
+
+        public TestableHandler(
+                CookieAuthReqRepo repo, List<URI> uris, IAuthService svc, ObjectMapper om) {
+            super(repo, uris, svc, om);
         }
 
         public String invokeDetermineTarget(
-                HttpServletRequest req, HttpServletResponse res, Authentication auth) {
-            return super.determineTargetUrl(req, res, auth);
-        }
-
-        public void invokeClearAttributes(HttpServletRequest req, HttpServletResponse res) {
-            super.clearAuthenticationAttributes(req, res);
+                HttpServletRequest r, HttpServletResponse s, Authentication a) {
+            return super.determineTargetUrl(r, s, a);
         }
     }
 
-    private JJwtManager jwtManager;
     private CookieAuthReqRepo repository;
+    private IAuthService authService;
+    private ObjectMapper objectMapper;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
     private Authentication authentication;
     private UserPrincipal principal;
-    private static final String DEFAULT_TARGET = "/";
+    private static final String DEFAULT_TARGET = "http://localhost/app";
 
     @BeforeEach
     void setUp() {
-        jwtManager = mock(JJwtManager.class);
         repository = mock(CookieAuthReqRepo.class);
+        authService = mock(IAuthService.class);
+        objectMapper = new ObjectMapper();
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         authentication = mock(Authentication.class);
+
         principal = mock(UserPrincipal.class);
         when(authentication.getPrincipal()).thenReturn(principal);
     }
 
     @Nested
     @DisplayName("determineTargetUrl() tests")
-    class DetermineTargetUrlTests {
+    class DetermineTargetUrl {
 
-        //        @Test
-        //        @DisplayName(
-        //                "Throws UnauthorizedException if no redirect cookie and default URI
-        // unauthorized")
-        //        void noCookie_defaultUriUnauthorized() {
-        //            TestableHandler handler =
-        //                    new TestableHandler(
-        //                            jwtManager, repository,
-        // List.of(URI.create("http://example.com")));
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("tok");
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(Optional.empty());
-        //                assertThrows(
-        //                        UnauthorizedException.class,
-        //                        () -> handler.invokeDetermineTarget(request, response,
-        // authentication));
-        //            }
-        //        }
+        @Test
+        @DisplayName("throws InternalErrorException when no authorizedRedirectUris configured")
+        void noAuthorizedRedirectsConfigured() {
+            TestableHandler handler =
+                    new TestableHandler(repository, List.of(), authService, objectMapper);
+            handler.setDefaultTargetUrl(DEFAULT_TARGET);
 
-        //        @Test
-        //        @DisplayName("Uses default target URL when no redirect cookie and no
-        // restrictions")
-        //        void noCookie_authorizedWhenNoRestrictions() {
-        //            // authorizedRedirectUris empty => skip check
-        //            TestableHandler handler =
-        //                    new TestableHandler(jwtManager, repository, Collections.emptyList());
-        //            handler.setDefaultTargetUrl(DEFAULT_TARGET);
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("tok");
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(Optional.empty());
-        //                String target = handler.invokeDetermineTarget(request, response,
-        // authentication);
-        //                assertEquals(DEFAULT_TARGET + "?token=tok", target);
-        //            }
-        //        }
+            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
+                cm.when(() -> CookieManager.getCookie(request, REDIRECT_COOKIE_NAME))
+                        .thenReturn(Optional.empty());
 
-        //        @Test
-        //        @DisplayName("Valid redirect cookie and authorized URI appends token")
-        //        void validCookie_authorizedUri() {
-        //            TestableHandler handler =
-        //                    new TestableHandler(
-        //                            jwtManager, repository,
-        // List.of(URI.create("http://localhost")));
-        //            String cookieUrl = "http://localhost/path";
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("tok2");
-        //            Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, cookieUrl);
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(Optional.of(cookie));
-        //                String target = handler.invokeDetermineTarget(request, response,
-        // authentication);
-        //                assertTrue(target.startsWith(cookieUrl + "?token="));
-        //            }
-        //        }
-
-        //        @Test
-        //        @DisplayName("Throws UnauthorizedException for invalid redirect URI")
-        //        void invalidCookie_throws() {
-        //            TestableHandler handler =
-        //                    new TestableHandler(jwtManager, repository,
-        // List.of(URI.create("http://foo")));
-        //            Cookie cookie = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
-        // "http://bar");
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("tok3");
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(Optional.of(cookie));
-        //                assertThrows(
-        //                        UnauthorizedException.class,
-        //                        () -> handler.invokeDetermineTarget(request, response,
-        // authentication));
-        //            }
-        //        }
-        //    }
-
-        @Nested
-        @DisplayName("clearAuthenticationAttributes() tests")
-        class ClearAuthAttributesTests {
-            @Test
-            @DisplayName("Clears super attributes and removes cookies via repository")
-            void shouldClearSuperAndRemoveCookies() {
-                TestableHandler handler = new TestableHandler(jwtManager, repository, List.of());
-                TestableHandler spyHandler = spy(handler);
-                spyHandler.invokeClearAttributes(request, response);
-                verify(spyHandler).invokeClearAttributes(request, response);
-                verify(repository).removeAuthorizationRequestCookies(request, response);
+                assertThrows(
+                        InternalErrorException.class,
+                        () -> handler.invokeDetermineTarget(request, response, authentication));
             }
         }
 
-        //    @Nested
-        //    @DisplayName("onAuthenticationSuccess() tests")
-        //    class OnAuthSuccessTests {
-        //        @Test
-        //        @DisplayName("Redirects when not committed and authorized")
-        //        void redirectWhenNotCommitted() throws IOException {
-        //            TestableHandler handler =
-        //                    new TestableHandler(
-        //                            jwtManager, repository,
-        // List.of(URI.create("http://localhost")));
-        //            RedirectStrategy strategy = mock(RedirectStrategy.class);
-        //            handler.setRedirectStrategy(strategy);
-        //            handler.setDefaultTargetUrl(DEFAULT_TARGET);
-        //            String cookieUrl = "http://localhost/ok";
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("abc");
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(
-        //                                Optional.of(
-        //                                        new Cookie(
-        //                                                CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
-        //                                                cookieUrl)));
-        //                handler.onAuthenticationSuccess(request, response, authentication);
-        //                verify(strategy).sendRedirect(request, response, cookieUrl +
-        // "?token=abc");
-        //            }
-        //        }
+        @Test
+        @DisplayName("throws UnauthorizedException when redirect cookie host is not authorized")
+        void unauthorizedRedirectCookie() {
+            TestableHandler handler =
+                    new TestableHandler(
+                            repository,
+                            List.of(URI.create("https://allowed.com")),
+                            authService,
+                            objectMapper);
+
+            Cookie cookie = new Cookie(REDIRECT_COOKIE_NAME, "https://notallowed.com/path");
+
+            try (MockedStatic<com.alpaca.security.manager.CookieManager> cm =
+                    mockStatic(com.alpaca.security.manager.CookieManager.class)) {
+                cm.when(
+                                () ->
+                                        com.alpaca.security.manager.CookieManager.getCookie(
+                                                request, REDIRECT_COOKIE_NAME))
+                        .thenReturn(Optional.of(cookie));
+
+                assertThrows(
+                        UnauthorizedException.class,
+                        () -> handler.invokeDetermineTarget(request, response, authentication));
+            }
+        }
 
         @Test
-        @DisplayName("Does nothing when response is committed")
-        void noRedirectWhenCommitted() throws IOException {
-            TestableHandler handler = new TestableHandler(jwtManager, repository, List.of());
-            RedirectStrategy strategy = mock(RedirectStrategy.class);
-            handler.setRedirectStrategy(strategy);
-            HttpServletResponse committed =
+        @DisplayName("returns default target when no cookie and host authorized")
+        void defaultTargetWhenHostAuthorized() {
+            TestableHandler handler =
+                    new TestableHandler(
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            authService,
+                            objectMapper);
+
+            handler.setDefaultTargetUrl(DEFAULT_TARGET);
+
+            try (MockedStatic<com.alpaca.security.manager.CookieManager> cm =
+                    mockStatic(com.alpaca.security.manager.CookieManager.class)) {
+
+                cm.when(
+                                () ->
+                                        com.alpaca.security.manager.CookieManager.getCookie(
+                                                request, REDIRECT_COOKIE_NAME))
+                        .thenReturn(Optional.empty());
+
+                String target = handler.invokeDetermineTarget(request, response, authentication);
+
+                assertEquals(DEFAULT_TARGET, target);
+            }
+        }
+
+        @Test
+        @DisplayName("returns redirect cookie when authorized")
+        void redirectCookieHostAuthorized() {
+            String redirectUrl = "http://localhost/path";
+            TestableHandler handler =
+                    new TestableHandler(
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            authService,
+                            objectMapper);
+
+            try (MockedStatic<com.alpaca.security.manager.CookieManager> cm =
+                    mockStatic(com.alpaca.security.manager.CookieManager.class)) {
+
+                cm.when(
+                                () ->
+                                        com.alpaca.security.manager.CookieManager.getCookie(
+                                                request, REDIRECT_COOKIE_NAME))
+                        .thenReturn(Optional.of(new Cookie(REDIRECT_COOKIE_NAME, redirectUrl)));
+
+                String target = handler.invokeDetermineTarget(request, response, authentication);
+
+                assertEquals(redirectUrl, target);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("onAuthenticationSuccess() tests")
+    class OnAuthenticationSuccess {
+
+        @Test
+        @DisplayName("writes JSON body with tokens and target URL when success")
+        void writesJsonBody() throws IOException {
+            String redirectUrl = "http://localhost/app";
+            AuthSuccessHandler handler =
+                    new AuthSuccessHandler(
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            authService,
+                            objectMapper);
+
+            handler.setDefaultTargetUrl(redirectUrl);
+
+            AuthResponseDTO authResp = new AuthResponseDTO("abc", "def");
+            when(authService.login(eq(principal), any(AuthLoginRequestDTO.class)))
+                    .thenReturn(authResp);
+
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+            handler.onAuthenticationSuccess(request, response, authentication);
+
+            String json = response.getContentAsString();
+            assertTrue(json.contains("\"accessToken\":\"abc\""));
+            assertTrue(json.contains("\"refreshToken\":\"def\""));
+            assertTrue(json.contains("\"targetUrl\":\"" + redirectUrl + "\""));
+        }
+
+        @Test
+        @DisplayName("does nothing if response already committed")
+        void doesNothingIfCommitted() throws IOException {
+            AuthSuccessHandler handler =
+                    new AuthSuccessHandler(
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            authService,
+                            objectMapper);
+
+            MockHttpServletResponse committed =
                     new MockHttpServletResponse() {
                         @Override
                         public boolean isCommitted() {
                             return true;
                         }
                     };
+
             handler.onAuthenticationSuccess(request, committed, authentication);
-            verify(strategy, never()).sendRedirect(any(), any(), anyString());
+
+            assertEquals(0, committed.getContentAsString().length());
         }
 
-        //        @Test
-        //        @DisplayName("Throws UnauthorizedException when target unauthorized")
-        //        void exceptionWhenUnauthorized() throws IOException {
-        //            TestableHandler handler =
-        //                    new TestableHandler(jwtManager, repository,
-        // List.of(URI.create("http://foo")));
-        //            when(jwtManager.createAccessToken(principal)).thenReturn("t");
-        //            RedirectStrategy strategy = mock(RedirectStrategy.class);
-        //            handler.setRedirectStrategy(strategy);
-        //            try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-        //                cm.when(
-        //                                () ->
-        //                                        CookieManager.getCookie(
-        //                                                request,
-        // CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
-        //                        .thenReturn(
-        //                                Optional.of(
-        //                                        new Cookie(
-        //                                                CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
-        //                                                "http://bar")));
-        //                assertThrows(
-        //                        UnauthorizedException.class,
-        //                        () -> handler.onAuthenticationSuccess(request, response,
-        // authentication));
-        //                verify(strategy, never()).sendRedirect(any(), any(), any());
-        //            }
-        //        }
+        @Test
+        @DisplayName("clearAuthenticationAttributes is invoked")
+        void clearAuthAttributesInvoked() throws IOException {
+            AuthSuccessHandler handler =
+                    new AuthSuccessHandler(
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            authService,
+                            objectMapper);
+            handler.setDefaultTargetUrl("http://localhost/home");
+            AuthResponseDTO authResp = new AuthResponseDTO("t1", "t2");
+            when(authService.login(eq(principal), any(AuthLoginRequestDTO.class)))
+                    .thenReturn(authResp);
+
+            handler.onAuthenticationSuccess(request, response, authentication);
+            verify(repository).removeAuthorizationRequestCookies(request, response);
+        }
     }
 }
