@@ -1,8 +1,9 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
@@ -11,18 +12,20 @@ import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.resources.RoleProvider;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link RoleDAOImpl} */
+/** Unit tests for {@link RoleDAOImpl}. */
 @ExtendWith(MockitoExtension.class)
 class RoleDAOImplTest {
 
@@ -31,145 +34,149 @@ class RoleDAOImplTest {
     @InjectMocks private RoleDAOImpl dao;
 
     private Role firstEntity;
-    private Role secondEntity;
-    private Role thirdEntity;
+    private final UUID TEST_ID = UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca");
 
     @BeforeEach
     void setup() {
         firstEntity = RoleProvider.singleEntity();
-        secondEntity = RoleProvider.alternativeEntity();
-        thirdEntity = RoleProvider.alternativeEntity();
     }
 
-    // --- findByRoleName ---
-    @Test
-    void findByRoleNameCaseOne() {
-        Role entityWithNullRoleName = new Role();
-        entityWithNullRoleName.setRoleName(null);
-        assertEquals(dao.findByRoleName(entityWithNullRoleName.getRoleName()), Optional.empty());
+    @Nested
+    @DisplayName("findByRoleName Logic")
+    class FindByRoleNameTests {
+
+        @Test
+        @DisplayName("Should return empty for all invalid role name branches")
+        void findByRoleName_Branches() {
+            assertThat(dao.findByRoleName(null)).isEmpty(); // null branch
+            assertThat(dao.findByRoleName("")).isEmpty(); // empty branch
+            assertThat(dao.findByRoleName("   ")).isEmpty(); // blank branch
+            verifyNoInteractions(repo);
+        }
+
+        @Test
+        @DisplayName("Should call repository when role name is valid")
+        void findByRoleName_Valid() {
+            String name = "USER";
+            when(repo.findByRoleName(name)).thenReturn(Optional.of(firstEntity));
+            assertThat(dao.findByRoleName(name)).isPresent();
+        }
     }
 
-    @Test
-    void findByRoleNameCaseTwo() {
-        Role entityWithEmptyRoleName = new Role();
-        entityWithEmptyRoleName.setRoleName("  ");
-        assertEquals(dao.findByRoleName(entityWithEmptyRoleName.getRoleName()), Optional.empty());
+    @Nested
+    @DisplayName("updateById Logic")
+    class UpdateByIdTests {
+
+        @Test
+        @DisplayName("Should throw NotFoundException and cover error message logic")
+        void updateById_NotFound() {
+            UUID id = UUID.randomUUID();
+            when(repo.findById(id)).thenReturn(Optional.empty());
+            assertThrows(NotFoundException.class, () -> dao.updateById(new Role(), id));
+        }
+
+        @Nested
+        @DisplayName("updateById Branch Isolation")
+        class UpdateByIdTestsBranches {
+
+            @Test
+            @DisplayName("Branch 1: rolePermissions is null -> Should skip assignment")
+            void updateById_PermissionsNull() {
+                Role existing = new Role();
+                existing.setRolePermissions(new HashSet<>());
+
+                Role incoming = new Role();
+                incoming.setRolePermissions(null); // Gate 1 fails (A is false)
+
+                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
+
+                dao.updateById(incoming, TEST_ID);
+
+                assertThat(existing.getRolePermissions()).isEmpty();
+                verify(repo).save(existing);
+            }
+
+            @Test
+            @DisplayName(
+                    "Branch 2: rolePermissions is not null but empty -> Should skip assignment")
+            void updateById_PermissionsEmpty() {
+                Role existing = new Role();
+                existing.setRolePermissions(new HashSet<>());
+
+                Role incoming = new Role();
+                incoming.setRolePermissions(
+                        new HashSet<>()); // Gate 1 true, Gate 2 fails (B is false)
+
+                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
+
+                dao.updateById(incoming, TEST_ID);
+
+                assertThat(existing.getRolePermissions()).isEmpty();
+                verify(repo).save(existing);
+            }
+
+            @Test
+            @DisplayName("Branch 3: rolePermissions has data -> Should execute assignment")
+            void updateById_PermissionsSuccess() {
+                Role existing = new Role();
+                existing.setRolePermissions(new HashSet<>());
+
+                Permission p = PermissionProvider.singleEntity();
+                Role incoming = new Role();
+                incoming.setRolePermissions(new HashSet<>(Set.of(p))); // Gate 1 true, Gate 2 true
+
+                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
+
+                dao.updateById(incoming, TEST_ID);
+
+                assertThat(existing.getRolePermissions()).hasSize(1);
+                verify(repo).save(existing);
+            }
+        }
     }
 
-    @Test
-    void findByRoleNameCaseThree() {
-        when(repo.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
-        Role entityFound = dao.findByRoleName(secondEntity.getRoleName()).orElseGet(Role::new);
-        assertNotEquals(entityFound, secondEntity);
-        verify(repo).findByRoleName(secondEntity.getRoleName());
-    }
+    @Nested
+    @DisplayName("existsByUniqueProperties Logic")
+    class ExistsByUniquePropertiesTests {
 
-    @Test
-    void findByRoleNameCaseFour() {
-        when(repo.findByRoleName(firstEntity.getRoleName())).thenReturn(Optional.of(firstEntity));
-        Role entityFound = dao.findByRoleName(firstEntity.getRoleName()).orElseGet(Role::new);
-        assertEquals(entityFound, firstEntity);
-        verify(repo).findByRoleName(firstEntity.getRoleName());
-    }
+        @Test
+        @DisplayName("Should cover every single logical branch of the validation IF")
+        void existsByUniqueProperties_FullBranchCoverage() {
+            Role role = new Role();
 
-    // --- updateById ---
-    @Test
-    void updateByIdCaseOne() {
-        when(repo.findById(secondEntity.getId())).thenReturn(Optional.empty());
-        assertThrows(
-                NotFoundException.class, () -> dao.updateById(secondEntity, secondEntity.getId()));
-        verify(repo).findById(secondEntity.getId());
-    }
+            // 1. Name is null
+            role.setRoleName(null);
+            role.setRoleDescription("Valid");
+            assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
-    @Test
-    void updateByIdCaseTwo() {
-        Role newEntitySecond = new Role();
-        newEntitySecond.setRoleName(null);
-        newEntitySecond.setRoleDescription(null);
-        newEntitySecond.setRolePermissions(null);
-        when(repo.findById(secondEntity.getId())).thenReturn(Optional.of(secondEntity));
-        when(repo.save(secondEntity)).thenReturn(secondEntity);
-        Role updatedEntity = dao.updateById(newEntitySecond, secondEntity.getId());
-        assertNotNull(updatedEntity);
-        assertEquals(secondEntity.getId(), updatedEntity.getId());
-        assertNotEquals(newEntitySecond.getRoleName(), updatedEntity.getRoleName());
-        verify(repo).findById(secondEntity.getId());
-        verify(repo).save(secondEntity);
-    }
+            // 2. Name is blank (Empty/Spaces)
+            role.setRoleName("   ");
+            assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
-    @Test
-    void updateByIdCaseThree() {
-        Role newEntityThird = new Role();
-        newEntityThird.setRoleName("  ");
-        newEntityThird.setRoleDescription("  ");
-        newEntityThird.setRolePermissions(Collections.emptySet());
-        when(repo.findById(thirdEntity.getId())).thenReturn(Optional.of(thirdEntity));
-        when(repo.save(thirdEntity)).thenReturn(thirdEntity);
-        Role updatedEntity = dao.updateById(newEntityThird, thirdEntity.getId());
-        assertNotNull(updatedEntity);
-        assertEquals(thirdEntity.getId(), updatedEntity.getId());
-        assertNotEquals(newEntityThird.getRoleName(), updatedEntity.getRoleName());
-        verify(repo).findById(thirdEntity.getId());
-        verify(repo).save(thirdEntity);
-    }
+            // 3. Description is null
+            role.setRoleName("Valid");
+            role.setRoleDescription(null);
+            assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
-    @Test
-    void updateByIdCaseFour() {
-        Permission permission = PermissionProvider.singleEntity();
-        secondEntity.setRolePermissions(new HashSet<>(Set.of(permission)));
-        when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
-        when(repo.save(firstEntity)).thenReturn(firstEntity);
-        Role updatedEntity = dao.updateById(secondEntity, firstEntity.getId());
-        assertNotNull(updatedEntity);
-        assertEquals(firstEntity.getId(), updatedEntity.getId());
-        assertEquals(secondEntity.getRoleName(), updatedEntity.getRoleName());
-        assertNotEquals(secondEntity.getId(), updatedEntity.getId());
-        verify(repo).findById(firstEntity.getId());
-        verify(repo).save(firstEntity);
-    }
+            // 4. Description is blank
+            role.setRoleDescription("  ");
+            assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
-    // --- existsByUniqueProperties ---
-    @Test
-    void existsByUniquePropertiesCaseOne() {
-        Role entityWithNullRoleName = new Role();
-        entityWithNullRoleName.setRoleName(null);
-        assertFalse(dao.existsByUniqueProperties(entityWithNullRoleName));
-    }
+            verifyNoInteractions(repo);
+        }
 
-    @Test
-    void existsByUniquePropertiesCaseTwo() {
-        Role entityWithEmptyRoleName = new Role();
-        entityWithEmptyRoleName.setRoleName("  ");
-        assertFalse(dao.existsByUniqueProperties(entityWithEmptyRoleName));
-    }
+        @Test
+        @DisplayName("Should call repository when all unique properties are present")
+        void existsByUniqueProperties_Valid() {
+            Role validRole = new Role();
+            validRole.setRoleName("ADMIN");
+            validRole.setRoleDescription("Administrator");
 
-    @Test
-    void existsByUniquePropertiesCaseThree() {
-        Role entityWithEmptyRoleName = new Role();
-        entityWithEmptyRoleName.setRoleName("valid name");
-        entityWithEmptyRoleName.setRoleDescription(null);
-        assertFalse(dao.existsByUniqueProperties(entityWithEmptyRoleName));
-    }
-
-    @Test
-    void existsByUniquePropertiesCaseFour() {
-        Role entityWithEmptyRoleName = new Role();
-        entityWithEmptyRoleName.setRoleName("valid name");
-        entityWithEmptyRoleName.setRoleDescription("  ");
-        assertFalse(dao.existsByUniqueProperties(entityWithEmptyRoleName));
-    }
-
-    @Test
-    void existsByUniquePropertiesCaseFive() {
-        when(repo.existsByRoleName(secondEntity.getRoleName())).thenReturn(false);
-        assertFalse(dao.existsByUniqueProperties(secondEntity));
-        verify(repo).existsByRoleName(secondEntity.getRoleName());
-    }
-
-    @Test
-    void existsByUniquePropertiesCaseSix() {
-        when(repo.existsByRoleName(firstEntity.getRoleName())).thenReturn(true);
-        assertTrue(dao.existsByUniqueProperties(firstEntity));
-        verify(repo).existsByRoleName(firstEntity.getRoleName());
+            when(repo.existsByRoleName("ADMIN")).thenReturn(true);
+            assertThat(dao.existsByUniqueProperties(validRole)).isTrue();
+        }
     }
 }

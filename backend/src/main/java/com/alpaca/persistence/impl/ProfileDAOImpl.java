@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.ProfileRepo;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -73,8 +74,13 @@ public class ProfileDAOImpl extends GenericDAOImpl<Profile, UUID> implements IPr
         if (profile.getAvatarUrl() != null && !profile.getAvatarUrl().isBlank()) {
             existingProfile.setAvatarUrl(profile.getAvatarUrl());
         }
+
         if (profile.getUser() != null && profile.getUser().getId() != null) {
-            existingProfile.setUser(profile.getUser());
+            UUID currentUserId =
+                    existingProfile.getUser() != null ? existingProfile.getUser().getId() : null;
+            if (!Objects.equals(profile.getUser().getId(), currentUserId)) {
+                existingProfile.setUser(profile.getUser());
+            }
         }
 
         return save(existingProfile);

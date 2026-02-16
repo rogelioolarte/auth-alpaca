@@ -60,8 +60,8 @@ public class AdvertiserMapperImpl implements IAdvertiserMapper {
                 entity.isIndexed(),
                 entity.isPaid(),
                 entity.isVerified(),
-                entity.getUser().getId(),
-                entity.getUser().getEmail());
+                (entity.getUser() != null ? entity.getUser().getId() : null),
+                (entity.getUser() != null ? entity.getUser().getEmail() : null));
     }
 
     /**

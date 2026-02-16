@@ -139,13 +139,13 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
     }
 
     public <V> void updateIfNotNull(V existing, V incoming, Consumer<V> setter) {
-        if (incoming != null && !existing.equals(incoming)) {
+        if (incoming != null && !incoming.equals(existing)) {
             setter.accept(incoming);
         }
     }
 
     public void updateTextIfExists(String existing, String incoming, Consumer<String> setter) {
-        if (StringUtils.hasText(incoming) && !existing.equals(incoming)) {
+        if (StringUtils.hasText(incoming) && !incoming.equals(existing)) {
             setter.accept(incoming);
         }
     }

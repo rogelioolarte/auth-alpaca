@@ -7,6 +7,7 @@ import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -83,10 +84,12 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
                                                 String.format(
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
-        if (session.getUser() != null
-                && session.getUser().getId() != null
-                && !existingSession.getUser().getId().equals(session.getUser().getId())) {
-            existingSession.setUser(session.getUser());
+        if (session.getUser() != null && session.getUser().getId() != null) {
+            UUID currentUserId =
+                    existingSession.getUser() != null ? existingSession.getUser().getId() : null;
+            if (!Objects.equals(session.getUser().getId(), currentUserId)) {
+                existingSession.setUser(session.getUser());
+            }
         }
         updateIfNotNull(
                 existingSession.getFamilyId(), session.getFamilyId(), existingSession::setFamilyId);

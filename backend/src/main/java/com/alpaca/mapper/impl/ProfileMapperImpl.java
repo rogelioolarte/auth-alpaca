@@ -55,8 +55,8 @@ public class ProfileMapperImpl implements IProfileMapper {
                 entity.getLastName(),
                 entity.getAddress(),
                 entity.getAvatarUrl(),
-                entity.getUser().getId(),
-                entity.getUser().getEmail());
+                (entity.getUser() != null ? entity.getUser().getId() : null),
+                (entity.getUser() != null ? entity.getUser().getEmail() : null));
     }
 
     /**

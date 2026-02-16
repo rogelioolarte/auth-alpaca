@@ -2,6 +2,7 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -113,41 +114,33 @@ public class Advertiser extends Auditable {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Advertiser that)) return false;
         return indexed == that.indexed
                 && paid == that.paid
                 && verified == that.verified
-                && title != null
-                && title.equals(that.title)
-                && description != null
-                && description.equals(that.description)
-                && bannerUrl != null
-                && bannerUrl.equals(that.bannerUrl)
-                && avatarUrl != null
-                && avatarUrl.equals(that.avatarUrl)
-                && publicLocation != null
-                && publicLocation.equals(that.publicLocation)
-                && publicUrlLocation != null
-                && publicUrlLocation.equals(that.publicUrlLocation)
-                && user != null
-                && user.equals(that.user);
+                && Objects.equals(title, that.title)
+                && Objects.equals(description, that.description)
+                && Objects.equals(bannerUrl, that.bannerUrl)
+                && Objects.equals(avatarUrl, that.avatarUrl)
+                && Objects.equals(publicLocation, that.publicLocation)
+                && Objects.equals(publicUrlLocation, that.publicUrlLocation)
+                && Objects.equals(user.getId(), that.user.getId());
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + title.hashCode();
-        result = 31 * result + description.hashCode();
-        result = 31 * result + bannerUrl.hashCode();
-        result = 31 * result + avatarUrl.hashCode();
-        result = 31 * result + publicLocation.hashCode();
-        result = 31 * result + publicUrlLocation.hashCode();
-        result = 31 * result + Boolean.hashCode(indexed);
-        result = 31 * result + Boolean.hashCode(paid);
-        result = 31 * result + Boolean.hashCode(verified);
-        result = 31 * result + user.hashCode();
-        return result;
+        return Objects.hash(
+                title,
+                description,
+                bannerUrl,
+                avatarUrl,
+                publicLocation,
+                publicUrlLocation,
+                indexed,
+                paid,
+                verified,
+                user.getId());
     }
 }

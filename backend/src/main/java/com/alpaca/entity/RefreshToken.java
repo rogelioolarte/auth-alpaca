@@ -165,8 +165,7 @@ public class RefreshToken extends Auditable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RefreshToken that)) return false;
-        return Objects.equals(id, that.id)
-                && Objects.equals(tokenHash, that.tokenHash)
+        return Objects.equals(tokenHash, that.tokenHash)
                 && Objects.equals(tokenJti, that.tokenJti)
                 && Objects.equals(familyId, that.familyId)
                 && Objects.equals(revoked, that.revoked)
@@ -174,14 +173,14 @@ public class RefreshToken extends Auditable {
                 && Objects.equals(ipAddress, that.ipAddress)
                 && Objects.equals(userAgent, that.userAgent)
                 && Objects.equals(revokeReason, that.revokeReason)
-                && Objects.equals(user, that.user);
+                && Objects.equals(user.getId(), that.user.getId());
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
                 id,
-                user,
+                user.getId(),
                 tokenHash,
                 tokenJti,
                 familyId,

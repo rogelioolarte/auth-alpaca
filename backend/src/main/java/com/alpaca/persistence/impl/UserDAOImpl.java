@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -86,24 +87,28 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
 
         if (user.getRoles() != null
                 && !user.getRoles().isEmpty()
-                && !existingUser.getRoles().equals(user.getRoles())) {
+                && !user.getRoles().equals(existingUser.getRoles())) {
             existingUser.setUserRoles(user.getRoles());
         }
-        if (user.getProfile() != null
-                && user.getProfile().getId() != null
-                && (existingUser.getProfile() == null
-                        || !existingUser.getProfile().getId().equals(user.getProfile().getId()))) {
-            existingUser.setProfile(user.getProfile());
+
+        if (user.getProfile() != null && user.getProfile().getId() != null) {
+            UUID currentUserId =
+                    existingUser.getProfile() != null ? existingUser.getProfile().getId() : null;
+            if (!Objects.equals(user.getProfile().getId(), currentUserId)) {
+                existingUser.setProfile(user.getProfile());
+            }
         }
-        if (user.getAdvertiser() != null
-                && user.getAdvertiser().getId() != null
-                && (existingUser.getAdvertiser() == null
-                        || !existingUser
-                                .getAdvertiser()
-                                .getId()
-                                .equals(user.getAdvertiser().getId()))) {
-            existingUser.setAdvertiser(user.getAdvertiser());
+
+        if (user.getAdvertiser() != null && user.getAdvertiser().getId() != null) {
+            UUID currentUserId =
+                    existingUser.getAdvertiser() != null
+                            ? existingUser.getAdvertiser().getId()
+                            : null;
+            if (!Objects.equals(user.getAdvertiser().getId(), currentUserId)) {
+                existingUser.setAdvertiser(user.getAdvertiser());
+            }
         }
+
         updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
         updateIfDifferent(
                 existingUser.isAccountNoLocked(),

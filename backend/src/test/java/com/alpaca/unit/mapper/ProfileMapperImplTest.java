@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.alpaca.dto.request.ProfileRequestDTO;
 import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
+import com.alpaca.entity.User;
 import com.alpaca.mapper.impl.ProfileMapperImpl;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
@@ -55,6 +56,7 @@ class ProfileMapperImplTest {
         assertNull(mapper.toResponseDTO(null));
 
         Profile profile = ProfileProvider.singleEntity();
+        profile.setUser(new User());
         ProfileResponseDTO responseDTO = mapper.toResponseDTO(ProfileProvider.singleEntity());
         assertNotNull(responseDTO);
         assertEquals(profile.getId(), responseDTO.id());

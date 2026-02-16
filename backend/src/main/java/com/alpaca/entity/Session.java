@@ -103,15 +103,14 @@ public class Session extends Auditable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Session session)) return false;
-        return revoked == session.revoked
-                && Objects.equals(id, session.id)
-                && Objects.equals(familyId, session.familyId)
-                && Objects.equals(ipAddress, session.ipAddress)
-                && Objects.equals(userAgent, session.userAgent)
-                && Objects.equals(clientId, session.clientId)
-                && Objects.equals(revokeReason, session.revokeReason)
-                && Objects.equals(user, session.user);
+        if (!(o instanceof Session that)) return false;
+        return revoked == that.revoked
+                && Objects.equals(familyId, that.familyId)
+                && Objects.equals(ipAddress, that.ipAddress)
+                && Objects.equals(userAgent, that.userAgent)
+                && Objects.equals(clientId, that.clientId)
+                && Objects.equals(revokeReason, that.revokeReason)
+                && Objects.equals(user.getId(), that.user.getId());
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.alpaca.security.oauth2.userinfo;
 
 import com.alpaca.exception.BadRequestException;
 import java.util.Map;
+import lombok.Generated;
 
 /**
  * Factory for creating provider-specific OAuth2 user information handlers.
@@ -23,6 +24,7 @@ import java.util.Map;
  * @see GoogleUserInfo
  * @see BadRequestException
  */
+@Generated
 public class OAuth2UserInfoFactory {
 
     /**

@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.repository.GenericRepo;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -80,10 +81,11 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
                 existing::setPublicUrlLocation);
         updateIfDifferent(existing.isIndexed(), advertiser.isIndexed(), existing::setIndexed);
 
-        if (advertiser.getUser() != null
-                && advertiser.getUser().getId() != null
-                && existing.getUser().getId().equals(advertiser.getUser().getId())) {
-            existing.setUser(advertiser.getUser());
+        if (advertiser.getUser() != null && advertiser.getUser().getId() != null) {
+            UUID currentUserId = existing.getUser() != null ? existing.getUser().getId() : null;
+            if (!Objects.equals(advertiser.getUser().getId(), currentUserId)) {
+                existing.setUser(advertiser.getUser());
+            }
         }
         return repo.save(existing);
     }

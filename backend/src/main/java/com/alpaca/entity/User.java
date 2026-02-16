@@ -271,7 +271,7 @@ public class User extends Auditable {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof User user)) return false;
         return enabled == user.enabled
@@ -280,29 +280,28 @@ public class User extends Auditable {
                 && credentialNoExpired == user.credentialNoExpired
                 && emailVerified == user.emailVerified
                 && googleConnected == user.googleConnected
-                && email != null
-                && email.equals(user.email)
-                && password != null
-                && password.equals(user.password)
-                && (userRoles == user.userRoles || userRoles.equals(user.userRoles))
-                && (profile == user.profile || profile.equals(user.profile))
-                && (advertiser == user.advertiser || advertiser.equals(user.advertiser));
+                && Objects.equals(email, user.email)
+                && Objects.equals(password, user.password)
+                && Objects.equals(tokensInvalidBefore, user.tokensInvalidBefore)
+                && Objects.equals(userRoles, user.userRoles)
+                && Objects.equals(profile.getId(), user.profile.getId())
+                && Objects.equals(advertiser.getId(), user.advertiser.getId());
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(email);
-        result = 31 * result + Objects.hashCode(password);
-        result = 31 * result + Boolean.hashCode(enabled);
-        result = 31 * result + Boolean.hashCode(accountNoExpired);
-        result = 31 * result + Boolean.hashCode(accountNoLocked);
-        result = 31 * result + Boolean.hashCode(credentialNoExpired);
-        result = 31 * result + Boolean.hashCode(emailVerified);
-        result = 31 * result + Boolean.hashCode(googleConnected);
-        result = 31 * result + Objects.hashCode(userRoles);
-        result = 31 * result + Objects.hashCode(profile);
-        result = 31 * result + Objects.hashCode(advertiser);
-        return result;
+        return Objects.hash(
+                email,
+                password,
+                enabled,
+                accountNoExpired,
+                accountNoLocked,
+                credentialNoExpired,
+                emailVerified,
+                googleConnected,
+                tokensInvalidBefore,
+                userRoles,
+                profile.getId(),
+                advertiser.getId());
     }
 }

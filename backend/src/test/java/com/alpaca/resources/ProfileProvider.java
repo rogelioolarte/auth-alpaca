@@ -41,7 +41,7 @@ public class ProfileProvider {
                 "Last",
                 "av admin 01",
                 "https://foto.admin.com",
-                UserProvider.singleEntity());
+                null);
     }
 
     public static Profile alternativeEntity() {

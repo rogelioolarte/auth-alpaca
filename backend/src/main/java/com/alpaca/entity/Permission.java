@@ -50,20 +50,15 @@ public class Permission extends Auditable {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Permission that)) return false;
-        return permissionName != null
-                && permissionName.equals(that.permissionName)
-                && (rolePermissions == that.rolePermissions
-                        || rolePermissions.equals(that.rolePermissions));
+        return Objects.equals(permissionName, that.permissionName)
+                && Objects.equals(rolePermissions, that.rolePermissions);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(permissionName);
-        result = 31 * result + Objects.hashCode(rolePermissions);
-        return result;
+        return Objects.hash(permissionName, rolePermissions);
     }
 }

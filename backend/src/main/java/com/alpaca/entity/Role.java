@@ -114,25 +114,17 @@ public class Role extends Auditable {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Role role)) return false;
-        return roleName != null
-                && roleName.equals(role.roleName)
-                && roleDescription != null
-                && roleDescription.equals(role.roleDescription)
-                && (rolePermissions == role.rolePermissions
-                        || rolePermissions.equals(role.rolePermissions))
-                && (userRoles == role.userRoles || userRoles.equals(role.userRoles));
+        return Objects.equals(roleName, role.roleName)
+                && Objects.equals(roleDescription, role.roleDescription)
+                && Objects.equals(rolePermissions, role.rolePermissions)
+                && Objects.equals(userRoles, role.userRoles);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(roleName);
-        result = 31 * result + Objects.hashCode(roleDescription);
-        result = 31 * result + Objects.hashCode(rolePermissions);
-        result = 31 * result + Objects.hashCode(userRoles);
-        return result;
+        return Objects.hash(roleName, roleDescription, rolePermissions, userRoles);
     }
 }

@@ -6,6 +6,7 @@ import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -85,18 +86,25 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
                                                 String.format(
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
-        if (refreshToken.getUser() != null
-                && refreshToken.getUser().getId() != null
-                && !existingRefreshToken.getUser().getId().equals(refreshToken.getUser().getId())) {
-            existingRefreshToken.setUser(refreshToken.getUser());
+
+        if (refreshToken.getUser() != null && refreshToken.getUser().getId() != null) {
+            UUID currentUserId =
+                    existingRefreshToken.getUser() != null
+                            ? existingRefreshToken.getUser().getId()
+                            : null;
+            if (!Objects.equals(refreshToken.getUser().getId(), currentUserId)) {
+                existingRefreshToken.setUser(refreshToken.getUser());
+            }
         }
-        if (refreshToken.getReplacedBy() != null
-                && refreshToken.getReplacedBy().getId() != null
-                && !existingRefreshToken
-                        .getReplacedBy()
-                        .getId()
-                        .equals(refreshToken.getReplacedBy().getId())) {
-            existingRefreshToken.setReplacedBy(refreshToken.getReplacedBy());
+
+        if (refreshToken.getReplacedBy() != null && refreshToken.getReplacedBy().getId() != null) {
+            UUID currentUserId =
+                    existingRefreshToken.getReplacedBy() != null
+                            ? existingRefreshToken.getReplacedBy().getId()
+                            : null;
+            if (!Objects.equals(refreshToken.getReplacedBy().getId(), currentUserId)) {
+                existingRefreshToken.setReplacedBy(refreshToken.getReplacedBy());
+            }
         }
 
         updateIfNotNull(
