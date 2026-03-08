@@ -51,7 +51,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private boolean credentialsNonExpired = true;
 
     /** The authorities granted to the user for authorization purposes. */
-    private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
+    private Collection<GrantedAuthority> authorities = new HashSet<>();
 
     /**
      * Additional attributes provided by the OAuth2 authentication provider.

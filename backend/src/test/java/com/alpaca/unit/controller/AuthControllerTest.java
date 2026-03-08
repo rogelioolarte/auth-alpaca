@@ -1,181 +1,203 @@
-// package com.alpaca.unit.controller;
-//
-// import static org.hamcrest.Matchers.is;
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-// import com.alpaca.controller.AuthController;
-// import com.alpaca.dto.request.AuthRequestDTO;
-// import com.alpaca.dto.response.AuthResponseDTO;
-// import com.alpaca.model.UserPrincipal;
-// import com.alpaca.resources.UserPrincipalProvider;
-// import com.alpaca.service.IAuthService;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-// import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-// import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-// import org.springframework.boot.test.json.JacksonTester;
-// import org.springframework.http.MediaType;
-// import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-// import org.springframework.security.core.context.SecurityContext;
-// import org.springframework.security.core.context.SecurityContextHolder;
-// import org.springframework.test.context.bean.override.mockito.MockitoBean;
-// import org.springframework.test.web.servlet.MockMvc;
-//
-// @WebMvcTest(AuthController.class)
-// @AutoConfigureMockMvc(addFilters = false)
-// @AutoConfigureJsonTesters
-// class AuthControllerTest {
-//
-//    @Autowired private MockMvc mockMvc;
-//
-//    @Autowired private JacksonTester<AuthRequestDTO> requestJson;
-//    @Autowired private JacksonTester<AuthResponseDTO> responseJson;
-//
-//    @MockitoBean private IAuthService authService;
-//
-//    private static final AuthRequestDTO validRequest =
-//            new AuthRequestDTO("admin@admin.com", "12345678");
-//    private static final AuthRequestDTO invalidPasswordRequest =
-//            new AuthRequestDTO("admin@admin.com", "short");
-//
-//    //    @Test
-//    //    @DisplayName("login returns 200 and token when credentials are valid")
-//    //    void loginReturnsToken() throws Exception {
-//    //        var token = new AuthResponseDTO("jwt-token-123", null);
-//    //        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//    //                .thenReturn(token);
-//    //
-//    //        mockMvc.perform(
-//    //                        post("/auth/login")
-//    //                                .contentType(MediaType.APPLICATION_JSON)
-//    //                                .content(requestJson.write(validRequest).getJson()))
-//    //                .andExpect(status().isOk())
-//    //                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//    //                .andExpect(jsonPath("$.token", is("jwt-token-123")));
-//    //
-//    //        verify(authService).login(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword()));
-//    //    }
-//
-//    //    @Test
-//    //    @DisplayName("login returns 401 when credentials are invalid")
-//    //    void loginUnauthorizedWhenInvalidCredentials() throws Exception {
-//    //        when(authService.login(eq(validRequest.getEmail()), eq(validRequest.getPassword())))
-//    //                .thenThrow(
-//    //                        new ResponseStatusException(
-//    //                                HttpStatus.UNAUTHORIZED, "Invalid credentials"));
-//    //
-//    //        mockMvc.perform(
-//    //                        post("/auth/login")
-//    //                                .contentType(MediaType.APPLICATION_JSON)
-//    //                                .content(requestJson.write(validRequest).getJson()))
-//    //                .andExpect(status().isUnauthorized())
-//    //                .andExpect(jsonPath("$.message", is("Invalid credentials")));
-//    //
-//    //        verify(authService).login(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword()));
-//    //        verify(authService, never()).register(any(), any());
-//    //    }
-//
-//    //    @Test
-//    //    @DisplayName("register returns 200 and token when registration succeeds")
-//    //    void registerReturnsToken() throws Exception {
-//    //        var token = new AuthResponseDTO("register-token-xyz", null);
-//    //        when(authService.register(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword())))
-//    //                .thenReturn(token);
-//    //
-//    //        mockMvc.perform(
-//    //                        post("/auth/register")
-//    //                                .contentType(MediaType.APPLICATION_JSON)
-//    //                                .content(requestJson.write(validRequest).getJson()))
-//    //                .andExpect(status().isOk())
-//    //                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//    //                .andExpect(jsonPath("$.token", is("register-token-xyz")));
-//    //
-//    //        verify(authService).register(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword()));
-//    //    }
-//
-//    //    @Test
-//    //    @DisplayName("register returns 409 Conflict when user already exists")
-//    //    void registerConflictWhenAlreadyExists() throws Exception {
-//    //        when(authService.register(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword())))
-//    //                .thenThrow(new ResponseStatusException(HttpStatus.CONFLICT, "User already
-//    // exists"));
-//    //
-//    //        mockMvc.perform(
-//    //                        post("/auth/register")
-//    //                                .contentType(MediaType.APPLICATION_JSON)
-//    //                                .content(requestJson.write(validRequest).getJson()))
-//    //                .andExpect(status().isConflict())
-//    //                .andExpect(jsonPath("$.message", is("User already exists")));
-//    //
-//    //        verify(authService).register(eq(validRequest.getEmail()),
-//    // eq(validRequest.getPassword()));
-//    //    }
-//
-//    @Test
-//    @DisplayName("register returns 400 when password does not meet validation rules")
-//    void registerBadRequestWhenInvalidPassword() throws Exception {
-//        mockMvc.perform(
-//                        post("/auth/register")
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .content(requestJson.write(invalidPasswordRequest).getJson()))
-//                .andExpect(status().isBadRequest());
-//    }
-//
-//    @Test
-//    @DisplayName("getCurrentUser returns 200 and the authenticated principal")
-//    void getCurrentUserReturnsPrincipal() throws Exception {
-//        UserPrincipal principal = UserPrincipalProvider.firstResponse();
-//
-//        UsernamePasswordAuthenticationToken auth =
-//                new UsernamePasswordAuthenticationToken(
-//                        principal, null, principal.getAuthorities());
-//        SecurityContext context = SecurityContextHolder.createEmptyContext();
-//        context.setAuthentication(auth);
-//        SecurityContextHolder.setContext(context);
-//        mockMvc.perform(get("/auth/me").accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id", is(principal.getId().toString())))
-//                .andExpect(jsonPath("$.username", is(principal.getUsername())));
-//        SecurityContextHolder.clearContext();
-//    }
-//
-//    @Test
-//    @DisplayName("getCurrentUser returns 403")
-//    void getCurrentUserReturnsNullWhenNoPrincipal() throws Exception {
-//        mockMvc.perform(get("/auth/me").accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isUnauthorized())
-//                .andExpect(content().string(""));
-//    }
-//
-//    @Test
-//    @DisplayName("getCurrentUser returns 200 and empty body when principal is not UserPrincipal")
-//    void getCurrentUserReturnsEmptyWhenPrincipalNotUserPrincipal() throws Exception {
-//        UsernamePasswordAuthenticationToken auth =
-//                new UsernamePasswordAuthenticationToken("anonymousUser", null);
-//        SecurityContext context = SecurityContextHolder.createEmptyContext();
-//        context.setAuthentication(auth);
-//        SecurityContextHolder.setContext(context);
-//
-//        mockMvc.perform(get("/auth/me").accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isUnauthorized())
-//                .andExpect(content().string(""));
-//        SecurityContextHolder.clearContext();
-//    }
-//
-//    @Test
-//    @DisplayName("root returns API Online")
-//    void rootReturnsApiOnline() throws Exception {
-//        mockMvc.perform(get("/auth").accept(MediaType.TEXT_PLAIN))
-//                .andExpect(status().isOk())
-//                .andExpect(content().string("API Online"));
-//    }
-// }
+package com.alpaca.unit.controller;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import com.alpaca.controller.AuthController;
+import com.alpaca.dto.request.AuthLoginRequestDTO;
+import com.alpaca.dto.request.AuthRequestDTO;
+import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.model.UserPrincipal;
+import com.alpaca.service.IAuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+/** Unit tests for {@link AuthController}. */
+class AuthControllerTest {
+
+    private IAuthService authService;
+    private AuthenticationManager authenticationManager;
+    private AuthController controller;
+
+    @BeforeEach
+    void setUp() {
+        authService = mock(IAuthService.class);
+        authenticationManager = mock(AuthenticationManager.class);
+        controller = new AuthController(authService, authenticationManager);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+        Mockito.clearInvocations(authService, authenticationManager);
+    }
+
+    @Test
+    void login_success_authenticates_setsSecurityContext_and_callsAuthService() throws Exception {
+        // Arrange
+        AuthRequestDTO requestDTO = new AuthRequestDTO("alice@example.com", "s3cret");
+        String clientId = "web-client";
+        String userAgent = "Mozilla/5.0";
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(servletRequest.getRemoteAddr()).thenReturn("10.0.0.5");
+
+        // Authentication returned by manager
+        UserPrincipal principal = mock(UserPrincipal.class);
+        Authentication authResult =
+                new UsernamePasswordAuthenticationToken(
+                        principal, null, principal.getAuthorities());
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authResult);
+
+        AuthResponseDTO expectedDto = new AuthResponseDTO("access-token", "refresh-token");
+        // capture second param passed to authService.login
+        when(authService.login(eq(principal), any(AuthLoginRequestDTO.class)))
+                .thenReturn(expectedDto);
+
+        // Act
+        ResponseEntity<AuthResponseDTO> resp =
+                controller.login(requestDTO, clientId, userAgent, servletRequest);
+
+        // Assert response
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertEquals(expectedDto.accessToken(), resp.getBody().accessToken());
+        // SecurityContext has been set to the Authentication returned by manager
+        assertSame(authResult, SecurityContextHolder.getContext().getAuthentication());
+
+        // Verify authenticate was called with a UsernamePasswordAuthenticationToken containing the
+        // email/password
+        ArgumentCaptor<Authentication> authCaptor = ArgumentCaptor.forClass(Authentication.class);
+        verify(authenticationManager).authenticate(authCaptor.capture());
+        Authentication sent = authCaptor.getValue();
+        assertInstanceOf(UsernamePasswordAuthenticationToken.class, sent);
+        assertEquals(requestDTO.getEmail(), sent.getPrincipal());
+        assertEquals(requestDTO.getPassword(), sent.getCredentials());
+
+        // Verify authService.login was called with the principal and an AuthLoginRequestDTO that
+        // contains clientId, userAgent and IP
+        ArgumentCaptor<AuthLoginRequestDTO> loginDtoCaptor =
+                ArgumentCaptor.forClass(AuthLoginRequestDTO.class);
+        verify(authService).login(eq(principal), loginDtoCaptor.capture());
+        AuthLoginRequestDTO usedDto = loginDtoCaptor.getValue();
+        assertEquals(clientId, usedDto.clientId());
+        assertEquals(userAgent, usedDto.userAgent());
+        assertEquals("10.0.0.5", usedDto.clientIp());
+    }
+
+    @Test
+    void login_whenAuthenticationManagerThrows_exceptionPropagates() throws Exception {
+        // Arrange
+        AuthRequestDTO requestDTO = new AuthRequestDTO("bob@example.com", "password");
+        String clientId = "cid";
+        String userAgent = "ua";
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new IllegalArgumentException("bad credentials"));
+
+        // Act & Assert
+        IllegalArgumentException ex =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> controller.login(requestDTO, clientId, userAgent, servletRequest));
+        assertTrue(ex.getMessage().contains("bad credentials"));
+
+        // SecurityContext should remain empty after failure
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(authService, never()).login(any(), any());
+    }
+
+    @Test
+    void register_callsAuthServiceAndReturnsToken() {
+        // Arrange
+        AuthRequestDTO requestDTO = new AuthRequestDTO("carla@example.com", "strongpass");
+        String clientId = "c";
+        String userAgent = "ua";
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn("8.8.8.8");
+
+        AuthResponseDTO expected = new AuthResponseDTO("access-register", "refresh-register");
+        when(authService.register(any(AuthLoginRequestDTO.class))).thenReturn(expected);
+
+        // Act
+        ResponseEntity<AuthResponseDTO> resp =
+                controller.register(requestDTO, clientId, userAgent, servletRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(expected, resp.getBody());
+
+        // verify authService.register called with AuthLoginRequestDTO containing expected values
+        ArgumentCaptor<AuthLoginRequestDTO> captor =
+                ArgumentCaptor.forClass(AuthLoginRequestDTO.class);
+        verify(authService).register(captor.capture());
+        AuthLoginRequestDTO dto = captor.getValue();
+        assertEquals(requestDTO.getEmail(), dto.email());
+        assertEquals(requestDTO.getPassword(), dto.password());
+        assertEquals(clientId, dto.clientId());
+        assertEquals(userAgent, dto.userAgent());
+        // IP extracted via Utils.extractClientIP(request) — ensure Utils can read provided header;
+        // in our test header was X-Forwarded-For
+        assertEquals("8.8.8.8", dto.clientIp());
+    }
+
+    @Test
+    void logout_invokesServiceAndReturnsSuccessMessage() {
+        // Arrange
+        String refreshToken = "r.t.o.k";
+        String clientId = "client-x";
+        String userAgent = "agent";
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(servletRequest.getRemoteAddr()).thenReturn("172.16.0.1");
+
+        // Act
+        ResponseEntity<String> resp =
+                controller.logout(refreshToken, clientId, userAgent, servletRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertTrue(resp.getBody().contains("Logout successful"));
+
+        verify(authService).logout(eq(refreshToken), eq(clientId), eq(userAgent), eq("172.16.0.1"));
+    }
+
+    @Test
+    void getCurrentUser_returnsUnauthorized_whenPrincipalIsNull() {
+        ResponseEntity<?> resp = controller.getCurrentUser(null);
+        assertEquals(HttpStatus.UNAUTHORIZED, resp.getStatusCode());
+        assertNull(resp.getBody());
+    }
+
+    @Test
+    void getCurrentUser_returnsOk_whenPrincipalProvided() {
+        UserPrincipal up = mock(UserPrincipal.class);
+        when(up.getUsername()).thenReturn("u");
+        ResponseEntity<UserPrincipal> resp = controller.getCurrentUser(up);
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertSame(up, resp.getBody());
+    }
+
+    @Test
+    void health_returnsApiOnline() {
+        ResponseEntity<String> resp = controller.health();
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals("API Online", resp.getBody());
+    }
+}

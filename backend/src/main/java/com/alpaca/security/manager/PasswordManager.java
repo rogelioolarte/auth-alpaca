@@ -7,6 +7,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Spring component responsible for handling secure password hashing and verification using PBKDF2.
@@ -71,9 +72,8 @@ public class PasswordManager {
     private String loadSecret(Resource resource) {
         try {
             String secret =
-                    new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8)
-                            .trim();
-            if (secret.isEmpty()) {
+                    new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            if (!StringUtils.hasText(secret)) {
                 throw new IllegalStateException("Secret key file is empty");
             }
 
@@ -113,6 +113,9 @@ public class PasswordManager {
      * @return {@code true} if the raw password matches the encoded one; {@code false} otherwise
      */
     public boolean matches(String rawPassword, String encodedPassword) {
+        if (!StringUtils.hasText(rawPassword) || !StringUtils.hasText(encodedPassword)) {
+            return false;
+        }
         return encoder.matches(rawPassword, encodedPassword);
     }
 }

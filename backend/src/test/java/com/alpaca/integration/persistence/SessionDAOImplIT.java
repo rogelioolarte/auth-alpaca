@@ -1,12 +1,15 @@
 package com.alpaca.integration.persistence;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
+import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
+import com.alpaca.persistence.impl.SessionDAOImpl;
+import com.alpaca.repository.SessionRepo;
+import com.alpaca.repository.UserRepo;
+import com.alpaca.resources.SessionProvider;
 import com.alpaca.resources.UserProvider;
 import java.time.Instant;
 import java.util.List;
@@ -16,209 +19,249 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 
-@SpringBootTest
+/** Integration tests for {@link SessionDAOImpl} */
+@DataJpaTest
+@Import(SessionDAOImpl.class)
 class SessionDAOImplIT {
 
-    @Autowired private ISessionDAO sessionDAO;
+    @Autowired private ISessionDAO dao;
+    @Autowired private SessionRepo repo;
+    @Autowired private UserRepo userRepo;
 
-    private User testUser;
-    private UUID userId;
-    private UUID familyId;
+    private User user;
     private Instant now;
 
     @BeforeEach
-    void setUp() {
-        familyId = UUID.randomUUID();
+    void setup() {
         now = Instant.now();
-        testUser = UserProvider.singleEntity();
-        userId = testUser.getId();
+        user = UserProvider.singleTemplate();
+    }
+
+    private Session newSession(User user) {
+        if (user == null) {
+            User unsaved = UserProvider.singleTemplate();
+            unsaved.setCreatedBy(UUID.randomUUID().toString());
+            unsaved.setCreatedAt(Instant.now());
+            user = userRepo.save(unsaved);
+        }
+        Session s = SessionProvider.singleTemplate();
+        s.setUser(user);
+        s.setFamilyId(UUID.randomUUID());
+        return s;
     }
 
     @Test
-    @DisplayName("Should save session successfully")
-    void shouldSaveSessionSuccessfully() {
-        Session session =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now,
-                        now,
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("save persists session")
+    void save() {
 
-        Session savedSession = sessionDAO.save(session);
+        Session session = newSession(null);
 
-        assertNotNull(savedSession);
-        assertEquals(testUser, savedSession.getUser());
-        assertEquals(familyId, savedSession.getFamilyId());
-        assertEquals("192.168.1.1", savedSession.getIpAddress());
-        assertEquals("Mozilla/5.0", savedSession.getUserAgent());
-        assertEquals("web-client", savedSession.getClientId());
-        assertFalse(savedSession.isRevoked());
+        Session saved = dao.save(session);
+
+        assertNotNull(saved.getId());
+
+        Session db = repo.findById(saved.getId()).orElseThrow();
+
+        assertEquals(session.getIpAddress(), db.getIpAddress());
+        assertEquals(session.getUserAgent(), db.getUserAgent());
     }
 
     @Test
-    @DisplayName("Should find session by ID successfully")
-    void shouldFindSessionByIdSuccessfully() {
-        Session session =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now,
-                        now,
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("findById returns existing session")
+    void findById() {
 
-        when(sessionDAO.save(session)).thenReturn(session);
+        Session saved = dao.save(newSession(null));
 
-        Optional<Session> result = sessionDAO.findById(session.getId());
+        Optional<Session> result = dao.findById(saved.getId());
 
         assertTrue(result.isPresent());
-        assertEquals(session, result.get());
     }
 
     @Test
-    @DisplayName("Should return empty when session not found")
-    void shouldReturnEmptyWhenSessionNotFound() {
-        UUID sessionId = UUID.randomUUID();
+    @DisplayName("findById returns empty when not found")
+    void findByIdNotFound() {
 
-        when(sessionDAO.findById(sessionId)).thenReturn(Optional.empty());
+        Optional<Session> result = dao.findById(UUID.randomUUID());
 
-        Optional<Session> result = sessionDAO.findById(sessionId);
-
-        assertFalse(result.isPresent());
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    @DisplayName("Should find active sessions by user successfully")
-    void shouldFindActiveSessionsByUserSuccessfully() {
-        Session session1 =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now.minusSeconds(3600),
-                        now.minusSeconds(3600),
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("updateById updates all fields")
+    void updateById() {
 
-        Session session2 =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        UUID.randomUUID(),
-                        now.minusSeconds(1800),
-                        now.minusSeconds(1800),
-                        "192.168.1.2",
-                        "Chrome/91.0",
-                        "mobile-client",
-                        false,
-                        null,
-                        null);
+        Session existing = dao.save(newSession(null));
 
-        List<Session> sessions = List.of(session1, session2);
+        Session update = new Session();
+        update.setFamilyId(UUID.randomUUID());
+        update.setIpAddress("127.0.0.1");
+        update.setUserAgent("Chrome");
+        update.setClientId("mobile");
+        update.setRevoked(true);
+        update.setRevokedAt(now);
+        update.setRevokeReason("logout");
 
-        when(sessionDAO.findActiveSessionsByUserOrderByLastSeen(userId, PageRequest.of(0, 10)))
-                .thenReturn(sessions);
+        Session updated = dao.updateById(update, existing.getId());
 
-        List<Session> result =
-                sessionDAO.findActiveSessionsByUserOrderByLastSeen(userId, PageRequest.of(0, 10));
-
-        assertEquals(sessions.size(), result.size());
-        assertTrue(result.contains(session1));
-        assertTrue(result.contains(session2));
+        assertAll(
+                () -> assertEquals("127.0.0.1", updated.getIpAddress()),
+                () -> assertEquals("Chrome", updated.getUserAgent()),
+                () -> assertEquals("mobile", updated.getClientId()),
+                () -> assertTrue(updated.isRevoked()),
+                () -> assertEquals("logout", updated.getRevokeReason()));
     }
 
     @Test
-    @DisplayName("Should find session by unique properties successfully")
-    void shouldFindSessionByUniquePropertiesSuccessfully() {
-        Session session =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now,
-                        now,
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("updateById ignores null fields")
+    void updatePartial() {
 
-        when(sessionDAO.findByUniqueProperties(userId, "Mozilla/5.0", "web-client"))
-                .thenReturn(Optional.of(session));
+        Session existing = dao.save(newSession(null));
+
+        Session update = new Session();
+        update.setIpAddress("8.8.8.8");
+
+        Session updated = dao.updateById(update, existing.getId());
+
+        assertEquals("8.8.8.8", updated.getIpAddress());
+        assertEquals(existing.getUserAgent(), updated.getUserAgent());
+    }
+
+    @Test
+    @DisplayName("updateById changes user when different")
+    void updateUser() {
+
+        Session existing = dao.save(newSession(null));
+
+        User newUser = userRepo.save(UserProvider.alternativeTemplate());
+
+        Session update = new Session();
+        update.setUser(newUser);
+
+        Session updated = dao.updateById(update, existing.getId());
+
+        assertEquals(newUser.getId(), updated.getUser().getId());
+    }
+
+    @Test
+    @DisplayName("updateById ignores user when same")
+    void updateUserSameIgnored() {
+        Session existing = dao.save(newSession(null));
+
+        Session update = new Session();
+        update.setId(UUID.randomUUID());
+        User unsaved = UserProvider.singleTemplate();
+        unsaved.setCreatedBy(UUID.randomUUID().toString());
+        unsaved.setCreatedAt(Instant.now());
+        user = userRepo.save(unsaved);
+        update.setUser(user);
+
+        Session updated = dao.updateById(update, existing.getId());
+
+        assertEquals(user.getId(), updated.getUser().getId());
+    }
+
+    @Test
+    @DisplayName("updateById throws when session not found")
+    void updateNotFound() {
+
+        assertThrows(
+                NotFoundException.class, () -> dao.updateById(new Session(), UUID.randomUUID()));
+    }
+
+    @Test
+    @DisplayName("existsByUniqueProperties works")
+    void existsByUniqueProperties() {
+
+        Session existing = dao.save(newSession(null));
+
+        assertTrue(dao.existsByUniqueProperties(existing));
+
+        Session nonExisting = new Session();
+        nonExisting.setId(UUID.randomUUID());
+
+        assertFalse(dao.existsByUniqueProperties(nonExisting));
+    }
+
+    @Test
+    @DisplayName("findSessionByFamilyId returns session")
+    void findSessionByFamilyId() {
+
+        Session session = newSession(null);
+        dao.save(session);
+
+        Optional<Session> result = dao.findSessionByFamilyId(session.getFamilyId());
+
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    @DisplayName("findSessionByFamilyId returns empty")
+    void findSessionByFamilyIdNotFound() {
+
+        Optional<Session> result = dao.findSessionByFamilyId(UUID.randomUUID());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("findByUniqueProperties returns session")
+    void findByUniqueProperties() {
+
+        Session saved = dao.save(newSession(null));
 
         Optional<Session> result =
-                sessionDAO.findByUniqueProperties(userId, "Mozilla/5.0", "web-client");
+                dao.findByUniqueProperties(
+                        saved.getUser().getId(), saved.getUserAgent(), saved.getClientId());
 
         assertTrue(result.isPresent());
-        assertEquals(session, result.get());
     }
 
     @Test
-    @DisplayName("Should find session by family ID successfully")
-    void shouldFindSessionByFamilyIdSuccessfully() {
-        Session session =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now,
-                        now,
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("findByUniqueProperties returns empty when not found")
+    void findByUniquePropertiesNotFound() {
 
-        when(sessionDAO.findSessionByFamilyId(familyId)).thenReturn(Optional.of(session));
+        Optional<Session> result =
+                dao.findByUniqueProperties(UUID.randomUUID(), "unknown", "client");
 
-        Optional<Session> result = sessionDAO.findSessionByFamilyId(familyId);
-
-        assertTrue(result.isPresent());
-        assertEquals(session, result.get());
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    @DisplayName("Should revoke session by family ID successfully")
-    void shouldRevokeSessionByFamilyIdSuccessfully() {
-        Session session =
-                new Session(
-                        UUID.randomUUID(),
-                        testUser,
-                        familyId,
-                        now,
-                        now,
-                        "192.168.1.1",
-                        "Mozilla/5.0",
-                        "web-client",
-                        false,
-                        null,
-                        null);
+    @DisplayName("findActiveSessionsByUserOrderByLastSeen respects pagination")
+    void findActiveSessionsByUserOrderByLastSeen() {
 
-        when(sessionDAO.save(session)).thenReturn(session);
+        Session s1 = dao.save(newSession(null));
+        User unsavedSec = UserProvider.alternativeTemplate();
+        unsavedSec.setCreatedAt(Instant.now());
+        unsavedSec.setCreatedBy(UUID.randomUUID().toString());
+        User secondUser = userRepo.save(unsavedSec);
+        Session secondSession = newSession(secondUser);
+        Session s2 = dao.save(secondSession);
 
-        sessionDAO.revokeSessionByFamilyId(familyId, now.plusSeconds(3600), "Test revoke");
+        UUID firstUserId = s1.getUser().getId();
 
-        verify(sessionDAO).revokeSessionByFamilyId(familyId, now.plusSeconds(3600), "Test revoke");
+        List<Session> result =
+                dao.findActiveSessionsByUserOrderByLastSeen(firstUserId, PageRequest.of(0, 1));
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    @DisplayName("revokeSessionByFamilyId revokes only active sessions")
+    void revokeSessionByFamilyId() {
+
+        Session session = newSession(null);
+        Session saved = dao.save(session);
+
+        dao.revokeSessionByFamilyId(saved.getFamilyId(), now, "security");
+
+        Session db = repo.findById(saved.getId()).orElseThrow();
+
+        assertTrue(db.isRevoked());
+        assertEquals("security", db.getRevokeReason());
     }
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
@@ -226,12 +227,12 @@ public class User extends Auditable {
      *
      * @return List of {@link SimpleGrantedAuthority} representing the User's permissions and roles.
      */
-    public List<SimpleGrantedAuthority> getAuthorities() {
+    public List<GrantedAuthority> getAuthorities() {
         if (userRoles == null || userRoles.isEmpty()) {
             return Collections.emptyList();
         }
         Set<String> seen = new HashSet<>();
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<>();
         for (UserRole userRole : userRoles) {
             String roleKey = ROLE_KEY_AUTHORITY + userRole.getRole().getRoleName();
             if (seen.add(roleKey)) {

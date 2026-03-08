@@ -8,15 +8,18 @@ public class SessionProvider {
 
     public static Session singleEntity() {
         Session session = new Session();
+        Instant now = Instant.now();
         session.setId(UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"));
         session.setUser(UserProvider.singleEntity());
         session.setFamilyId(UUID.fromString("2632eb79-63a4-4213-b905-0ad176f0004b"));
-        session.setCreatedAt(Instant.parse("2024-01-01T10:00:00Z"));
-        session.setLastSeenAt(Instant.parse("2024-01-01T10:30:00Z"));
+        session.setCreatedAt(now);
+        session.setLastSeenAt(now);
         session.setIpAddress("127.0.0.1");
-        session.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+        session.setUserAgent("Mozilla");
         session.setClientId("web-client");
         session.setRevoked(false);
+        session.setRevokedAt(null);
+        session.setRevokeReason(null);
         return session;
     }
 
@@ -47,6 +50,20 @@ public class SessionProvider {
         session.setRevoked(true);
         session.setRevokedAt(Instant.parse("2024-01-01T09:50:00Z"));
         session.setRevokeReason("user_logout");
+        return session;
+    }
+
+    public static Session singleTemplate() {
+        Session session = new Session();
+        Instant now = Instant.now();
+        session.setCreatedAt(now);
+        session.setLastSeenAt(now);
+        session.setIpAddress("127.0.0.1");
+        session.setUserAgent("Mozilla");
+        session.setClientId("web-client");
+        session.setRevoked(false);
+        session.setRevokedAt(now);
+        session.setRevokeReason(null);
         return session;
     }
 }
