@@ -77,6 +77,8 @@ public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
                    r.revokeReason = :reason
              WHERE r.familyId = :familyId
                AND r.revoked = false
+               AND r.expiresAt > :revokedAt
+               AND r.replacedBy IS NULL
             """)
     void revokeFamilyOnReuse(
             @Param("familyId") UUID familyId,
@@ -100,9 +102,20 @@ public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
                    r.revokeReason = :reason
              WHERE r.id = :id
              AND r.revoked = false
+             AND r.replacedBy IS NULL
             """)
     int revokeByIdWithReason(
             @Param("id") UUID id,
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
+
+    @Query(
+            """
+            SELECT COUNT(r) > 0
+            FROM RefreshToken r
+            WHERE r.familyId = :familyId
+            AND r.revoked = false
+            AND r.expiresAt > CURRENT_TIMESTAMP
+            """)
+    boolean existsActiveTokenInFamily(UUID familyId);
 }

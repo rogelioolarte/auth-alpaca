@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Generated;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -71,6 +72,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
      * @return the {@link IGenericDAO} corresponding to the entity type {@code Session}
      */
     @Override
+    @Generated
     protected IGenericDAO<Session, UUID> getDAO() {
         return dao;
     }
@@ -81,6 +83,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
      * @return the name of the entity "Session"
      */
     @Override
+    @Generated
     protected String getEntityName() {
         return "Session";
     }

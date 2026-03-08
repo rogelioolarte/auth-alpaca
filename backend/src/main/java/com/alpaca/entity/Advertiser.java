@@ -141,6 +141,6 @@ public class Advertiser extends Auditable {
                 indexed,
                 paid,
                 verified,
-                user.getId());
+                user != null ? user.getId() : null);
     }
 }

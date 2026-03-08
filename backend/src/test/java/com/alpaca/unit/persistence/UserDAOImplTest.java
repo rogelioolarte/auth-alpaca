@@ -11,6 +11,7 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
+import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
 import java.util.*;
@@ -83,7 +84,7 @@ class UserDAOImplTest {
         existingUser.setEmail("old@test.com");
         existingUser.setEnabled(false);
         existingUser.setProfile(null);
-        existingUser.setAdvertiser(null);
+        existingUser.setAdvertiser(AdvertiserProvider.singleEntity());
 
         User updateData = new User();
         updateData.setEmail("new@test.com");

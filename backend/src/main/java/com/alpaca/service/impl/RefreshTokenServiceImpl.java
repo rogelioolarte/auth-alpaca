@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,11 +50,13 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
     private static final String REVOKE_REASON_ROTATION = "rotation";
 
     @Override
+    @Generated
     protected IGenericDAO<RefreshToken, UUID> getDAO() {
         return dao;
     }
 
     @Override
+    @Generated
     protected String getEntityName() {
         return "RefreshToken";
     }

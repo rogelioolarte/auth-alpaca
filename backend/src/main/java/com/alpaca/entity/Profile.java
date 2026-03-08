@@ -86,6 +86,7 @@ public class Profile extends Auditable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(firstName, lastName, address, avatarUrl, user.getId());
+        return Objects.hash(
+                firstName, lastName, address, avatarUrl, user != null ? user.getId() : null);
     }
 }

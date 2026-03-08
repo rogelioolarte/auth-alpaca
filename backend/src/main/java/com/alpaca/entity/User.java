@@ -301,7 +301,7 @@ public class User extends Auditable {
                 googleConnected,
                 tokensInvalidBefore,
                 userRoles,
-                profile.getId(),
-                advertiser.getId());
+                profile != null ? profile.getId() : null,
+                advertiser != null ? advertiser.getId() : null);
     }
 }

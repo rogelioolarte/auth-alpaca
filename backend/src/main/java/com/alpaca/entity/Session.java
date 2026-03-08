@@ -116,6 +116,13 @@ public class Session extends Auditable {
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, user, familyId, ipAddress, userAgent, clientId, revoked, revokeReason);
+                id,
+                familyId,
+                ipAddress,
+                userAgent,
+                clientId,
+                revoked,
+                revokeReason,
+                user != null ? user.getId() : null);
     }
 }
