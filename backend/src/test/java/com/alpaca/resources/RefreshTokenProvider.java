@@ -39,6 +39,20 @@ public class RefreshTokenProvider {
         return token;
     }
 
+    public static RefreshToken singleTemplate() {
+        return RefreshToken.builder()
+                .tokenHash("hashed_refresh_token_value")
+                .tokenJti(UUID.fromString("2632eb79-63a4-4213-b905-0ad176f0004b"))
+                .familyId(UUID.fromString("3632eb79-63a4-4213-b905-0ad176f0004c"))
+                .clientId("web-client")
+                .ipAddress("127.0.0.1")
+                .userAgent("Mozilla/5.0")
+                .expiresAt(Instant.parse("2027-01-02T10:00:00Z"))
+                .lastUsedAt(Instant.parse("2024-01-01T10:30:00Z"))
+                .revoked(false)
+                .build();
+    }
+
     public static RefreshToken revokedEntity() {
         RefreshToken token = new RefreshToken();
         token.setId(UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"));

@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
@@ -22,6 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  *
  * <p>Mapped to database table <code>refresh_tokens</code>.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor

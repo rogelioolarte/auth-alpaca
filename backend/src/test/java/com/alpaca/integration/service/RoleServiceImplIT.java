@@ -1,88 +1,97 @@
-// package com.alpaca.integration.service;
-//
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertThrows;
-//
-// import com.alpaca.entity.Role;
-// import com.alpaca.exception.BadRequestException;
-// import com.alpaca.exception.NotFoundException;
-// import com.alpaca.resources.RoleProvider;
-// import com.alpaca.service.impl.RoleServiceImpl;
-// import java.util.HashSet;
-// import java.util.Set;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.extension.ExtendWith;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.context.SpringBootTest;
-// import org.springframework.test.context.junit.jupiter.SpringExtension;
-// import org.springframework.transaction.annotation.Transactional;
-//
-/// ** Integration tests for {@link RoleServiceImpl} */
-// @SpringBootTest
-// @ExtendWith(SpringExtension.class)
-// class RoleServiceImplIT {
-//
-//    @Autowired private RoleServiceImpl service;
-//
-//    private Role firstEntity;
-//    private Role secondEntity;
-//
-//    @BeforeEach
-//    void setup() {
-//        firstEntity = RoleProvider.singleEntity();
-//        secondEntity = RoleProvider.alternativeEntity();
-//    }
-//
-//    // --- getUserRoles ---
-//    @Test
-//    @Transactional
-//    void getUserRolesCaseOne() {
-//        assertThrows(NotFoundException.class, () -> service.getUserRoles());
-//    }
-//
-//    @Test
-//    @Transactional
-//    void getUserRolesCaseTwo() {
-//        Role role =
-//                service.save(
-//                        new Role(
-//                                secondEntity.getRoleName(),
-//                                secondEntity.getRoleDescription(),
-//                                new HashSet<>()));
-//        assertEquals(new HashSet<>(Set.of(role)), service.getUserRoles());
-//    }
-//
-//    // --- findByRoleName ---
-//    @Test
-//    @Transactional
-//    void findByRoleNameCaseOne() {
-//        assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void findByRoleNameCaseTwo() {
-//        assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void findByRoleNameCaseThree() {
-//        assertThrows(
-//                NotFoundException.class, () ->
-// service.findByRoleName(secondEntity.getRoleName()));
-//    }
-//
-//    @Test
-//    @Transactional
-//    void findByRoleNameCaseFour() {
-//        Role role =
-//                service.save(
-//                        new Role(
-//                                firstEntity.getRoleName(),
-//                                firstEntity.getRoleDescription(),
-//                                new HashSet<>()));
-//        assertEquals(role, service.findByRoleName(firstEntity.getRoleName()));
-//    }
-// }
+package com.alpaca.integration.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.alpaca.entity.Role;
+import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.NotFoundException;
+import com.alpaca.resources.RoleProvider;
+import com.alpaca.service.impl.RoleServiceImpl;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Integration tests for {@link RoleServiceImpl}.
+ */
+@SpringBootTest
+@ExtendWith(SpringExtension.class)
+class RoleServiceImplIT {
+
+	@Autowired
+	private RoleServiceImpl service;
+
+	private Role firstTemplate;
+	private Role alternativeTemplate;
+
+	@BeforeEach
+	void setup() {
+		// NO hacer saves aquí — solo obtener templates desde providers
+		firstTemplate = RoleProvider.singleTemplate();
+		alternativeTemplate = RoleProvider.alternativeTemplate();
+	}
+
+	// --- getUserRoles ---
+
+	@Test
+	@Transactional
+	void getUserRoles_whenNoUserRole_thenThrowNotFound() {
+		// Si no existe la role "USER" debe lanzar NotFoundException
+		assertThrows(NotFoundException.class, () -> service.getUserRoles());
+	}
+
+	@Test
+	@Transactional
+	void getUserRoles_whenUserRoleExists_thenReturnSetContainingUserRole() {
+		// Usamos el provider para obtener el objeto, luego ajustamos su nombre a "USER"
+		Role roleToSave = RoleProvider.singleTemplate();
+		roleToSave.setRoleName("USER");
+		roleToSave.setRoleDescription("Default user role for tests");
+		roleToSave.setRolePermissions(new HashSet<>());
+
+		Role saved = service.save(roleToSave);
+
+		Set<Role> expected = new HashSet<>(Set.of(saved));
+		assertEquals(expected, service.getUserRoles());
+	}
+
+	// --- findByRoleName ---
+
+	@Test
+	@Transactional
+	void findByRoleName_whenNameIsNull_thenThrowBadRequest() {
+		assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
+	}
+
+	@Test
+	@Transactional
+	void findByRoleName_whenNameIsBlank_thenThrowBadRequest() {
+		assertThrows(BadRequestException.class, () -> service.findByRoleName("   "));
+	}
+
+	@Test
+	@Transactional
+	void findByRoleName_whenNotFound_thenThrowNotFound() {
+		assertThrows(NotFoundException.class, () -> service.findByRoleName(alternativeTemplate.getRoleName()));
+	}
+
+	@Test
+	@Transactional
+	void findByRoleName_whenExists_thenReturnRole() {
+		Role toSave = RoleProvider.singleTemplate();
+		toSave.setRoleName(firstTemplate.getRoleName());
+		toSave.setRoleDescription(firstTemplate.getRoleDescription());
+		toSave.setRolePermissions(new HashSet<>());
+
+		Role saved = service.save(toSave);
+
+		Role found = service.findByRoleName(firstTemplate.getRoleName());
+		assertEquals(saved, found);
+	}
+}

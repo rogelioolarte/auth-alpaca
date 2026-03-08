@@ -6,15 +6,13 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Represents a Permission entity in the system. This entity is used to manage user permissions and
  * is mapped to the "permissions" table in the database.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor

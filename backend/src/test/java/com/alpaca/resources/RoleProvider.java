@@ -29,7 +29,21 @@ public class RoleProvider {
     }
 
     public static Role singleTemplate() {
-        return new Role(null, "ADMIN", "It's an admin", null, null);
+        return Role.builder()
+                .roleName("ADMIN")
+                .roleDescription("It's an admin")
+                .rolePermissions(null)
+                .userRoles(null)
+                .build();
+    }
+
+    public static Role alternativeTemplate() {
+        return Role.builder()
+                .roleName("USER")
+                .roleDescription("It's an user")
+                .rolePermissions(null)
+                .userRoles(null)
+                .build();
     }
 
     public static Role singleEntity() {
