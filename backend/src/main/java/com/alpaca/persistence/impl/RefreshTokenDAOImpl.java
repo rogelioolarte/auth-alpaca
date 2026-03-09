@@ -6,6 +6,7 @@ import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -116,8 +117,8 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
                 refreshToken.getFamilyId(),
                 existingRefreshToken::setFamilyId);
         updateIfDifferent(
-                existingRefreshToken.getRevoked(),
-                refreshToken.getRevoked(),
+                existingRefreshToken.isRevoked(),
+                refreshToken.isRevoked(),
                 existingRefreshToken::setRevoked);
         updateIfNotNull(
                 existingRefreshToken.getRevokedAt(),
@@ -181,5 +182,10 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     @Override
     public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
         repo.revokeFamilyOnReuse(familyId, revokedAt, reason);
+    }
+
+    @Override
+    public List<RefreshToken> findAllByFamilyId(UUID familyId) {
+        return repo.findAllByFamilyId(familyId);
     }
 }

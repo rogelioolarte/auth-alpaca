@@ -150,7 +150,7 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
         }
     }
 
-    public void updateIfDifferent(Boolean existing, Boolean incoming, Consumer<Boolean> setter) {
+    public void updateIfDifferent(boolean existing, boolean incoming, Consumer<Boolean> setter) {
         if (!Objects.equals(existing, incoming)) {
             setter.accept(incoming);
         }

@@ -177,7 +177,7 @@ class AuthServiceImplTest {
         String token = "rt";
         when(manager.createRefreshTokenHash(token)).thenReturn("hash");
         RefreshToken rt = new RefreshToken();
-        rt.setRevoked(Boolean.TRUE);
+        rt.setRevoked(true);
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.of(rt));
 
         assertThrows(BadRequestException.class, () -> service.logout(token, "cid", "ua", "ip"));
@@ -188,7 +188,7 @@ class AuthServiceImplTest {
         String token = "rt";
         when(manager.createRefreshTokenHash(token)).thenReturn("hash");
         RefreshToken rt = new RefreshToken();
-        rt.setRevoked(Boolean.FALSE);
+        rt.setRevoked(false);
         UUID familyId = UUID.randomUUID();
         rt.setFamilyId(familyId);
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.of(rt));

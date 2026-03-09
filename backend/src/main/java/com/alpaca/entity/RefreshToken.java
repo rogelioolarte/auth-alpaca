@@ -81,8 +81,9 @@ public class RefreshToken extends Auditable {
      * Indicates whether this token has been revoked (explicit logout, reuse detection, admin
      * revocation, etc.). Once revoked, the token must not be accepted any longer.
      */
+    @Builder.Default
     @Column(name = "revoked", nullable = false)
-    private Boolean revoked = false;
+    private boolean revoked = false;
 
     /** Timestamp when this token was revoked (if revoked = true). Null if token is still active. */
     @Column(name = "revoked_at")
@@ -157,6 +158,8 @@ public class RefreshToken extends Auditable {
         this.clientId = session.getClientId();
         this.ipAddress = session.getIpAddress();
         this.userAgent = session.getUserAgent();
+        this.revoked = false;
+        this.revokedAt = null;
     }
 
     @Override

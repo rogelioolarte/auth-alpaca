@@ -24,18 +24,16 @@ import java.time.Instant;
 import java.util.HashSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AuthServiceImpl} */
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
+@Transactional
 class AuthServiceImplIT {
 
     @Autowired private AuthServiceImpl service;
@@ -193,12 +191,12 @@ class AuthServiceImplIT {
     @Test
     @Transactional
     void logoutShouldRevokeTokenAndClearContext() {
+        roleService.save(new Role("USER", "", new HashSet<>()));
+        AuthResponseDTO register = service.register(request);
+        UsernamePasswordAuthenticationToken userToken =
+                jwtManager.manageAuthentication(register.accessToken());
 
-        User user = userService.register(userTemplate);
-
-        UserPrincipal principal = new UserPrincipal(user);
-
-        AuthResponseDTO response = service.login(principal, request);
+        AuthResponseDTO response = service.login((UserPrincipal) userToken.getPrincipal(), request);
 
         service.logout(
                 response.refreshToken(),

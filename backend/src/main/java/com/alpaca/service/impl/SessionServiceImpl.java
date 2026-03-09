@@ -142,4 +142,9 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         }
         return dao.save(newSession);
     }
+
+    @Override
+    public boolean existsByUniqueProperties(Session s) {
+        return dao.existsByUniqueProperties(s);
+    }
 }

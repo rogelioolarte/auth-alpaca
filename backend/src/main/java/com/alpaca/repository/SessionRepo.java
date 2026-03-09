@@ -72,6 +72,20 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
             @Param("userAgent") String userAgent,
             @Param("clientId") String clientId);
 
+    @Query(
+            """
+              SELECT COUNT(s)
+                FROM Session s
+               WHERE s.user.id = :userId
+                 AND s.userAgent = :userAgent
+                 AND s.clientId = :clientId
+                 AND s.revoked = false
+            """)
+    long countByUniqueProperties(
+            @Param("userId") UUID userId,
+            @Param("userAgent") String userAgent,
+            @Param("clientId") String clientId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(

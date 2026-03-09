@@ -176,10 +176,25 @@ public class JJwtManager {
     public String createRefreshToken(RefreshToken refreshToken) {
         return Jwts.builder()
                 .issuer(jwtIssuer)
-                .subject(refreshToken.getUser().getId().toString())
-                .claim(CLAIM_KEY_USER_ID, refreshToken.getUser().getId().toString())
-                .claim("jti", refreshToken.getTokenJti().toString())
-                .claim("familyId", refreshToken.getFamilyId().toString())
+                .subject(
+                        (refreshToken.getUser().getId() != null
+                                ? refreshToken.getUser().getId().toString()
+                                : ""))
+                .claim(
+                        CLAIM_KEY_USER_ID,
+                        refreshToken.getUser().getId() != null
+                                ? refreshToken.getUser().getId().toString()
+                                : "")
+                .claim(
+                        "jti",
+                        refreshToken.getTokenJti() != null
+                                ? refreshToken.getTokenJti().toString()
+                                : "")
+                .claim(
+                        "familyId",
+                        refreshToken.getFamilyId() != null
+                                ? refreshToken.getFamilyId().toString()
+                                : "")
                 .issuedAt(Date.from(refreshToken.getLastUsedAt()))
                 .notBefore(Date.from(refreshToken.getLastUsedAt()))
                 .expiration(Date.from(refreshToken.getExpiresAt()))

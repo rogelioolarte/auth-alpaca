@@ -146,8 +146,8 @@ class RefreshTokenDAOImplIT {
         RefreshToken db1 = repo.findById(token1.getId()).orElseThrow();
         RefreshToken db2 = repo.findById(token2.getId()).orElseThrow();
 
-        assertTrue(db1.getRevoked());
-        assertTrue(db2.getRevoked());
+        assertTrue(db1.isRevoked());
+        assertTrue(db2.isRevoked());
         assertEquals("reuse", db1.getRevokeReason());
     }
 
@@ -169,7 +169,7 @@ class RefreshTokenDAOImplIT {
                 () -> assertEquals("mobile", updated.getClientId()),
                 () -> assertEquals("10.0.0.1", updated.getIpAddress()),
                 () -> assertEquals("Chrome", updated.getUserAgent()),
-                () -> assertTrue(updated.getRevoked()),
+                () -> assertTrue(updated.isRevoked()),
                 () -> assertEquals("logout", updated.getRevokeReason()));
     }
 

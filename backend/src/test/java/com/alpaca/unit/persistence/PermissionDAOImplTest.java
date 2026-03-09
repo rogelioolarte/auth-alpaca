@@ -112,8 +112,8 @@ class PermissionDAOImplTest {
             dao.updateIfDifferent(true, false, target::set);
             assertThat(target.get()).isFalse();
 
-            // Case 3: One is null (Update)
-            dao.updateIfDifferent(null, true, target::set);
+            // Case 3: One is false (Update)
+            dao.updateIfDifferent(false, true, target::set);
             assertThat(target.get()).isTrue();
         }
 

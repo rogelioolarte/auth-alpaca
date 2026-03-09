@@ -9,6 +9,7 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.repository.SessionRepo;
+import com.alpaca.resources.SessionProvider;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +37,7 @@ class SessionDAOImplTest {
 
     @BeforeEach
     void setUp() {
-        existingSession = new Session();
+        existingSession = SessionProvider.singleEntity();
         existingSession.setId(sessionId);
     }
 
@@ -156,9 +157,9 @@ class SessionDAOImplTest {
     @Test
     @DisplayName("Should check existence by ID")
     void existsByUniqueProperties_ChecksRepoById() {
-        when(repo.existsById(sessionId)).thenReturn(true);
+        when(repo.countByUniqueProperties(any(), any(), any())).thenReturn(1L);
         assertTrue(dao.existsByUniqueProperties(existingSession));
-        verify(repo).existsById(sessionId);
+        verify(repo).countByUniqueProperties(any(), any(), any());
     }
 
     // --- Repository Delegation Tests ---

@@ -15,6 +15,7 @@ public class RefreshTokenProvider {
         token.setTokenJti(UUID.fromString("2632eb79-63a4-4213-b905-0ad176f0004b"));
         token.setFamilyId(UUID.fromString("3632eb79-63a4-4213-b905-0ad176f0004c"));
         token.setRevoked(false);
+        token.setRevokedAt(null);
         token.setExpiresAt(Instant.parse("2027-01-02T10:00:00Z"));
         token.setLastUsedAt(Instant.parse("2024-01-01T10:30:00Z"));
         token.setClientId("web-client");
@@ -31,6 +32,7 @@ public class RefreshTokenProvider {
         token.setTokenJti(UUID.fromString("a82a1001-b033-48f6-b2e6-6b327f0a61ec"));
         token.setFamilyId(UUID.fromString("b82a1001-b033-48f6-b2e6-6b327f0a61ed"));
         token.setRevoked(false);
+        token.setRevokedAt(null);
         token.setExpiresAt(Instant.parse("2024-01-03T11:00:00Z"));
         token.setLastUsedAt(Instant.parse("2024-01-02T11:15:00Z"));
         token.setClientId("mobile-client");
@@ -50,6 +52,7 @@ public class RefreshTokenProvider {
                 .expiresAt(Instant.parse("2027-01-02T10:00:00Z"))
                 .lastUsedAt(Instant.parse("2024-01-01T10:30:00Z"))
                 .revoked(false)
+                .revokedAt(null)
                 .build();
     }
 

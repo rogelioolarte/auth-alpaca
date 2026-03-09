@@ -34,6 +34,7 @@ public class Permission extends Auditable {
     @Column(name = "permission_name", unique = true, nullable = false)
     private String permissionName;
 
+    @Builder.Default
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolePermission> rolePermissions = new HashSet<>();
 

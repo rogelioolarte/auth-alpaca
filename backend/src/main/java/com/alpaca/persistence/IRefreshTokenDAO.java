@@ -2,6 +2,7 @@ package com.alpaca.persistence;
 
 import com.alpaca.entity.RefreshToken;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +21,6 @@ public interface IRefreshTokenDAO extends IGenericDAO<RefreshToken, UUID> {
     Optional<UUID> findFamilyIdByTokenHash(String hash);
 
     void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
+
+    List<RefreshToken> findAllByFamilyId(UUID familyId);
 }

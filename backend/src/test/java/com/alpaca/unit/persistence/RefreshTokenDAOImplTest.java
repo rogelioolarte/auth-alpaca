@@ -99,7 +99,7 @@ class RefreshTokenDAOImplTest {
                 () -> assertEquals(replacementToken.getId(), result.getReplacedBy().getId()),
                 () -> assertEquals(jti, result.getTokenJti()),
                 () -> assertEquals(familyId, result.getFamilyId()),
-                () -> assertTrue(result.getRevoked()),
+                () -> assertTrue(result.isRevoked()),
                 () -> assertEquals(now, result.getRevokedAt()),
                 () -> assertEquals("new-hash", result.getTokenHash()),
                 () -> assertEquals("Token Rotated", result.getRevokeReason()));

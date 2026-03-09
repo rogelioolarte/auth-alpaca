@@ -58,11 +58,27 @@ public class SessionProvider {
         Instant now = Instant.now();
         session.setCreatedAt(now);
         session.setLastSeenAt(now);
+        session.setFamilyId(UUID.fromString("119b2092-e007-7671-a9fe-b2713081ea09"));
         session.setIpAddress("127.0.0.1");
         session.setUserAgent("Mozilla");
         session.setClientId("web-client");
         session.setRevoked(false);
-        session.setRevokedAt(now);
+        session.setRevokedAt(null);
+        session.setRevokeReason(null);
+        return session;
+    }
+
+    public static Session randomTemplate() {
+        Session session = new Session();
+        Instant now = Instant.now();
+        session.setCreatedAt(now);
+        session.setLastSeenAt(now);
+        session.setFamilyId(UUID.randomUUID());
+        session.setIpAddress("127.0.0.1");
+        session.setUserAgent("Mozilla");
+        session.setClientId("web-client");
+        session.setRevoked(false);
+        session.setRevokedAt(null);
         session.setRevokeReason(null);
         return session;
     }

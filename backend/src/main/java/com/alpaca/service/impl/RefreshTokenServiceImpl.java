@@ -95,6 +95,12 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         }
 
         RefreshToken actualRefreshToken = optToken.get();
+        if (actualRefreshToken.getUser() == null) {
+            throw new BadRequestException("Invalid User ID");
+        }
+        if (actualRefreshToken.getFamilyId() == null) {
+            throw new BadRequestException("Invalid Family ID");
+        }
         sessionService
                 .findSessionByFamilyId(actualRefreshToken.getFamilyId())
                 .ifPresent(
@@ -156,7 +162,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         if (token.getFamilyId() == null) {
             throw new BadRequestException("RefreshToken without familyId");
         }
-        if (Boolean.TRUE.equals(token.getRevoked())) {
+        if (token.isRevoked()) {
             if (token.getReplacedBy() != null) {
                 revokeRefreshTokensAndSessionByFamilyId(
                         token.getFamilyId(), now, MESSAGE_REUSE_REASON);

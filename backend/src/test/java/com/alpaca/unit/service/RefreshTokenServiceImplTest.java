@@ -200,7 +200,7 @@ class RefreshTokenServiceImplTest {
                 assertThrows(
                         BadRequestException.class,
                         () -> service.rotateRefreshToken(oldRefreshToken, "cid", "ua", "ip"));
-        assertTrue(ex.getMessage().contains("RefreshToken without familyId"));
+        assertTrue(ex.getMessage().contains("Invalid Family ID"));
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.alpaca.entity.RefreshToken;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Lock;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Repository;
 public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
 
     boolean existsByTokenHash(String hash);
+
+    List<RefreshToken> findAllByFamilyId(UUID familyId);
 
     @Query(
             """

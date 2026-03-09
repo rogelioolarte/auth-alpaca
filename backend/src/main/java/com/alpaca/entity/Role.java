@@ -3,7 +3,6 @@ package com.alpaca.entity;
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.*;
-
 import lombok.*;
 
 /**
@@ -41,6 +40,7 @@ public class Role extends Auditable {
      * <p>A Role has a many-to-many relationship with an {@link Permission} through {@link
      * RolePermission}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "role",
             cascade = CascadeType.ALL,
@@ -53,6 +53,7 @@ public class Role extends Auditable {
      *
      * <p>A Role has a many-to-many relationship with an {@link User} through {@link UserRole}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "role",
             cascade = CascadeType.ALL,

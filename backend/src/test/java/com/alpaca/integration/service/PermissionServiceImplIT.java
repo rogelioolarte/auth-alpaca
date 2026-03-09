@@ -8,20 +8,17 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link PermissionServiceImpl}. */
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
+@Transactional
 class PermissionServiceImplIT {
 
     @Autowired private PermissionServiceImpl service;
@@ -234,7 +231,7 @@ class PermissionServiceImplIT {
 
         List<Permission> templates = PermissionProvider.listTemplates();
 
-        List<Permission> saved = templates.stream().map(service::save).collect(Collectors.toList());
+        List<Permission> saved = templates.stream().map(service::save).toList();
 
         List<Permission> result = service.findAll();
 

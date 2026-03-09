@@ -101,7 +101,7 @@ public class AuthServiceImpl implements IAuthService {
                 refreshTokenService
                         .findByTokenHashSecure(manager.createRefreshTokenHash(refreshToken))
                         .orElseThrow(() -> new NotFoundException("Refresh Token Not Found"));
-        if (Boolean.TRUE.equals(actualrefreshToken.getRevoked())) {
+        if (actualrefreshToken.isRevoked()) {
             throw new BadRequestException("Refresh Token already revoked");
         }
         refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(

@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of the {@link ISessionDAO} interface for managing {@link Session} entities. This
@@ -126,7 +127,15 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      */
     @Override
     public boolean existsByUniqueProperties(Session session) {
-        return repo.existsById(session.getId());
+        if (session.getUser() == null
+                || session.getUser().getId() == null
+                || !StringUtils.hasText(session.getUserAgent())
+                || !StringUtils.hasText(session.getClientId())) {
+            return false;
+        }
+        return repo.countByUniqueProperties(
+                        session.getUser().getId(), session.getUserAgent(), session.getClientId())
+                > 0L;
     }
 
     @Override
