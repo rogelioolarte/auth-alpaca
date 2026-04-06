@@ -103,7 +103,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                         new AuthLoginRequestDTO(
                                 "",
                                 "",
-                                request.getHeader("X-Client-Id"),
+                                request.getHeader("X-Client-ID"),
                                 request.getHeader("User-Agent"),
                                 Utils.extractClientIP(request)));
         Map<String, Object> body =

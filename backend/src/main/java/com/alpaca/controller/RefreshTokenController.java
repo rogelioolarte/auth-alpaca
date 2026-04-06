@@ -25,8 +25,8 @@ public class RefreshTokenController {
     @PostMapping("/rotate")
     public ResponseEntity<AuthResponseDTO> rotateRefreshToken(
             @RequestHeader("X-Refresh-Token") String refreshToken,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
 
         String clientIp = Utils.extractClientIP(request);

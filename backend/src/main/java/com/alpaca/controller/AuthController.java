@@ -46,8 +46,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(
             @Valid @RequestBody AuthRequestDTO requestDTO,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         Authentication authentication =
                 manager.authenticate(
@@ -78,8 +78,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(
             @Valid @RequestBody AuthRequestDTO requestDTO,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         return ResponseEntity.ok(
                 authService.register(
@@ -94,8 +94,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
             @RequestHeader("X-Refresh-Token") String refreshToken,
-            @RequestHeader("X-Client-Id") String clientId,
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         authService.logout(refreshToken, clientId, userAgent, Utils.extractClientIP(request));
         return ResponseEntity.ok("{\"message\":\"Logout successful\"}");
