@@ -105,7 +105,6 @@ export class AuthService {
       let ATExp = new Date(AToken.exp*1000)
       let delay = ATExp.getTime() - now - this.REFRESH_THREEHOLD_MS
       this.ATTimer?.unsubscribe()
-      console.log("rotate tokens in:", delay)
       this.ATTimer = timer(Math.max(delay, 0))
         .pipe(takeUntil(this.destroy), switchMap(() => this.rotateTokens())).subscribe()
 

@@ -9,6 +9,7 @@ import com.alpaca.controller.RefreshTokenController;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.exception.RateLimitExceededException;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,6 +45,7 @@ class RefreshTokenControllerTest {
         String refreshToken = "r.t.k";
         String clientId = "web-client";
         String userAgent = "UA";
+        UserPrincipal userPrincipal = new UserPrincipal();
         HttpServletRequest request = mock(HttpServletRequest.class);
         // No X-Forwarded-For header
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
@@ -60,7 +62,8 @@ class RefreshTokenControllerTest {
 
         // Act
         ResponseEntity<AuthResponseDTO> resp =
-                controller.rotateRefreshToken(refreshToken, clientId, userAgent, request);
+                controller.rotateRefreshToken(
+                        refreshToken, clientId, userAgent, userPrincipal, request);
 
         // Assert
         assertNotNull(resp);
@@ -79,6 +82,7 @@ class RefreshTokenControllerTest {
         String refreshToken = "rt-xyz";
         String clientId = "mobile-client";
         String userAgent = "MobileUA";
+        UserPrincipal userPrincipal = new UserPrincipal();
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("X-Forwarded-For")).thenReturn("5.6.7.8"); // trusted header present
         // remote address should be ignored by Utils.extractClientIP in presence of header
@@ -94,7 +98,8 @@ class RefreshTokenControllerTest {
 
         // Act
         ResponseEntity<AuthResponseDTO> resp =
-                controller.rotateRefreshToken(refreshToken, clientId, userAgent, request);
+                controller.rotateRefreshToken(
+                        refreshToken, clientId, userAgent, userPrincipal, request);
 
         // Assert
         assertNotNull(resp);
@@ -110,6 +115,7 @@ class RefreshTokenControllerTest {
         String refreshToken = "rt-deny";
         String clientId = "client-deny";
         String userAgent = "UA-deny";
+        UserPrincipal userPrincipal = new UserPrincipal();
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn("192.0.2.1");
@@ -123,7 +129,7 @@ class RefreshTokenControllerTest {
                         RateLimitExceededException.class,
                         () ->
                                 controller.rotateRefreshToken(
-                                        refreshToken, clientId, userAgent, request));
+                                        refreshToken, clientId, userAgent, userPrincipal, request));
         assertEquals(42, ex.getRetryAfterSeconds());
         // service must NOT be invoked
         verify(refreshTokenService, never())
@@ -137,6 +143,7 @@ class RefreshTokenControllerTest {
         String refreshToken = "rt-capture";
         String clientId = "c-capture";
         String userAgent = "UA-capture";
+        UserPrincipal userPrincipal = new UserPrincipal();
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("X-Forwarded-For")).thenReturn(null);
         when(request.getRemoteAddr()).thenReturn("203.0.113.9");
@@ -151,7 +158,8 @@ class RefreshTokenControllerTest {
 
         // Act
         ResponseEntity<AuthResponseDTO> resp =
-                controller.rotateRefreshToken(refreshToken, clientId, userAgent, request);
+                controller.rotateRefreshToken(
+                        refreshToken, clientId, userAgent, userPrincipal, request);
 
         // Assert
         assertEquals(expected, resp.getBody());

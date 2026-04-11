@@ -3,12 +3,15 @@ package com.alpaca.controller;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.exception.RateLimitExceededException;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,12 +30,16 @@ public class RefreshTokenController {
             @RequestHeader("X-Refresh-Token") String refreshToken,
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
+            @AuthenticationPrincipal UserPrincipal user,
             HttpServletRequest request) {
 
         String clientIp = Utils.extractClientIP(request);
         RateLimitResult result = rateLimit.check(clientIp);
         if (!result.allowed()) {
             throw new RateLimitExceededException(result.retryAfterSeconds());
+        }
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         return ResponseEntity.ok(

@@ -50,7 +50,7 @@ public class SimpleCORSFilter extends OncePerRequestFilter {
         response.setHeader(
                 "Access-Control-Allow-Headers",
                 "Content-Type, Accept, X-Requested-With, remember-me, Authorization, X-Client-Id,"
-                        + " User-Agent");
+                        + " User-Agent, X-Refresh-Token");
 
         filterChain.doFilter(request, response);
     }
