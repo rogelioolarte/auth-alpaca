@@ -63,13 +63,9 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     public AuthSuccessHandler(
             CookieAuthReqRepo repository,
             @Value("${app.oauth2.authorized-redirect-uri}") @NonNull List<URI> redirectUris,
-            @Value("${spring.profiles.active}" activeProfile)
+            @Value("${spring.profiles.active}") @NonNull String activeProfile,
             IAuthService authService) {
-        if(activeProfile == "dev") {
-            this.isProduction = false;
-        } else {
-            this.isProduction = true;
-        }
+        this.isProduction = !activeProfile.equalsIgnoreCase("dev");
         this.repository = repository;
         this.authorizedRedirectUris = Set.copyOf(redirectUris);
         this.authService = authService;
@@ -108,14 +104,14 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                                 request.getHeader("User-Agent"),
                                 Utils.extractClientIP(request)));
         Cookie ATC = new Cookie("accessToken", authResponse.accessToken());
-        if(this.isProduction) {
+        if (this.isProduction) {
             ATC.setHttpOnly(true);
         }
         ATC.setSecure(true);
         ATC.setPath("/");
         response.addCookie(ATC);
         Cookie RTC = new Cookie("refreshToken", authResponse.refreshToken());
-        if(this.isProduction) {
+        if (this.isProduction) {
             RTC.setHttpOnly(true);
         }
         RTC.setSecure(true);

@@ -36,7 +36,7 @@ class AuthSuccessHandlerTest {
     private static class TestableHandler extends AuthSuccessHandler {
 
         public TestableHandler(CookieAuthReqRepo repo, List<URI> uris, IAuthService svc) {
-            super(repo, uris, svc);
+            super(repo, uris, "dev", svc);
         }
 
         public String invokeDetermineTarget(
@@ -166,7 +166,10 @@ class AuthSuccessHandlerTest {
             String redirectUrl = "http://localhost/app";
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository, List.of(URI.create("http://localhost")), authService);
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            "dev",
+                            authService);
 
             handler.setDefaultTargetUrl(redirectUrl);
 
@@ -189,7 +192,10 @@ class AuthSuccessHandlerTest {
         void doesNothingIfCommitted() throws IOException {
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository, List.of(URI.create("http://localhost")), authService);
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            "dev",
+                            authService);
 
             MockHttpServletResponse committed =
                     new MockHttpServletResponse() {
@@ -209,7 +215,10 @@ class AuthSuccessHandlerTest {
         void clearAuthAttributesInvoked() throws IOException {
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository, List.of(URI.create("http://localhost")), authService);
+                            repository,
+                            List.of(URI.create("http://localhost")),
+                            "dev",
+                            authService);
             handler.setDefaultTargetUrl("http://localhost/home");
             AuthResponseDTO authResp = new AuthResponseDTO("t1", "t2");
             when(authService.login(eq(principal), any(AuthLoginRequestDTO.class)))

@@ -31,7 +31,7 @@ export class AuthService {
   // Access Token Timer
   private ATTimer?: Subscription
   // Refresh Threehold in 3000 miliseconds or 3 seconds
-  private readonly REFRESH_THREEHOLD_MS = 240000
+  private readonly REFRESH_THREEHOLD_MS = 60000
 
   constructor() {
     this.recoverStates();
@@ -107,7 +107,7 @@ export class AuthService {
       this.ATTimer?.unsubscribe()
       console.log("rotate tokens in:", delay)
       this.ATTimer = timer(Math.max(delay, 0))
-        .pipe(takeUntil(this.destroy), tap(() => this.rotateTokens())).subscribe()
+        .pipe(takeUntil(this.destroy), switchMap(() => this.rotateTokens())).subscribe()
 
       if(!isRecovered) {
         this.storage.set(ACCESS_TOKEN, tokens.accessToken, ATExp, "/", undefined, true, "Lax", false)
@@ -140,9 +140,11 @@ export class AuthService {
       filter(i => i[0] != null && i[1] != null), 
       switchMap((i) => this.authService.rotateTokens(i[0]?.refresh || "", i[1] || "")),
       tap((a) => {
-        this.cleanStates()
-        this.setAuthTokens(a, false)
-      })
+        if(a) {
+          this.cleanStates()
+          this.setAuthTokens(a, false)
+        }
+      }),
     )
   }
 
