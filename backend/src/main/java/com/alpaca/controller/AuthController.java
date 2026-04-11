@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @see IAuthService
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -46,7 +46,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(
             @Valid @RequestBody AuthRequestDTO requestDTO,
-            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         Authentication authentication =
@@ -78,7 +78,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(
             @Valid @RequestBody AuthRequestDTO requestDTO,
-            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         return ResponseEntity.ok(
@@ -94,7 +94,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
             @RequestHeader("X-Refresh-Token") String refreshToken,
-            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
         authService.logout(refreshToken, clientId, userAgent, Utils.extractClientIP(request));

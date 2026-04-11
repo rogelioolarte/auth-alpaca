@@ -72,7 +72,7 @@ public class SecurityConfig {
         http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(
                 auth -> {
-                    auth.requestMatchers("/auth/**", "/oauth2/**").permitAll();
+                    auth.requestMatchers("/api/auth/**", "/oauth2/**").permitAll();
                     auth.requestMatchers("/api/profile/**").hasAnyRole(ADMIN_ROLE, "USER");
                     auth.requestMatchers("/api/user/**").hasAnyRole(ADMIN_ROLE, "USER");
                     auth.requestMatchers("/api/role/**").hasAnyRole(ADMIN_ROLE);

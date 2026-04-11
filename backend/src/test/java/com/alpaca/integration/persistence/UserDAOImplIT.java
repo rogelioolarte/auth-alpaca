@@ -90,9 +90,9 @@ class UserDAOImplIT {
                 () -> assertEquals(profile.getId(), out.getProfile().getId()),
                 () -> assertEquals(advertiser.getId(), out.getAdvertiser().getId()),
                 () -> assertEquals(update.isEnabled(), out.isEnabled()),
-                () -> assertEquals(update.isAccountNoLocked(), out.isAccountNoLocked()),
-                () -> assertEquals(update.isAccountNoExpired(), out.isAccountNoExpired()),
-                () -> assertEquals(update.isCredentialNoExpired(), out.isCredentialNoExpired()),
+                () -> assertEquals(update.isAccountNonLocked(), out.isAccountNonLocked()),
+                () -> assertEquals(update.isAccountNonExpired(), out.isAccountNonExpired()),
+                () -> assertEquals(update.isCredentialNonExpired(), out.isCredentialNonExpired()),
                 () -> assertEquals(update.isEmailVerified(), out.isEmailVerified()),
                 () -> assertEquals(update.isGoogleConnected(), out.isGoogleConnected()));
 
@@ -187,9 +187,9 @@ class UserDAOImplIT {
         update.setAdvertiser(adv);
 
         update.setEnabled(!persisted.isEnabled());
-        update.setAccountNoLocked(!persisted.isAccountNoLocked());
-        update.setAccountNoExpired(!persisted.isAccountNoExpired());
-        update.setCredentialNoExpired(!persisted.isCredentialNoExpired());
+        update.setAccountNonLocked(!persisted.isAccountNonLocked());
+        update.setAccountNonExpired(!persisted.isAccountNonExpired());
+        update.setCredentialNonExpired(!persisted.isCredentialNonExpired());
         update.setEmailVerified(!persisted.isEmailVerified());
         update.setGoogleConnected(!persisted.isGoogleConnected());
 

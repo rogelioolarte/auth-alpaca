@@ -1,7 +1,8 @@
 package com.alpaca.unit.security.manager;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;

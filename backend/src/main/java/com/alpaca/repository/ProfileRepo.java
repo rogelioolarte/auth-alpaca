@@ -1,6 +1,7 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Profile;
+import java.util.Collection;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,13 @@ public interface ProfileRepo extends GenericRepo<Profile, UUID> {
      */
     @Query("SELECT COUNT(p) FROM Profile p WHERE p.user.id = :userId")
     long countByUserId(@Param("userId") UUID userId);
+
+    /**
+     * Counts the number of entities with the given IDs.
+     *
+     * @param ids The collection of entity IDs to count - must not be null.
+     * @return The number of entities found matching the provided IDs.
+     */
+    @Query("SELECT COUNT(e) FROM Profile e WHERE e.id IN :ids")
+    long countByIds(@Param("ids") Collection<UUID> ids);
 }

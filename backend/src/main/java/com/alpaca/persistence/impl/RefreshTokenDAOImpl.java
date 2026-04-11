@@ -6,10 +6,7 @@ import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RefreshTokenRepo;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -187,5 +184,17 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     @Override
     public List<RefreshToken> findAllByFamilyId(UUID familyId) {
         return repo.findAllByFamilyId(familyId);
+    }
+
+    /**
+     * Verifies whether all entities corresponding to the provided identifiers exist.
+     *
+     * @param is the collection of IDs to check; may be {@code null}
+     * @return {@code true} if the count of matching entities equals the number of IDs provided;
+     *     {@code false} otherwise
+     */
+    @Override
+    public boolean existsAllByIds(Collection<UUID> is) {
+        return (is.size()) == repo.countByIds(is);
     }
 }

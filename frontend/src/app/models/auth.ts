@@ -1,7 +1,6 @@
 export interface AuthRequest {
     email: string
-    password: string,
-    clientId: string
+    password: string
 }
 
 export interface AuthResponse {

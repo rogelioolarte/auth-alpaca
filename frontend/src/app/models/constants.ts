@@ -6,7 +6,7 @@ export const CLIENT_ID = 'clientId';
 export const ACCESS_TOKEN = 'accessToken';
 export const REFRESH_TOKEN = 'refreshToken';
 export const ACCESS_TOKEN_HEADER_KEY = 'Authorization';
-export const CLIENT_ID_HEADER_KEY = 'X-Client-ID';
+export const CLIENT_ID_HEADER_KEY = 'X-Client-Id';
 export const REFRESH_TOKEN_HEADER_KEY = 'X-Refresh-Token';
 
 

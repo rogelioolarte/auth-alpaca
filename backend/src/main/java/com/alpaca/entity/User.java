@@ -45,18 +45,18 @@ public class User extends Auditable {
 
     /** Indicates whether the User's entity is not expired. Defaults to {@code true}. */
     @Builder.Default
-    @Column(name = "account_no_expired", nullable = false)
-    private boolean accountNoExpired = true;
+    @Column(name = "account_non_expired", nullable = false)
+    private boolean accountNonExpired = true;
 
     /** Indicates whether the User's entity is not locked. Defaults to {@code true}. */
     @Builder.Default
-    @Column(name = "account_no_locked", nullable = false)
-    private boolean accountNoLocked = true;
+    @Column(name = "account_non_locked", nullable = false)
+    private boolean accountNonLocked = true;
 
     /** Indicates whether the User's credentials are not expired. Defaults to {@code true}. */
     @Builder.Default
-    @Column(name = "credential_no_expired", nullable = false)
-    private boolean credentialNoExpired = true;
+    @Column(name = "credential_non_expired", nullable = false)
+    private boolean credentialNonExpired = true;
 
     /** Indicates whether the User's email has been verified. Defaults to {@code false}. */
     @Builder.Default
@@ -145,6 +145,10 @@ public class User extends Auditable {
         this.email = email;
         this.password = password;
         this.userRoles = rolesToUserRoles(roles);
+        this.enabled = true;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialNonExpired = true;
     }
 
     /**
@@ -166,9 +170,9 @@ public class User extends Auditable {
         this.email = email;
         this.password = password;
         this.enabled = true;
-        this.accountNoExpired = true;
-        this.accountNoLocked = true;
-        this.credentialNoExpired = true;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialNonExpired = true;
         this.emailVerified = emailVerified;
         this.googleConnected = googleConnected;
         this.userRoles = rolesToUserRoles(roles);
@@ -266,9 +270,9 @@ public class User extends Auditable {
      */
     public boolean isAllowUser() {
         return this.enabled
-                && this.accountNoExpired
-                && this.accountNoLocked
-                && this.credentialNoExpired;
+                && this.accountNonExpired
+                && this.accountNonLocked
+                && this.credentialNonExpired;
     }
 
     @Override
@@ -276,9 +280,9 @@ public class User extends Auditable {
         if (this == o) return true;
         if (!(o instanceof User user)) return false;
         return enabled == user.enabled
-                && accountNoExpired == user.accountNoExpired
-                && accountNoLocked == user.accountNoLocked
-                && credentialNoExpired == user.credentialNoExpired
+                && accountNonExpired == user.accountNonExpired
+                && accountNonLocked == user.accountNonLocked
+                && credentialNonExpired == user.credentialNonExpired
                 && emailVerified == user.emailVerified
                 && googleConnected == user.googleConnected
                 && Objects.equals(email, user.email)
@@ -295,9 +299,9 @@ public class User extends Auditable {
                 email,
                 password,
                 enabled,
-                accountNoExpired,
-                accountNoLocked,
-                credentialNoExpired,
+                accountNonExpired,
+                accountNonLocked,
+                credentialNonExpired,
                 emailVerified,
                 googleConnected,
                 tokensInvalidBefore,

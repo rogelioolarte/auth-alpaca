@@ -4,6 +4,7 @@ import com.alpaca.entity.Session;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -98,4 +99,13 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
             """)
     List<Session> findActiveSessionsByUserOrderByLastSeen(
             @Param("userId") UUID userId, Pageable pageable);
+
+    /**
+     * Counts the number of entities with the given IDs.
+     *
+     * @param ids The collection of entity IDs to count - must not be null.
+     * @return The number of entities found matching the provided IDs.
+     */
+    @Query("SELECT COUNT(e) FROM Session e WHERE e.id IN :ids")
+    long countByIds(@Param("ids") Collection<UUID> ids);
 }

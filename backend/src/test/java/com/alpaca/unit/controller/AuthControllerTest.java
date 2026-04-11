@@ -1,7 +1,8 @@
 package com.alpaca.unit.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.controller.AuthController;
@@ -44,7 +45,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_success_authenticates_setsSecurityContext_and_callsAuthService() throws Exception {
+    void login_success_authenticates_setsSecurityContext_and_callsAuthService() {
         // Arrange
         AuthRequestDTO requestDTO = new AuthRequestDTO("alice@example.com", "s3cret");
         String clientId = "web-client";
@@ -98,7 +99,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_whenAuthenticationManagerThrows_exceptionPropagates() throws Exception {
+    void login_whenAuthenticationManagerThrows_exceptionPropagates() {
         // Arrange
         AuthRequestDTO requestDTO = new AuthRequestDTO("bob@example.com", "password");
         String clientId = "cid";

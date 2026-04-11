@@ -14,7 +14,10 @@ import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -90,9 +93,9 @@ class UserDAOImplTest {
         updateData.setEmail("new@test.com");
         updateData.setPassword("newPass");
         updateData.setEnabled(true);
-        updateData.setAccountNoLocked(true);
-        updateData.setAccountNoExpired(true);
-        updateData.setCredentialNoExpired(true);
+        updateData.setAccountNonLocked(true);
+        updateData.setAccountNonExpired(true);
+        updateData.setCredentialNonExpired(true);
         updateData.setEmailVerified(true);
         updateData.setGoogleConnected(true);
 
@@ -120,9 +123,9 @@ class UserDAOImplTest {
                 () -> assertEquals("new@test.com", result.getEmail()),
                 () -> assertEquals("newPass", result.getPassword()),
                 () -> assertTrue(result.isEnabled()),
-                () -> assertTrue(result.isAccountNoLocked()),
-                () -> assertTrue(result.isAccountNoExpired()),
-                () -> assertTrue(result.isCredentialNoExpired()),
+                () -> assertTrue(result.isAccountNonLocked()),
+                () -> assertTrue(result.isAccountNonExpired()),
+                () -> assertTrue(result.isCredentialNonExpired()),
                 () -> assertTrue(result.isEmailVerified()),
                 () -> assertTrue(result.isGoogleConnected()),
                 () -> assertEquals(roles.size(), result.getUserRoles().size()),

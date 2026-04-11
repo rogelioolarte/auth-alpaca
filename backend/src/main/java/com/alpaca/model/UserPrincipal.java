@@ -77,9 +77,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.username = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
-        this.accountNonLocked = user.isAccountNoLocked();
-        this.accountNonExpired = user.isAccountNoExpired();
-        this.credentialsNonExpired = user.isCredentialNoExpired();
+        this.accountNonLocked = user.isAccountNonLocked();
+        this.accountNonExpired = user.isAccountNonExpired();
+        this.credentialsNonExpired = user.isCredentialNonExpired();
         this.authorities = user.getAuthorities();
         this.attributes = attributes;
     }
@@ -91,9 +91,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.username = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
-        this.accountNonLocked = user.isAccountNoLocked();
-        this.accountNonExpired = user.isAccountNoExpired();
-        this.credentialsNonExpired = user.isCredentialNoExpired();
+        this.accountNonLocked = user.isAccountNonLocked();
+        this.accountNonExpired = user.isAccountNonExpired();
+        this.credentialsNonExpired = user.isCredentialNonExpired();
         this.authorities = user.getAuthorities();
         this.attributes = null;
     }

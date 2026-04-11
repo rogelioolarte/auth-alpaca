@@ -13,7 +13,6 @@ import com.alpaca.security.manager.CookieManager;
 import com.alpaca.security.oauth2.AuthSuccessHandler;
 import com.alpaca.security.oauth2.CookieAuthReqRepo;
 import com.alpaca.service.IAuthService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,9 +35,8 @@ class AuthSuccessHandlerTest {
 
     private static class TestableHandler extends AuthSuccessHandler {
 
-        public TestableHandler(
-                CookieAuthReqRepo repo, List<URI> uris, IAuthService svc, ObjectMapper om) {
-            super(repo, uris, svc, om);
+        public TestableHandler(CookieAuthReqRepo repo, List<URI> uris, IAuthService svc) {
+            super(repo, uris, svc);
         }
 
         public String invokeDetermineTarget(
@@ -49,7 +47,6 @@ class AuthSuccessHandlerTest {
 
     private CookieAuthReqRepo repository;
     private IAuthService authService;
-    private ObjectMapper objectMapper;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
     private Authentication authentication;
@@ -60,7 +57,6 @@ class AuthSuccessHandlerTest {
     void setUp() {
         repository = mock(CookieAuthReqRepo.class);
         authService = mock(IAuthService.class);
-        objectMapper = new ObjectMapper();
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         authentication = mock(Authentication.class);
@@ -76,8 +72,7 @@ class AuthSuccessHandlerTest {
         @Test
         @DisplayName("throws InternalErrorException when no authorizedRedirectUris configured")
         void noAuthorizedRedirectsConfigured() {
-            TestableHandler handler =
-                    new TestableHandler(repository, List.of(), authService, objectMapper);
+            TestableHandler handler = new TestableHandler(repository, List.of(), authService);
             handler.setDefaultTargetUrl(DEFAULT_TARGET);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
@@ -95,10 +90,7 @@ class AuthSuccessHandlerTest {
         void unauthorizedRedirectCookie() {
             TestableHandler handler =
                     new TestableHandler(
-                            repository,
-                            List.of(URI.create("https://allowed.com")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("https://allowed.com")), authService);
 
             Cookie cookie = new Cookie(REDIRECT_COOKIE_NAME, "https://notallowed.com/path");
 
@@ -121,10 +113,7 @@ class AuthSuccessHandlerTest {
         void defaultTargetWhenHostAuthorized() {
             TestableHandler handler =
                     new TestableHandler(
-                            repository,
-                            List.of(URI.create("http://localhost")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("http://localhost")), authService);
 
             handler.setDefaultTargetUrl(DEFAULT_TARGET);
 
@@ -149,10 +138,7 @@ class AuthSuccessHandlerTest {
             String redirectUrl = "http://localhost/path";
             TestableHandler handler =
                     new TestableHandler(
-                            repository,
-                            List.of(URI.create("http://localhost")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("http://localhost")), authService);
 
             try (MockedStatic<com.alpaca.security.manager.CookieManager> cm =
                     mockStatic(com.alpaca.security.manager.CookieManager.class)) {
@@ -180,10 +166,7 @@ class AuthSuccessHandlerTest {
             String redirectUrl = "http://localhost/app";
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository,
-                            List.of(URI.create("http://localhost")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("http://localhost")), authService);
 
             handler.setDefaultTargetUrl(redirectUrl);
 
@@ -206,10 +189,7 @@ class AuthSuccessHandlerTest {
         void doesNothingIfCommitted() throws IOException {
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository,
-                            List.of(URI.create("http://localhost")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("http://localhost")), authService);
 
             MockHttpServletResponse committed =
                     new MockHttpServletResponse() {
@@ -229,10 +209,7 @@ class AuthSuccessHandlerTest {
         void clearAuthAttributesInvoked() throws IOException {
             AuthSuccessHandler handler =
                     new AuthSuccessHandler(
-                            repository,
-                            List.of(URI.create("http://localhost")),
-                            authService,
-                            objectMapper);
+                            repository, List.of(URI.create("http://localhost")), authService);
             handler.setDefaultTargetUrl("http://localhost/home");
             AuthResponseDTO authResp = new AuthResponseDTO("t1", "t2");
             when(authService.login(eq(principal), any(AuthLoginRequestDTO.class)))

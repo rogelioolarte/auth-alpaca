@@ -2,6 +2,7 @@ package com.alpaca.repository;
 
 import com.alpaca.entity.User;
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Lock;
@@ -61,4 +62,13 @@ public interface UserRepo extends GenericRepo<User, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u WHERE u.id = :userId")
     Optional<User> lockFindUserById(@Param("userId") UUID userId);
+
+    /**
+     * Counts the number of entities with the given IDs.
+     *
+     * @param ids The collection of entity IDs to count - must not be null.
+     * @return The number of entities found matching the provided IDs.
+     */
+    @Query("SELECT COUNT(e) FROM User e WHERE e.id IN :ids")
+    long countByIds(@Param("ids") Collection<UUID> ids);
 }

@@ -1,7 +1,8 @@
 package com.alpaca.unit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Profile;
@@ -259,9 +260,9 @@ class OAuth2ServiceImplTest {
     @Test
     void checkExistingUser_whenNotAllowed_throwsUnauthorized() {
         User u = UserProvider.singleEntity();
-        u.setAccountNoExpired(false);
-        u.setAccountNoLocked(false);
-        u.setCredentialNoExpired(false);
+        u.setAccountNonExpired(false);
+        u.setAccountNonLocked(false);
+        u.setCredentialNonExpired(false);
         assertThrows(UnauthorizedException.class, () -> service.checkExistingUser(u, true));
     }
 

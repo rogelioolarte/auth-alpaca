@@ -1,6 +1,7 @@
 package com.alpaca.integration.service;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;

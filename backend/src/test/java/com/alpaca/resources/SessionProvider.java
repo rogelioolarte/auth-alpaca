@@ -2,7 +2,7 @@ package com.alpaca.resources;
 
 import com.alpaca.entity.Session;
 import java.time.Instant;
-import java.util.*;
+import java.util.UUID;
 
 public class SessionProvider {
 

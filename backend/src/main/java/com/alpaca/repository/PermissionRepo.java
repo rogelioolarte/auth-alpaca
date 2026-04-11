@@ -1,8 +1,11 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Permission;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -31,4 +34,13 @@ public interface PermissionRepo extends GenericRepo<Permission, UUID> {
      * @return An {@link Optional} containing the permission if found, otherwise empty.
      */
     Optional<Permission> findByPermissionName(String permissionName);
+
+    /**
+     * Counts the number of entities with the given IDs.
+     *
+     * @param ids The collection of entity IDs to count - must not be null.
+     * @return The number of entities found matching the provided IDs.
+     */
+    @Query("SELECT COUNT(e) FROM Permission e WHERE e.id IN :ids")
+    long countByIds(@Param("ids") Collection<UUID> ids);
 }

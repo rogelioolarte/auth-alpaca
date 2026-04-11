@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.repository.GenericRepo;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -103,5 +104,17 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
             return false;
         }
         return repo.countByUserId(advertiser.getUser().getId()) > 0L;
+    }
+
+    /**
+     * Verifies whether all entities corresponding to the provided identifiers exist.
+     *
+     * @param is the collection of IDs to check; may be {@code null}
+     * @return {@code true} if the count of matching entities equals the number of IDs provided;
+     *     {@code false} otherwise
+     */
+    @Override
+    public boolean existsAllByIds(Collection<UUID> is) {
+        return (is.size()) == repo.countByIds(is);
     }
 }

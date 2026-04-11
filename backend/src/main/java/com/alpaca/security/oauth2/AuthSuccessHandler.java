@@ -10,14 +10,12 @@ import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.CookieManager;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,7 +51,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final CookieAuthReqRepo repository;
     private final Set<URI> authorizedRedirectUris;
     private final IAuthService authService;
-    private final ObjectMapper objectMapper;
+    private final Boolean isProduction;
 
     /**
      * Constructs an {@code AuthSuccessHandler}.
@@ -61,17 +59,20 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      * @param repository cookie-based repository used to manage OAuth2 state cookies
      * @param redirectUris list of URIs authorized for redirection; must not be {@code null}
      * @param authService service used to generate JWT authentication tokens
-     * @param objectMapper configured {@code ObjectMapper} for serializing JSON responses
      */
     public AuthSuccessHandler(
             CookieAuthReqRepo repository,
             @Value("${app.oauth2.authorized-redirect-uri}") @NonNull List<URI> redirectUris,
-            IAuthService authService,
-            ObjectMapper objectMapper) {
+            @Value("${spring.profiles.active}" activeProfile)
+            IAuthService authService) {
+        if(activeProfile == "dev") {
+            this.isProduction = false;
+        } else {
+            this.isProduction = true;
+        }
         this.repository = repository;
         this.authorizedRedirectUris = Set.copyOf(redirectUris);
         this.authService = authService;
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -103,18 +104,27 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                         new AuthLoginRequestDTO(
                                 "",
                                 "",
-                                request.getHeader("X-Client-ID"),
+                                request.getHeader("X-Client-Id"),
                                 request.getHeader("User-Agent"),
                                 Utils.extractClientIP(request)));
-        Map<String, Object> body =
-                Map.of(
-                        "accessToken", authResponse.accessToken(),
-                        "refreshToken", authResponse.refreshToken(),
-                        "targetUrl", targetUrl);
+        Cookie ATC = new Cookie("accessToken", authResponse.accessToken());
+        if(this.isProduction) {
+            ATC.setHttpOnly(true);
+        }
+        ATC.setSecure(true);
+        ATC.setPath("/");
+        response.addCookie(ATC);
+        Cookie RTC = new Cookie("refreshToken", authResponse.refreshToken());
+        if(this.isProduction) {
+            RTC.setHttpOnly(true);
+        }
+        RTC.setSecure(true);
+        RTC.setPath("/");
+        response.addCookie(RTC);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        objectMapper.writeValue(response.getWriter(), body);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     /**

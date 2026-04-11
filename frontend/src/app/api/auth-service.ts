@@ -9,22 +9,33 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class APIAuthService {
   private http = inject(HttpClient)
 
-  login(request: AuthRequest):Observable<AuthResponse>  {
-    return this.http.post<AuthResponse>(`${environment.API_URL}/auth/login`, request)
+  login(request: AuthRequest, cliendID: string):Observable<AuthResponse>  {
+    return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/login`, request, { 
+      headers: new HttpHeaders({ [CLIENT_ID_HEADER_KEY]: cliendID })
+     })
   }
 
   logout(refreshToken: string, clientId: string): Observable<void> {
-    return this.http.post<void>(`${environment.API_URL}/auth/logout`, null, 
+    return this.http.post<void>(`${environment.API_URL}/api/auth/logout`, null, 
       { headers: new HttpHeaders({ 
           [REFRESH_TOKEN_HEADER_KEY]: refreshToken, [CLIENT_ID_HEADER_KEY]: clientId
         })
       })
   }
 
+  rotateTokens(refreshToken: string, clientId: string) {
+    return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/rotate`, null, { 
+      headers : new HttpHeaders({
+        [REFRESH_TOKEN_HEADER_KEY]: refreshToken,
+        [CLIENT_ID_HEADER_KEY]: clientId
+      })
+    })
+  }
+
   getUserInfo(): Observable<User> {
-    return this.http.get<User>(`${environment.API_URL}/auth/me`)
+    return this.http.get<User>(`${environment.API_URL}/api/auth/me`)
   }
 }

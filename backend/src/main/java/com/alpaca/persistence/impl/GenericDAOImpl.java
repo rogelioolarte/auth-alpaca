@@ -126,18 +126,6 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
         return getRepo().existsById(i);
     }
 
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<I> is) {
-        return (is.size()) == getRepo().countByIds(is);
-    }
-
     public <V> void updateIfNotNull(V existing, V incoming, Consumer<V> setter) {
         if (incoming != null && !incoming.equals(existing)) {
             setter.accept(incoming);

@@ -6,10 +6,7 @@ import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -157,5 +154,17 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     @Override
     public List<Session> findActiveSessionsByUserOrderByLastSeen(UUID userId, Pageable pageable) {
         return repo.findActiveSessionsByUserOrderByLastSeen(userId, pageable);
+    }
+
+    /**
+     * Verifies whether all entities corresponding to the provided identifiers exist.
+     *
+     * @param is the collection of IDs to check; may be {@code null}
+     * @return {@code true} if the count of matching entities equals the number of IDs provided;
+     *     {@code false} otherwise
+     */
+    @Override
+    public boolean existsAllByIds(Collection<UUID> is) {
+        return (is.size()) == repo.countByIds(is);
     }
 }

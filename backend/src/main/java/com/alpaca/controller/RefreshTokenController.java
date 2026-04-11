@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class RefreshTokenController {
 
@@ -25,7 +25,7 @@ public class RefreshTokenController {
     @PostMapping("/rotate")
     public ResponseEntity<AuthResponseDTO> rotateRefreshToken(
             @RequestHeader("X-Refresh-Token") String refreshToken,
-            @RequestHeader("X-Client-ID") String clientId,
+            @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
 

@@ -7,5 +7,16 @@ export interface User {
     accountNonExpired: boolean,
     accountNonLocked: boolean,
     credentialsNonExpired: boolean,
-    authorities: string[],
+    authorities: Authority[],
+}
+
+export interface Authority {
+  authority: string
+}
+
+export enum AuthProvider {
+  local = 'local',
+  google = 'google',
+  github = 'github',
+  provider = 'provider'
 }
