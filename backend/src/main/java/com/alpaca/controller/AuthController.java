@@ -3,11 +3,14 @@ package com.alpaca.controller;
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,7 @@ public class AuthController {
 
     private final IAuthService authService;
     private final AuthenticationManager manager;
+    private final TokenExchangeManager exchangeManager;
 
     /**
      * Authenticates a user based on provided credentials.
@@ -99,6 +103,20 @@ public class AuthController {
             HttpServletRequest request) {
         authService.logout(refreshToken, clientId, userAgent, Utils.extractClientIP(request));
         return ResponseEntity.ok("{\"message\":\"Logout successful\"}");
+    }
+
+    @PostMapping("/exchange")
+    public ResponseEntity<AuthResponseDTO> exchangeToken(@RequestBody Map<String, String> request) {
+        String code = request.get("code");
+
+        if (code == null || code.isEmpty()) {
+            throw new UnauthorizedException("Exchange code is required");
+        }
+
+        return exchangeManager
+                .consumeCode(code)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new UnauthorizedException("Code invalid or expired"));
     }
 
     /**

@@ -8,6 +8,7 @@ import com.alpaca.exception.InternalErrorException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.CookieManager;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.Cookie;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -52,6 +52,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final Set<URI> authorizedRedirectUris;
     private final IAuthService authService;
     private final Boolean isProduction;
+    private final TokenExchangeManager exchangeManager;
 
     /**
      * Constructs an {@code AuthSuccessHandler}.
@@ -64,11 +65,13 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             CookieAuthReqRepo repository,
             @Value("${app.oauth2.authorized-redirect-uri}") @NonNull List<URI> redirectUris,
             @Value("${spring.profiles.active}") @NonNull String activeProfile,
-            IAuthService authService) {
+            IAuthService authService,
+            TokenExchangeManager exchangeManager) {
         this.isProduction = !activeProfile.equalsIgnoreCase("dev");
         this.repository = repository;
         this.authorizedRedirectUris = Set.copyOf(redirectUris);
         this.authService = authService;
+        this.exchangeManager = exchangeManager;
     }
 
     /**
@@ -103,24 +106,14 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
                                 request.getHeader("X-Client-Id"),
                                 request.getHeader("User-Agent"),
                                 Utils.extractClientIP(request)));
-        Cookie ATC = new Cookie("accessToken", authResponse.accessToken());
-        if (this.isProduction) {
-            ATC.setHttpOnly(true);
-        }
-        ATC.setSecure(true);
-        ATC.setPath("/");
-        response.addCookie(ATC);
-        Cookie RTC = new Cookie("refreshToken", authResponse.refreshToken());
-        if (this.isProduction) {
-            RTC.setHttpOnly(true);
-        }
-        RTC.setSecure(true);
-        RTC.setPath("/");
-        response.addCookie(RTC);
+        String exchangeCode = this.exchangeManager.createExchangeCode(authResponse);
+        String finalRedirectURL =
+                UriComponentsBuilder.fromUriString(targetUrl)
+                        .queryParam("code", exchangeCode)
+                        .build()
+                        .toUriString();
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        getRedirectStrategy().sendRedirect(request, response, finalRedirectURL);
     }
 
     /**

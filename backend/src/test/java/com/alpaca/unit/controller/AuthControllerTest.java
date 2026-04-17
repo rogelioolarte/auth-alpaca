@@ -10,6 +10,7 @@ import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -29,13 +30,15 @@ class AuthControllerTest {
 
     private IAuthService authService;
     private AuthenticationManager authenticationManager;
+    private TokenExchangeManager tokenExchangeManager;
     private AuthController controller;
 
     @BeforeEach
     void setUp() {
         authService = mock(IAuthService.class);
         authenticationManager = mock(AuthenticationManager.class);
-        controller = new AuthController(authService, authenticationManager);
+        tokenExchangeManager = mock(TokenExchangeManager.class);
+        controller = new AuthController(authService, authenticationManager, tokenExchangeManager);
     }
 
     @AfterEach

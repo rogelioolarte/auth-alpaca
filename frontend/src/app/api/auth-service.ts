@@ -35,6 +35,10 @@ export class APIAuthService {
     })
   }
 
+  exchangeCode(code : string) {
+    return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/exchange`, { code })
+  }
+
   getUserInfo(): Observable<User> {
     return this.http.get<User>(`${environment.API_URL}/api/auth/me`)
   }

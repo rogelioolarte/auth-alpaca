@@ -166,4 +166,13 @@ export class AuthService {
     }
   }
 
+  public exchangeCode(code: string) {
+    return this.authService.exchangeCode(code).pipe(tap({
+      next: (i) => {
+        this.cleanStates()
+        this.setAuthTokens(i, false)
+      }
+    }))
+  }
+
 }
