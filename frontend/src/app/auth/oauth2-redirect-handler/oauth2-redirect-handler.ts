@@ -34,12 +34,13 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
         })
       } else if(code && !error) {
         this.authService.exchangeCode(code)
-          .pipe(takeUntil(this.destroy)).subscribe()
+          .pipe(takeUntil(this.destroy))
+          .subscribe(() => {
+            this.authService.recoverStates()
+            this.router.navigate(['/dashboard/profile', this.authProvider], { 
+              state: { from: this.router.routerState.snapshot.url } })
+          } )
       } else {
-        /* this.authService.recoverStates()
-        this.router.navigate(['/dashboard/profile', this.authProvider], { 
-          state: { from: this.router.routerState.snapshot.url } 
-        }) */
         console.log("Error while processign logging")
       }
     })

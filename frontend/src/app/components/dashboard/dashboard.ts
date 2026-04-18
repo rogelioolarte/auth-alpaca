@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '../../auth/auth-service';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import {MatToolbar} from "@angular/material/toolbar";
@@ -33,13 +33,14 @@ export class Dashboard implements OnInit, OnDestroy {
   private authService = inject(AuthService)
   public readonly isAuthenticated = toSignal(this.authService.isAuthenticated())
   private destroy = new Subject<void>()
+  private readonly router = inject(Router)
 
   ngOnInit() {
     this.authService.setUserInfo().pipe(takeUntil(this.destroy)).subscribe()
   }
 
   logout() {
-    this.authService.logout().subscribe()
+    this.authService.logout().subscribe(() => this.router.navigateByUrl('/login'))
   }
 
   ngOnDestroy() {

@@ -8,6 +8,8 @@ import { DecodeTokens, JWTTokens, TokenDecode } from '../models/decode';
 import { jwtDecode } from 'jwt-decode'
 import { v7, validate, version } from 'uuid'
 import { APIAuthService } from '../api/auth-service';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,7 @@ import { APIAuthService } from '../api/auth-service';
 export class AuthService {
   private storage = inject(CookieService)
   private authService = inject(APIAuthService)
+  private readonly router = inject(Router)
   private destroy = new Subject<void>()
 
   // Useful for Auth Interceptor
@@ -124,14 +127,19 @@ export class AuthService {
     this.storage.delete(ACCESS_TOKEN, "/", undefined, true, "Lax")
     this.storage.delete(REFRESH_TOKEN, "/", undefined, true, "Lax")
     this.storage.delete(CLIENT_ID, "/", undefined, true, "Lax")
+    const newClientID = v7()
+    this.storage.set(CLIENT_ID, newClientID, undefined, "/", undefined, true, "Lax")
+    this.clientId.next(newClientID)
   }
 
   public logout(): Observable<void> {
     return this.getJWTState().pipe(
       filter(i => i[0] != null && i[1] != null), 
       switchMap((v) => this.authService.logout(v[0]?.refresh || "", v[1] || "")),
-      tap({ next: () => this.cleanStates() })
-    )
+      tap({ 
+        next: () => this.cleanStates(), 
+        error: (error: HttpErrorResponse) => error.status === 400 && this.cleanStates()
+      }))
   }
 
   public rotateTokens() {
