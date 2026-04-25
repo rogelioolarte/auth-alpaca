@@ -28,7 +28,7 @@ public class Advertiser extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "advertiser_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The title or name of the Advertiser. This field cannot be null. */

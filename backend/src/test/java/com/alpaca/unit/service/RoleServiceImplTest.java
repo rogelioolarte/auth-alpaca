@@ -41,17 +41,17 @@ class RoleServiceImplTest {
     // --- getUserRoles ---
     @Test
     void getUserRolesCaseOne() {
-        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
+        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> service.getUserRoles());
-        verify(dao).findByRoleName(secondEntity.getRoleName());
+        verify(dao).findByRoleName(secondEntity.getName());
     }
 
     @Test
     void getUserRolesCaseTwo() {
-        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.of(secondEntity));
+        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.of(secondEntity));
         Set<Role> entitiesFound = service.getUserRoles();
         assertEquals(new HashSet<>(Set.of(secondEntity)), entitiesFound);
-        verify(dao).findByRoleName(secondEntity.getRoleName());
+        verify(dao).findByRoleName(secondEntity.getName());
     }
 
     // --- findByRoleName ---
@@ -67,17 +67,16 @@ class RoleServiceImplTest {
 
     @Test
     void findByRoleNameCaseThree() {
-        when(dao.findByRoleName(secondEntity.getRoleName())).thenReturn(Optional.empty());
-        assertThrows(
-                NotFoundException.class, () -> service.findByRoleName(secondEntity.getRoleName()));
-        verify(dao).findByRoleName(secondEntity.getRoleName());
+        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> service.findByRoleName(secondEntity.getName()));
+        verify(dao).findByRoleName(secondEntity.getName());
     }
 
     @Test
     void findByRoleNameCaseFour() {
-        when(dao.findByRoleName(firstEntity.getRoleName())).thenReturn(Optional.of(firstEntity));
-        Role entityFound = service.findByRoleName(firstEntity.getRoleName());
+        when(dao.findByRoleName(firstEntity.getName())).thenReturn(Optional.of(firstEntity));
+        Role entityFound = service.findByRoleName(firstEntity.getName());
         assertEquals(firstEntity, entityFound);
-        verify(dao).findByRoleName(firstEntity.getRoleName());
+        verify(dao).findByRoleName(firstEntity.getName());
     }
 }

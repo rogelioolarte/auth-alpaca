@@ -35,7 +35,7 @@ public class Session extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "session_id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     /** The {@link User} this session belongs to. Many sessions may belong to a single user. */

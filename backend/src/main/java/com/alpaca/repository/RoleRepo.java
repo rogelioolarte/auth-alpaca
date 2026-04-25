@@ -25,7 +25,7 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
      * @param roleName The name of the role.
      * @return An {@link Optional} containing the role if found, otherwise empty.
      */
-    Optional<Role> findByRoleName(String roleName);
+    Optional<Role> findByName(String roleName);
 
     /**
      * Checks whether a role with the specified name exists.
@@ -33,7 +33,7 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
      * @param roleName The name of the role to check - must not be null.
      * @return {@code true} if a role with the given name exists, {@code false} otherwise.
      */
-    boolean existsByRoleName(String roleName);
+    boolean existsByName(String roleName);
 
     /**
      * Counts the number of entities with the given IDs.

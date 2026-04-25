@@ -19,7 +19,7 @@ public interface IRoleService extends IGenericService<Role, UUID> {
      *
      * @param roleName The name of the role - must not be null.
      * @return The {@code Role} entity if found.
-     * @throws BadRequestException if the roleName is null.
+     * @throws BadRequestException if the name is null.
      * @throws NotFoundException if the entity is not found.
      */
     Role findByRoleName(String roleName);

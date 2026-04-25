@@ -27,7 +27,7 @@ public class User extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "user_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The User's email address. This field is unique and cannot be null. */
@@ -238,12 +238,12 @@ public class User extends Auditable {
         Set<String> seen = new HashSet<>();
         List<GrantedAuthority> authorities = new ArrayList<>();
         for (UserRole userRole : userRoles) {
-            String roleKey = ROLE_KEY_AUTHORITY + userRole.getRole().getRoleName();
+            String roleKey = ROLE_KEY_AUTHORITY + userRole.getRole().getName();
             if (seen.add(roleKey)) {
                 authorities.add(new SimpleGrantedAuthority(roleKey));
             }
             for (Permission permission : userRole.getRole().getPermissions()) {
-                String permKey = permission.getPermissionName();
+                String permKey = permission.getName();
                 if (seen.add(permKey)) {
                     authorities.add(new SimpleGrantedAuthority(permKey));
                 }

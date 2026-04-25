@@ -23,16 +23,16 @@ public class Role extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "role_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The name of the Role. This field is unique and cannot be null. */
-    @Column(name = "role_name", nullable = false, unique = true)
-    private String roleName;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
     /** A brief description of the Role. This field is unique and cannot be null. */
-    @Column(name = "role_description", nullable = false, unique = true)
-    private String roleDescription;
+    @Column(name = "description", nullable = false, unique = true)
+    private String description;
 
     /**
      * Indicates the set of Permission has the Role.
@@ -65,13 +65,13 @@ public class Role extends Auditable {
      * Constructs an instance of a new Role object with the specified attributes. The generated
      * object is ready to be used and stored in the database.
      *
-     * @param roleName Name of the Role - must not be null
-     * @param roleDescription Short description of the Role - must not be null
+     * @param name Name of the Role - must not be null
+     * @param description Short description of the Role - must not be null
      * @param permissions Set of permissions associated with this Role
      */
-    public Role(String roleName, String roleDescription, Set<Permission> permissions) {
-        this.roleName = roleName;
-        this.roleDescription = roleDescription;
+    public Role(String name, String description, Set<Permission> permissions) {
+        this.name = name;
+        this.description = description;
         this.rolePermissions = permissionsToRolePermissions(permissions);
     }
 
@@ -117,14 +117,14 @@ public class Role extends Auditable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Role role)) return false;
-        return Objects.equals(roleName, role.roleName)
-                && Objects.equals(roleDescription, role.roleDescription)
+        return Objects.equals(name, role.name)
+                && Objects.equals(description, role.description)
                 && Objects.equals(rolePermissions, role.rolePermissions)
                 && Objects.equals(userRoles, role.userRoles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(roleName, roleDescription, rolePermissions, userRoles);
+        return Objects.hash(name, description, rolePermissions, userRoles);
     }
 }

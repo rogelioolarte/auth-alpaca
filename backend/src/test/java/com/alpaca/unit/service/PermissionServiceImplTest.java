@@ -236,8 +236,7 @@ class PermissionServiceImplTest {
         ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
         ArgumentCaptor<Permission> permissionCaptor = ArgumentCaptor.forClass(Permission.class);
         verify(dao).updateById(permissionCaptor.capture(), idCaptor.capture());
-        assertEquals(
-                secondEntity.getPermissionName(), permissionCaptor.getValue().getPermissionName());
+        assertEquals(secondEntity.getName(), permissionCaptor.getValue().getName());
     }
 
     // --- deleteById ---

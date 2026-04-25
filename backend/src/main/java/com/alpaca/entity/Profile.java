@@ -28,7 +28,7 @@ public class Profile extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "profile_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The first name of the Profile. This field cannot be null. */

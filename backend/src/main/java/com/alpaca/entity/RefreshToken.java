@@ -35,7 +35,7 @@ public class RefreshToken extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "refresh_token_id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     /**

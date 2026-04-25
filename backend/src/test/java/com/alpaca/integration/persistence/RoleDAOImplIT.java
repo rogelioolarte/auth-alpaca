@@ -53,7 +53,7 @@ class RoleDAOImplIT {
         assertTrue(dao.findByRoleName(null).isEmpty(), "null should return empty Optional");
         assertTrue(dao.findByRoleName("  ").isEmpty(), "blank should return empty Optional");
 
-        Optional<Role> found = dao.findByRoleName(saved.getRoleName());
+        Optional<Role> found = dao.findByRoleName(saved.getName());
         assertTrue(found.isPresent(), "existing role name must be found");
         assertEquals(saved.getId(), found.get().getId());
     }
@@ -66,8 +66,8 @@ class RoleDAOImplIT {
 
         // full update: new name, description and a permission
         Role request = new Role();
-        request.setRoleName("NEW_ROLE_NAME");
-        request.setRoleDescription("New description");
+        request.setName("NEW_ROLE_NAME");
+        request.setDescription("New description");
 
         Permission newPermission = permissionRepo.save(new Permission("PERM1"));
         // Depending on your entity model, set of permissions might require wrapper RolePermission
@@ -80,8 +80,8 @@ class RoleDAOImplIT {
 
         Role out = dao.updateById(request, id);
         assertEquals(id, out.getId());
-        assertEquals("NEW_ROLE_NAME", out.getRoleName());
-        assertEquals("New description", out.getRoleDescription());
+        assertEquals("NEW_ROLE_NAME", out.getName());
+        assertEquals("New description", out.getDescription());
 
         // assert permissions updated — adapt assertion depending on Role/RolePermission model
         assertNotNull(out.getRolePermissions());
@@ -89,13 +89,13 @@ class RoleDAOImplIT {
 
         // partial update: blank and null ignored
         Role partial = new Role();
-        partial.setRoleName("PARTIAL_NAME");
+        partial.setName("PARTIAL_NAME");
         // description left null, permissions empty
         Role outPartial = dao.updateById(partial, id);
-        assertEquals("PARTIAL_NAME", outPartial.getRoleName());
+        assertEquals("PARTIAL_NAME", outPartial.getName());
         assertEquals(
-                out.getRoleDescription(),
-                outPartial.getRoleDescription(),
+                out.getDescription(),
+                outPartial.getDescription(),
                 "description must remain unchanged");
         assertEquals(
                 out.getRolePermissions(),
@@ -112,25 +112,25 @@ class RoleDAOImplIT {
     void existsByUniqueProperties() {
         // missing name or desc -> false
         Role r1 = new Role();
-        r1.setRoleName(null);
-        r1.setRoleDescription("Desc");
+        r1.setName(null);
+        r1.setDescription("Desc");
         assertFalse(dao.existsByUniqueProperties(r1));
 
         Role r2 = new Role();
-        r2.setRoleName("Name");
-        r2.setRoleDescription("  ");
+        r2.setName("Name");
+        r2.setDescription("  ");
         assertFalse(dao.existsByUniqueProperties(r2));
 
         // valid but not saved -> false
         Role r3 = new Role();
-        r3.setRoleName("UNKNOWN");
-        r3.setRoleDescription("Some desc");
+        r3.setName("UNKNOWN");
+        r3.setDescription("Some desc");
         assertFalse(dao.existsByUniqueProperties(r3));
 
         // saved case -> true
         Role exists = new Role();
-        exists.setRoleName(saved.getRoleName());
-        exists.setRoleDescription(saved.getRoleDescription());
+        exists.setName(saved.getName());
+        exists.setDescription(saved.getDescription());
         assertTrue(dao.existsByUniqueProperties(exists));
     }
 }

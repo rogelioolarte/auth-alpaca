@@ -64,9 +64,7 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
                                                         getEntity().getName(), id.toString())));
 
         updateTextIfExists(
-                existingPermission.getPermissionName(),
-                permission.getPermissionName(),
-                existingPermission::setPermissionName);
+                existingPermission.getName(), permission.getName(), existingPermission::setName);
         return save(existingPermission);
     }
 
@@ -78,10 +76,10 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
      */
     @Override
     public boolean existsByUniqueProperties(Permission permission) {
-        if (permission.getPermissionName() == null || permission.getPermissionName().isBlank()) {
+        if (permission.getName() == null || permission.getName().isBlank()) {
             return false;
         }
-        return repo.existsByPermissionName(permission.getPermissionName());
+        return repo.existsByName(permission.getName());
     }
 
     /**
@@ -92,7 +90,7 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
      */
     @Override
     public Optional<Permission> findByPermissionName(String permissionName) {
-        return repo.findByPermissionName(permissionName);
+        return repo.findByName(permissionName);
     }
 
     /**

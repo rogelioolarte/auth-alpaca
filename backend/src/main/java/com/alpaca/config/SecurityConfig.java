@@ -73,10 +73,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                 auth -> {
                     auth.requestMatchers("/api/auth/**", "/oauth2/**").permitAll();
-                    auth.requestMatchers("/api/profile/**").hasAnyRole(ADMIN_ROLE, "USER");
-                    auth.requestMatchers("/api/user/**").hasAnyRole(ADMIN_ROLE, "USER");
-                    auth.requestMatchers("/api/role/**").hasAnyRole(ADMIN_ROLE);
-                    auth.requestMatchers("/api/permission/**").hasAnyRole(ADMIN_ROLE);
+                    auth.requestMatchers("/api/profiles/**").hasAnyRole(ADMIN_ROLE, "USER");
+                    auth.requestMatchers("/api/users/**").hasAnyRole(ADMIN_ROLE, "USER");
+                    auth.requestMatchers("/api/roles/**").hasAnyRole(ADMIN_ROLE);
+                    auth.requestMatchers("/api/permissions/**").hasAnyRole(ADMIN_ROLE);
                     auth.anyRequest().denyAll();
                 });
         http.oauth2Login(

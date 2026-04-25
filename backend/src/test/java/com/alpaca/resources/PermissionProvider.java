@@ -11,8 +11,8 @@ public class PermissionProvider {
     public static List<Permission> listEntities() {
         return new ArrayList<>(
                 List.of(
-                        new Permission(singleEntity().getPermissionName()),
-                        new Permission(alternativeEntity().getPermissionName())));
+                        new Permission(singleEntity().getName()),
+                        new Permission(alternativeEntity().getName())));
     }
 
     public static List<PermissionRequestDTO> listRequest() {
@@ -50,17 +50,11 @@ public class PermissionProvider {
     }
 
     public static Permission singleTemplate() {
-        return Permission.builder()
-                .permissionName("CREATE")
-                .rolePermissions(Collections.emptySet())
-                .build();
+        return Permission.builder().name("CREATE").rolePermissions(Collections.emptySet()).build();
     }
 
     public static Permission alternativeTemplate() {
-        return Permission.builder()
-                .permissionName("READ")
-                .rolePermissions(Collections.emptySet())
-                .build();
+        return Permission.builder().name("READ").rolePermissions(Collections.emptySet()).build();
     }
 
     public static List<Permission> listTemplates() {

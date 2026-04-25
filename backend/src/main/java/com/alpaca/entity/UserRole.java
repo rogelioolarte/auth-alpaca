@@ -32,7 +32,7 @@ public class UserRole {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "user_role_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The User associated with this UserRole. This field cannot be null. */

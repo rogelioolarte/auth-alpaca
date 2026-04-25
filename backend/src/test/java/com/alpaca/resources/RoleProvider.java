@@ -30,8 +30,8 @@ public class RoleProvider {
 
     public static Role singleTemplate() {
         return Role.builder()
-                .roleName("ADMIN")
-                .roleDescription("It's an admin")
+                .name("ADMIN")
+                .description("It's an admin")
                 .rolePermissions(null)
                 .userRoles(null)
                 .build();
@@ -39,8 +39,8 @@ public class RoleProvider {
 
     public static Role alternativeTemplate() {
         return Role.builder()
-                .roleName("USER")
-                .roleDescription("It's an user")
+                .name("USER")
+                .description("It's an user")
                 .rolePermissions(null)
                 .userRoles(null)
                 .build();

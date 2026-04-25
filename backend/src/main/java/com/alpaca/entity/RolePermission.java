@@ -32,7 +32,7 @@ public class RolePermission {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "role_permission_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The Role associated with this RolePermission. This field cannot be null. */

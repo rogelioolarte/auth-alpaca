@@ -27,12 +27,12 @@ public class Permission extends Auditable {
      */
     @Id
     @GeneratorUUIDv7
-    @Column(name = "permission_id")
+    @Column(name = "id")
     private UUID id;
 
     /** The name of the Permission. This field is unique and cannot be null. */
-    @Column(name = "permission_name", unique = true, nullable = false)
-    private String permissionName;
+    @Column(name = "name", unique = true, nullable = false)
+    private String name;
 
     @Builder.Default
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -42,22 +42,22 @@ public class Permission extends Auditable {
      * Constructs an instance of a new Permission object with the specified attributes. The
      * generated object is ready to be used and stored in the database.
      *
-     * @param permissionName Name of the Permission - must not be null
+     * @param name Name of the Permission - must not be null
      */
-    public Permission(String permissionName) {
-        this.permissionName = permissionName;
+    public Permission(String name) {
+        this.name = name;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Permission that)) return false;
-        return Objects.equals(permissionName, that.permissionName)
+        return Objects.equals(name, that.name)
                 && Objects.equals(rolePermissions, that.rolePermissions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(permissionName, rolePermissions);
+        return Objects.hash(name, rolePermissions);
     }
 }

@@ -39,13 +39,9 @@ class PermissionMapperImplTest {
         assertNotNull(permissionPage);
         assertEquals(Pageable.unpaged(), permissionPage.getPageable());
         assertEquals(entities.getFirst().getId(), permissionPage.getContent().getFirst().id());
-        assertEquals(
-                entities.getFirst().getPermissionName(),
-                permissionPage.getContent().getFirst().permissionName());
+        assertEquals(entities.getFirst().getName(), permissionPage.getContent().getFirst().name());
         assertEquals(entities.getLast().getId(), permissionPage.getContent().getLast().id());
-        assertEquals(
-                entities.getLast().getPermissionName(),
-                permissionPage.getContent().getLast().permissionName());
+        assertEquals(entities.getLast().getName(), permissionPage.getContent().getLast().name());
     }
 
     @Test
@@ -56,7 +52,7 @@ class PermissionMapperImplTest {
         PermissionResponseDTO responseDTO = mapper.toResponseDTO(permission);
         assertNotNull(responseDTO);
         assertEquals(permission.getId(), responseDTO.id());
-        assertEquals(permission.getPermissionName(), responseDTO.permissionName());
+        assertEquals(permission.getName(), responseDTO.name());
     }
 
     @Test
@@ -66,7 +62,7 @@ class PermissionMapperImplTest {
         Permission permission = mapper.toEntity(PermissionProvider.singleRequest());
         PermissionRequestDTO permissionRequestDTO = PermissionProvider.singleRequest();
         assertNotNull(permission);
-        assertEquals(permissionRequestDTO.getPermissionName(), permission.getPermissionName());
+        assertEquals(permissionRequestDTO.getName(), permission.getName());
     }
 
     @Test
@@ -79,10 +75,8 @@ class PermissionMapperImplTest {
         List<PermissionResponseDTO> responseDTOS = mapper.toListResponseDTO(entities);
         assertNotNull(responseDTOS);
         assertEquals(entities.getFirst().getId(), responseDTOS.getFirst().id());
-        assertEquals(
-                entities.getFirst().getPermissionName(), responseDTOS.getFirst().permissionName());
+        assertEquals(entities.getFirst().getName(), responseDTOS.getFirst().name());
         assertEquals(entities.getLast().getId(), responseDTOS.getLast().id());
-        assertEquals(
-                entities.getLast().getPermissionName(), responseDTOS.getLast().permissionName());
+        assertEquals(entities.getLast().getName(), responseDTOS.getLast().name());
     }
 }

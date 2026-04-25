@@ -205,17 +205,17 @@ class PermissionDAOImplTest {
                 String newName = "NEW_PERMISSION_NAME";
                 Permission existing = new Permission();
                 existing.setId(firstEntity.getId());
-                existing.setPermissionName("OLD_NAME");
+                existing.setName("OLD_NAME");
 
                 Permission incoming = new Permission();
-                incoming.setPermissionName(newName);
+                incoming.setName(newName);
 
                 when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(existing));
                 when(repo.save(existing)).thenReturn(existing);
 
                 Permission result = dao.updateById(incoming, firstEntity.getId());
 
-                assertThat(result.getPermissionName()).isEqualTo(newName);
+                assertThat(result.getName()).isEqualTo(newName);
                 verify(repo).save(existing);
             }
 
@@ -223,23 +223,23 @@ class PermissionDAOImplTest {
             @DisplayName("Should NOT update name when incoming is blank or same")
             void updateById_NoActionOnBlankOrSame() {
                 Permission existing = spy(new Permission());
-                existing.setPermissionName("CONSTANT_NAME");
+                existing.setName("CONSTANT_NAME");
 
                 when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(existing));
                 when(repo.save(existing)).thenReturn(existing);
 
                 // Case 1: Same name
                 Permission sameName = new Permission();
-                sameName.setPermissionName("CONSTANT_NAME");
+                sameName.setName("CONSTANT_NAME");
                 dao.updateById(sameName, firstEntity.getId());
 
                 // Case 2: Blank name
                 Permission blankName = new Permission();
-                blankName.setPermissionName("   ");
+                blankName.setName("   ");
                 dao.updateById(blankName, firstEntity.getId());
 
                 // Verify setter was never called with these values
-                verify(existing, never()).setPermissionName("   ");
+                verify(existing, never()).setName("   ");
             }
         }
 
@@ -253,15 +253,15 @@ class PermissionDAOImplTest {
                 Permission p = new Permission();
 
                 // Null branch
-                p.setPermissionName(null);
+                p.setName(null);
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
 
                 // Empty branch
-                p.setPermissionName("");
+                p.setName("");
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
 
                 // Blank branch
-                p.setPermissionName("     ");
+                p.setName("     ");
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
 
                 verifyNoInteractions(repo);
@@ -271,12 +271,12 @@ class PermissionDAOImplTest {
             @DisplayName("Should return true/false based on repo when name is valid")
             void existsByUniqueProperties_ValidName() {
                 Permission p = new Permission();
-                p.setPermissionName("VALID_NAME");
+                p.setName("VALID_NAME");
 
-                when(repo.existsByPermissionName("VALID_NAME")).thenReturn(true);
+                when(repo.existsByName("VALID_NAME")).thenReturn(true);
                 assertThat(dao.existsByUniqueProperties(p)).isTrue();
 
-                when(repo.existsByPermissionName("VALID_NAME")).thenReturn(false);
+                when(repo.existsByName("VALID_NAME")).thenReturn(false);
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
             }
         }
@@ -289,7 +289,7 @@ class PermissionDAOImplTest {
             @DisplayName("Should return optional with entity when found")
             void findByPermissionName_Found() {
                 String name = "SEARCH_ME";
-                when(repo.findByPermissionName(name)).thenReturn(Optional.of(firstEntity));
+                when(repo.findByName(name)).thenReturn(Optional.of(firstEntity));
 
                 Optional<Permission> result = dao.findByPermissionName(name);
 
@@ -300,7 +300,7 @@ class PermissionDAOImplTest {
             @DisplayName("Should return empty optional when not found")
             void findByPermissionName_NotFound() {
                 String name = "NOT_EXIST";
-                when(repo.findByPermissionName(name)).thenReturn(Optional.empty());
+                when(repo.findByName(name)).thenReturn(Optional.empty());
 
                 Optional<Permission> result = dao.findByPermissionName(name);
 

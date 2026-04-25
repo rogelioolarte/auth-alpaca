@@ -58,7 +58,7 @@ class RoleDAOImplTest {
         @DisplayName("Should call repository when role name is valid")
         void findByRoleName_Valid() {
             String name = "USER";
-            when(repo.findByRoleName(name)).thenReturn(Optional.of(firstEntity));
+            when(repo.findByName(name)).thenReturn(Optional.of(firstEntity));
             assertThat(dao.findByRoleName(name)).isPresent();
         }
     }
@@ -148,21 +148,21 @@ class RoleDAOImplTest {
             Role role = new Role();
 
             // 1. Name is null
-            role.setRoleName(null);
-            role.setRoleDescription("Valid");
+            role.setName(null);
+            role.setDescription("Valid");
             assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
             // 2. Name is blank (Empty/Spaces)
-            role.setRoleName("   ");
+            role.setName("   ");
             assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
             // 3. Description is null
-            role.setRoleName("Valid");
-            role.setRoleDescription(null);
+            role.setName("Valid");
+            role.setDescription(null);
             assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
             // 4. Description is blank
-            role.setRoleDescription("  ");
+            role.setDescription("  ");
             assertThat(dao.existsByUniqueProperties(role)).isFalse();
 
             verifyNoInteractions(repo);
@@ -172,10 +172,10 @@ class RoleDAOImplTest {
         @DisplayName("Should call repository when all unique properties are present")
         void existsByUniqueProperties_Valid() {
             Role validRole = new Role();
-            validRole.setRoleName("ADMIN");
-            validRole.setRoleDescription("Administrator");
+            validRole.setName("ADMIN");
+            validRole.setDescription("Administrator");
 
-            when(repo.existsByRoleName("ADMIN")).thenReturn(true);
+            when(repo.existsByName("ADMIN")).thenReturn(true);
             assertThat(dao.existsByUniqueProperties(validRole)).isTrue();
         }
     }

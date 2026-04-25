@@ -136,7 +136,7 @@ class PermissionServiceImplIT {
 
         assertNotNull(saved);
         assertNotNull(saved.getId());
-        assertEquals(alternativeTemplate.getPermissionName(), saved.getPermissionName());
+        assertEquals(alternativeTemplate.getName(), saved.getName());
     }
 
     // ------------------------------------------------
@@ -194,7 +194,7 @@ class PermissionServiceImplIT {
 
         assertNotNull(updated);
         assertEquals(original.getId(), updated.getId());
-        assertEquals(updateData.getPermissionName(), updated.getPermissionName());
+        assertEquals(updateData.getName(), updated.getName());
     }
 
     // ------------------------------------------------

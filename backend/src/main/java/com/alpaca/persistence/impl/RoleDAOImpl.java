@@ -53,7 +53,7 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
         if (roleName == null || roleName.isBlank()) {
             return Optional.empty();
         }
-        return repo.findByRoleName(roleName);
+        return repo.findByName(roleName);
     }
 
     /**
@@ -77,12 +77,9 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
 
+        updateTextIfExists(existingRole.getName(), role.getName(), existingRole::setName);
         updateTextIfExists(
-                existingRole.getRoleName(), role.getRoleName(), existingRole::setRoleName);
-        updateTextIfExists(
-                existingRole.getRoleDescription(),
-                role.getRoleDescription(),
-                existingRole::setRoleDescription);
+                existingRole.getDescription(), role.getDescription(), existingRole::setDescription);
         if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
             existingRole.setRolePermissions(role.getPermissions());
         }
@@ -99,13 +96,13 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
      */
     @Override
     public boolean existsByUniqueProperties(Role role) {
-        if (role.getRoleName() == null
-                || role.getRoleName().isBlank()
-                || role.getRoleDescription() == null
-                || role.getRoleDescription().isBlank()) {
+        if (role.getName() == null
+                || role.getName().isBlank()
+                || role.getDescription() == null
+                || role.getDescription().isBlank()) {
             return false;
         }
-        return repo.existsByRoleName(role.getRoleName());
+        return repo.existsByName(role.getName());
     }
 
     /**

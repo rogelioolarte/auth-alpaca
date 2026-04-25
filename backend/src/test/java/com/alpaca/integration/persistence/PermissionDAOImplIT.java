@@ -78,7 +78,7 @@ class PermissionDAOImplIT {
         Permission p = new Permission(null, "NEW_PERMISSION", Collections.emptySet());
         Permission saved = dao.save(p);
         assertNotNull(saved.getId(), "Saved entity must have an id");
-        assertEquals("NEW_PERMISSION", saved.getPermissionName());
+        assertEquals("NEW_PERMISSION", saved.getName());
 
         // saveAll
         Permission x = new Permission(null, "X_PERM", Collections.emptySet());
@@ -97,28 +97,22 @@ class PermissionDAOImplIT {
 
         // update existing (change name)
         Permission update = new Permission();
-        update.setPermissionName("UPDATED_NAME");
+        update.setName("UPDATED_NAME");
         Permission updated = dao.updateById(update, id);
         assertEquals(id, updated.getId());
-        assertEquals("UPDATED_NAME", updated.getPermissionName());
+        assertEquals("UPDATED_NAME", updated.getName());
 
         // update with null name -> should keep current name unchanged
         Permission nullUpdate = new Permission();
-        nullUpdate.setPermissionName(null);
+        nullUpdate.setName(null);
         Permission afterNullUpdate = dao.updateById(nullUpdate, id);
-        assertEquals(
-                "UPDATED_NAME",
-                afterNullUpdate.getPermissionName(),
-                "Null update must not overwrite");
+        assertEquals("UPDATED_NAME", afterNullUpdate.getName(), "Null update must not overwrite");
 
         // update with blank name -> should keep current name unchanged
         Permission blankUpdate = new Permission();
-        blankUpdate.setPermissionName("   ");
+        blankUpdate.setName("   ");
         Permission afterBlankUpdate = dao.updateById(blankUpdate, id);
-        assertEquals(
-                "UPDATED_NAME",
-                afterBlankUpdate.getPermissionName(),
-                "Blank update must not overwrite");
+        assertEquals("UPDATED_NAME", afterBlankUpdate.getName(), "Blank update must not overwrite");
 
         // update non-existing -> NotFoundException
         UUID missing = UUID.randomUUID();
@@ -188,7 +182,7 @@ class PermissionDAOImplIT {
 
         repo.save(unsaved);
         Permission check = new Permission();
-        check.setPermissionName("UNIQUE_TEST");
+        check.setName("UNIQUE_TEST");
         assertTrue(dao.existsByUniqueProperties(check));
     }
 
@@ -197,7 +191,7 @@ class PermissionDAOImplIT {
     @Transactional
     void findByPermissionName() {
         Permission saved = repo.save(singleEntity);
-        Optional<Permission> opt = dao.findByPermissionName(saved.getPermissionName());
+        Optional<Permission> opt = dao.findByPermissionName(saved.getName());
         assertTrue(opt.isPresent());
         assertEquals(saved, opt.get());
 
@@ -217,15 +211,15 @@ class PermissionDAOImplIT {
         UUID id = saved.getId();
 
         // change name and save using DAO.save (should perform update)
-        saved.setPermissionName("SAVED_UPDATED");
+        saved.setName("SAVED_UPDATED");
         Permission updated = dao.save(saved);
         assertEquals(id, updated.getId());
-        assertEquals("SAVED_UPDATED", updated.getPermissionName());
+        assertEquals("SAVED_UPDATED", updated.getName());
 
         // ensure repository reflects the updated name
         Optional<Permission> reload = repo.findById(id);
         assertTrue(reload.isPresent());
-        assertEquals("SAVED_UPDATED", reload.get().getPermissionName());
+        assertEquals("SAVED_UPDATED", reload.get().getName());
     }
 
     @Test

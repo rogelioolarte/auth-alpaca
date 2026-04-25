@@ -44,8 +44,8 @@ class RoleServiceImplIT {
     @Transactional
     void getUserRoles_whenUserRoleExists_thenReturnSetContainingUserRole() {
         Role roleToSave = RoleProvider.singleTemplate();
-        roleToSave.setRoleName("USER");
-        roleToSave.setRoleDescription("Default user role for tests");
+        roleToSave.setName("USER");
+        roleToSave.setDescription("Default user role for tests");
         roleToSave.setRolePermissions(new HashSet<>());
 
         Role saved = service.save(roleToSave);
@@ -73,20 +73,20 @@ class RoleServiceImplIT {
     void findByRoleName_whenNotFound_thenThrowNotFound() {
         assertThrows(
                 NotFoundException.class,
-                () -> service.findByRoleName(alternativeTemplate.getRoleName()));
+                () -> service.findByRoleName(alternativeTemplate.getName()));
     }
 
     @Test
     @Transactional
     void findByRoleName_whenExists_thenReturnRole() {
         Role toSave = RoleProvider.singleTemplate();
-        toSave.setRoleName(firstTemplate.getRoleName());
-        toSave.setRoleDescription(firstTemplate.getRoleDescription());
+        toSave.setName(firstTemplate.getName());
+        toSave.setDescription(firstTemplate.getDescription());
         toSave.setRolePermissions(new HashSet<>());
 
         Role saved = service.save(toSave);
 
-        Role found = service.findByRoleName(firstTemplate.getRoleName());
+        Role found = service.findByRoleName(firstTemplate.getName());
         assertEquals(saved, found);
     }
 }

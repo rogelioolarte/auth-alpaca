@@ -135,7 +135,7 @@ class OAuth2ServiceImplIT {
     void registerOrLoginOAuth2_whenNewUser_thenRegisterAndReturnUserPrincipal() {
         // Ensure default role "USER" exists (getUserRoles uses findByRoleName("USER"))
         Role role = RoleProvider.singleTemplate();
-        role.setRoleName("USER");
+        role.setName("USER");
         role.setRolePermissions(Collections.emptySet());
         roleService.save(role);
 
