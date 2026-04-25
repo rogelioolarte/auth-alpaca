@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { AuthProvider } from '../../models/user';
-import { AuthService } from '../../auth/auth-service';
+import { AuthProvider } from '../../../models/user';
+import { AuthenticationService } from '../../../auth/authentication-service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
@@ -37,7 +37,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class Profile implements OnInit {
   public authProvider = AuthProvider.provider
-  private authService = inject(AuthService)
+  private authService = inject(AuthenticationService)
   private route = inject(ActivatedRoute)
   public readonly userInfo = toSignal(this.authService.getUserInfo())
 

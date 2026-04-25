@@ -1,9 +1,9 @@
 import {Routes} from '@angular/router';
 import { Oauth2RedirectHandler } from './auth/oauth2-redirect-handler/oauth2-redirect-handler';
 import { authGuard } from './auth/auth-guard';
-import { Dashboard } from './components/dashboard/dashboard';
-import { Login } from './components/login/login';
-import { Profile } from './components/profile/profile';
+import { Dashboard } from './components/pages/dashboard/dashboard';
+import { Login } from './components/pages/login/login';
+import { Profile } from './components/pages/profile/profile';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login'},

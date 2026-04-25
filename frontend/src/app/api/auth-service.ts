@@ -1,16 +1,15 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { REFRESH_TOKEN_HEADER_KEY, CLIENT_ID_HEADER_KEY } from '../models/constants';
-import { AuthRequest, AuthResponse } from '../models/auth';
+import { AuthRequest, AuthResponse, UserAuth } from '../models/auth';
 import { Observable } from 'rxjs';
-import { User } from '../models/user';
 import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
-export class APIAuthService {
-  private http = inject(HttpClient)
+export class AuthService {
+  private readonly http = inject(HttpClient)
 
   login(request: AuthRequest, cliendID: string):Observable<AuthResponse>  {
     return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/login`, request, { 
@@ -26,7 +25,7 @@ export class APIAuthService {
       })
   }
 
-  rotateTokens(refreshToken: string, clientId: string) {
+  rotateTokens(refreshToken: string, clientId: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/rotate`, null, { 
       headers : new HttpHeaders({
         [REFRESH_TOKEN_HEADER_KEY]: refreshToken,
@@ -35,11 +34,11 @@ export class APIAuthService {
     })
   }
 
-  exchangeCode(code : string) {
+  exchangeCode(code : string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/exchange`, { code })
   }
 
-  getUserInfo(): Observable<User> {
-    return this.http.get<User>(`${environment.API_URL}/api/auth/me`)
+  getUserInfo(): Observable<UserAuth> {
+    return this.http.get<UserAuth>(`${environment.API_URL}/api/auth/me`)
   }
 }

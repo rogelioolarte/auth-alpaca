@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { AuthService } from '../../auth/auth-service';
+import { AuthenticationService } from '../../../auth/authentication-service';
 import { Router, RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
@@ -30,7 +30,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   styles: ``,
 })
 export class Dashboard implements OnInit, OnDestroy {
-  private authService = inject(AuthService)
+  private authService = inject(AuthenticationService)
   public readonly isAuthenticated = toSignal(this.authService.isAuthenticated())
   private destroy = new Subject<void>()
   private readonly router = inject(Router)

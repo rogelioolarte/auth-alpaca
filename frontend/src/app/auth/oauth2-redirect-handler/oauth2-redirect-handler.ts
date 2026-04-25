@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../auth-service';
+import { AuthenticationService } from '../authentication-service';
 import { ToastrService } from 'ngx-toastr';
 import { AuthProvider } from '../../models/user';
 import { Subject, takeUntil } from 'rxjs';
@@ -14,7 +14,7 @@ import { Subject, takeUntil } from 'rxjs';
 export class Oauth2RedirectHandler implements OnInit, OnDestroy {
   private router = inject(Router)
   private route = inject(ActivatedRoute)
-  private authService = inject(AuthService)
+  private authService = inject(AuthenticationService)
   private toastService = inject(ToastrService)
   private authProvider = AuthProvider.provider
   private destroy = new Subject<void>()

@@ -1,18 +1,18 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { APIAuthService } from '../../api/auth-service';
-import { AuthService } from '../../auth/auth-service';
+import { AuthService } from '../../../api/auth-service';
+import { AuthenticationService } from '../../../auth/authentication-service';
 import { ToastrService } from 'ngx-toastr';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from "@angular/material/card";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatInput } from "@angular/material/input";
-import { AuthProvider } from '../../models/user';
+import { AuthProvider } from '../../../models/user';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../models/constants';
-import { GoogleIcon } from "../icons/google-icon/google-icon";
+import { GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../models/constants';
+import { GoogleIcon } from "../../icons/google-icon/google-icon";
 
 
 @Component({
@@ -37,8 +37,8 @@ import { GoogleIcon } from "../icons/google-icon/google-icon";
 export class Login implements OnInit {
   private router = inject(Router)
   private formBuilder = inject(FormBuilder)
-  private apiAuthService = inject(APIAuthService)
-  private authService = inject(AuthService)
+  private apiAuthService = inject(AuthService)
+  private authService = inject(AuthenticationService)
   private toastService = inject(ToastrService)
   public readonly clientId = toSignal(this.authService.getClientID())
   public readonly ProviderGoogle = AuthProvider.google

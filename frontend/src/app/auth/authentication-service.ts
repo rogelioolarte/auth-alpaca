@@ -1,22 +1,21 @@
 import { inject, Injectable } from '@angular/core';
-import { User } from '../models/user';
-import { AuthResponse } from '../models/auth';
+import { AuthResponse, UserAuth } from '../models/auth';
 import { ACCESS_TOKEN, CLIENT_ID, REFRESH_TOKEN } from '../models/constants';
 import { CookieService } from 'ngx-cookie-service'
 import { BehaviorSubject, catchError, combineLatest, distinctUntilChanged, EMPTY, filter, first, map, Observable, shareReplay, Subject, Subscription, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { DecodeTokens, JWTTokens, TokenDecode } from '../models/decode';
 import { jwtDecode } from 'jwt-decode'
 import { v7, validate, version } from 'uuid'
-import { APIAuthService } from '../api/auth-service';
+import { AuthService } from '../api/auth-service';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthenticationService {
   private storage = inject(CookieService)
-  private authService = inject(APIAuthService)
+  private authService = inject(AuthService)
   private readonly router = inject(Router)
   private destroy = new Subject<void>()
 
@@ -29,7 +28,7 @@ export class AuthService {
   private clientId = new BehaviorSubject<string | null>(null)
 
   // Personal Info of User
-  private currentUser = new BehaviorSubject<User | null>(null)
+  private currentUser = new BehaviorSubject<UserAuth | null>(null)
 
   // Access Token Timer
   private ATTimer?: Subscription
@@ -78,7 +77,7 @@ export class AuthService {
     )
   }
 
-  public getUserInfo(): Observable<User | null> {
+  public getUserInfo(): Observable<UserAuth | null> {
     return this.currentUser.asObservable().pipe(
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true })
@@ -155,7 +154,7 @@ export class AuthService {
     )
   }
 
-  public setUserInfo(): Observable<User> {
+  public setUserInfo(): Observable<UserAuth> {
     return this.getJWTState().pipe(
       filter(i => i[0] != null && i[1] != null), 
       switchMap(i => this.authService.getUserInfo()),
