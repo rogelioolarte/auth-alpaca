@@ -32,7 +32,10 @@ public class ProfileRequestDTO {
     @NotBlank(message = "Avatar URL is required.")
     private String avatarUrl;
 
-    @UUID(message = "UUID format is required.")
+    @UUID(
+            message = "UUID format is required.",
+            allowNil = false,
+            version = {7})
     @NotBlank(message = "User is required.")
     private String userId;
 }

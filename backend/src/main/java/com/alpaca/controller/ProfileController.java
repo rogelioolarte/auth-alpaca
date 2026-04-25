@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -56,6 +57,7 @@ public class ProfileController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.profileId == null")
     @PostMapping
     public ResponseEntity<ProfileResponseDTO> save(@Valid @RequestBody ProfileRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,6 +75,7 @@ public class ProfileController {
      * @throws NotFoundException if no profile is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.profileId == #id")
     @PutMapping("/{id}")
     public ResponseEntity<ProfileResponseDTO> updateById(
             @Valid @RequestBody ProfileRequestDTO request, @PathVariable UUID id) {
@@ -87,6 +90,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no profile is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.profileId == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);

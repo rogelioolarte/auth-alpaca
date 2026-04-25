@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -56,6 +57,7 @@ public class UserController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserResponseDTO> save(@Valid @RequestBody UserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,6 +75,7 @@ public class UserController {
      * @throws NotFoundException if no user is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateById(
             @Valid @RequestBody UserRequestDTO request, @PathVariable UUID id) {
@@ -87,6 +90,7 @@ public class UserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no user is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);

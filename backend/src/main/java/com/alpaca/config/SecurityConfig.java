@@ -17,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -40,12 +41,12 @@ import org.springframework.web.client.RestClient;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private static final String O_AUTH_2_BASE_URI = "/oauth2/authorize";
     private static final String O_AUTH_2_REDIRECTION_END_POINT = "/oauth2/callback/*";
-    private static final String ADMIN_ROLE = "ADMIN";
 
     private final JJwtManager jwtManager;
     private final PasswordManager passwordManager;
@@ -73,10 +74,11 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                 auth -> {
                     auth.requestMatchers("/api/auth/**", "/oauth2/**").permitAll();
-                    auth.requestMatchers("/api/profiles/**").hasAnyRole(ADMIN_ROLE, "USER");
-                    auth.requestMatchers("/api/users/**").hasAnyRole(ADMIN_ROLE, "USER");
-                    auth.requestMatchers("/api/roles/**").hasAnyRole(ADMIN_ROLE);
-                    auth.requestMatchers("/api/permissions/**").hasAnyRole(ADMIN_ROLE);
+                    auth.requestMatchers("/api/advertisers/**").authenticated();
+                    auth.requestMatchers("/api/profiles/**").authenticated();
+                    auth.requestMatchers("/api/users/**").authenticated();
+                    auth.requestMatchers("/api/roles/**").hasAnyRole("ADMIN");
+                    auth.requestMatchers("/api/permissions/**").hasAnyRole("ADMIN");
                     auth.anyRequest().denyAll();
                 });
         http.oauth2Login(

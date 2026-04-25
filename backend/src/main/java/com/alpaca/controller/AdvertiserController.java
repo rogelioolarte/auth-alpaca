@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -56,6 +57,7 @@ public class AdvertiserController {
      *     status {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.advertiser == null")
     @PostMapping
     public ResponseEntity<AdvertiserResponseDTO> save(
             @Valid @RequestBody AdvertiserRequestDTO request) {
@@ -74,6 +76,7 @@ public class AdvertiserController {
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.advertiserId == #id")
     @PutMapping("/{id}")
     public ResponseEntity<AdvertiserResponseDTO> updateById(
             @Valid @RequestBody AdvertiserRequestDTO request, @PathVariable UUID id) {
@@ -88,6 +91,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.advertiserId == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);

@@ -42,7 +42,10 @@ public class AdvertiserRequestDTO {
     @NotNull(message = "Indexed State is required.")
     private boolean indexed;
 
-    @UUID(message = "UUID format is required.")
+    @UUID(
+            message = "UUID format is required.",
+            allowNil = false,
+            version = {7})
     @NotBlank(message = "User is required.")
     private String userId;
 }

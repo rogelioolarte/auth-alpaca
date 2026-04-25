@@ -7,6 +7,7 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
+import com.alpaca.utils.IsAuthenticated;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -126,6 +127,7 @@ public class AuthController {
      * @return {@link ResponseEntity} containing the {@link UserPrincipal} with status {@link
      *     HttpStatus#OK} or {@link HttpStatus#UNAUTHORIZED} if the user is not authenticated
      */
+    @IsAuthenticated
     @GetMapping("/me")
     public ResponseEntity<UserPrincipal> getCurrentUser(
             @AuthenticationPrincipal UserPrincipal user) {
