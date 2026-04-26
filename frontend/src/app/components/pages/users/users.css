@@ -1,38 +1,43 @@
+/* ========================================
+   USERS PAGE - Premium UI Styles
+   Using rem (16px base)
+   ======================================== */
+
 .content {
-  margin: 2rem 1rem 0rem 1rem;
+    margin: 2rem 1rem 0;
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-  h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 400;
-  }
+    h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
 }
 
 .search-field {
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 16px;
+    width: 100%;
+    max-width: 25rem;
+    margin-bottom: 1rem;
 }
 
 .users-table {
-  width: 100%;
-  margin-bottom: 16px;
+    width: 100%;
+    margin-bottom: 1rem;
 }
 
 mat-paginator {
-  background: transparent;
+    background: transparent;
 }
 
 mat-chip {
-  margin: 2px;
+    margin: 0.125rem;
 }
 
 .empty-field {
-  color: var(--mat-sys-outline);
+    color: var(--mat-sys-outline);
 }

@@ -1,1 +1,10 @@
-/* You can add global styles to this file, and also import other style files */
+/* ========================================
+   Global Application Styles
+   ======================================== */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}

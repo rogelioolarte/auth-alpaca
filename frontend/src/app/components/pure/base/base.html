@@ -1,55 +1,63 @@
 <mat-sidenav-container class="dashboard-container">
   @if (isInDashboard()) {
     <mat-sidenav mode="side" [opened]="sidenavOpened()" class="dashboard-sidenav">
-      <div class="sidenav-header">
-        <h2>Dashboard</h2>
-      </div>
-      <mat-nav-list>
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
-          <mat-icon matListItemIcon>dashboard</mat-icon>
-          <span matListItemTitle>Dashboard</span>
-        </a>
-        <a mat-list-item routerLink="/dashboard/profile" routerLinkActive="active">
-          <mat-icon matListItemIcon>person</mat-icon>
-          <span matListItemTitle>My Profile</span>
-        </a>
-        <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active">
-          <mat-icon matListItemIcon>campaign</mat-icon>
-          <span matListItemTitle>My Advertiser</span>
-        </a>
-        <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank">
-          <mat-icon matListItemIcon>public</mat-icon>
-          <span matListItemTitle>Public Site</span>
-        </a>
+      <div class="sidenav-container">
+        <div class="sidenav-header">
+          <h2>Dashboard</h2>
+        </div>
+        
+        <mat-nav-list class="sidenav-nav">
+          <a mat-list-item routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Dashboard</span>
+          </a>
+          <a mat-list-item routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item">
+            <mat-icon matListItemIcon>person</mat-icon>
+            <span matListItemTitle>My Profile</span>
+          </a>
+          <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active" class="nav-item">
+            <mat-icon matListItemIcon>campaign</mat-icon>
+            <span matListItemTitle>My Advertiser</span>
+          </a>
+          <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank" class="nav-item">
+            <mat-icon matListItemIcon>public</mat-icon>
+            <span matListItemTitle>Public Site</span>
+          </a>
 
-        @if (isAdmin()) {
-          <a mat-list-item routerLink="/dashboard/permissions" routerLinkActive="active">
-            <mat-icon matListItemIcon>lock</mat-icon>
-            <span matListItemTitle>Permissions</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/roles" routerLinkActive="active">
-            <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-            <span matListItemTitle>Roles</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/users" routerLinkActive="active">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Users</span>
-          </a>
-        }
-        <!-- Logout -->
-        <button mat-menu-item (click)="logout()" class="menu-item logout">
-          <mat-icon class="item-icon">logout</mat-icon>
-          <span class="item-text">Sign Out</span>
-        </button>
-      </mat-nav-list>
+          @if (isAdmin()) {
+            <div class="nav-divider"></div>
+            <span class="nav-section-label">Administration</span>
+            
+            <a mat-list-item routerLink="/dashboard/permissions" routerLinkActive="active" class="nav-item">
+              <mat-icon matListItemIcon>lock</mat-icon>
+              <span matListItemTitle>Permissions</span>
+            </a>
+            <a mat-list-item routerLink="/dashboard/roles" routerLinkActive="active" class="nav-item">
+              <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+              <span matListItemTitle>Roles</span>
+            </a>
+            <a mat-list-item routerLink="/dashboard/users" routerLinkActive="active" class="nav-item">
+              <mat-icon matListItemIcon>people</mat-icon>
+              <span matListItemTitle>Users</span>
+            </a>
+          }
+          
+          <div class="nav-divider"></div>
+          
+          <button mat-list-item (click)="logout()" class="nav-item logout">
+            <mat-icon matListItemIcon>logout</mat-icon>
+            <span matListItemTitle>Sign Out</span>
+          </button>
+        </mat-nav-list>
+      </div>
     </mat-sidenav>
   }
 
-  <mat-sidenav-content>
+  <mat-sidenav-content class="main-content">
     <app-navbar [(sidenavOpened)]="sidenavOpened" />
 
-    <div class="dashboard-content">
+    <main class="page-content">
       <router-outlet></router-outlet>
-    </div>
+    </main>
   </mat-sidenav-content>
 </mat-sidenav-container>

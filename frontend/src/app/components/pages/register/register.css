@@ -1,6 +1,6 @@
 /* ========================================
    REGISTER PAGE - Premium UI Styles
-   (Similar to Login)
+   Using rem (16px base)
    ======================================== */
 
 .login-container {
@@ -22,52 +22,52 @@
 .bg-shape {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(6.25rem);
   opacity: 0.2;
 }
 
 .bg-shape-1 {
-  width: 600px;
-  height: 600px;
+  width: 37.5rem;
+  height: 37.5rem;
   background: var(--mat-sys-primary);
-  top: -200px;
-  right: -100px;
+  top: -12.5rem;
+  right: -6.25rem;
 }
 
 .bg-shape-2 {
-  width: 500px;
-  height: 500px;
+  width: 31.25rem;
+  height: 31.25rem;
   background: var(--mat-sys-tertiary);
-  bottom: -200px;
-  left: -100px;
+  bottom: -12.5rem;
+  left: -6.25rem;
 }
 
 .login-content {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 480px;
-  padding: 32px;
+  max-width: 30rem;
+  padding: 2rem;
 }
 
 .login-brand {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 2.5rem;
 }
 
 .brand-link {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   text-decoration: none;
   color: var(--mat-sys-on-surface);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 600;
 
   mat-icon {
-    font-size: 32px;
-    width: 32px;
-    height: 32px;
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
     color: var(--mat-sys-primary);
   }
 }
@@ -75,43 +75,43 @@
 /* Login Card */
 .login-card {
   background: var(--mat-sys-surface-container-high);
-  border-radius: 24px;
-  padding: 48px 40px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  border-radius: 1.5rem;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 0.5rem 2.5rem rgba(0, 0, 0, 0.12);
 }
 
 .card-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 2rem;
 }
 
 .brand-decoration {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.25rem;
   background: var(--mat-sys-tertiary-container);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
+  margin: 0 auto 1.5rem;
 
   mat-icon {
-    font-size: 32px;
-    width: 32px;
-    height: 32px;
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
     color: var(--mat-sys-on-tertiary-container);
   }
 }
 
 .card-header h1 {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 600;
   color: var(--mat-sys-on-surface);
-  margin: 0 0 8px;
+  margin: 0 0 0.5rem;
 }
 
 .card-header p {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--mat-sys-on-surface-variant);
   margin: 0;
 }
@@ -119,54 +119,54 @@
 /* Form Fields */
 .form-field {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 
   mat-icon[matPrefix] {
-    margin-right: 12px;
+    margin-right: 0.75rem;
     color: var(--mat-sys-on-surface-variant);
   }
 }
 
 mat-form-field {
-  --mdc-outlined-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-container-shape: 0.75rem;
 }
 
 /* Error Alert */
 .error-alert {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   background: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
-  border-radius: 12px;
-  margin-bottom: 16px;
-  font-size: 14px;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
 
   mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 }
 
 /* Submit Button */
 .submit-btn {
   width: 100%;
-  height: 52px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 3.25rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
   cursor: pointer;
   border: none;
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
     background: var(--mat-sys-primary-container);
@@ -182,12 +182,12 @@ mat-form-field {
 /* Card Footer */
 .card-footer {
   text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
 
   p {
-    font-size: 14px;
+    font-size: 0.875rem;
     color: var(--mat-sys-on-surface-variant);
     margin: 0;
   }
@@ -207,39 +207,39 @@ mat-form-field {
 .login-info {
   display: flex;
   justify-content: center;
-  gap: 32px;
-  margin-top: 40px;
+  gap: 2rem;
+  margin-top: 2.5rem;
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
   color: var(--mat-sys-on-surface-variant);
 
   mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
   }
 }
 
 /* ========================================
    RESPONSIVE
    ======================================== */
-@media (max-width: 480px) {
+@media (max-width: 30rem) {
   .login-content {
-    padding: 24px;
+    padding: 1.5rem;
   }
 
   .login-card {
-    padding: 32px 24px;
+    padding: 2rem 1.5rem;
   }
 
   .login-info {
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 1rem;
   }
 }

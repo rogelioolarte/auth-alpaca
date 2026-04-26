@@ -31,7 +31,7 @@ export class Base {
   public readonly isAuthenticated = toSignal(this.authService.isAuthenticated());
   public readonly user = toSignal(this.authService.getUserInfo());
   public readonly isAdmin = toSignal(this.authService.isAdmin());
-  public sidenavOpened = signal(true);
+  public sidenavOpened = signal(false);
   public isInDashboard = toSignal(
     this.platformService.actualRoute().pipe(map((i) => i.includes('/dashboard'))),
   );
