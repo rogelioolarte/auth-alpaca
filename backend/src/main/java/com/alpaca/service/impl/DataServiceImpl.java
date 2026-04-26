@@ -110,22 +110,22 @@ public class DataServiceImpl implements DataService {
                                 new HashSet<>(Set.of(userRole))));
 
         profileService.save(
-                new Profile("Admin", "Last", "https://foto.admin.com", "av admin 01", adminUser));
+                new Profile("Admin", "Last", "av admin 01", "https://foto.admin.com", adminUser));
         profileService.save(
-                new Profile("User", "Last", "https://foto.user.com", "av user 01", userUser));
+                new Profile("User", "Last", "av user 01", "https://foto.user.com", userUser));
         profileService.save(
                 new Profile(
                         "Manager",
                         "Last",
-                        "https://foto.invited.com",
                         "av manager 01",
+                        "https://foto.invited.com",
                         managerUser));
         profileService.save(
                 new Profile(
                         "Testing Profile",
                         "Last",
-                        "https://foto.testing.com",
                         "av testing 01",
+                        "https://foto.testing.com",
                         testGoogleUser));
     }
 
