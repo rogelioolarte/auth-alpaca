@@ -1,0 +1,121 @@
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+export interface PermissionDialogData {
+  mode: 'create' | 'edit';
+  permission?: {
+    id: string;
+    name: string;
+  };
+}
+
+@Component({
+  selector: 'app-permission-dialog',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ],
+  template: `
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <h2>{{ data.mode === 'create' ? 'Create Permission' : 'Edit Permission' }}</h2>
+        <button mat-icon-button (click)="onCancel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="permissionForm" (ngSubmit)="onSubmit()">
+        <mat-dialog-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g., READ_USERS" />
+            @if (permissionForm.get('name')?.hasError('required')) {
+              <mat-error>Name is required</mat-error>
+            }
+          </mat-form-field>
+        </mat-dialog-content>
+
+        <mat-dialog-actions align="end">
+          <button mat-button type="button" (click)="onCancel()">Cancel</button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="permissionForm.invalid || saving()"
+          >
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ data.mode === 'create' ? 'Create' : 'Save' }}
+            }
+          </button>
+        </mat-dialog-actions>
+      </form>
+    </div>
+  `,
+  styles: [
+    `
+      .dialog-container {
+        min-width: 400px;
+      }
+      .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+        h2 {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 500;
+        }
+      }
+      mat-dialog-content {
+        padding: 24px;
+      }
+      .full-width {
+        width: 100%;
+      }
+      mat-dialog-actions {
+        padding: 16px 24px;
+        gap: 8px;
+      }
+    `,
+  ],
+})
+export class PermissionDialog {
+  permissionForm: FormGroup;
+  saving = signal(false);
+  private fb = inject(FormBuilder);
+  private dialogRef = inject(MatDialogRef<PermissionDialog>);
+  public data: PermissionDialogData = inject(MAT_DIALOG_DATA);
+
+  constructor() {
+    this.permissionForm = this.fb.group({
+      name: [this.data.permission?.name || '', Validators.required],
+    });
+  }
+
+  onSubmit() {
+    if (this.permissionForm.valid) {
+      this.saving.set(true);
+      this.dialogRef.close(this.permissionForm.value);
+    }
+  }
+
+  onCancel() {
+    this.dialogRef.close();
+  }
+}

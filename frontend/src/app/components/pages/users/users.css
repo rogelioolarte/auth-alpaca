@@ -1,0 +1,38 @@
+.content {
+  margin: 2rem 1rem 0rem 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 400;
+  }
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+
+.users-table {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+mat-paginator {
+  background: transparent;
+}
+
+mat-chip {
+  margin: 2px;
+}
+
+.empty-field {
+  color: var(--mat-sys-outline);
+}

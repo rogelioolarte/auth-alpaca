@@ -215,7 +215,7 @@ class SessionDAOImplIT {
 
         Optional<Session> result =
                 dao.findByUniqueProperties(
-                        saved.getUser().getId(), saved.getUserAgent(), saved.getClientId());
+                        saved.getUser().getId(), saved.getUserAgent(), saved.getClientId(), null);
 
         assertTrue(result.isPresent());
     }
@@ -225,7 +225,7 @@ class SessionDAOImplIT {
     void findByUniquePropertiesNotFound() {
 
         Optional<Session> result =
-                dao.findByUniqueProperties(UUID.randomUUID(), "unknown", "client");
+                dao.findByUniqueProperties(UUID.randomUUID(), "unknown", "client", "ipAddress");
 
         assertTrue(result.isEmpty());
     }

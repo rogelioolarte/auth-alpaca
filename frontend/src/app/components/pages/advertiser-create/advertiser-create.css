@@ -1,0 +1,39 @@
+.page-container {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+h1 {
+  margin-bottom: 24px;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.advertiser-card {
+  margin-bottom: 24px;
+}
+
+mat-card-content {
+  padding: 24px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.toggle-field {
+  margin: 24px 0;
+}
+
+.form-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}

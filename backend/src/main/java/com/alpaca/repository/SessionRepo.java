@@ -64,14 +64,16 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
               SELECT s
                 FROM Session s
                WHERE s.user.id = :userId
-                 AND s.userAgent = :userAgent
-                 AND s.clientId = :clientId
-                 AND s.revoked = false
+                  AND s.userAgent = :userAgent
+                  AND (:clientId IS NULL OR s.clientId = :clientId)
+                  AND (:ipAddress IS NULL OR s.ipAddress = :ipAddress)
+                  AND s.revoked = false
             """)
     Optional<Session> findByUniqueProperties(
             @Param("userId") UUID userId,
             @Param("userAgent") String userAgent,
-            @Param("clientId") String clientId);
+            @Param("clientId") String clientId,
+            @Param("ipAddress") String ipAddress);
 
     @Query(
             """
@@ -79,13 +81,15 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
                 FROM Session s
                WHERE s.user.id = :userId
                  AND s.userAgent = :userAgent
-                 AND s.clientId = :clientId
+                 AND (:clientId IS NULL OR s.clientId = :clientId)
+                 AND (:ipAddress IS NULL OR s.ipAddress = :ipAddress)
                  AND s.revoked = false
             """)
     long countByUniqueProperties(
             @Param("userId") UUID userId,
             @Param("userAgent") String userAgent,
-            @Param("clientId") String clientId);
+            @Param("clientId") String clientId,
+            @Param("ipAddress") String ipAddress);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))

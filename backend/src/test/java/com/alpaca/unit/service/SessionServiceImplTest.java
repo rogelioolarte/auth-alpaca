@@ -48,7 +48,7 @@ class SessionServiceImplTest {
     @BeforeEach
     void setUp() {
         // normal valid maxSessionsPerUser = 10
-        service = new SessionServiceImpl(dao, userDAO, refreshTokenDAO, uuidv7Generator, 10);
+        service = new SessionServiceImpl(dao, userDAO, refreshTokenDAO, uuidv7Generator, 10, false);
         testUser = UserProvider.singleEntity();
         testSession = SessionProvider.singleEntity();
         testUserId = testUser.getId();
@@ -70,7 +70,7 @@ class SessionServiceImplTest {
                         IllegalStateException.class,
                         () ->
                                 new SessionServiceImpl(
-                                        dao, userDAO, refreshTokenDAO, uuidv7Generator, 0));
+                                        dao, userDAO, refreshTokenDAO, uuidv7Generator, 0, false));
         assertTrue(ex.getMessage().contains("security.max.session.per.user must be >= 1"));
     }
 
@@ -108,7 +108,7 @@ class SessionServiceImplTest {
         // ensure user exists
         when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
         // dao returns an existing session (from same device)
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId))
+        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
                 .thenReturn(Optional.of(testSession));
         when(uuidv7Generator.generate()).thenReturn(newFamilyId);
         when(dao.save(any(Session.class))).thenReturn(testSession);
@@ -143,7 +143,7 @@ class SessionServiceImplTest {
         UUID oldFamilyId = testSession.getFamilyId();
 
         when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId))
+        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
                 .thenReturn(Optional.of(testSession));
         // generator returns same family id
         when(uuidv7Generator.generate()).thenReturn(oldFamilyId);
@@ -175,7 +175,7 @@ class SessionServiceImplTest {
         UUID newFamilyId = UUID.randomUUID();
 
         when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId))
+        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
                 .thenReturn(Optional.empty());
         // no active sessions
         when(dao.findActiveSessionsByUserOrderByLastSeen(eq(testUserId), any(Pageable.class)))
@@ -236,7 +236,7 @@ class SessionServiceImplTest {
         List<Session> activeSessions = Collections.nCopies(maxSessions, testSession);
 
         when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId))
+        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
                 .thenReturn(Optional.empty());
         when(dao.findActiveSessionsByUserOrderByLastSeen(eq(testUserId), any(Pageable.class)))
                 .thenReturn(activeSessions);
@@ -259,7 +259,7 @@ class SessionServiceImplTest {
         UUID oldFamilyId = testSession.getFamilyId();
 
         when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId))
+        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
                 .thenReturn(Optional.of(testSession));
         when(uuidv7Generator.generate()).thenReturn(UUID.randomUUID());
         when(dao.save(any(Session.class))).thenReturn(testSession);

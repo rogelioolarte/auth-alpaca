@@ -12,43 +12,45 @@ import { Subject, takeUntil } from 'rxjs';
   styles: ``,
 })
 export class Oauth2RedirectHandler implements OnInit, OnDestroy {
-  private router = inject(Router)
-  private route = inject(ActivatedRoute)
-  private authService = inject(AuthenticationService)
-  private toastService = inject(ToastrService)
-  private authProvider = AuthProvider.provider
-  private destroy = new Subject<void>()
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private authService = inject(AuthenticationService);
+  private toastService = inject(ToastrService);
+  private authProvider = AuthProvider.provider;
+  private destroy = new Subject<void>();
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => 
-      this.authProvider = params.get('provider') as AuthProvider);
-    
-    this.route.queryParams.subscribe(params => {
-      const code: string = params['code']
-      const error: string = params['error']
+    this.route.paramMap.subscribe(
+      (params) => (this.authProvider = params.get('provider') as AuthProvider),
+    );
 
-      if(error) {
-        this.toastService.error(error, "Error while logging!")
+    this.route.queryParams.subscribe((params) => {
+      const code: string = params['code'];
+      const error: string = params['error'];
+
+      if (error) {
+        this.toastService.error(error, 'Error while logging!');
         this.router.navigate(['/login'], {
-          state: { from: this.router.routerState.snapshot.url, error: error }
-        })
-      } else if(code && !error) {
-        this.authService.exchangeCode(code)
+          state: { from: this.router.routerState.snapshot.url, error: error },
+        });
+      } else if (code && !error) {
+        this.authService
+          .exchangeCode(code)
           .pipe(takeUntil(this.destroy))
           .subscribe(() => {
-            this.authService.recoverStates()
-            this.router.navigate(['/dashboard/profile', this.authProvider], { 
-              state: { from: this.router.routerState.snapshot.url } })
-          } )
+            this.authService.recoverStates();
+            this.router.navigate(['/dashboard/profile'], {
+              state: { from: this.router.routerState.snapshot.url },
+            });
+          });
       } else {
-        console.log("Error while processign logging")
+        this.toastService.error('Error while processing logging');
       }
-    })
+    });
   }
 
   ngOnDestroy() {
-    this.destroy.next()
-    this.destroy.complete()
+    this.destroy.next();
+    this.destroy.complete();
   }
-
 }

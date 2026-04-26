@@ -57,7 +57,7 @@ public class AdvertiserController {
      *     status {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.advertiser == null")
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == null")
     @PostMapping
     public ResponseEntity<AdvertiserResponseDTO> save(
             @Valid @RequestBody AdvertiserRequestDTO request) {
@@ -76,7 +76,7 @@ public class AdvertiserController {
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.advertiserId == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @PutMapping("/{id}")
     public ResponseEntity<AdvertiserResponseDTO> updateById(
             @Valid @RequestBody AdvertiserRequestDTO request, @PathVariable UUID id) {
@@ -91,7 +91,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.advertiserId == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);

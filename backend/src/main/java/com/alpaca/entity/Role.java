@@ -76,10 +76,11 @@ public class Role extends Auditable {
     }
 
     public void setRolePermissions(Collection<Permission> permissions) {
+        this.rolePermissions.clear();
+
         if (permissions != null && !permissions.isEmpty()) {
-            this.rolePermissions = permissionsToRolePermissions(permissions);
-        } else {
-            this.rolePermissions = new HashSet<>();
+            Set<RolePermission> newRolePermissions = permissionsToRolePermissions(permissions);
+            this.rolePermissions.addAll(newRolePermissions);
         }
     }
 

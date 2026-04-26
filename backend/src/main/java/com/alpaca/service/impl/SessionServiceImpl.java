@@ -47,13 +47,15 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
 
     private final int maxSessionsPerUser;
     private final Pageable pageableForMaxSessions;
+    private final boolean infinityLogin;
 
     public SessionServiceImpl(
             ISessionDAO dao,
             IUserDAO userDAO,
             IRefreshTokenDAO refreshTokenDAO,
             UUIDv7Generator uuidv7Generator,
-            @Value("${security.max.session.per.user:10}") @NotNull int maxSessionsPerUser) {
+            @Value("${security.max.session.per.user:10}") @NotNull int maxSessionsPerUser,
+            @Value("${security.infinity.login:false}") @NotNull boolean infinityLogin) {
         if (maxSessionsPerUser < 1) {
             throw new IllegalStateException("security.max.session.per.user must be >= 1");
         }
@@ -64,6 +66,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         this.maxSessionsPerUser = maxSessionsPerUser;
         // Fetch maxSessionsPerUser + 1 to detect limit overflow without COUNT(*)
         this.pageableForMaxSessions = PageRequest.of(0, maxSessionsPerUser + 1);
+        this.infinityLogin = infinityLogin;
     }
 
     /**
@@ -101,10 +104,13 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public Session createSession(UUID userId, String userAgent, String clientId, String clientIp) {
-        userDAO.lockFindUserById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        User user =
+                userDAO.lockFindUserById(userId)
+                        .orElseThrow(() -> new NotFoundException("User not found"));
 
         // Reuse existing session for same device and rotate refresh-token family
-        Optional<Session> session = dao.findByUniqueProperties(userId, userAgent, clientId);
+        Optional<Session> session =
+                dao.findByUniqueProperties(userId, userAgent, clientId, clientIp);
         UUID newFamilyId = uuidv7Generator.generate();
         Instant now = Instant.now();
         Session newSession;
@@ -117,11 +123,16 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
             List<Session> activeSessions =
                     dao.findActiveSessionsByUserOrderByLastSeen(userId, pageableForMaxSessions);
             if (activeSessions.size() >= maxSessionsPerUser) {
-                throw new ExceededSessionsException(maxSessionsPerUser);
+                if (this.infinityLogin) {
+                    UUID oldestSessionFamilyId = activeSessions.getFirst().getFamilyId();
+                    refreshTokenDAO.revokeFamilyWithReason(
+                            oldestSessionFamilyId, now, "new-session-created");
+                    dao.revokeSessionByFamilyId(oldestSessionFamilyId, now, "new-session-created");
+                } else {
+                    throw new ExceededSessionsException(maxSessionsPerUser);
+                }
             }
             newSession = new Session();
-            User user = new User();
-            user.setId(userId);
             newSession.setUser(user);
             if (!Objects.equals(newSession.getUserAgent(), userAgent)) {
                 newSession.setUserAgent(userAgent);

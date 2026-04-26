@@ -1,0 +1,132 @@
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.search-section {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h1 {
+    margin-bottom: 24px;
+    font-size: 32px;
+    font-weight: 300;
+  }
+}
+
+.search-field {
+  width: 100%;
+  max-width: 500px;
+}
+
+.advertisers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.advertiser-card {
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.card-image {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--mat-sys-surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .placeholder-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--mat-sys-outline);
+  }
+}
+
+mat-card-content {
+  padding: 16px;
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--mat-sys-on-surface-variant);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .description {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--mat-sys-on-surface);
+    line-height: 1.5;
+  }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .verified-chip {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+
+  .paid-chip {
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px;
+  color: var(--mat-sys-outline);
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+  }
+
+  p {
+    margin-top: 16px;
+    font-size: 18px;
+  }
+}
+
+mat-paginator {
+  background: transparent;
+}

@@ -57,7 +57,7 @@ public class ProfileController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.profileId == null")
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == null")
     @PostMapping
     public ResponseEntity<ProfileResponseDTO> save(@Valid @RequestBody ProfileRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -75,7 +75,7 @@ public class ProfileController {
      * @throws NotFoundException if no profile is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.profileId == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @PutMapping("/{id}")
     public ResponseEntity<ProfileResponseDTO> updateById(
             @Valid @RequestBody ProfileRequestDTO request, @PathVariable UUID id) {
@@ -90,7 +90,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no profile is found with the given {@code id}
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.profileId == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);

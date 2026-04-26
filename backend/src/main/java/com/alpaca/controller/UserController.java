@@ -1,13 +1,14 @@
 package com.alpaca.controller;
 
 import com.alpaca.dto.request.UserRequestDTO;
+import com.alpaca.dto.request.groups.OnCreate;
+import com.alpaca.dto.request.groups.OnUpdate;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IUserMapper;
 import com.alpaca.service.IUserService;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -59,7 +61,8 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<UserResponseDTO> save(@Valid @RequestBody UserRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> save(
+            @Validated(OnCreate.class) @RequestBody UserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
     }
@@ -78,7 +81,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateById(
-            @Valid @RequestBody UserRequestDTO request, @PathVariable UUID id) {
+            @Validated(OnUpdate.class) @RequestBody UserRequestDTO request, @PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toResponseDTO(service.updateById(mapper.toEntity(request), id)));
     }

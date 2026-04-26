@@ -80,7 +80,8 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
         updateTextIfExists(existingRole.getName(), role.getName(), existingRole::setName);
         updateTextIfExists(
                 existingRole.getDescription(), role.getDescription(), existingRole::setDescription);
-        if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
+        if (role.getRolePermissions() != null
+                && !role.getRolePermissions().equals(existingRole.getRolePermissions())) {
             existingRole.setRolePermissions(role.getPermissions());
         }
         return save(existingRole);

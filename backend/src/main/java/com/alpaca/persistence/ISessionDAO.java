@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 /**
  * Data Access Object (DAO) interface for managing {@link Session} entities.
@@ -20,24 +17,12 @@ import org.springframework.data.repository.query.Param;
  */
 public interface ISessionDAO extends IGenericDAO<Session, UUID> {
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(
-            """
-                UPDATE Session s
-                   SET s.revoked = true,
-                       s.revokedAt = :revokedAt,
-                       s.revokeReason = :reason
-                 WHERE s.familyId = :familyId
-                   AND s.revoked = false
-            """)
-    void revokeSessionByFamilyId(
-            @Param("familyId") UUID familyId,
-            @Param("revokedAt") Instant revokedAt,
-            @Param("reason") String reason);
+    void revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason);
 
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
-    Optional<Session> findByUniqueProperties(UUID userId, String userAgent, String clientId);
+    Optional<Session> findByUniqueProperties(
+            UUID userId, String userAgent, String clientId, String ipAddress);
 
     List<Session> findActiveSessionsByUserOrderByLastSeen(UUID userId, Pageable pageable);
 }

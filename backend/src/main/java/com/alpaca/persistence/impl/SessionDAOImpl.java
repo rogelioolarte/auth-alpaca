@@ -127,11 +127,15 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
         if (session.getUser() == null
                 || session.getUser().getId() == null
                 || !StringUtils.hasText(session.getUserAgent())
-                || !StringUtils.hasText(session.getClientId())) {
+                || !StringUtils.hasText(session.getClientId())
+                || !StringUtils.hasText(session.getIpAddress())) {
             return false;
         }
         return repo.countByUniqueProperties(
-                        session.getUser().getId(), session.getUserAgent(), session.getClientId())
+                        session.getUser().getId(),
+                        session.getUserAgent(),
+                        session.getClientId(),
+                        session.getIpAddress())
                 > 0L;
     }
 
@@ -147,8 +151,8 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
 
     @Override
     public Optional<Session> findByUniqueProperties(
-            UUID userId, String userAgent, String clientId) {
-        return repo.findByUniqueProperties(userId, userAgent, clientId);
+            UUID userId, String userAgent, String clientId, String ipAddress) {
+        return repo.findByUniqueProperties(userId, userAgent, clientId, ipAddress);
     }
 
     @Override

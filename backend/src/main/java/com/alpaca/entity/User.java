@@ -179,10 +179,11 @@ public class User extends Auditable {
     }
 
     public void setUserRoles(Collection<Role> roles) {
+        this.userRoles.clear();
+
         if (roles != null && !roles.isEmpty()) {
-            this.userRoles = rolesToUserRoles(roles);
-        } else {
-            this.userRoles = new HashSet<>();
+            Set<UserRole> newUserRoles = rolesToUserRoles(roles);
+            this.userRoles.addAll(newUserRoles);
         }
     }
 

@@ -157,9 +157,9 @@ class SessionDAOImplTest {
     @Test
     @DisplayName("Should check existence by ID")
     void existsByUniqueProperties_ChecksRepoById() {
-        when(repo.countByUniqueProperties(any(), any(), any())).thenReturn(1L);
+        when(repo.countByUniqueProperties(any(), any(), any(), any())).thenReturn(1L);
         assertTrue(dao.existsByUniqueProperties(existingSession));
-        verify(repo).countByUniqueProperties(any(), any(), any());
+        verify(repo).countByUniqueProperties(any(), any(), any(), any());
     }
 
     // --- Repository Delegation Tests ---
@@ -194,12 +194,14 @@ class SessionDAOImplTest {
         UUID userId = UUID.randomUUID();
         String ua = "Chrome";
         String cid = "client-123";
-        when(repo.findByUniqueProperties(userId, ua, cid)).thenReturn(Optional.of(existingSession));
+        String cip = "127.0.0.1";
+        when(repo.findByUniqueProperties(userId, ua, cid, cip))
+                .thenReturn(Optional.of(existingSession));
 
-        Optional<Session> result = dao.findByUniqueProperties(userId, ua, cid);
+        Optional<Session> result = dao.findByUniqueProperties(userId, ua, cid, cip);
 
         assertTrue(result.isPresent());
-        verify(repo).findByUniqueProperties(userId, ua, cid);
+        verify(repo).findByUniqueProperties(userId, ua, cid, cip);
     }
 
     @Test

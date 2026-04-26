@@ -1,0 +1,92 @@
+<div class="page-container">
+  <h1>My Advertiser</h1>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <mat-card class="advertiser-card">
+      <mat-card-header>
+        <mat-card-title>Advertiser Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="advertiserForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" />
+            @if (advertiserForm.get('title')?.hasError('required')) {
+              <mat-error> Title is required </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="5"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" />
+            @if (advertiserForm.get('email')?.hasError('required')) {
+              <mat-error> Email is required </mat-error>
+            }
+            @if (advertiserForm.get('email')?.hasError('email')) {
+              <mat-error> Please enter a valid email </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Public Location</mat-label>
+            <input matInput formControlName="publicLocation" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Public URL Location</mat-label>
+            <input matInput formControlName="publicUrlLocation" />
+            <button mat-icon-button matSuffix type="button" (click)="openPublicUrl()">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Avatar URL</mat-label>
+            <input matInput formControlName="avatarUrl" />
+            <button mat-icon-button matSuffix type="button" (click)="openAvatarUrl()">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Banner URL</mat-label>
+            <input matInput formControlName="bannerUrl" />
+            <button mat-icon-button matSuffix type="button" (click)="openBannerUrl()">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="indexed" color="primary">
+              Index for Public Search
+            </mat-slide-toggle>
+          </div>
+
+          <div class="form-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="advertiserForm.invalid || saving()"
+            >
+              @if (saving()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

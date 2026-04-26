@@ -1,91 +1,92 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../api/auth-service';
 import { AuthenticationService } from '../../../auth/authentication-service';
 import { ToastrService } from 'ngx-toastr';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatFormField, MatLabel } from "@angular/material/form-field";
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from "@angular/material/card";
-import { MatButton, MatIconButton } from "@angular/material/button";
-import { MatInput } from "@angular/material/input";
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardContent } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInput } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AuthProvider } from '../../../models/user';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../models/constants';
-import { GoogleIcon } from "../../icons/google-icon/google-icon";
-
+import { GoogleIcon } from '../../icons/google-icon/google-icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   imports: [
+    CommonModule,
     ReactiveFormsModule,
-    MatFormField,
-    MatCard,
-    MatCardHeader,
+    RouterLink,
+    MatFormFieldModule,
     MatCardContent,
-    MatIconButton,
     MatInput,
-    MatButton,
-    MatFormField,
-    MatLabel,
-    MatCardTitle,
-    GoogleIcon
-],
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinner,
+    GoogleIcon,
+  ],
   templateUrl: './login.html',
-  styles: ``,
+  styleUrl: `./login.css`,
 })
 export class Login implements OnInit {
-  private router = inject(Router)
-  private formBuilder = inject(FormBuilder)
-  private apiAuthService = inject(AuthService)
-  private authService = inject(AuthenticationService)
-  private toastService = inject(ToastrService)
-  public readonly clientId = toSignal(this.authService.getClientID())
-  public readonly ProviderGoogle = AuthProvider.google
+  private readonly router = inject(Router);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly apiAuthService = inject(AuthService);
+  private readonly authService = inject(AuthenticationService);
+  private readonly toastService = inject(ToastrService);
+  public readonly clientId = toSignal(this.authService.getClientID());
+  public readonly ProviderGoogle = AuthProvider.google;
 
-  private authProvider = AuthProvider.provider
-  loginForm!: FormGroup
-  loading = signal(false)
-  submitting = signal(false)
-  errorMessage = signal("")
+  private authProvider = AuthProvider.provider;
+  public loginForm!: FormGroup;
+  public loading = signal(false);
+  public submitting = signal(false);
+  public errorMessage = signal('');
+  public hidePassword = signal(true);
 
   ngOnInit() {
     this.loginForm = this.formBuilder.group({
       email: ['', Validators.required],
-      password: ['', Validators.required]
-    })
+      password: ['', Validators.required],
+    });
   }
 
   onSubmit() {
-    if(this.loginForm.invalid) {
-      return
+    if (this.loginForm.invalid) {
+      return;
     }
-    if(!this.clientId()) {
-      this.toastService.warning("Reload the App.")
-      return
+    if (!this.clientId()) {
+      this.toastService.warning('Reload the App.');
+      return;
     }
 
-    this.submitting.set(true)
-    this.loading.set(true)
-    this.apiAuthService.login(this.loginForm.getRawValue(), this.clientId() || "").subscribe({
-      next: data => {
-        this.authProvider = AuthProvider.local
-        this.authService.setAuthTokens(data, false)
-        this.router.navigate(['/dashboard/profile', this.authProvider],
-          {state: { from: this.router.routerState.snapshot.url }})
-        this.loading.set(false)
-        this.submitting.set(false)
+    this.submitting.set(true);
+    this.loading.set(true);
+    this.apiAuthService.login(this.loginForm.getRawValue(), this.clientId() || '').subscribe({
+      next: (data) => {
+        this.authService.setAuthTokens(data, false);
+        this.router.navigate(['/dashboard'], {
+          state: { from: this.router.routerState.snapshot.url },
+        });
+        this.loading.set(false);
+        this.submitting.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMessage.set(err.error.message || err.message)
-        this.loading.set(false)
-        this.submitting.set(false)
+        this.errorMessage.set(err.error.message || err.message);
+        this.loading.set(false);
+        this.submitting.set(false);
       },
-    })
+    });
   }
 
   loginWithProvider(provider: AuthProvider) {
-    switch(provider) {
+    switch (provider) {
       case AuthProvider.google:
         window.location.href = GOOGLE_AUTH_URL;
         break;
@@ -93,8 +94,7 @@ export class Login implements OnInit {
         window.location.href = GITHUB_AUTH_URL;
         break;
       default:
-        this.toastService.error('UnKnown Provider')
+        this.toastService.error('UnKnown Provider');
     }
   }
-
 }

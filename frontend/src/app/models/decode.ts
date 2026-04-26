@@ -1,27 +1,41 @@
 export interface TokenDecode {
-    // Common JWT properties
-    iss: string,
-    sub: string, // Subject (whom the token refers to)
-    iat: number, // Issued at (seconds since Unix epoch)
-    nbf: number, // Not valid before (seconds since Unix epoch)
-    exp: number, // Expiration time (seconds since Unix epoch)
-    // Access Token JWT properties
-    authorities?: string,
-    userId: string,
-    profileId?: string,
-    advertiserId?: string,
-    // Refresh Token JWT properties
-    familyId?: string,
-    jti?: string,
-    clientId?: string,
+  // Common JWT properties
+  iss: string;
+  sub: string; // Subject (whom the token refers to)
+  iat: number; // Issued at (seconds since Unix epoch)
+  nbf: number; // Not valid before (seconds since Unix epoch)
+  exp: number; // Expiration time (seconds since Unix epoch)
+  // Access Token JWT properties
+  authorities?: string;
+  userId: string;
+  profileId?: string;
+  advertiserId?: string;
+  // Refresh Token JWT properties
+  familyId?: string;
+  jti?: string;
+  clientId?: string;
 }
 
 export interface JWTTokens {
-    access: string,
-    refresh: string
+  access: string;
+  refresh: string;
 }
 
 export interface DecodeTokens {
-    access: TokenDecode,
-    refresh: TokenDecode
+  access: TokenDecode;
+  refresh: TokenDecode;
+}
+
+export function haveRoles(decode: TokenDecode, roles: string[]) {
+  if (!decode.authorities || decode.authorities?.length === 0 || roles.length === 0) {
+    return false;
+  }
+  const authorities = new Set(decode.authorities.split(','));
+  for (const i of roles) {
+    if (authorities.has(`ROLE_${i}`)) {
+      return true;
+    }
+  }
+
+  return false;
 }

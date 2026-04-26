@@ -1,21 +1,58 @@
-import {Routes} from '@angular/router';
+import { Routes } from '@angular/router';
 import { Oauth2RedirectHandler } from './auth/oauth2-redirect-handler/oauth2-redirect-handler';
-import { authGuard } from './auth/auth-guard';
-import { Dashboard } from './components/pages/dashboard/dashboard';
 import { Login } from './components/pages/login/login';
-import { Profile } from './components/pages/profile/profile';
+import { Register } from './components/pages/register/register';
+import { Landing } from './components/pages/landing/landing';
+import { authGuard } from './auth/auth-guard';
+import { adminGuard } from './auth/admin-guard';
+import { ProfileCreate } from './components/pages/profile/profile';
+import { AdvertiserCreate } from './components/pages/advertiser-create/advertiser-create';
+import { Roles } from './components/pages/roles/roles';
+import { Permissions } from './components/pages/permissions/permissions';
+import { AdvertiserPage } from './components/pages/advertiser/advertiser';
+import { AdvertiserId } from './components/pages/advertiser-id/advertiser-id';
+import { Users } from './components/pages/users/users';
+import { Base } from './components/pure/base/base';
+import { externalGuard } from './auth/external-guard';
+import { Dashboard } from './components/pages/dashboard/dashboard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login'},
-  { path: 'login', component: Login },
-  { path: 'oauth2/:provider/redirect', component: Oauth2RedirectHandler },
   {
-    path: 'dashboard',
-    component: Dashboard,
-    canActivate: [authGuard],
+    path: '',
+    component: Base,
     children: [
-      { path: 'profile/:authProvider', component: Profile, canActivate: [authGuard] }
-    ]
+      { path: '', component: Landing },
+      { path: 'login', component: Login, canActivate: [externalGuard] },
+      { path: 'register', component: Register, canActivate: [externalGuard] },
+      { path: 'oauth2/:provider/redirect', component: Oauth2RedirectHandler },
+      {
+        path: 'advertisers',
+        children: [
+          { path: '', component: AdvertiserPage },
+          { path: ':id', component: AdvertiserId },
+        ],
+      },
+
+      // Dashboard (authenticated)
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        children: [
+          // Default child
+          { path: '', component: Dashboard, pathMatch: 'full' },
+
+          // User routes
+          { path: 'profile', component: ProfileCreate },
+          { path: 'advertiser', component: AdvertiserCreate },
+
+          // Admin routes (admin only)
+          { path: 'users', component: Users, canActivate: [adminGuard] },
+          { path: 'roles', component: Roles, canActivate: [adminGuard] },
+          { path: 'permissions', component: Permissions, canActivate: [adminGuard] },
+        ],
+      },
+    ],
   },
-  { path: '**', redirectTo: 'login' }
+  // Redirect unknown routes to landing
+  { path: '**', redirectTo: '' },
 ];

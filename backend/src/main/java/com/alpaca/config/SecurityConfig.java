@@ -74,7 +74,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                 auth -> {
                     auth.requestMatchers("/api/auth/**", "/oauth2/**").permitAll();
-                    auth.requestMatchers("/api/advertisers/**").authenticated();
+                    auth.requestMatchers("/api/advertisers/**").permitAll();
                     auth.requestMatchers("/api/profiles/**").authenticated();
                     auth.requestMatchers("/api/users/**").authenticated();
                     auth.requestMatchers("/api/roles/**").hasAnyRole("ADMIN");

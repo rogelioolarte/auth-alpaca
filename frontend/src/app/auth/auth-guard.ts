@@ -4,9 +4,9 @@ import { AuthenticationService } from './authentication-service';
 import { of, switchMap } from 'rxjs';
 
 export const authGuard: CanActivateFn = () => {
-  const router = inject(Router)
-  const authService = inject(AuthenticationService)
-  return authService.isAuthenticated().pipe(
-    switchMap(i => i ? of(true) : of(router.createUrlTree(['/login'])))
-  );
+  const router = inject(Router);
+  const authService = inject(AuthenticationService);
+  return authService
+    .isAuthenticated()
+    .pipe(switchMap((i) => (i ? of(true) : of(router.createUrlTree(['/login'])))));
 };

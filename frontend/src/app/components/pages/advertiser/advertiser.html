@@ -1,0 +1,72 @@
+<div class="page-container">
+  <div class="search-section">
+    <h1>Find Advertisers</h1>
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search advertisers</mat-label>
+      <input
+        matInput
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Search by name or location..."
+      />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <div class="advertisers-grid">
+      @for (advertiser of advertisers(); track advertiser.id) {
+        <mat-card class="advertiser-card" [routerLink]="['/advertisers', advertiser.id]">
+          <div
+            class="card-image"
+            [style.backgroundImage]="
+              advertiser.avatarUrl ? 'url(' + advertiser.avatarUrl + ')' : 'none'
+            "
+          >
+            @if (!advertiser.avatarUrl) {
+              <mat-icon class="placeholder-icon">business</mat-icon>
+            }
+          </div>
+          <mat-card-content>
+            <h3>{{ advertiser.title }}</h3>
+            <p class="location">
+              <mat-icon>location_on</mat-icon>
+              {{ advertiser.publicLocation || 'No location' }}
+            </p>
+            <p class="description">
+              {{ advertiser.description | slice: 0 : 100
+              }}{{ advertiser.description && advertiser.description.length > 100 ? '...' : '' }}
+            </p>
+            <div class="badges">
+              @if (advertiser.verified) {
+                <mat-chip class="verified-chip">Verified</mat-chip>
+              }
+              @if (advertiser.paid) {
+                <mat-chip class="paid-chip">Premium</mat-chip>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      } @empty {
+        <div class="empty-state">
+          <mat-icon>search_off</mat-icon>
+          <p>No advertisers found</p>
+        </div>
+      }
+    </div>
+
+    <mat-paginator
+      [length]="totalItems()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[12, 24, 48]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    >
+    </mat-paginator>
+  }
+</div>

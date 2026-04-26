@@ -9,29 +9,31 @@ import { getParams, Page, Pageable } from '../models/pageable';
   providedIn: 'root',
 })
 export class RoleService {
-  private readonly http = inject(HttpClient)
+  private readonly http = inject(HttpClient);
 
-  createRole(name: string): Observable<Role> {
-    return this.http.post<Role>(`${environment.API_URL}/api/roles`, { name })
+  createRole(role: Role): Observable<Role> {
+    return this.http.post<Role>(`${environment.API_URL}/api/roles`, role);
   }
 
-  updateRoleById(id: string, name: string): Observable<Role> {
-    return this.http.put<Role>(`${environment.API_URL}/api/roles/${id}`, { name })
+  updateRoleById(id: string, role: Role): Observable<Role> {
+    return this.http.put<Role>(`${environment.API_URL}/api/roles/${id}`, role);
   }
 
   deleteRoleById(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.API_URL}/api/roles/${id}`)
+    return this.http.delete<void>(`${environment.API_URL}/api/roles/${id}`);
   }
 
   getRoleById(id: string): Observable<Role> {
-    return this.http.get<Role>(`${environment.API_URL}/api/roles/${id}`)
+    return this.http.get<Role>(`${environment.API_URL}/api/roles/${id}`);
   }
 
   getAllRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>(`${environment.API_URL}/api/roles`)
+    return this.http.get<Role[]>(`${environment.API_URL}/api/roles`);
   }
 
   getAllPageRoles(pageable: Pageable): Observable<Page<Role>> {
-    return this.http.get<Page<Role>>(`${environment.API_URL}/api/roles/page?${getParams(pageable)}`)
+    return this.http.get<Page<Role>>(
+      `${environment.API_URL}/api/roles/page?${getParams(pageable)}`,
+    );
   }
 }

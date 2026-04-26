@@ -1,0 +1,222 @@
+<div class="landing-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-background">
+      <div class="hero-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+      </div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <mat-icon>verified</mat-icon>
+        <span>Platform Ready</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="title-main">Auth</span>
+        <span class="title-accent">Alpaca</span>
+      </h1>
+      <p class="hero-tagline">Permission & Role Management Platform</p>
+      <p class="hero-description">
+        A complete system for managing users, roles, permissions, and advertiser profiles. Built
+        with Angular Material for a professional and intuitive experience.
+      </p>
+      <div class="hero-actions">
+        @if (!isAuthenticated()) {
+          <a mat-flat-button color="primary" routerLink="/login" class="hero-btn-primary">
+            <mat-icon>login</mat-icon>
+            Get Started
+          </a>
+        }
+        <a mat-stroked-button routerLink="/advertisers" class="hero-btn-secondary">
+          <mat-icon>search</mat-icon>
+          Explore
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number">3</span>
+          <span class="stat-label">Auth Providers</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">5</span>
+          <span class="stat-label">Core Entities</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Secure</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="visual-card">
+        <div class="visual-card-header">
+          <div class="visual-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="visual-card-content">
+          <div class="visual-item">
+            <mat-icon class="item-icon">person</mat-icon>
+            <div class="item-content">
+              <span class="item-label">User</span>
+              <span class="item-value">John Doe</span>
+            </div>
+            <mat-icon class="item-status">check_circle</mat-icon>
+          </div>
+          <div class="visual-line"></div>
+          <div class="visual-item">
+            <mat-icon class="item-icon">badge</mat-icon>
+            <div class="item-content">
+              <span class="item-label">Role</span>
+              <span class="item-value">Administrator</span>
+            </div>
+            <mat-icon class="item-status verified">verified</mat-icon>
+          </div>
+          <div class="visual-line"></div>
+          <div class="visual-item">
+            <mat-icon class="item-icon">campaign</mat-icon>
+            <div class="item-content">
+              <span class="item-label">Advertiser</span>
+              <span class="item-value">Active</span>
+            </div>
+            <mat-icon class="item-status">check_circle</mat-icon>
+          </div>
+        </div>
+      </div>
+      <div class="visual-float float-1">
+        <mat-icon>lock</mat-icon>
+        <span>Encrypted</span>
+      </div>
+      <div class="visual-float float-2">
+        <mat-icon>shield</mat-icon>
+        <span>Protected</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="features-header">
+      <span class="section-badge">Features</span>
+      <h2>Everything You Need</h2>
+      <p>
+        A complete platform for managing your application's access control and advertiser ecosystem.
+      </p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <mat-icon>security</mat-icon>
+        </div>
+        <h3>Role-Based Access</h3>
+        <p>Granular permission system with role-based access control for fine-tuned security.</p>
+        <div class="feature-link">
+          <span>Learn more</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <h3>User Management</h3>
+        <p>Complete CRUD operations for users with profile management and role assignment.</p>
+        <div class="feature-link">
+          <span>Learn more</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <mat-icon>campaign</mat-icon>
+        </div>
+        <h3>Advertiser Profiles</h3>
+        <p>Manage your business profile and reach customers with public listings.</p>
+        <div class="feature-link">
+          <span>Learn more</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <mat-icon>search</mat-icon>
+        </div>
+        <h3>Public Search</h3>
+        <p>Find advertisers easily with our public search and discovery platform.</p>
+        <div class="feature-link">
+          <span>Learn more</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="hiw-header">
+      <span class="section-badge">How It Works</span>
+      <h2>Get Started in Minutes</h2>
+    </div>
+    <div class="hiw-steps">
+      <div class="hiw-step">
+        <div class="step-badge">01</div>
+        <div class="step-visual">
+          <mat-icon>login</mat-icon>
+        </div>
+        <h3>Sign In</h3>
+        <p>Use your Google or GitHub account to sign in securely.</p>
+      </div>
+      <div class="step-connector"></div>
+      <div class="hiw-step">
+        <div class="step-badge">02</div>
+        <div class="step-visual">
+          <mat-icon>edit_note</mat-icon>
+        </div>
+        <h3>Complete Profile</h3>
+        <p>Fill in your personal information to get started.</p>
+      </div>
+      <div class="step-connector"></div>
+      <div class="hiw-step">
+        <div class="step-badge">03</div>
+        <div class="step-visual">
+          <mat-icon>campaign</mat-icon>
+        </div>
+        <h3>Create Advertiser</h3>
+        <p>Set up your business profile to be discovered.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Get Started?</h2>
+      <p>Join thousands of businesses managing their access control and advertiser ecosystem.</p>
+      @if (!isAuthenticated()) {
+        <a mat-flat-button color="primary" routerLink="/login" class="cta-button">
+          <mat-icon>arrow_forward</mat-icon>
+          Sign In Now
+        </a>
+      } @else {
+        <a mat-flat-button routerLink="/dashboard" class="cta-button">
+          <mat-icon>dashboard</mat-icon>
+          Go to Dashboard
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <mat-icon>campaign</mat-icon>
+        <span>Auth Alpaca</span>
+      </div>
+      <p>Built with Angular + Angular Material</p>
+      <p class="footer-copyright">© 2026 Auth Alpaca. All rights reserved.</p>
+    </div>
+  </footer>
+</div>

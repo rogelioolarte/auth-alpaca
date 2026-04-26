@@ -86,7 +86,7 @@ public class AuthServiceImpl implements IAuthService {
                 userService.register(
                         new User(
                                 requestDTO.email(),
-                                passwordManager.encodePassword(requestDTO.password()),
+                                requestDTO.password(),
                                 roleService.getUserRoles()));
         return login(new UserPrincipal(user), requestDTO);
     }

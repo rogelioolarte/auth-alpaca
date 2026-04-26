@@ -1,14 +1,19 @@
-import { ApplicationConfig, InjectionToken, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  InjectionToken,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideToastr } from 'ngx-toastr';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './auth/auth-interceptor';
+import { errorInterceptor } from './auth/error-interceptor';
 
 export const LOCAL_STORAGE = new InjectionToken<Storage>('Local Storage', {
   providedIn: 'root',
-  factory: () => window.localStorage
+  factory: () => window.localStorage,
 });
 
 export const appConfig: ApplicationConfig = {
@@ -16,6 +21,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideToastr(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor]))
-  ]
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
+  ],
 };

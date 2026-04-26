@@ -5,6 +5,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
+import com.alpaca.security.manager.PasswordManager;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO {
 
     private final UserRepo repo;
+    private final PasswordManager passwordManager;
 
     /**
      * Provides the repository used by the generic DAO operations.
@@ -83,12 +85,13 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
                                                         getEntity().getName(), id.toString())));
 
         updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
-        updateTextIfExists(
-                existingUser.getPassword(), user.getPassword(), existingUser::setPassword);
+        if (user.getPassword() != null
+                && user.getPassword().isBlank()
+                && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
+            existingUser.setPassword(passwordManager.encodePassword(user.getPassword()));
+        }
 
-        if (user.getRoles() != null
-                && !user.getRoles().isEmpty()
-                && !user.getRoles().equals(existingUser.getRoles())) {
+        if (user.getRoles() != null && !user.getRoles().equals(existingUser.getRoles())) {
             existingUser.setUserRoles(user.getRoles());
         }
 

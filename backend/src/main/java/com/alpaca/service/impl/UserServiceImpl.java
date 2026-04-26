@@ -5,6 +5,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
+import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
 import java.util.UUID;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {
 
     private final IUserDAO dao;
+    private final PasswordManager passwordManager;
 
     /**
      * Provides the DAO component used by inherited service operations.
@@ -52,6 +54,18 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         return "User";
     }
 
+    @Override
+    public User save(User user) {
+        return this.register(user);
+    }
+
+    @Override
+    public User updateById(User user, UUID uuid) {
+        if (user == null || uuid == null)
+            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
+        return super.updateById(user, uuid);
+    }
+
     /**
      * Registers a new {@link User} in the system.
      *
@@ -64,6 +78,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     public User register(User user) {
         if (user == null)
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
+        passwordManager.encodePassword(user.getPassword());
         return dao.save(user);
     }
 
