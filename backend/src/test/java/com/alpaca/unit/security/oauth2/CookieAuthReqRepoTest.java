@@ -26,6 +26,7 @@ class CookieAuthReqRepoTest {
     private CookieAuthReqRepo repo;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
     @BeforeEach
     void setUp() {
@@ -101,9 +102,7 @@ class CookieAuthReqRepoTest {
                                         CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME),
                         times(1));
                 cm.verify(
-                        () ->
-                                CookieManager.deleteCookie(
-                                        request, response, CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
+                        () -> CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME),
                         times(1));
 
                 // Should not add any cookies when auth request is null
@@ -125,7 +124,7 @@ class CookieAuthReqRepoTest {
                 String redirectUri) {
 
             OAuth2AuthorizationRequest authReq = mock(OAuth2AuthorizationRequest.class);
-            request.addParameter(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, redirectUri);
+            request.addParameter(REDIRECT_PARAM_NAME, redirectUri);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(() -> CookieManager.serialize(authReq)).thenReturn("serialized-value");
@@ -145,7 +144,7 @@ class CookieAuthReqRepoTest {
                         () ->
                                 CookieManager.addCookie(
                                         eq(response),
-                                        eq(CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
+                                        eq(REDIRECT_PARAM_NAME),
                                         anyString(),
                                         anyInt()),
                         never());
@@ -157,7 +156,7 @@ class CookieAuthReqRepoTest {
         void givenValidRedirectUri_whenSaveAuthorizationRequest_thenAddAuthAndRedirectCookies() {
             OAuth2AuthorizationRequest authReq = mock(OAuth2AuthorizationRequest.class);
             String redirect = "/home";
-            request.addParameter(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, redirect);
+            request.addParameter(REDIRECT_PARAM_NAME, redirect);
 
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
                 cm.when(() -> CookieManager.serialize(authReq)).thenReturn("serialized-value");
@@ -176,7 +175,7 @@ class CookieAuthReqRepoTest {
                         () ->
                                 CookieManager.addCookie(
                                         response,
-                                        CookieAuthReqRepo.REDIRECT_COOKIE_NAME,
+                                        REDIRECT_PARAM_NAME,
                                         redirect,
                                         CookieAuthReqRepo.COOKIE_EXPIRED_SECONDS),
                         times(1));
@@ -231,9 +230,7 @@ class CookieAuthReqRepoTest {
                                         CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME),
                         times(1));
                 cm.verify(
-                        () ->
-                                CookieManager.deleteCookie(
-                                        request, response, CookieAuthReqRepo.REDIRECT_COOKIE_NAME),
+                        () -> CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME),
                         times(1));
             }
         }

@@ -71,31 +71,6 @@ class AuthServiceImplIT {
     }
 
     // ------------------------------------------------
-    // setSecurityContextBefore
-    // ------------------------------------------------
-
-    @Test
-    void setSecurityContextBeforeShouldThrowWhenAuthenticationNull() {
-
-        assertThrows(UnauthorizedException.class, () -> service.setSecurityContextBefore(null));
-    }
-
-    @Test
-    void setSecurityContextBeforeShouldSetAuthentication() {
-
-        User user = userService.register(userTemplate);
-
-        UserPrincipal principal = new UserPrincipal(user);
-
-        UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(principal, null);
-
-        service.setSecurityContextBefore(auth);
-
-        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    // ------------------------------------------------
     // register
     // ------------------------------------------------
 
@@ -169,7 +144,7 @@ class AuthServiceImplIT {
     void logoutShouldFailWhenTokenAlreadyRevoked() {
         User user = userService.save(userTemplate);
         String rawToken = "raw-token";
-        String jwtRT = jwtManager.createRefreshTokenHash(rawToken);
+        String jwtRT = jwtManager.createTokenHash(rawToken);
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setTokenHash(jwtRT);
         token.setExpiresAt(Instant.now().plusSeconds(50));
@@ -220,7 +195,7 @@ class AuthServiceImplIT {
         UserPrincipal principal = (UserPrincipal) service.loadUserByUsername(user.getEmail());
 
         assertNotNull(principal);
-        assertEquals(user.getId(), principal.getId());
+        assertEquals(user.getId(), principal.getUserId());
     }
 
     // ------------------------------------------------

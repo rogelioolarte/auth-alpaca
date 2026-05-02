@@ -1,7 +1,5 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.REDIRECT_COOKIE_NAME;
-
 import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +41,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     private final CookieAuthReqRepo repository;
     private final String frontendUri;
     private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
     /**
      * Constructs the handler with required dependencies.
@@ -89,7 +88,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         return Optional.ofNullable(request.getParameter("redirect_uri"))
                 .or(
                         () ->
-                                CookieManager.getCookie(request, REDIRECT_COOKIE_NAME)
+                                CookieManager.getCookie(request, REDIRECT_PARAM_NAME)
                                         .map(Cookie::getValue))
                 .orElse(frontendUri);
     }

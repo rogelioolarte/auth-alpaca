@@ -32,8 +32,8 @@ public class RoleProvider {
         return Role.builder()
                 .name("ADMIN")
                 .description("It's an admin")
-                .rolePermissions(null)
-                .userRoles(null)
+                .rolePermissions(new HashSet<>())
+                .userRoles(new HashSet<>())
                 .build();
     }
 
@@ -41,8 +41,8 @@ public class RoleProvider {
         return Role.builder()
                 .name("USER")
                 .description("It's an user")
-                .rolePermissions(null)
-                .userRoles(null)
+                .rolePermissions(new HashSet<>())
+                .userRoles(new HashSet<>())
                 .build();
     }
 
@@ -52,8 +52,8 @@ public class RoleProvider {
                         UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
                         "ADMIN",
                         "It's an admin",
-                        null,
-                        null);
+                        new HashSet<>(),
+                        new HashSet<>());
         firstEntity.setRolePermissions(new HashSet<>(Set.of(PermissionProvider.singleEntity())));
         return firstEntity;
     }
@@ -64,8 +64,8 @@ public class RoleProvider {
                         UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
                         "USER",
                         "It's an user",
-                        null,
-                        null);
+                        new HashSet<>(),
+                        new HashSet<>());
         secondEntity.setRolePermissions(
                 new HashSet<>(Set.of(PermissionProvider.alternativeEntity())));
         return secondEntity;

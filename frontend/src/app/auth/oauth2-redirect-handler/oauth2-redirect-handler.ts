@@ -4,20 +4,27 @@ import { AuthenticationService } from '../authentication-service';
 import { ToastrService } from 'ngx-toastr';
 import { AuthProvider } from '../../models/user';
 import { Subject, takeUntil } from 'rxjs';
+import { AuthCode } from '@app/models/auth';
+import { PkceService } from '../pkce-service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { getRedirectURI } from '@app/models/constants';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-oauth2-redirect-handler',
-  imports: [],
-  template: ` <p>oauth2-redirect-handler works!</p> `,
+  imports: [MatProgressSpinner],
+  template: `<mat-spinner/>`,
   styles: ``,
 })
 export class Oauth2RedirectHandler implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private authService = inject(AuthenticationService);
+  private readonly pkceService = inject(PkceService);
   private toastService = inject(ToastrService);
   private authProvider = AuthProvider.provider;
   private destroy = new Subject<void>();
+  private clientID = toSignal(this.authService.getClientID());
 
   ngOnInit() {
     this.route.paramMap.subscribe(
@@ -27,6 +34,12 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
     this.route.queryParams.subscribe((params) => {
       const code: string = params['code'];
       const error: string = params['error'];
+      const authCode: AuthCode = {
+        code,
+        client_id: this.clientID() || "",
+        code_verifier: this.pkceService.getCodeVerifier(),
+        redirect_uri: getRedirectURI(this.authProvider)
+      }
 
       if (error) {
         this.toastService.error(error, 'Error while logging!');
@@ -35,16 +48,19 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
         });
       } else if (code && !error) {
         this.authService
-          .exchangeCode(code)
+          .exchangeCode(authCode)
           .pipe(takeUntil(this.destroy))
           .subscribe(() => {
             this.authService.recoverStates();
-            this.router.navigate(['/dashboard/profile'], {
+            this.router.navigate(['/dashboard'], {
               state: { from: this.router.routerState.snapshot.url },
-            });
+            })
+            .catch(() => this.router.navigateByUrl("/login"));
           });
+          this.pkceService.clear();
       } else {
         this.toastService.error('Error while processing logging');
+        this.pkceService.clear();
       }
     });
   }

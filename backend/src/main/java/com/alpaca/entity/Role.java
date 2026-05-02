@@ -76,9 +76,11 @@ public class Role extends Auditable {
     }
 
     public void setRolePermissions(Collection<Permission> permissions) {
-        this.rolePermissions.clear();
-
+        if (this.rolePermissions == null) {
+            this.rolePermissions = new HashSet<>();
+        }
         if (permissions != null && !permissions.isEmpty()) {
+            this.rolePermissions.clear();
             Set<RolePermission> newRolePermissions = permissionsToRolePermissions(permissions);
             this.rolePermissions.addAll(newRolePermissions);
         }
@@ -92,7 +94,7 @@ public class Role extends Auditable {
      * @return a set of {@link RolePermission} objects associated with this Role.
      */
     public Set<RolePermission> permissionsToRolePermissions(Collection<Permission> permissions) {
-        if (permissions.isEmpty()) return Collections.emptySet();
+        if (permissions == null || permissions.isEmpty()) return Collections.emptySet();
         Set<RolePermission> rolePermissionSet = HashSet.newHashSet(permissions.size());
         for (Permission permission : permissions) {
             rolePermissionSet.add(new RolePermission(this, permission));

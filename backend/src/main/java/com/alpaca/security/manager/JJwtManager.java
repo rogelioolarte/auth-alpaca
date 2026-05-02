@@ -92,6 +92,8 @@ public class JJwtManager {
      */
     private final JwtParser jwtRefreshParser;
 
+    private static final Base64.Encoder BASE64_URL = Base64.getUrlEncoder().withoutPadding();
+
     /**
      * Constructs a new {@code JJwtManager}, loading RSA key pairs and configuring expiration and
      * issuer information from Spring properties.
@@ -153,7 +155,7 @@ public class JJwtManager {
                 .claim(
                         CLAIM_KEY_AUTHORITIES,
                         StringUtils.collectionToCommaDelimitedString(user.getAuthorities()))
-                .claim(CLAIM_KEY_USER_ID, user.getId().toString())
+                .claim(CLAIM_KEY_USER_ID, user.getUserId().toString())
                 .claim(
                         "profileId",
                         user.getProfileId() != null ? user.getProfileId().toString() : "")
@@ -208,20 +210,18 @@ public class JJwtManager {
      *
      * <p>Useful for safely storing refresh tokens in a database without retaining the raw token.
      *
-     * @param refreshToken the raw refresh token
+     * @param value the raw refresh token
      * @return hex-encoded SHA-256 hash
      * @throws IllegalArgumentException if the token string is empty
      * @throws IllegalStateException if SHA-256 algorithm is unavailable
      */
-    public String createRefreshTokenHash(String refreshToken) {
-        if (!StringUtils.hasText(refreshToken)) {
-            throw new IllegalArgumentException("refreshToken must not be empty");
+    public String createTokenHash(String value) {
+        if (!StringUtils.hasText(value)) {
+            throw new IllegalArgumentException("value must not be empty");
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(md.digest(refreshToken.getBytes(StandardCharsets.UTF_8)));
+            return BASE64_URL.encodeToString(md.digest(value.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }

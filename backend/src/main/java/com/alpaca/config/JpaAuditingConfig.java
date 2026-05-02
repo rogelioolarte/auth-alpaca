@@ -54,7 +54,7 @@ public class JpaAuditingConfig {
 
             Object principal = authentication.getPrincipal();
             if (principal instanceof UserPrincipal up) {
-                return Optional.ofNullable(up.getId()).map(Object::toString);
+                return Optional.ofNullable(up.getUserId()).map(Object::toString);
             }
 
             return Optional.ofNullable(authentication.getName());

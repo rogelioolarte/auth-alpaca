@@ -128,7 +128,7 @@ class RefreshTokenServiceImplIT {
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         // create jwt + hash
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         // rotating should fail because session is revoked
@@ -162,7 +162,7 @@ class RefreshTokenServiceImplIT {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -191,7 +191,7 @@ class RefreshTokenServiceImplIT {
         replaced.setCreatedAt(Instant.now());
         replaced.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwtReplaced = jwtManager.createRefreshToken(replaced);
-        replaced.setTokenHash(jwtManager.createRefreshTokenHash(jwtReplaced));
+        replaced.setTokenHash(jwtManager.createTokenHash(jwtReplaced));
         replaced = service.save(replaced);
 
         // create token that is revoked and has replacedBy set
@@ -206,7 +206,7 @@ class RefreshTokenServiceImplIT {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -235,7 +235,7 @@ class RefreshTokenServiceImplIT {
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -268,7 +268,7 @@ class RefreshTokenServiceImplIT {
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -297,7 +297,7 @@ class RefreshTokenServiceImplIT {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -326,7 +326,7 @@ class RefreshTokenServiceImplIT {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         UnauthorizedException ex =
@@ -363,7 +363,7 @@ class RefreshTokenServiceImplIT {
         old.setExpiresAt(now.plusSeconds(5000));
 
         String oldJwt = jwtManager.createRefreshToken(old);
-        old.setTokenHash(jwtManager.createRefreshTokenHash(oldJwt));
+        old.setTokenHash(jwtManager.createTokenHash(oldJwt));
         RefreshToken savedOld = service.save(old);
 
         // create a session not revoked for that family id
@@ -398,7 +398,7 @@ class RefreshTokenServiceImplIT {
         assertNotNull(reloadedOld.getReplacedBy());
 
         // New token must be persisted with tokenHash from response.refreshToken()
-        String newHash = jwtManager.createRefreshTokenHash(response.refreshToken());
+        String newHash = jwtManager.createTokenHash(response.refreshToken());
         Optional<RefreshToken> newTokenOpt = refreshTokenDAO.findByTokenHashSecure(newHash);
         assertTrue(newTokenOpt.isPresent());
         RefreshToken newToken = newTokenOpt.get();
@@ -437,7 +437,7 @@ class RefreshTokenServiceImplIT {
         assertTrue(StringUtils.hasText(response.refreshToken()));
 
         // token should be persisted
-        String refreshHash = jwtManager.createRefreshTokenHash(response.refreshToken());
+        String refreshHash = jwtManager.createTokenHash(response.refreshToken());
         Optional<RefreshToken> persisted = refreshTokenDAO.findByTokenHashSecure(refreshHash);
         assertTrue(persisted.isPresent());
         assertEquals(persistedUser.getId(), persisted.get().getUser().getId());
@@ -461,7 +461,7 @@ class RefreshTokenServiceImplIT {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
         String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createRefreshTokenHash(jwt));
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
         RefreshToken saved = service.save(token);
 
         // findFamilyIdByTokenHash

@@ -9,6 +9,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
+import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.util.HashSet;
 import java.util.Optional;
@@ -26,11 +27,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 class UserServiceImplTest {
 
     @Mock private UserDAOImpl dao;
+    @Mock private PasswordManager passwordManager;
 
     @InjectMocks private UserServiceImpl service;
 
     private User firstEntity;
     private User secondEntity;
+    private final String ENCODED_PASSWORD = "encoded-password";
 
     @BeforeEach
     void setup() {
@@ -47,15 +50,20 @@ class UserServiceImplTest {
     @Test
     void registerCaseTwo() {
         when(dao.save(secondEntity)).thenReturn(null);
+        when(passwordManager.encodePassword(secondEntity.getPassword()))
+                .thenReturn(ENCODED_PASSWORD);
         assertNull(service.register(secondEntity));
         verify(dao).save(secondEntity);
     }
 
     @Test
     void registerCaseThree() {
+        when(passwordManager.encodePassword(firstEntity.getPassword()))
+                .thenReturn(ENCODED_PASSWORD);
         when(dao.save(firstEntity)).thenReturn(firstEntity);
         User entityFound = service.register(firstEntity);
         assertEquals(firstEntity, entityFound);
+        assertEquals(firstEntity.getPassword(), ENCODED_PASSWORD);
         verify(dao).save(firstEntity);
     }
 

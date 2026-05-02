@@ -24,7 +24,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 public class UserPrincipal implements OAuth2User, UserDetails {
 
     /** Unique identifier for the user. */
-    private UUID id;
+    private UUID userId;
 
     /** Unique identifier for the associated profile, if available. */
     private UUID profileId;
@@ -71,7 +71,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @param attributes additional attributes obtained from an OAuth2 authentication provider.
      */
     public UserPrincipal(User user, Map<String, Object> attributes) {
-        this.id = user.getId();
+        this.userId = user.getId();
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
         this.username = user.getEmail();
@@ -85,7 +85,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     }
 
     public UserPrincipal(User user) {
-        this.id = user.getId();
+        this.userId = user.getId();
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
         this.username = user.getEmail();
@@ -109,7 +109,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
             this.authorities = Collections.emptyList();
             return;
         }
-        this.id = getUUIDFromClaim(claims, "userId");
+        this.userId = getUUIDFromClaim(claims, "userId");
         this.profileId = getUUIDFromClaim(claims, "profileId");
         this.advertiserId = getUUIDFromClaim(claims, "advertiserId");
         this.username = claims.getSubject();
@@ -167,7 +167,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
+        int result = userId.hashCode();
         result = 31 * result + (profileId != null ? profileId.hashCode() : 0);
         result = 31 * result + (advertiserId != null ? advertiserId.hashCode() : 0);
         result = 31 * result + username.hashCode();

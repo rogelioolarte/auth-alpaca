@@ -41,6 +41,13 @@ export enum AuthProvider {
   provider = 'provider',
 }
 
+export interface AuthCode {
+  code: string,
+  code_verifier: string,
+  redirect_uri: string,
+  client_id: string,
+}
+
 export function convertDecodeToUserAuth(token: TokenDecode): UserAuth {
   return {
     id: token.userId,

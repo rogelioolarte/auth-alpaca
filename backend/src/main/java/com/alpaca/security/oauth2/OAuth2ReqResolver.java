@@ -51,23 +51,27 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        return customizeAuthorizationRequest(defaultResolver.resolve(request));
+        return customizeAuthorizationRequest(defaultResolver.resolve(request), request);
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(
             HttpServletRequest request, String clientRegistrationId) {
         return customizeAuthorizationRequest(
-                defaultResolver.resolve(request, clientRegistrationId));
+                defaultResolver.resolve(request, clientRegistrationId), request);
     }
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(
-            OAuth2AuthorizationRequest request) {
+            OAuth2AuthorizationRequest request, HttpServletRequest servletRequest) {
         if (Objects.isNull(request)) {
             return null;
         }
         Map<String, Object> attributes = new HashMap<>(request.getAttributes());
         Map<String, Object> additionalParameters = new HashMap<>(request.getAdditionalParameters());
+        String clientCodeChallenge = servletRequest.getParameter("client_code_challenge");
+        if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
+            attributes.put("client_code_challenge", clientCodeChallenge);
+        }
         addPKCEParameters(attributes, additionalParameters);
         return OAuth2AuthorizationRequest.from(request)
                 .attributes(attributes)

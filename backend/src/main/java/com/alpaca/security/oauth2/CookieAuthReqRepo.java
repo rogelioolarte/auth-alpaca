@@ -34,7 +34,8 @@ public class CookieAuthReqRepo
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
     public static final String AUTHORIZATION_COOKIE_NAME = "oauth2_auth_request";
-    public static final String REDIRECT_COOKIE_NAME = "redirect_uri";
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+    public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
     public static final int COOKIE_EXPIRED_SECONDS = 180;
 
     /**
@@ -69,7 +70,8 @@ public class CookieAuthReqRepo
             HttpServletResponse response) {
         if (authorizationRequest == null) {
             CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
-            CookieManager.deleteCookie(request, response, REDIRECT_COOKIE_NAME);
+            CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
+            CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
             return;
         }
         CookieManager.addCookie(
@@ -78,10 +80,16 @@ public class CookieAuthReqRepo
                 CookieManager.serialize(authorizationRequest),
                 COOKIE_EXPIRED_SECONDS);
 
-        String redirectURIAfterLogin = request.getParameter(REDIRECT_COOKIE_NAME);
+        String redirectURIAfterLogin = request.getParameter(REDIRECT_PARAM_NAME);
         if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
             CookieManager.addCookie(
-                    response, REDIRECT_COOKIE_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
+                    response, REDIRECT_PARAM_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
+        }
+        String clientCodeChallenge =
+                (String) authorizationRequest.getAttributes().get("client_code_challenge");
+        if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
+            CookieManager.addCookie(
+                    response, CLIENT_CODE_CHALLENGE, clientCodeChallenge, COOKIE_EXPIRED_SECONDS);
         }
     }
 
@@ -109,6 +117,7 @@ public class CookieAuthReqRepo
     public void removeAuthorizationRequestCookies(
             HttpServletRequest request, HttpServletResponse response) {
         CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
-        CookieManager.deleteCookie(request, response, REDIRECT_COOKIE_NAME);
+        CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
+        CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
     }
 }

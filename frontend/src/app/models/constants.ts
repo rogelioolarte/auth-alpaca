@@ -15,3 +15,8 @@ export const GOOGLE_AUTH_URL = `${environment.API_URL}${OAUTH2_AUTHORIZE_URI}/go
 
 const GITHUB_OAUTH2_REDIRECT_URI = `${environment.UI_URL}/oauth2/github/redirect`;
 export const GITHUB_AUTH_URL = `${environment.API_URL}${OAUTH2_AUTHORIZE_URI}/github?redirect_uri=${GITHUB_OAUTH2_REDIRECT_URI}`;
+
+export const addCodeChallenge = (value: string, codeChallenge: string) => 
+    `${value}&client_code_challenge=${codeChallenge}`
+
+export const getRedirectURI = (provider: string) => `${environment.UI_URL}/oauth2/${provider}/redirect`

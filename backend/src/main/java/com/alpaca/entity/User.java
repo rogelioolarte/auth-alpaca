@@ -179,9 +179,8 @@ public class User extends Auditable {
     }
 
     public void setUserRoles(Collection<Role> roles) {
-        this.userRoles.clear();
-
         if (roles != null && !roles.isEmpty()) {
+            this.userRoles.clear();
             Set<UserRole> newUserRoles = rolesToUserRoles(roles);
             this.userRoles.addAll(newUserRoles);
         }
@@ -195,14 +194,10 @@ public class User extends Auditable {
      * @return a set of {@link UserRole} objects associated with the User.
      */
     private Set<UserRole> rolesToUserRoles(Collection<Role> roles) {
-        if (roles.isEmpty()) return Collections.emptySet();
+        if (roles == null || roles.isEmpty()) return Collections.emptySet();
         Set<UserRole> newUserRoles = HashSet.newHashSet(roles.size());
-        if (roles.size() == 1) {
-            newUserRoles.add(new UserRole(this, roles.iterator().next()));
-        } else {
-            for (Role role : roles) {
-                newUserRoles.add(new UserRole(this, role));
-            }
+        for (Role role : roles) {
+            newUserRoles.add(new UserRole(this, role));
         }
         return newUserRoles;
     }

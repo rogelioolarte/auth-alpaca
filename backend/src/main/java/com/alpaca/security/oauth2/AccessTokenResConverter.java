@@ -86,7 +86,7 @@ public class AccessTokenResConverter
                                 Collectors.toMap(
                                         Map.Entry::getKey,
                                         Map.Entry::getValue,
-                                        (a, b) -> b,
+                                        (_, b) -> b,
                                         LinkedHashMap::new)));
     }
 }

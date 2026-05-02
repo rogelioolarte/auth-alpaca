@@ -7,7 +7,7 @@ import { ACCESS_TOKEN_HEADER_KEY } from '../models/constants';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthenticationService);
-  const authRoutes = ['/api/auth/login', '/api/auth/logout'];
+  const authRoutes = ['/api/auth/login', '/api/auth/logout', '/api/auth/exchange'];
   const { pathname, host } = new URL(req.url);
   if (authRoutes.some((r) => r === pathname) || host != environment.API_HOST) {
     return next(req);

@@ -13,9 +13,10 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AuthProvider } from '../../../models/user';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../models/constants';
+import { addCodeChallenge, GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../models/constants';
 import { GoogleIcon } from '../../icons/google-icon/google-icon';
 import { CommonModule } from '@angular/common';
+import { PkceService } from '@app/auth/pkce-service';
 
 @Component({
   selector: 'app-login',
@@ -39,6 +40,7 @@ export class Login implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly apiAuthService = inject(AuthService);
   private readonly authService = inject(AuthenticationService);
+  private readonly pkceService = inject(PkceService);
   private readonly toastService = inject(ToastrService);
   public readonly clientId = toSignal(this.authService.getClientID());
   public readonly ProviderGoogle = AuthProvider.google;
@@ -85,13 +87,15 @@ export class Login implements OnInit {
     });
   }
 
-  loginWithProvider(provider: AuthProvider) {
+  async loginWithProvider(provider: AuthProvider) {
+    const codeV = this.pkceService.generateCodeVerifier();
+    const codeC = await this.pkceService.generateCodeChallenge(codeV);
     switch (provider) {
       case AuthProvider.google:
-        window.location.href = GOOGLE_AUTH_URL;
+        window.location.href = addCodeChallenge(GOOGLE_AUTH_URL, codeC);
         break;
       case AuthProvider.github:
-        window.location.href = GITHUB_AUTH_URL;
+        window.location.href = addCodeChallenge(GITHUB_AUTH_URL, codeC);
         break;
       default:
         this.toastService.error('UnKnown Provider');

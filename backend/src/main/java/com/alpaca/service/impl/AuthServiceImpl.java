@@ -7,14 +7,14 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,7 +29,6 @@ import org.springframework.util.StringUtils;
  *
  * @see IAuthService
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
@@ -40,19 +39,8 @@ public class AuthServiceImpl implements IAuthService {
     private final IRefreshTokenService refreshTokenService;
     private final PasswordManager passwordManager;
     private final JJwtManager manager;
-
-    /**
-     * Sets the Spring Security context with the provided authentication object.
-     *
-     * @param authentication the authentication object; must not be {@code null}
-     * @throws UnauthorizedException if the authentication object is {@code null}
-     */
-    public void setSecurityContextBefore(Authentication authentication) {
-        if (authentication == null) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
+    private final TokenExchangeManager exchangeManager;
+    private final JJwtManager jJwtManager;
 
     /**
      * Authenticates a user using email and password and returns a JWT token wrapped in DTO.
@@ -65,10 +53,36 @@ public class AuthServiceImpl implements IAuthService {
         return refreshTokenService.generateJWTTokens(
                 userPrincipal,
                 sessionService.createSession(
-                        userPrincipal.getId(),
+                        userPrincipal.getUserId(),
                         requestDTO.userAgent(),
                         requestDTO.clientId(),
                         requestDTO.clientIp()));
+    }
+
+    @Override
+    public AuthResponseDTO login(AuthCode authCode) {
+        if (authCode.getCode() == null || authCode.getCode().isEmpty()) {
+            throw new UnauthorizedException("Exchange code is required");
+        }
+        if (!authCode.getCodeVerifier().matches("^[A-Za-z0-9\\-._~]{43,128}$")) {
+            throw new BadRequestException("Invalid code-verifier format");
+        }
+        AuthCode savedAuthCode = exchangeManager.consumeCode(authCode.getCode()).orElse(null);
+        if (savedAuthCode == null) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        String newCodeChallenge = jJwtManager.createTokenHash(authCode.getCodeVerifier());
+        if (!savedAuthCode.getCodeChallenge().equals(newCodeChallenge)) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (savedAuthCode.getExpiresAt().isBefore(Instant.now())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getRedirectUri().equals(authCode.getRedirectUri())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+
+        return refreshTokenService.generateJWTTokens(savedAuthCode);
     }
 
     /**
@@ -99,7 +113,7 @@ public class AuthServiceImpl implements IAuthService {
         }
         RefreshToken actualrefreshToken =
                 refreshTokenService
-                        .findByTokenHashSecure(manager.createRefreshTokenHash(refreshToken))
+                        .findByTokenHashSecure(manager.createTokenHash(refreshToken))
                         .orElseThrow(() -> new NotFoundException("Refresh Token Not Found"));
         if (actualrefreshToken.isRevoked()) {
             throw new BadRequestException("Refresh Token already revoked");

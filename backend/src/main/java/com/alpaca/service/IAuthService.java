@@ -4,6 +4,7 @@ import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -23,6 +24,8 @@ public interface IAuthService extends UserDetailsService {
      * @throws NotFoundException if the user is not found.
      */
     AuthResponseDTO login(UserPrincipal userPrincipal, AuthLoginRequestDTO requestDTO);
+
+    AuthResponseDTO login(AuthCode authCode);
 
     /**
      * Registers a new user in the system.

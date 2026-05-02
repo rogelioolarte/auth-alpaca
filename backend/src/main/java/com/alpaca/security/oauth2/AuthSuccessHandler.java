@@ -1,15 +1,14 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.REDIRECT_COOKIE_NAME;
-
-import com.alpaca.dto.request.AuthLoginRequestDTO;
-import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.InternalErrorException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.CookieManager;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
+import com.alpaca.utils.UUIDv7Generator;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +21,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -48,36 +48,34 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+    public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
     private final CookieAuthReqRepo repository;
     private final Set<URI> authorizedRedirectUris;
-    private final IAuthService authService;
-    private final Boolean isProduction;
     private final TokenExchangeManager exchangeManager;
+    private final UUIDv7Generator uuidGenerator;
 
     /**
      * Constructs an {@code AuthSuccessHandler}.
      *
      * @param repository cookie-based repository used to manage OAuth2 state cookies
      * @param redirectUris list of URIs authorized for redirection; must not be {@code null}
-     * @param authService service used to generate JWT authentication tokens
      */
     public AuthSuccessHandler(
             CookieAuthReqRepo repository,
             @Value("${app.oauth2.authorized-redirect-uri}") @NonNull List<URI> redirectUris,
-            @Value("${spring.profiles.active}") @NonNull String activeProfile,
-            IAuthService authService,
-            TokenExchangeManager exchangeManager) {
-        this.isProduction = !activeProfile.equalsIgnoreCase("dev");
+            TokenExchangeManager exchangeManager,
+            UUIDv7Generator uuidGenerator) {
         this.repository = repository;
         this.authorizedRedirectUris = Set.copyOf(redirectUris);
-        this.authService = authService;
         this.exchangeManager = exchangeManager;
+        this.uuidGenerator = uuidGenerator;
     }
 
     /**
      * Called when authentication is successful.
      *
-     * <p>This method builds a JSON response containing the access token, refresh token, and the
+     * <p>This method builds a Redirect URL containing the code to exchange the tokens, and the
      * target URL to navigate to after login. It first determines the target URI, clears any OAuth2
      * state cookies, and then writes the JSON body to the response.
      *
@@ -95,21 +93,33 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             return;
         }
         String targetUrl = determineTargetUrl(request, response, authentication);
+        String codeChallenge = determineCodeChallenge(request);
+        if (codeChallenge.isBlank()) {
+            throw new BadRequestException("Invalid Code Challenge");
+        }
+        repository.removeAuthorizationRequestCookies(request, response);
+
         clearAuthenticationAttributes(request, response);
 
-        AuthResponseDTO authResponse =
-                authService.login(
-                        (UserPrincipal) authentication.getPrincipal(),
-                        new AuthLoginRequestDTO(
-                                "",
-                                "",
-                                request.getHeader("X-Client-Id"),
-                                request.getHeader("User-Agent"),
-                                Utils.extractClientIP(request)));
-        String exchangeCode = this.exchangeManager.createExchangeCode(authResponse);
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String code = uuidGenerator.generate().toString();
+        String clientId = Optional.ofNullable(request.getHeader("X-Client-Id")).orElse("");
+        String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
+        String clientIp = Optional.ofNullable(Utils.extractClientIP(request)).orElse("");
+        AuthCode authCode =
+                new AuthCode(
+                        code,
+                        codeChallenge,
+                        clientId,
+                        userAgent,
+                        clientIp,
+                        userPrincipal.getUserId(),
+                        targetUrl);
+
+        this.exchangeManager.createExchangeCode(code, authCode);
         String finalRedirectURL =
                 UriComponentsBuilder.fromUriString(targetUrl)
-                        .queryParam("code", exchangeCode)
+                        .queryParam("code", code)
                         .build()
                         .toUriString();
 
@@ -135,17 +145,26 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             HttpServletRequest request, HttpServletResponse response, Authentication auth) {
 
         if (authorizedRedirectUris.isEmpty()) {
-            throw new InternalErrorException("Bad configuration of authorized redirect URIs");
+            throw new InternalErrorException("Bad configuration of Authorized Redirect URIs");
         }
 
-        Optional<Cookie> redirectCookie = CookieManager.getCookie(request, REDIRECT_COOKIE_NAME);
+        Optional<Cookie> redirectCookie = CookieManager.getCookie(request, REDIRECT_PARAM_NAME);
         String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
-
-        if (!isAuthorizedRedirectURI(URI.create(target))) {
+        if (isAuthorizedRedirectURI(URI.create(target))) {
             throw new UnauthorizedException("Unauthorized redirect URI");
         }
 
         return UriComponentsBuilder.fromUriString(target).build().toUriString();
+    }
+
+    protected String determineCodeChallenge(HttpServletRequest request) {
+        OAuth2AuthorizationRequest authReq = repository.loadAuthorizationRequest(request);
+        String challenge = (String) authReq.getAttributes().get("client_code_challenge");
+        if (challenge != null && !challenge.isBlank()) {
+            return challenge;
+        }
+        Optional<Cookie> cookie = CookieManager.getCookie(request, CLIENT_CODE_CHALLENGE);
+        return cookie.map(Cookie::getValue).orElse("");
     }
 
     /**
@@ -160,7 +179,6 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     protected void clearAuthenticationAttributes(
             HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);
-        repository.removeAuthorizationRequestCookies(request, response);
     }
 
     /**
@@ -174,6 +192,6 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      */
     private boolean isAuthorizedRedirectURI(URI clientUri) {
         return authorizedRedirectUris.stream()
-                .anyMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
+                .noneMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
     }
 }

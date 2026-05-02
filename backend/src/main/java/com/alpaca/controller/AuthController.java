@@ -3,7 +3,7 @@ package com.alpaca.controller;
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
@@ -107,17 +107,21 @@ public class AuthController {
     }
 
     @PostMapping("/exchange")
-    public ResponseEntity<AuthResponseDTO> exchangeToken(@RequestBody Map<String, String> request) {
-        String code = request.get("code");
+    public ResponseEntity<AuthResponseDTO> exchangeToken(
+            HttpServletRequest request,
+            @RequestHeader("User-Agent") String userAgent,
+            @RequestBody Map<String, String> body) {
+        String code = body.get("code");
+        String codeVerifier = body.get("code_verifier");
+        String redirectUri = body.get("redirect_uri");
+        String clientId = body.get("client_id");
+        String clientIp = Utils.extractClientIP(request);
 
-        if (code == null || code.isEmpty()) {
-            throw new UnauthorizedException("Exchange code is required");
-        }
-
-        return exchangeManager
-                .consumeCode(code)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new UnauthorizedException("Code invalid or expired"));
+        return new ResponseEntity<>(
+                authService.login(
+                        new AuthCode(
+                                code, codeVerifier, redirectUri, clientId, userAgent, clientIp)),
+                HttpStatus.OK);
     }
 
     /**

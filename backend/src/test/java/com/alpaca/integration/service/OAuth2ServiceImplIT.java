@@ -150,7 +150,7 @@ class OAuth2ServiceImplIT {
                 service.registerOrLoginOAuth2(email, first, last, image, emailVerified, attrs);
 
         assertNotNull(principal);
-        assertNotNull(principal.getId(), "User should be persisted and have id");
+        assertNotNull(principal.getUserId(), "User should be persisted and have id");
         assertEquals(email, principal.getUsername());
         // attributes forwarded to UserPrincipal
         assertEquals(attrs, principal.getAttributes());

@@ -78,7 +78,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     public User register(User user) {
         if (user == null)
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-        passwordManager.encodePassword(user.getPassword());
+        user.setPassword(passwordManager.encodePassword(user.getPassword()));
         return dao.save(user);
     }
 

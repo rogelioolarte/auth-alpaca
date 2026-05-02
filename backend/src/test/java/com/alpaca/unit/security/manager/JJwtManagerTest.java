@@ -72,15 +72,14 @@ class JJwtManagerTest {
     @DisplayName(
             "createRefreshTokenHash: throws on empty / blank input and returns non-empty for valid"
                     + " input")
-    void createRefreshTokenHash_validAndInvalidCases() {
+    void createTokenHash_validAndInvalidCases() {
         // invalid: null or blank -> IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> jwtManager.createRefreshTokenHash(""));
-        assertThrows(
-                IllegalArgumentException.class, () -> jwtManager.createRefreshTokenHash("   "));
+        assertThrows(IllegalArgumentException.class, () -> jwtManager.createTokenHash(""));
+        assertThrows(IllegalArgumentException.class, () -> jwtManager.createTokenHash("   "));
 
         // valid: returns a Base64-URL string (non-empty)
         String sample = "some-refresh-token-string";
-        String hash = jwtManager.createRefreshTokenHash(sample);
+        String hash = jwtManager.createTokenHash(sample);
         assertNotNull(hash);
         assertFalse(hash.isBlank());
         // it should be base64-url (no padding)
@@ -111,7 +110,7 @@ class JJwtManagerTest {
         UserPrincipal mockPrincipal = mock(UserPrincipal.class);
         UUID userId = UUID.randomUUID();
         when(mockPrincipal.getUsername()).thenReturn("testUser");
-        when(mockPrincipal.getId()).thenReturn(userId);
+        when(mockPrincipal.getUserId()).thenReturn(userId);
         when(mockPrincipal.getProfileId()).thenReturn(null);
         when(mockPrincipal.getAdvertiserId()).thenReturn(null);
         // authorities: 2 roles
@@ -141,7 +140,7 @@ class JJwtManagerTest {
         UserPrincipal mockPrincipal = mock(UserPrincipal.class);
         UUID userId = UUID.randomUUID();
         when(mockPrincipal.getUsername()).thenReturn("anotherUser");
-        when(mockPrincipal.getId()).thenReturn(userId);
+        when(mockPrincipal.getUserId()).thenReturn(userId);
         when(mockPrincipal.getProfileId()).thenReturn(null);
         when(mockPrincipal.getAdvertiserId()).thenReturn(null);
         when(mockPrincipal.getAuthorities())

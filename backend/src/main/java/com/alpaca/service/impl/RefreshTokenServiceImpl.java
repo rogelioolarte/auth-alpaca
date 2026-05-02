@@ -3,8 +3,10 @@ package com.alpaca.service.impl;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
+import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRefreshTokenDAO;
@@ -12,6 +14,7 @@ import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
+import com.alpaca.service.IUserService;
 import com.alpaca.utils.UUIDv7Generator;
 import java.time.Instant;
 import java.util.Objects;
@@ -43,6 +46,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
     private final IRefreshTokenDAO dao;
     private final ISessionService sessionService;
+    private final IUserService userService;
     private final JJwtManager manager;
     private final UUIDv7Generator uuidv7Generator;
 
@@ -81,7 +85,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
         Instant now = Instant.now();
 
-        String oldRefreshTokenHash = manager.createRefreshTokenHash(oldRefreshToken);
+        String oldRefreshTokenHash = manager.createTokenHash(oldRefreshToken);
         Optional<RefreshToken> optToken = dao.findByTokenHashSecure(oldRefreshTokenHash);
         if (optToken.isEmpty()) {
             dao.findFamilyIdByTokenHash(oldRefreshTokenHash)
@@ -130,7 +134,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                         userAgent,
                         clientIp);
         String jwtRefreshToken = manager.createRefreshToken(newRefreshToken);
-        String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
+        String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
         newRefreshToken.setTokenHash(refreshTokenHash);
         RefreshToken savedRefreshToken = dao.save(newRefreshToken);
         actualRefreshToken.setReplacedBy(savedRefreshToken);
@@ -150,10 +154,35 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                         session.getLastSeenAt().plusMillis(manager.getJwtTimeExpRefresh()),
                         session.getLastSeenAt());
         String jwtRefreshToken = manager.createRefreshToken(refreshToken);
-        String refreshTokenHash = manager.createRefreshTokenHash(jwtRefreshToken);
+        String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);
         dao.save(refreshToken);
         String accessToken = manager.createAccessToken(userPrincipal, session.getLastSeenAt());
+        return new AuthResponseDTO(accessToken, jwtRefreshToken);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Override
+    public AuthResponseDTO generateJWTTokens(AuthCode authCode) {
+        User user = userService.findById(authCode.getUserId());
+        Session session =
+                sessionService.createSession(
+                        authCode.getUserId(),
+                        authCode.getUserAgent(),
+                        authCode.getClientId(),
+                        authCode.getClientIp());
+        RefreshToken refreshToken =
+                new RefreshToken(
+                        session,
+                        uuidv7Generator.generate(),
+                        session.getLastSeenAt().plusMillis(manager.getJwtTimeExpRefresh()),
+                        session.getLastSeenAt());
+        String jwtRefreshToken = manager.createRefreshToken(refreshToken);
+        String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
+        refreshToken.setTokenHash(refreshTokenHash);
+        dao.save(refreshToken);
+        String accessToken =
+                manager.createAccessToken(new UserPrincipal(user), session.getLastSeenAt());
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 

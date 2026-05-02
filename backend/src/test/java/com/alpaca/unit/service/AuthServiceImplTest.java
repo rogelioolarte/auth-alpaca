@@ -33,8 +33,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -71,20 +69,6 @@ class AuthServiceImplTest {
                 manager);
     }
 
-    // ----- setSecurityContextBefore -----
-    @Test
-    void setSecurityContextBefore_whenNull_throwsUnauthorized() {
-        assertThrows(UnauthorizedException.class, () -> service.setSecurityContextBefore(null));
-    }
-
-    @Test
-    void setSecurityContextBefore_whenAuthProvided_setsSecurityContext() {
-        UserPrincipal principal = new UserPrincipal(existingUser);
-        Authentication auth = new UsernamePasswordAuthenticationToken(principal, null);
-        service.setSecurityContextBefore(auth);
-        assertSame(auth, SecurityContextHolder.getContext().getAuthentication());
-    }
-
     // ----- login -----
     @Test
     void login_success_returnsAuthResponse() {
@@ -105,7 +89,7 @@ class AuthServiceImplTest {
         assertEquals("refresh-token", response.refreshToken());
         verify(sessionService)
                 .createSession(
-                        eq(userPrincipal.getId()),
+                        eq(userPrincipal.getUserId()),
                         eq("userAgent"),
                         eq("clientId"),
                         eq("127.0.0.1"));
@@ -133,7 +117,6 @@ class AuthServiceImplTest {
         registered.setId(existingUser.getId());
 
         when(userService.existsByEmail(dto.email())).thenReturn(false);
-        when(passwordManager.encodePassword(RAW_PASSWORD)).thenReturn("encoded-password");
         when(roleService.getUserRoles()).thenReturn(java.util.Set.of()); // roles empty allowed
         // Capture the user passed to register
         when(userService.register(any(User.class))).thenReturn(registered);
@@ -148,11 +131,10 @@ class AuthServiceImplTest {
         assertEquals("access", response.accessToken());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(passwordManager).encodePassword(RAW_PASSWORD);
         verify(userService).register(userCaptor.capture());
         User passed = userCaptor.getValue();
         assertEquals(dto.email(), passed.getEmail());
-        assertEquals("encoded-password", passed.getPassword());
+        assertEquals(RAW_PASSWORD, passed.getPassword());
         verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
     }
 
@@ -165,7 +147,7 @@ class AuthServiceImplTest {
     @Test
     void logout_whenRefreshTokenNotFound_throwsNotFound() {
         String token = "rt";
-        when(manager.createRefreshTokenHash(token)).thenReturn("hash");
+        when(manager.createTokenHash(token)).thenReturn("hash");
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.logout(token, "cid", "ua", "ip"));
@@ -175,7 +157,7 @@ class AuthServiceImplTest {
     @Test
     void logout_whenRefreshTokenAlreadyRevoked_throwsBadRequest() {
         String token = "rt";
-        when(manager.createRefreshTokenHash(token)).thenReturn("hash");
+        when(manager.createTokenHash(token)).thenReturn("hash");
         RefreshToken rt = new RefreshToken();
         rt.setRevoked(true);
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.of(rt));
@@ -186,7 +168,7 @@ class AuthServiceImplTest {
     @Test
     void logout_success_revokesFamilyAndClearsSecurityContext() {
         String token = "rt";
-        when(manager.createRefreshTokenHash(token)).thenReturn("hash");
+        when(manager.createTokenHash(token)).thenReturn("hash");
         RefreshToken rt = new RefreshToken();
         rt.setRevoked(false);
         UUID familyId = UUID.randomUUID();

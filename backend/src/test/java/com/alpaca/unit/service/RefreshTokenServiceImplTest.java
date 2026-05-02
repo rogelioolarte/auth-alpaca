@@ -68,14 +68,14 @@ class RefreshTokenServiceImplTest {
         UUID newTokenJti = UUID.randomUUID();
 
         // arrange
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(testRefreshToken));
         when(sessionService.findSessionByFamilyId(testRefreshToken.getFamilyId()))
                 .thenReturn(Optional.of(testSession));
         when(uuidv7Generator.generate()).thenReturn(newTokenJti);
         when(manager.getJwtTimeExpRefresh()).thenReturn(86400000L);
         when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(newJwtToken);
-        when(manager.createRefreshTokenHash(newJwtToken)).thenReturn(newTokenHash);
+        when(manager.createTokenHash(newJwtToken)).thenReturn(newTokenHash);
         when(dao.save(any(RefreshToken.class))).thenReturn(testRefreshToken);
         when(manager.createAccessToken(any(UserPrincipal.class), any(Instant.class)))
                 .thenReturn("access.token");
@@ -148,7 +148,7 @@ class RefreshTokenServiceImplTest {
         String tokenHash = "hashed_token";
         UUID familyId = UUID.randomUUID();
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.empty());
         when(dao.findFamilyIdByTokenHash(tokenHash)).thenReturn(Optional.of(familyId));
 
@@ -171,7 +171,7 @@ class RefreshTokenServiceImplTest {
         String tokenHash = "hashed_token";
         Session revokedSession = SessionProvider.revokedEntity(); // session.isRevoked() == true
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(testRefreshToken));
         when(sessionService.findSessionByFamilyId(testRefreshToken.getFamilyId()))
                 .thenReturn(Optional.of(revokedSession));
@@ -194,7 +194,7 @@ class RefreshTokenServiceImplTest {
         RefreshToken tokenNoFamily = RefreshTokenProvider.singleEntity();
         tokenNoFamily.setFamilyId(null);
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(tokenNoFamily));
 
         BadRequestException ex =
@@ -214,7 +214,7 @@ class RefreshTokenServiceImplTest {
         RefreshToken replacement = RefreshTokenProvider.singleEntity();
         revokedReplaced.setReplacedBy(replacement);
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(revokedReplaced));
 
         UnauthorizedException ex =
@@ -244,7 +244,7 @@ class RefreshTokenServiceImplTest {
         revoked.setRevoked(true);
         revoked.setReplacedBy(null);
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(revoked));
 
         UnauthorizedException ex =
@@ -261,7 +261,7 @@ class RefreshTokenServiceImplTest {
         RefreshToken expired = RefreshTokenProvider.singleEntity();
         expired.setExpiresAt(Instant.now().minusSeconds(10)); // already expired
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(expired));
 
         UnauthorizedException ex =
@@ -282,7 +282,7 @@ class RefreshTokenServiceImplTest {
         token.setUser(user);
         token.setCreatedAt(Instant.now());
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(token));
 
         UnauthorizedException ex =
@@ -299,7 +299,7 @@ class RefreshTokenServiceImplTest {
         RefreshToken token = RefreshTokenProvider.singleEntity();
         token.setClientId("different-client"); // token has different clientId
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(token));
 
         UnauthorizedException ex =
@@ -326,7 +326,7 @@ class RefreshTokenServiceImplTest {
         token.setUserAgent("different-ua"); // token has different UA
         UUID oldFamilyId = token.getFamilyId();
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(token));
 
         UnauthorizedException ex =
@@ -353,7 +353,7 @@ class RefreshTokenServiceImplTest {
         Session session = SessionProvider.singleEntity();
         session.setRevokedAt(Instant.now().minusSeconds(1000));
 
-        when(manager.createRefreshTokenHash(oldRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(tokenHash);
         when(dao.findByTokenHashSecure(tokenHash)).thenReturn(Optional.of(token));
         when(sessionService.findSessionByFamilyId(oldFamilyId)).thenReturn(Optional.of(session));
 
@@ -382,7 +382,7 @@ class RefreshTokenServiceImplTest {
         when(uuidv7Generator.generate()).thenReturn(tokenJti);
         when(manager.getJwtTimeExpRefresh()).thenReturn(86400000L);
         when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(expectedRefreshToken);
-        when(manager.createRefreshTokenHash(expectedRefreshToken)).thenReturn(tokenHash);
+        when(manager.createTokenHash(expectedRefreshToken)).thenReturn(tokenHash);
         when(dao.save(any(RefreshToken.class))).thenReturn(testRefreshToken);
         when(manager.createAccessToken(userPrincipal, testSession.getLastSeenAt()))
                 .thenReturn(expectedAccessToken);

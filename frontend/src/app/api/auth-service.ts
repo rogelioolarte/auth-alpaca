@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { REFRESH_TOKEN_HEADER_KEY, CLIENT_ID_HEADER_KEY } from '../models/constants';
-import { AuthRequest, AuthResponse, UserPrincipal } from '../models/auth';
+import { AuthCode, AuthRequest, AuthResponse, UserPrincipal } from '../models/auth';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -41,8 +41,8 @@ export class AuthService {
     });
   }
 
-  exchangeCode(code: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/exchange`, { code });
+  exchangeCode(authCode: AuthCode): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.API_URL}/api/auth/exchange`, authCode);
   }
 
   getUserInfo(): Observable<UserPrincipal> {

@@ -23,7 +23,8 @@ import org.springframework.security.web.RedirectStrategy;
 @DisplayName("AuthFailureHandler Unit Tests")
 class AuthFailureHandlerTest {
 
-    private static final String FRONTEND_URI = "http://frontend.app/";
+    private static final String FRONTEND_URI = "http://test.test/";
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
     private AuthFailureHandler handler;
     private CookieAuthReqRepo repository;
     private MockHttpServletRequest request;
@@ -64,13 +65,13 @@ class AuthFailureHandlerTest {
         @Test
         @DisplayName("Given request parameter 'redirect_uri', uses it and error param from request")
         void paramRedirectUri_andParamError() throws IOException {
-            request.setParameter("redirect_uri", "http://app/next");
+            request.setParameter("redirect_uri", "http://test/next");
             request.setParameter("error", "bad|input[]");
 
             handler.onAuthenticationFailure(request, response, exception);
 
             verify(repository).removeAuthorizationRequestCookies(request, response);
-            String expected = "http://app/next?error=bad input";
+            String expected = "http://test/next?error=bad input";
             verify(redirectStrategy).sendRedirect(request, response, expected);
         }
 
@@ -78,18 +79,15 @@ class AuthFailureHandlerTest {
         @DisplayName("Given cookie 'redirect_uri' if param absent")
         void cookieRedirectUri_andExceptionMessage() throws IOException {
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-                Cookie c = new Cookie(CookieAuthReqRepo.REDIRECT_COOKIE_NAME, "http://cookie/uri");
-                cm.when(
-                                () ->
-                                        CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.REDIRECT_COOKIE_NAME))
+                Cookie c = new Cookie(REDIRECT_PARAM_NAME, "http://test/uri");
+                cm.when(() -> CookieManager.getCookie(request, REDIRECT_PARAM_NAME))
                         .thenReturn(Optional.of(c));
 
                 handler.onAuthenticationFailure(request, response, exception);
 
                 verify(repository).removeAuthorizationRequestCookies(request, response);
                 String sanitized = "orig error"; // from exception.getMessage()
-                String expected = "http://cookie/uri?error=" + sanitized;
+                String expected = "http://test/uri?error=" + sanitized;
                 verify(redirectStrategy).sendRedirect(request, response, expected);
             }
         }

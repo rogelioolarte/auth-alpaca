@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import {
+  AuthCode,
   AuthResponse,
   convertDecodeToUserAuth,
   convertPrincipalToUserAuth,
@@ -238,7 +239,7 @@ export class AuthenticationService {
     }
   }
 
-  public exchangeCode(code: string) {
+  public exchangeCode(code: AuthCode) {
     return this.authService.exchangeCode(code).pipe(
       tap({
         next: (i) => {
