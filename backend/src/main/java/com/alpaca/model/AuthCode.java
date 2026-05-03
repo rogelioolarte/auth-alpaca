@@ -54,4 +54,10 @@ public class AuthCode {
         this.userAgent = userAgent;
         this.clientIp = clientIp;
     }
+
+    public AuthCode(String code, String codeVerifier, String redirectUri) {
+        this.code = code;
+        this.codeVerifier = codeVerifier;
+        this.redirectUri = redirectUri;
+    }
 }

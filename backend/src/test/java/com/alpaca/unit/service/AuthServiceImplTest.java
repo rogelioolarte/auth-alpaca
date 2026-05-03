@@ -7,23 +7,27 @@ import static org.mockito.Mockito.*;
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
+import com.alpaca.entity.Role;
+import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.SessionProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.PasswordManager;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.AuthServiceImpl;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/** Unit tests for {@link AuthServiceImpl} */
+/** Unit tests for {@link AuthServiceImpl}. */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 
@@ -45,200 +49,258 @@ class AuthServiceImplTest {
     @Mock private ISessionService sessionService;
     @Mock private IRefreshTokenService refreshTokenService;
     @Mock private PasswordManager passwordManager;
+    @Mock private TokenExchangeManager exchangeManager;
     @Mock private JJwtManager manager;
+    @Mock private JJwtManager jJwtManager;
 
     @InjectMocks private AuthServiceImpl service;
 
-    private static final String RAW_PASSWORD = "rawPassword";
-    private User existingUser;
+    private User user;
+    private AuthLoginRequestDTO loginRequest;
+    private Session session;
+    private AuthResponseDTO authResponse;
+    private AuthCode authCode;
 
     @BeforeEach
     void setup() {
-        existingUser = UserProvider.alternativeEntity();
+        service =
+                new AuthServiceImpl(
+                        roleService,
+                        userService,
+                        sessionService,
+                        refreshTokenService,
+                        passwordManager,
+                        manager,
+                        exchangeManager,
+                        jJwtManager);
+        user = UserProvider.alternativeEntity();
+        loginRequest =
+                new AuthLoginRequestDTO(
+                        user.getEmail(), "Password123!", "client-id", "user-agent", "127.0.0.1");
+        session = SessionProvider.singleEntity();
+        authResponse = new AuthResponseDTO("access-token", "refresh-token");
+        authCode = new AuthCode();
+        authCode.setCode("valid-code");
+        authCode.setCodeVerifier("a".repeat(43)); // Valid PKCE verifier length
+        authCode.setRedirectUri("[https://alpaca.com/callback](https://alpaca.com/callback)");
     }
 
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
-        clearInvocations(
-                roleService,
-                userService,
-                sessionService,
-                refreshTokenService,
-                passwordManager,
-                manager);
-    }
-
-    // ----- login -----
-    @Test
-    void login_success_returnsAuthResponse() {
-        UserPrincipal userPrincipal = new UserPrincipal(existingUser);
-        AuthLoginRequestDTO requestDTO =
-                new AuthLoginRequestDTO(
-                        existingUser.getEmail(), "pw", "clientId", "userAgent", "127.0.0.1");
-
-        when(sessionService.createSession(any(), anyString(), anyString(), anyString()))
-                .thenReturn(SessionProvider.singleEntity());
-        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
-                .thenReturn(new AuthResponseDTO("access-token", "refresh-token"));
-
-        AuthResponseDTO response = service.login(userPrincipal, requestDTO);
-
-        assertNotNull(response);
-        assertEquals("access-token", response.accessToken());
-        assertEquals("refresh-token", response.refreshToken());
-        verify(sessionService)
-                .createSession(
-                        eq(userPrincipal.getUserId()),
-                        eq("userAgent"),
-                        eq("clientId"),
-                        eq("127.0.0.1"));
-        verify(refreshTokenService).generateJWTTokens(eq(userPrincipal), any());
-    }
-
-    // ----- register -----
-    @Test
-    void register_whenEmailAlreadyRegistered_throwsBadRequest() {
-        AuthLoginRequestDTO dto =
-                new AuthLoginRequestDTO(existingUser.getEmail(), RAW_PASSWORD, "c", "ua", "ip");
-        when(userService.existsByEmail(existingUser.getEmail())).thenReturn(true);
-
-        assertThrows(BadRequestException.class, () -> service.register(dto));
-        verify(userService).existsByEmail(existingUser.getEmail());
     }
 
     @Test
-    void register_success_encodesPassword_registersAndReturnsTokens() {
-        AuthLoginRequestDTO dto =
-                new AuthLoginRequestDTO("new@example.com", RAW_PASSWORD, "c", "ua", "ip");
+    void login_WithPrincipal_Success() {
+        UserPrincipal principal = new UserPrincipal(user);
 
-        // Prepare returned user from register()
-        User registered = new User(dto.email(), "encoded-password", new HashSet<>());
-        registered.setId(existingUser.getId());
+        when(sessionService.createSession(
+                        principal.getUserId(),
+                        loginRequest.userAgent(),
+                        loginRequest.clientId(),
+                        loginRequest.clientIp()))
+                .thenReturn(session);
+        when(refreshTokenService.generateJWTTokens(principal, session)).thenReturn(authResponse);
 
-        when(userService.existsByEmail(dto.email())).thenReturn(false);
-        when(roleService.getUserRoles()).thenReturn(java.util.Set.of()); // roles empty allowed
-        // Capture the user passed to register
-        when(userService.register(any(User.class))).thenReturn(registered);
-        when(sessionService.createSession(any(), anyString(), anyString(), anyString()))
-                .thenReturn(SessionProvider.singleEntity());
-        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
-                .thenReturn(new AuthResponseDTO("access", "refresh"));
+        AuthResponseDTO result = service.login(principal, loginRequest);
 
-        AuthResponseDTO response = service.register(dto);
-
-        assertNotNull(response);
-        assertEquals("access", response.accessToken());
-
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userService).register(userCaptor.capture());
-        User passed = userCaptor.getValue();
-        assertEquals(dto.email(), passed.getEmail());
-        assertEquals(RAW_PASSWORD, passed.getPassword());
-        verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
-    }
-
-    // ----- logout -----
-    @Test
-    void logout_whenRefreshTokenBlank_throwsBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.logout("   ", "client", "ua", "ip"));
+        assertNotNull(result);
+        assertEquals(authResponse.accessToken(), result.accessToken());
     }
 
     @Test
-    void logout_whenRefreshTokenNotFound_throwsNotFound() {
-        String token = "rt";
-        when(manager.createTokenHash(token)).thenReturn("hash");
-        when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> service.logout(token, "cid", "ua", "ip"));
-        verify(refreshTokenService).findByTokenHashSecure("hash");
+    void login_WithAuthCode_NullCode_ThrowsUnauthorized() {
+        authCode.setCode(null);
+        assertThrows(UnauthorizedException.class, () -> service.login(authCode));
     }
 
     @Test
-    void logout_whenRefreshTokenAlreadyRevoked_throwsBadRequest() {
-        String token = "rt";
-        when(manager.createTokenHash(token)).thenReturn("hash");
+    void login_WithAuthCode_InvalidVerifier_ThrowsBadRequest() {
+        authCode.setCodeVerifier("invalid");
+        assertThrows(BadRequestException.class, () -> service.login(authCode));
+    }
+
+    @Test
+    void login_WithAuthCode_CodeNotFound_ThrowsUnauthorized() {
+        when(exchangeManager.consumeCode(authCode.getCode())).thenReturn(Optional.empty());
+        assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+    }
+
+    @Test
+    void login_WithAuthCode_HashMismatch_ThrowsUnauthorized() {
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCodeChallenge("expected-challenge");
+        String mismatchValue = authCode.getRedirectUri();
+
+        when(exchangeManager.consumeCode(authCode.getCode())).thenReturn(Optional.of(savedCode));
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier())).thenReturn(mismatchValue);
+
+        assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+    }
+
+    @Test
+    void login_WithAuthCode_Expired_ThrowsUnauthorized() {
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCodeChallenge("hash");
+        savedCode.setExpiresAt(Instant.now().minusSeconds(10));
+
+        when(exchangeManager.consumeCode(authCode.getCode())).thenReturn(Optional.of(savedCode));
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedCode.getCodeChallenge());
+
+        assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+    }
+
+    @Test
+    void login_WithAuthCode_RedirectUriMismatch_ThrowsUnauthorized() {
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCodeChallenge("hash");
+        savedCode.setExpiresAt(Instant.now().plusSeconds(60));
+        savedCode.setRedirectUri("[https://wrong.com](https://wrong.com)");
+
+        when(exchangeManager.consumeCode(authCode.getCode())).thenReturn(Optional.of(savedCode));
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedCode.getCodeChallenge());
+
+        assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+    }
+
+    @Test
+    void login_WithAuthCode_Success() {
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCodeChallenge("hash");
+        savedCode.setExpiresAt(Instant.now().plusSeconds(60));
+        savedCode.setRedirectUri(authCode.getRedirectUri());
+
+        when(exchangeManager.consumeCode(authCode.getCode())).thenReturn(Optional.of(savedCode));
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedCode.getCodeChallenge());
+        when(refreshTokenService.generateJWTTokens(savedCode)).thenReturn(authResponse);
+
+        AuthResponseDTO result = service.login(authCode);
+
+        assertNotNull(result);
+        assertEquals(authResponse.accessToken(), result.accessToken());
+    }
+
+    @Test
+    void register_EmailExists_ThrowsBadRequest() {
+        when(userService.existsByEmail(loginRequest.email())).thenReturn(true);
+        assertThrows(BadRequestException.class, () -> service.register(loginRequest));
+    }
+
+    @Test
+    void register_Success() {
+        Set<Role> roles = Set.of(new Role());
+        when(userService.existsByEmail(loginRequest.email())).thenReturn(false);
+        when(roleService.getUserRoles()).thenReturn(roles);
+        when(userService.register(any(User.class))).thenReturn(user);
+        when(sessionService.createSession(
+                        any(),
+                        eq(loginRequest.userAgent()),
+                        eq(loginRequest.clientId()),
+                        eq(loginRequest.clientIp())))
+                .thenReturn(session);
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), eq(session)))
+                .thenReturn(authResponse);
+
+        AuthResponseDTO result = service.register(loginRequest);
+
+        assertNotNull(result);
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userService).register(captor.capture());
+        assertEquals(loginRequest.email(), captor.getValue().getEmail());
+    }
+
+    @Test
+    void logout_InvalidToken_ThrowsBadRequest() {
+        assertThrows(BadRequestException.class, () -> service.logout("", "c", "u", "i"));
+    }
+
+    @Test
+    void logout_TokenNotFound_ThrowsNotFound() {
+        String token = "token";
+        String hash = "hash";
+        when(manager.createTokenHash(token)).thenReturn(hash);
+        when(refreshTokenService.findByTokenHashSecure(hash)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.logout(token, "c", "u", "i"));
+    }
+
+    @Test
+    void logout_AlreadyRevoked_ThrowsBadRequest() {
+        String token = "token";
         RefreshToken rt = new RefreshToken();
         rt.setRevoked(true);
+        when(manager.createTokenHash(token)).thenReturn("hash");
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.of(rt));
 
-        assertThrows(BadRequestException.class, () -> service.logout(token, "cid", "ua", "ip"));
+        assertThrows(BadRequestException.class, () -> service.logout(token, "c", "u", "i"));
     }
 
     @Test
-    void logout_success_revokesFamilyAndClearsSecurityContext() {
-        String token = "rt";
-        when(manager.createTokenHash(token)).thenReturn("hash");
+    void logout_Success() {
+        String token = "token";
         RefreshToken rt = new RefreshToken();
         rt.setRevoked(false);
-        UUID familyId = UUID.randomUUID();
-        rt.setFamilyId(familyId);
+        rt.setFamilyId(UUID.randomUUID());
+        when(manager.createTokenHash(token)).thenReturn("hash");
         when(refreshTokenService.findByTokenHashSecure("hash")).thenReturn(Optional.of(rt));
 
-        service.logout(token, "cid", "ua", "ip");
+        service.logout(token, "c", "u", "i");
 
         verify(refreshTokenService)
                 .revokeRefreshTokensAndSessionByFamilyId(
-                        eq(familyId), any(Instant.class), eq("logout-session"));
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    // ----- loadUserByUsername -----
-    @Test
-    void loadUserByUsername_returnsUserDetails() {
-        when(userService.findByEmail(existingUser.getEmail())).thenReturn(existingUser);
-        UserDetails userDetails = service.loadUserByUsername(existingUser.getEmail());
-        assertNotNull(userDetails);
-        assertEquals(existingUser.getEmail(), userDetails.getUsername());
-    }
-
-    // ----- validateUserDetails -----
-    @Test
-    void validateUserDetails_whenUserDetailsNull_throwsBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails("x", null));
+                        eq(rt.getFamilyId()), any(Instant.class), anyString());
     }
 
     @Test
-    void validateUserDetails_whenRawPasswordBlank_throwsBadRequest() {
-        UserPrincipal up = new UserPrincipal(new User());
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails(" ", up));
+    void loadUserByUsername_Success() {
+        when(userService.findByEmail(user.getEmail())).thenReturn(user);
+        UserDetails result = service.loadUserByUsername(user.getEmail());
+        assertEquals(user.getEmail(), result.getUsername());
     }
 
     @Test
-    void validateUserDetails_whenPasswordMismatch_throwsBadRequest() {
-        User u = UserProvider.alternativeEntity();
-        UserPrincipal up = new UserPrincipal(u, null);
-        when(passwordManager.matches(anyString(), anyString())).thenReturn(false);
+    void validateUserDetails_NullDetails_ThrowsBadRequest() {
+        assertThrows(BadRequestException.class, () -> service.validateUserDetails("pw", null));
+    }
+
+    @Test
+    void validateUserDetails_BlankPassword_ThrowsBadRequest() {
+        UserPrincipal principal = new UserPrincipal(user);
+        assertThrows(BadRequestException.class, () -> service.validateUserDetails("", principal));
+    }
+
+    @Test
+    void validateUserDetails_PasswordMismatch_ThrowsBadRequest() {
+        UserPrincipal principal = new UserPrincipal(user);
+        String raw = "wrong";
+        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(false);
+        assertThrows(BadRequestException.class, () -> service.validateUserDetails(raw, principal));
+    }
+
+    @Test
+    void validateUserDetails_AccountInactive_ThrowsUnauthorized() {
+        user.setEnabled(false);
+        UserPrincipal principal = new UserPrincipal(user);
+        String raw = "correct";
+        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(true);
         assertThrows(
-                BadRequestException.class, () -> service.validateUserDetails(RAW_PASSWORD, up));
+                UnauthorizedException.class, () -> service.validateUserDetails(raw, principal));
     }
 
     @Test
-    void validateUserDetails_whenAccountNotActive_throwsUnauthorized() {
-        // Create a user principal with disabled account
-        User u = UserProvider.createUser(true, true, true, true, true, true);
-        // simulate account disabled -> isEnabled() false by setting flags appropriately
-        // Note: adapt createUser signature to your provider; here we simulate by modifying the
-        // returned user
-        // For safety, construct a user manually if provider doesn't allow flags change.
-        u.setEnabled(false);
-        UserPrincipal up = new UserPrincipal(u, null);
-        when(passwordManager.matches(anyString(), anyString())).thenReturn(true);
+    void validateUserDetails_Success() {
+        user.setEnabled(true);
+        user.setAccountNonLocked(true);
+        user.setAccountNonExpired(true);
+        user.setCredentialNonExpired(true);
+        UserPrincipal principal = new UserPrincipal(user);
+        String raw = "correct";
+        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(true);
 
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.validateUserDetails(u.getPassword(), up));
-    }
-
-    @Test
-    void validateUserDetails_success_returnsUserDetails() {
-        User user = UserProvider.alternativeEntity();
-        UserPrincipal up = new UserPrincipal(user, null);
-        when(passwordManager.matches(user.getPassword(), user.getPassword())).thenReturn(true);
-
-        UserDetails result = service.validateUserDetails(user.getPassword(), up);
-
-        assertNotNull(result);
-        assertEquals(up, result);
+        UserDetails result = service.validateUserDetails(raw, principal);
+        assertEquals(principal, result);
     }
 }

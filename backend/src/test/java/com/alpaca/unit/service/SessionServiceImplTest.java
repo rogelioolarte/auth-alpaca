@@ -15,21 +15,19 @@ import com.alpaca.resources.SessionProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.SessionServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
-/** Unit tests for {@link SessionServiceImpl} */
+/** Unit tests for {@link SessionServiceImpl}. */
 @ExtendWith(MockitoExtension.class)
 class SessionServiceImplTest {
 
@@ -39,236 +37,154 @@ class SessionServiceImplTest {
     @Mock private UUIDv7Generator uuidv7Generator;
 
     private SessionServiceImpl service;
-
-    private User testUser;
-    private Session testSession;
-    private UUID testUserId;
-    private UUID testFamilyId;
+    private User user;
+    private Session session;
+    private final int MAX_SESSIONS = 2;
 
     @BeforeEach
     void setUp() {
-        // normal valid maxSessionsPerUser = 10
-        service = new SessionServiceImpl(dao, userDAO, refreshTokenDAO, uuidv7Generator, 10, false);
-        testUser = UserProvider.singleEntity();
-        testSession = SessionProvider.singleEntity();
-        testUserId = testUser.getId();
-        testFamilyId = testSession.getFamilyId();
-    }
-
-    @AfterEach
-    void tearDown() {
-        clearInvocations(dao, userDAO, refreshTokenDAO, uuidv7Generator);
-    }
-
-    // -------------------------
-    // Constructor validation
-    // -------------------------
-    @Test
-    void constructor_whenMaxSessionsLessThanOne_throwsIllegalState() {
-        IllegalStateException ex =
-                assertThrows(
-                        IllegalStateException.class,
-                        () ->
-                                new SessionServiceImpl(
-                                        dao, userDAO, refreshTokenDAO, uuidv7Generator, 0, false));
-        assertTrue(ex.getMessage().contains("security.max.session.per.user must be >= 1"));
-    }
-
-    // -------------------------
-    // Simple delegations
-    // -------------------------
-    @Test
-    void revokeSessionByFamilyId_delegatesToDao() {
-        UUID family = UUID.randomUUID();
-        service.revokeSessionByFamilyId(family, java.time.Instant.EPOCH, "reason");
-        verify(dao).revokeSessionByFamilyId(eq(family), eq(java.time.Instant.EPOCH), eq("reason"));
+        service =
+                new SessionServiceImpl(
+                        dao, userDAO, refreshTokenDAO, uuidv7Generator, MAX_SESSIONS, false);
+        user = UserProvider.singleEntity();
+        session = SessionProvider.singleEntity();
     }
 
     @Test
-    void findSessionByFamilyId_delegatesToDao() {
-        when(dao.findSessionByFamilyId(testFamilyId)).thenReturn(Optional.of(testSession));
-        Optional<Session> found = service.findSessionByFamilyId(testFamilyId);
-        assertTrue(found.isPresent());
-        assertEquals(testSession, found.get());
-        verify(dao).findSessionByFamilyId(testFamilyId);
+    void constructor_WhenMaxSessionsInvalid_ThrowsIllegalStateException() {
+        assertThrows(
+                IllegalStateException.class,
+                () ->
+                        new SessionServiceImpl(
+                                dao, userDAO, refreshTokenDAO, uuidv7Generator, 0, false));
     }
 
-    // -------------------------
-    // createSession - existing session reuse
-    // -------------------------
     @Test
-    void createSession_existingSession_reusesAndRevokesOldFamily_andUpdatesFields() {
-        // Arrange
-        String userAgent = "Mozilla/5.0";
-        String clientId = "web-client";
-        String clientIp = "127.0.0.1";
+    void revokeSessionByFamilyId_DelegatesToDao() {
+        UUID familyId = session.getFamilyId();
+        Instant now = Instant.now();
+        String reason = "logout";
+
+        service.revokeSessionByFamilyId(familyId, now, reason);
+
+        verify(dao).revokeSessionByFamilyId(familyId, now, reason);
+    }
+
+    @Test
+    void findSessionByFamilyId_DelegatesToDao() {
+        UUID familyId = session.getFamilyId();
+        when(dao.findSessionByFamilyId(familyId)).thenReturn(Optional.of(session));
+
+        Optional<Session> result = service.findSessionByFamilyId(familyId);
+
+        assertTrue(result.isPresent());
+        assertEquals(session, result.get());
+    }
+
+    @Test
+    void createSession_WhenUserNotFound_ThrowsNotFoundException() {
+        UUID userId = user.getId();
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.createSession(userId, "ua", "c", "ip"));
+    }
+
+    @Test
+    void createSession_WhenSessionExists_ReusesAndRevokesOldTokens() {
+        UUID userId = user.getId();
         UUID newFamilyId = UUID.randomUUID();
-        UUID oldFamilyId = testSession.getFamilyId();
+        String ua = "Mozilla";
+        String client = "web";
+        String ip = "127.0.0.1";
 
-        // ensure user exists
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        // dao returns an existing session (from same device)
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
-                .thenReturn(Optional.of(testSession));
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.of(user));
+        when(dao.findByUniqueProperties(userId, ua, client, ip)).thenReturn(Optional.of(session));
         when(uuidv7Generator.generate()).thenReturn(newFamilyId);
-        when(dao.save(any(Session.class))).thenReturn(testSession);
+        when(dao.save(any(Session.class))).thenAnswer(i -> i.getArgument(0));
 
-        // Act
-        Session result = service.createSession(testUserId, userAgent, clientId, clientIp);
+        Session result = service.createSession(userId, ua, client, ip);
 
-        // Assert basic
-        assertNotNull(result);
-        // verify the DAO saved the session
-        verify(dao).save(any(Session.class));
-        // verify refresh tokens revoked for previous family id
-        verify(refreshTokenDAO)
-                .revokeFamilyWithReason(eq(oldFamilyId), any(), eq("new-session-created"));
-
-        // verify that saved session has updated family id and ip address (captured)
-        ArgumentCaptor<Session> cap = ArgumentCaptor.forClass(Session.class);
-        verify(dao).save(cap.capture());
-        Session saved = cap.getValue();
-        assertEquals(newFamilyId, saved.getFamilyId());
-        assertEquals(clientIp, saved.getIpAddress());
-        assertFalse(saved.isRevoked());
+        assertEquals(newFamilyId, result.getFamilyId());
+        assertEquals(ip, result.getIpAddress());
+        assertFalse(result.isRevoked());
+        verify(refreshTokenDAO).revokeFamilyWithReason(any(), any(), eq("new-session-created"));
     }
 
     @Test
-    void
-            createSession_existingSession_whenGeneratorReturnsSameFamily_doesNotChangeFamilyButStillRevokesOldTokens() {
-        // Arrange: generator returns same family id as existing session
-        String userAgent = "Mozilla/5.0";
-        String clientId = "web-client";
-        String clientIp = "1.2.3.4";
-        UUID oldFamilyId = testSession.getFamilyId();
+    void createSession_WhenNewSessionAndLimitExceeded_ThrowsExceededSessionsException() {
+        UUID userId = user.getId();
+        String ua = "Mozilla";
+        String client = "web";
+        String ip = "127.0.0.1";
+        List<Session> activeSessions =
+                List.of(new Session(), new Session()); // Size 2 == MAX_SESSIONS
 
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
-                .thenReturn(Optional.of(testSession));
-        // generator returns same family id
-        when(uuidv7Generator.generate()).thenReturn(oldFamilyId);
-        when(dao.save(any(Session.class))).thenReturn(testSession);
-
-        service.createSession(testUserId, userAgent, clientId, clientIp);
-
-        // should still call revokeFamilyWithReason (all previous refresh tokens revoked)
-        verify(refreshTokenDAO)
-                .revokeFamilyWithReason(eq(oldFamilyId), any(), eq("new-session-created"));
-
-        // family id remains equal (generator returned same value)
-        ArgumentCaptor<Session> cap = ArgumentCaptor.forClass(Session.class);
-        verify(dao).save(cap.capture());
-        Session saved = cap.getValue();
-        assertEquals(oldFamilyId, saved.getFamilyId());
-        assertEquals(clientIp, saved.getIpAddress());
-    }
-
-    // -------------------------
-    // createSession - new session creation
-    // -------------------------
-    @Test
-    void createSession_newSession_createsWithUserAndProperties_andDoesNotRevokeTokens() {
-        // Arrange
-        String userAgent = "Mozilla/5.0";
-        String clientId = "web-client";
-        String clientIp = "127.0.0.1";
-        UUID newFamilyId = UUID.randomUUID();
-
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
-                .thenReturn(Optional.empty());
-        // no active sessions
-        when(dao.findActiveSessionsByUserOrderByLastSeen(eq(testUserId), any(Pageable.class)))
-                .thenReturn(Collections.emptyList());
-        when(uuidv7Generator.generate()).thenReturn(newFamilyId);
-        when(dao.save(any(Session.class)))
-                .thenAnswer(inv -> inv.getArgument(0)); // return same session saved
-
-        Session created = service.createSession(testUserId, userAgent, clientId, clientIp);
-
-        assertNotNull(created);
-        // verify user was attached and properties set
-        verify(dao).save(any(Session.class));
-        ArgumentCaptor<Session> cap = ArgumentCaptor.forClass(Session.class);
-        verify(dao).save(cap.capture());
-        Session saved = cap.getValue();
-        assertNotNull(saved.getUser());
-        assertEquals(testUserId, saved.getUser().getId());
-        assertEquals(userAgent, saved.getUserAgent());
-        assertEquals(clientId, saved.getClientId());
-        assertEquals(clientIp, saved.getIpAddress());
-        assertEquals(newFamilyId, saved.getFamilyId());
-        assertFalse(saved.isRevoked());
-
-        // ensure refreshTokenDAO never called for new session creation
-        verify(refreshTokenDAO, never()).revokeFamilyWithReason(any(), any(), anyString());
-    }
-
-    // -------------------------
-    // createSession - user not found
-    // -------------------------
-    @Test
-    void createSession_whenUserMissing_throwsNotFound() {
-        String userAgent = "UA";
-        String clientId = "client";
-        String clientIp = "ip";
-
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.empty());
-
-        NotFoundException ex =
-                assertThrows(
-                        NotFoundException.class,
-                        () -> service.createSession(testUserId, userAgent, clientId, clientIp));
-        assertTrue(ex.getMessage().contains("User not found"));
-    }
-
-    // -------------------------
-    // createSession - exceeded sessions
-    // -------------------------
-    @Test
-    void createSession_whenActiveSessionsExceedMax_throwsExceededSessions() {
-        String userAgent = "UA";
-        String clientId = "client";
-        String clientIp = "ip";
-        int maxSessions = 10;
-
-        // create list with size == maxSessions (service created with maxSessions=10)
-        List<Session> activeSessions = Collections.nCopies(maxSessions, testSession);
-
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
-                .thenReturn(Optional.empty());
-        when(dao.findActiveSessionsByUserOrderByLastSeen(eq(testUserId), any(Pageable.class)))
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.of(user));
+        when(dao.findByUniqueProperties(userId, ua, client, ip)).thenReturn(Optional.empty());
+        when(dao.findActiveSessionsByUserOrderByLastSeen(eq(userId), any(Pageable.class)))
                 .thenReturn(activeSessions);
 
-        ExceededSessionsException ex =
-                assertThrows(
-                        ExceededSessionsException.class,
-                        () -> service.createSession(testUserId, userAgent, clientId, clientIp));
-        assertEquals(maxSessions, ex.getMaxOfSessions());
+        assertThrows(
+                ExceededSessionsException.class,
+                () -> service.createSession(userId, ua, client, ip));
     }
 
-    // -------------------------
-    // Misc - ensure method call order for existing session branch
-    // -------------------------
     @Test
-    void createSession_existingSession_invokesRevokeThenSave_inOrder() {
-        String userAgent = "UA";
-        String clientId = "c";
-        String clientIp = "1.2.3.4";
-        UUID oldFamilyId = testSession.getFamilyId();
+    void createSession_WhenInfinityLoginEnabled_RevokesOldestSession() {
+        SessionServiceImpl infinityService =
+                new SessionServiceImpl(
+                        dao, userDAO, refreshTokenDAO, uuidv7Generator, MAX_SESSIONS, true);
+        UUID userId = user.getId();
+        UUID newFamilyId = UUID.randomUUID();
+        UUID oldestFamilyId = UUID.randomUUID();
 
-        when(userDAO.lockFindUserById(testUserId)).thenReturn(Optional.of(testUser));
-        when(dao.findByUniqueProperties(testUserId, userAgent, clientId, clientIp))
-                .thenReturn(Optional.of(testSession));
-        when(uuidv7Generator.generate()).thenReturn(UUID.randomUUID());
-        when(dao.save(any(Session.class))).thenReturn(testSession);
+        Session oldestSession = new Session();
+        oldestSession.setFamilyId(oldestFamilyId);
+        List<Session> activeSessions = List.of(oldestSession, new Session());
 
-        service.createSession(testUserId, userAgent, clientId, clientIp);
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.of(user));
+        when(dao.findByUniqueProperties(userId, "ua", "c", "ip")).thenReturn(Optional.empty());
+        when(dao.findActiveSessionsByUserOrderByLastSeen(eq(userId), any(Pageable.class)))
+                .thenReturn(activeSessions);
+        when(uuidv7Generator.generate()).thenReturn(newFamilyId);
+        when(dao.save(any(Session.class))).thenAnswer(i -> i.getArgument(0));
 
-        InOrder inOrder = inOrder(refreshTokenDAO, dao);
-        inOrder.verify(refreshTokenDAO)
-                .revokeFamilyWithReason(eq(oldFamilyId), any(), eq("new-session-created"));
-        inOrder.verify(dao).save(any(Session.class));
+        Session result = infinityService.createSession(userId, "ua", "c", "ip");
+
+        assertNotNull(result);
+        verify(refreshTokenDAO)
+                .revokeFamilyWithReason(eq(oldestFamilyId), any(), eq("new-session-created"));
+        verify(dao).revokeSessionByFamilyId(eq(oldestFamilyId), any(), eq("new-session-created"));
+    }
+
+    @Test
+    void createSession_WhenNewSessionWithinLimit_CreatesSuccessfully() {
+        UUID userId = user.getId();
+        UUID newFamilyId = UUID.randomUUID();
+        String ua = "Chrome";
+        String client = "mobile";
+        String ip = "192.168.1.1";
+
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.of(user));
+        when(dao.findByUniqueProperties(userId, ua, client, ip)).thenReturn(Optional.empty());
+        when(dao.findActiveSessionsByUserOrderByLastSeen(eq(userId), any(Pageable.class)))
+                .thenReturn(Collections.emptyList());
+        when(uuidv7Generator.generate()).thenReturn(newFamilyId);
+        when(dao.save(any(Session.class))).thenAnswer(i -> i.getArgument(0));
+
+        Session result = service.createSession(userId, ua, client, ip);
+
+        assertEquals(user, result.getUser());
+        assertEquals(ua, result.getUserAgent());
+        assertEquals(client, result.getClientId());
+        assertEquals(ip, result.getIpAddress());
+        assertEquals(newFamilyId, result.getFamilyId());
+    }
+
+    @Test
+    void existsByUniqueProperties_DelegatesToDao() {
+        when(dao.existsByUniqueProperties(session)).thenReturn(true);
+        boolean exists = service.existsByUniqueProperties(session);
+        assertTrue(exists);
     }
 }

@@ -63,7 +63,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     public User updateById(User user, UUID uuid) {
         if (user == null || uuid == null)
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-        return super.updateById(user, uuid);
+        return dao.updateById(user, uuid);
     }
 
     /**
