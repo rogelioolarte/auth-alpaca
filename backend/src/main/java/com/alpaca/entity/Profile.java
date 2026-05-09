@@ -80,13 +80,11 @@ public class Profile extends Auditable {
         return Objects.equals(firstName, profile.firstName)
                 && Objects.equals(lastName, profile.lastName)
                 && Objects.equals(address, profile.address)
-                && Objects.equals(avatarUrl, profile.avatarUrl)
-                && Objects.equals(user.getId(), profile.user.getId());
+                && Objects.equals(avatarUrl, profile.avatarUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                firstName, lastName, address, avatarUrl, user != null ? user.getId() : null);
+        return Objects.hash(firstName, lastName, address, avatarUrl);
     }
 }

@@ -14,6 +14,7 @@ export interface Advertiser {
 }
 
 export interface AdvertiserRequest {
+  id?: string;
   title: string;
   description: string;
   bannerUrl: string;
@@ -21,7 +22,5 @@ export interface AdvertiserRequest {
   publicLocation: string;
   publicUrlLocation: string;
   indexed: boolean;
-  paid: boolean;
-  verified: boolean;
   userId: string;
 }

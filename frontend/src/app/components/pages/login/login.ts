@@ -47,7 +47,6 @@ export class Login implements OnInit {
 
   private authProvider = AuthProvider.provider;
   public loginForm!: FormGroup;
-  public loading = signal(false);
   public submitting = signal(false);
   public errorMessage = signal('');
   public hidePassword = signal(true);
@@ -69,27 +68,27 @@ export class Login implements OnInit {
     }
 
     this.submitting.set(true);
-    this.loading.set(true);
     this.apiAuthService.login(this.loginForm.getRawValue(), this.clientId() || '').subscribe({
       next: (data) => {
         this.authService.setAuthTokens(data, false);
         this.router.navigate(['/dashboard'], {
           state: { from: this.router.routerState.snapshot.url },
         });
-        this.loading.set(false);
         this.submitting.set(false);
+        console.log("aqui estoy al final")
       },
       error: (err: HttpErrorResponse) => {
         this.errorMessage.set(err.error.message || err.message);
-        this.loading.set(false);
         this.submitting.set(false);
-      },
+        console.log("aqui estoy al final")
+      }
     });
   }
 
   async loginWithProvider(provider: AuthProvider) {
     const codeV = this.pkceService.generateCodeVerifier();
     const codeC = await this.pkceService.generateCodeChallenge(codeV);
+    this.authProvider = provider;
     switch (provider) {
       case AuthProvider.google:
         window.location.href = addCodeChallenge(GOOGLE_AUTH_URL, codeC);

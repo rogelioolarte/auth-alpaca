@@ -56,7 +56,7 @@ export class AuthenticationService {
   // Access Token Timer
   private ATTimer?: Subscription;
   // Refresh Threehold in 3000 miliseconds or 3 seconds
-  private readonly REFRESH_THREEHOLD_MS = 60000;
+  private readonly REFRESH_THREEHOLD_MS = 3000;
 
   constructor() {
     this.recoverStates();

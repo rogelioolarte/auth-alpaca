@@ -15,6 +15,8 @@ import { Advertiser } from '@app/models/advertiser';
 import { SlicePipe } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { AuthenticationService } from '@app/auth/authentication-service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-advertiser',
@@ -35,13 +37,15 @@ import { MatSelectModule } from '@angular/material/select';
     FormsModule,
     SlicePipe,
   ],
-  templateUrl: './advertiser.html',
-  styleUrl: './advertiser.css',
+  templateUrl: './advertisers.html',
+  styleUrl: './advertisers.css',
 })
 export class AdvertiserPage {
   private advertiserService = inject(AdvertiserService);
   private snackBar = inject(MatSnackBar);
   private searchSubject = new Subject<string>();
+  private authenticationService = inject(AuthenticationService);
+  private isAdmin = toSignal(this.authenticationService.isAdmin());
 
   loading = signal(true);
   advertisers = signal<Advertiser[]>([]);
@@ -67,7 +71,8 @@ export class AdvertiserPage {
       sort: ['title,asc'],
     };
 
-    this.advertiserService.getAllPageAdvertisers(pageable).subscribe({
+    if(this.isAdmin()) {
+      this.advertiserService.getAllPageAdvertisersForAdmin(pageable).subscribe({
       next: (page) => {
         this.advertisers.set(page.content);
         this.totalItems.set(page.page.totalElements);
@@ -78,6 +83,21 @@ export class AdvertiserPage {
         this.loading.set(false);
       },
     });
+    } else {
+      this.advertiserService.getAllPageAdvertisers(pageable).subscribe({
+      next: (page) => {
+        this.advertisers.set(page.content);
+        this.totalItems.set(page.page.totalElements);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Error loading advertisers', 'Close', { duration: 3000 });
+        this.loading.set(false);
+      },
+    });
+    }
+
+    
   }
 
   onSearchChange(query: string) {

@@ -43,6 +43,7 @@ public class AdvertiserController {
      *     {@link HttpStatus#OK}
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<AdvertiserResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
@@ -104,6 +105,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} containing a list of {@link AdvertiserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<AdvertiserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -117,9 +119,20 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
      *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/page-admin")
+    public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPageForAdmin(
+            Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+    }
+
     @GetMapping("/page")
     public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+                .body(
+                        new PagedModel<>(
+                                mapper.toPageResponseDTO(
+                                        service.findAllPageByIndexedTrue(pageable))));
     }
 }

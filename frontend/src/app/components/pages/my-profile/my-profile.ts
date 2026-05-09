@@ -23,10 +23,10 @@ import { MatButtonModule } from '@angular/material/button';
     MatIcon,
     MatButtonModule,
   ],
-  templateUrl: `./profile.html`,
-  styleUrl: `./profile.css`,
+  templateUrl: `./my-profile.html`,
+  styleUrl: `./my-profile.css`,
 })
-export class ProfileCreate {
+export class MyProfile {
   private readonly fb = inject(FormBuilder);
   private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthenticationService);

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -11,9 +11,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AdvertiserService } from '@app/api/advertiser-service';
 import { AuthenticationService } from '@app/auth/authentication-service';
 import { MatButtonModule } from '@angular/material/button';
+import { AdvertiserRequest } from '@app/models/advertiser';
 
 @Component({
-  selector: 'app-advertiser-create',
+  selector: 'app-my-advertiser',
   imports: [
     ReactiveFormsModule,
     MatCardModule,
@@ -24,10 +25,10 @@ import { MatButtonModule } from '@angular/material/button';
     MatSlideToggleModule,
     MatButtonModule,
   ],
-  templateUrl: './advertiser-create.html',
-  styleUrl: './advertiser-create.css',
+  templateUrl: './my-advertiser.html',
+  styleUrl: './my-advertiser.css',
 })
-export class AdvertiserCreate {
+export class MyAdvertiser implements OnInit {
   private fb = inject(FormBuilder);
   private advertiserService = inject(AdvertiserService);
   private authService = inject(AuthenticationService);
@@ -38,21 +39,16 @@ export class AdvertiserCreate {
   user = toSignal(this.authService.getUserInfo());
 
   advertiserForm: FormGroup = this.fb.group({
-    id: [''],
     title: ['', Validators.required],
     description: [''],
-    email: ['', [Validators.required, Validators.email]],
     publicLocation: [''],
     publicUrlLocation: [''],
     avatarUrl: [''],
     bannerUrl: [''],
     indexed: [false],
-    paid: [false],
-    verified: [false],
-    userId: [''],
   });
 
-  constructor() {
+  ngOnInit(): void {
     this.loadAdvertiser();
   }
 
@@ -78,7 +74,8 @@ export class AdvertiserCreate {
     if (this.advertiserForm.valid) {
       this.saving.set(true);
       const userId = this.user()?.id || '';
-      const advertiserData = this.advertiserForm.value;
+      const advertiserData: AdvertiserRequest = this.advertiserForm.value;
+      advertiserData.id = this.user()?.advertiserId;
       advertiserData.userId = userId;
 
       if (advertiserData.id) {
@@ -108,22 +105,8 @@ export class AdvertiserCreate {
     }
   }
 
-  openPublicUrl() {
-    const url = this.advertiserForm.get('publicUrlLocation')?.value;
-    if (url) {
-      window.open(url, '_blank');
-    }
-  }
-
-  openAvatarUrl() {
-    const url = this.advertiserForm.get('avatarUrl')?.value;
-    if (url) {
-      window.open(url, '_blank');
-    }
-  }
-
-  openBannerUrl() {
-    const url = this.advertiserForm.get('bannerUrl')?.value;
+  openExternalURL(key: string) {
+    const url: string = this.advertiserForm.get(key)?.value;
     if (url) {
       window.open(url, '_blank');
     }

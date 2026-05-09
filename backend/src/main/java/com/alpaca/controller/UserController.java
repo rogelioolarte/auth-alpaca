@@ -45,6 +45,7 @@ public class UserController {
      *     HttpStatus#OK}
      * @throws NotFoundException if no user is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
@@ -78,7 +79,7 @@ public class UserController {
      * @throws NotFoundException if no user is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateById(
             @Validated(OnUpdate.class) @RequestBody UserRequestDTO request, @PathVariable UUID id) {
@@ -93,7 +94,7 @@ public class UserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no user is found with the given {@code id}
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.id == #id")
+    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
@@ -106,6 +107,7 @@ public class UserController {
      * @return {@link ResponseEntity} containing a list of {@link UserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -119,6 +121,7 @@ public class UserController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link UserResponseDTO}
      *     with status {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/page")
     public ResponseEntity<PagedModel<UserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)

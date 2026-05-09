@@ -26,17 +26,6 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" />
-            @if (advertiserForm.get('email')?.hasError('required')) {
-              <mat-error> Email is required </mat-error>
-            }
-            @if (advertiserForm.get('email')?.hasError('email')) {
-              <mat-error> Please enter a valid email </mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Public Location</mat-label>
             <input matInput formControlName="publicLocation" />
           </mat-form-field>
@@ -44,7 +33,8 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Public URL Location</mat-label>
             <input matInput formControlName="publicUrlLocation" />
-            <button mat-icon-button matSuffix type="button" (click)="openPublicUrl()">
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('publicUrlLocation')" >
               <mat-icon>open_in_new</mat-icon>
             </button>
           </mat-form-field>
@@ -52,7 +42,8 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Avatar URL</mat-label>
             <input matInput formControlName="avatarUrl" />
-            <button mat-icon-button matSuffix type="button" (click)="openAvatarUrl()">
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('avatarUrl')">
               <mat-icon>open_in_new</mat-icon>
             </button>
           </mat-form-field>
@@ -60,7 +51,8 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Banner URL</mat-label>
             <input matInput formControlName="bannerUrl" />
-            <button mat-icon-button matSuffix type="button" (click)="openBannerUrl()">
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('bannerUrl')">
               <mat-icon>open_in_new</mat-icon>
             </button>
           </mat-form-field>

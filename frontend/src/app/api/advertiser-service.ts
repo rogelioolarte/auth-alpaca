@@ -31,6 +31,12 @@ export class AdvertiserService {
     return this.http.get<Advertiser[]>(`${environment.API_URL}/api/advertisers`);
   }
 
+  getAllPageAdvertisersForAdmin(pageable: Pageable): Observable<Page<Advertiser>> {
+    return this.http.get<Page<Advertiser>>(
+      `${environment.API_URL}/api/advertisers/page-admin?${getParams(pageable)}`,
+    );
+  }
+
   getAllPageAdvertisers(pageable: Pageable): Observable<Page<Advertiser>> {
     return this.http.get<Page<Advertiser>>(
       `${environment.API_URL}/api/advertisers/page?${getParams(pageable)}`,

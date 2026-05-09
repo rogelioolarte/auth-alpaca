@@ -5,11 +5,11 @@ import { Register } from './components/pages/register/register';
 import { Landing } from './components/pages/landing/landing';
 import { authGuard } from './auth/auth-guard';
 import { adminGuard } from './auth/admin-guard';
-import { ProfileCreate } from './components/pages/profile/profile';
-import { AdvertiserCreate } from './components/pages/advertiser-create/advertiser-create';
+import { MyProfile } from './components/pages/my-profile/my-profile';
+import { MyAdvertiser } from './components/pages/my-advertiser/my-advertiser';
 import { Roles } from './components/pages/roles/roles';
 import { Permissions } from './components/pages/permissions/permissions';
-import { AdvertiserPage } from './components/pages/advertiser/advertiser';
+import { AdvertiserPage } from './components/pages/advertisers/advertisers';
 import { AdvertiserId } from './components/pages/advertiser-id/advertiser-id';
 import { Users } from './components/pages/users/users';
 import { Base } from './components/pure/base/base';
@@ -42,8 +42,8 @@ export const routes: Routes = [
           { path: '', component: Dashboard, pathMatch: 'full' },
 
           // User routes
-          { path: 'profile', component: ProfileCreate },
-          { path: 'advertiser', component: AdvertiserCreate },
+          { path: 'profile', component: MyProfile },
+          { path: 'advertiser', component: MyAdvertiser },
 
           // Admin routes (admin only)
           { path: 'users', component: Users, canActivate: [adminGuard] },

@@ -8,6 +8,8 @@ import com.alpaca.service.IGenericService;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,5 +50,10 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
     @Generated
     protected String getEntityName() {
         return "Advertiser";
+    }
+
+    @Override
+    public Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable) {
+        return dao.findAllPageByIndexedTrue(pageable);
     }
 }

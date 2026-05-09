@@ -90,7 +90,7 @@ public class User extends Auditable {
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             orphanRemoval = true)
     private Set<UserRole> userRoles = new HashSet<>();
 
@@ -283,10 +283,7 @@ public class User extends Auditable {
                 && googleConnected == user.googleConnected
                 && Objects.equals(email, user.email)
                 && Objects.equals(password, user.password)
-                && Objects.equals(tokensInvalidBefore, user.tokensInvalidBefore)
-                && Objects.equals(userRoles, user.userRoles)
-                && Objects.equals(profile.getId(), user.profile.getId())
-                && Objects.equals(advertiser.getId(), user.advertiser.getId());
+                && Objects.equals(tokensInvalidBefore, user.tokensInvalidBefore);
     }
 
     @Override
@@ -300,9 +297,6 @@ public class User extends Auditable {
                 credentialNonExpired,
                 emailVerified,
                 googleConnected,
-                tokensInvalidBefore,
-                userRoles,
-                profile != null ? profile.getId() : null,
-                advertiser != null ? advertiser.getId() : null);
+                tokensInvalidBefore);
     }
 }

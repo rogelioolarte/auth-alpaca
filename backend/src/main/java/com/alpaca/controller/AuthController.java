@@ -5,7 +5,6 @@ import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.IsAuthenticated;
 import com.alpaca.utils.Utils;
@@ -37,7 +36,6 @@ public class AuthController {
 
     private final IAuthService authService;
     private final AuthenticationManager manager;
-    private final TokenExchangeManager exchangeManager;
 
     /**
      * Authenticates a user based on provided credentials.

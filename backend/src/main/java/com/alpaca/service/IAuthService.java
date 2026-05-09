@@ -6,7 +6,9 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * Service interface for authentication operations.
@@ -40,4 +42,7 @@ public interface IAuthService extends UserDetailsService {
     AuthResponseDTO register(AuthLoginRequestDTO requestDTO);
 
     void logout(String refreshToken, String clientId, String userAgent, String ipAddress);
+
+    @Override
+    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 }

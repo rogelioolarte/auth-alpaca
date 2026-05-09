@@ -4,7 +4,6 @@ import com.alpaca.entity.Permission;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +37,6 @@ public class DataServiceImpl implements DataService {
     private final IRoleService roleService;
     private final IUserService userService;
     private final IProfileService profileService;
-    private final PasswordManager passwordManager;
 
     /**
      * Seeds the database with default permissions, roles, users, and profiles, only if no user
@@ -90,26 +88,20 @@ public class DataServiceImpl implements DataService {
                 userService.save(
                         new User(
                                 "mcqueenrayo104@gmail.com",
-                                passwordManager.encodePassword("123456789"),
+                                "123456789",
                                 new HashSet<>(Set.of(userRole))));
         User adminUser =
                 userService.save(
-                        new User(
-                                "admin@admin.com",
-                                passwordManager.encodePassword("123456789"),
-                                new HashSet<>(Set.of(adminRole))));
+                        new User("admin@admin.com", "123456789", new HashSet<>(Set.of(adminRole))));
         User managerUser =
                 userService.save(
                         new User(
                                 "manager@manager.com",
-                                passwordManager.encodePassword("123456789"),
+                                "123456789",
                                 new HashSet<>(Set.of(managerRole))));
         User userUser =
                 userService.save(
-                        new User(
-                                "user@user.com",
-                                passwordManager.encodePassword("123456789"),
-                                new HashSet<>(Set.of(userRole))));
+                        new User("user@user.com", "123456789", new HashSet<>(Set.of(userRole))));
 
         profileService.save(
                 new Profile("Admin", "Last", "av admin 01", "https://foto.admin.com", adminUser));

@@ -43,6 +43,7 @@ public class ProfileController {
      *     HttpStatus#OK}
      * @throws NotFoundException if no profile is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<ProfileResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
@@ -103,6 +104,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} containing a list of {@link ProfileResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ProfileResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -116,6 +118,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link ProfileResponseDTO}
      *     with status {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/page")
     public ResponseEntity<PagedModel<ProfileResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)

@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -116,5 +118,10 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
     @Override
     public boolean existsAllByIds(Collection<UUID> is) {
         return (is.size()) == repo.countByIds(is);
+    }
+
+    @Override
+    public Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable) {
+        return repo.findAllPageByIndexedTrue(pageable);
     }
 }

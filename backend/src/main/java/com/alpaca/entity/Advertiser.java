@@ -125,8 +125,7 @@ public class Advertiser extends Auditable {
                 && Objects.equals(bannerUrl, that.bannerUrl)
                 && Objects.equals(avatarUrl, that.avatarUrl)
                 && Objects.equals(publicLocation, that.publicLocation)
-                && Objects.equals(publicUrlLocation, that.publicUrlLocation)
-                && Objects.equals(user.getId(), that.user.getId());
+                && Objects.equals(publicUrlLocation, that.publicUrlLocation);
     }
 
     @Override
@@ -140,7 +139,6 @@ public class Advertiser extends Auditable {
                 publicUrlLocation,
                 indexed,
                 paid,
-                verified,
-                user != null ? user.getId() : null);
+                verified);
     }
 }
