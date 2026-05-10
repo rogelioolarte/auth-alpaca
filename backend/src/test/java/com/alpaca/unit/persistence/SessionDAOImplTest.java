@@ -1,5 +1,6 @@
 package com.alpaca.unit.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -217,5 +218,16 @@ class SessionDAOImplTest {
 
         assertEquals(1, result.size());
         verify(repo).findActiveSessionsByUserOrderByLastSeen(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        List<UUID> ids = SessionProvider.listEntities().stream().map(Session::getId).toList();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

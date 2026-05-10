@@ -16,7 +16,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/** Unit tests for {@link CookieManager} */
 @DisplayName("CookieManager Unit Tests")
 class CookieManagerTest {
 
@@ -30,187 +29,143 @@ class CookieManagerTest {
     }
 
     @Test
-    @DisplayName("getCookie returns empty Optional when request has no cookies")
-    void getCookieReturnsEmptyWhenNoCookies() {
+    @DisplayName("getCookie: Should return empty Optional when getCookies() returns null")
+    void getCookie_ShouldReturnEmpty_WhenCookiesNull() {
         when(request.getCookies()).thenReturn(null);
+        String cookieName = "test-cookie";
 
-        Optional<Cookie> result = CookieManager.getCookie(request, "anyName");
-        assertTrue(result.isEmpty(), "Should return empty when getCookies() is null");
+        Optional<Cookie> result = CookieManager.getCookie(request, cookieName);
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    @DisplayName("getCookie returns empty Optional when no matching cookie is found")
-    void getCookieReturnsEmptyWhenNoMatch() {
-        Cookie cookie1 = new Cookie("foo", "bar");
-        Cookie cookie2 = new Cookie("baz", "qux");
+    @DisplayName("getCookie: Should return empty Optional when no cookie name matches")
+    void getCookie_ShouldReturnEmpty_WhenNoMatch() {
+        Cookie existingCookie = new Cookie("other", "value");
+        when(request.getCookies()).thenReturn(new Cookie[] {existingCookie});
+        String targetName = "target";
 
-        when(request.getCookies()).thenReturn(new Cookie[] {cookie1, cookie2});
+        Optional<Cookie> result = CookieManager.getCookie(request, targetName);
 
-        Optional<Cookie> result = CookieManager.getCookie(request, "doesNotExist");
-        assertTrue(result.isEmpty(), "Should return empty when no cookie name matches");
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    @DisplayName("getCookie returns the matching cookie if present")
-    void getCookieReturnsMatchingCookie() {
-        Cookie target = new Cookie("targetName", "targetValue");
-        Cookie other = new Cookie("otherName", "otherValue");
+    @DisplayName("getCookie: Should return the correct cookie when name matches")
+    void getCookie_ShouldReturnCookie_WhenMatchFound() {
+        String targetName = "auth-token";
+        Cookie targetCookie = new Cookie(targetName, "secret-payload");
+        Cookie otherCookie = new Cookie("session", "123");
+        when(request.getCookies()).thenReturn(new Cookie[] {otherCookie, targetCookie});
 
-        when(request.getCookies()).thenReturn(new Cookie[] {other, target});
+        Optional<Cookie> result = CookieManager.getCookie(request, targetName);
 
-        Optional<Cookie> result = CookieManager.getCookie(request, "targetName");
-        assertTrue(result.isPresent(), "Should find the cookie with matching name");
-        assertSame(target, result.get(), "Returned cookie must be the same instance");
+        assertTrue(result.isPresent());
+        assertEquals(targetCookie.getValue(), result.get().getValue());
     }
 
     @Test
-    @DisplayName("addCookie adds a cookie with correct name, value, path, and maxAge")
-    void addCookieAddsCookieWithCorrectAttributes() {
-        ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
+    @DisplayName("addCookie: Should configure and add cookie to response correctly")
+    void addCookie_ShouldSetAttributesAndAdd() {
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+        String name = "pref";
+        String value = "dark-mode";
+        int maxAge = 3600;
 
-        CookieManager.addCookie(response, "testName", "testValue", 1234);
+        CookieManager.addCookie(response, name, value, maxAge);
 
-        verify(response, times(1)).addCookie(captor.capture());
-        Cookie added = captor.getValue();
-
-        assertEquals("testName", added.getName(), "Cookie name should match");
-        assertEquals("testValue", added.getValue(), "Cookie value should match");
-        assertEquals("/", added.getPath(), "Cookie path should be '/'");
-        assertEquals(1234, added.getMaxAge(), "Cookie maxAge should match");
+        verify(response, times(1)).addCookie(cookieCaptor.capture());
+        Cookie captured = cookieCaptor.getValue();
+        assertEquals(name, captured.getName());
+        assertEquals(value, captured.getValue());
+        assertEquals("/", captured.getPath());
+        assertEquals(maxAge, captured.getMaxAge());
     }
 
     @Test
-    @DisplayName("deleteCookie removes the cookie by setting empty value, path '/', and maxAge 0")
-    void deleteCookieRemovesCookie() {
-        Cookie toDelete = new Cookie("deleteMe", "someValue");
-        Cookie keep = new Cookie("keepMe", "value");
+    @DisplayName("deleteCookie: Should set maxAge to 0 and empty value for matching cookie")
+    void deleteCookie_ShouldExpireCookie_WhenFound() {
+        String nameToDelete = "old-session";
+        Cookie target = new Cookie(nameToDelete, "data");
+        when(request.getCookies()).thenReturn(new Cookie[] {target});
+        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
 
-        when(request.getCookies()).thenReturn(new Cookie[] {keep, toDelete});
+        CookieManager.deleteCookie(request, response, nameToDelete);
 
-        ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
-        CookieManager.deleteCookie(request, response, "deleteMe");
-
-        verify(response, times(1)).addCookie(captor.capture());
-        Cookie deleted = captor.getValue();
-
-        assertEquals("deleteMe", deleted.getName(), "Deleted cookie name should match");
-        assertEquals("", deleted.getValue(), "Deleted cookie value should be empty");
-        assertEquals("/", deleted.getPath(), "Deleted cookie path should be '/'");
-        assertEquals(0, deleted.getMaxAge(), "Deleted cookie maxAge should be 0");
+        verify(response, times(1)).addCookie(cookieCaptor.capture());
+        Cookie result = cookieCaptor.getValue();
+        assertEquals("", result.getValue());
+        assertEquals(0, result.getMaxAge());
+        assertEquals("/", result.getPath());
     }
 
     @Test
-    @DisplayName("deleteCookie does nothing when no matching cookie is found")
-    void deleteCookieDoesNothingWhenNoMatch() {
-        Cookie other = new Cookie("other", "value");
-
-        when(request.getCookies()).thenReturn(new Cookie[] {other});
-
-        CookieManager.deleteCookie(request, response, "nonexistent");
-        verify(response, never()).addCookie(any());
-    }
-
-    @Test
-    @DisplayName("deleteCookie does nothing when cookie is null")
-    void deleteCookieDoesNothingWhenNull() {
+    @DisplayName(
+            "deleteCookie: Should take no action if cookie is not present or request cookies are"
+                    + " null")
+    void deleteCookie_ShouldDoNothing_WhenNotFound() {
         when(request.getCookies()).thenReturn(null);
+        CookieManager.deleteCookie(request, response, "any");
 
-        CookieManager.deleteCookie(request, response, "nonexistent");
-        verify(response, never()).addCookie(any());
+        when(request.getCookies()).thenReturn(new Cookie[] {new Cookie("different", "val")});
+        CookieManager.deleteCookie(request, response, "target");
+
+        verify(response, never()).addCookie(any(Cookie.class));
     }
 
     @Test
-    @DisplayName("serialize encodes object as Base64 URL-safe JSON")
-    void serializeEncodesObjectCorrectly() {
-        Map<String, String> data = Map.of("key", "value");
-        String encoded = CookieManager.serialize(data);
+    @DisplayName("serialize: Should return Base64 URL encoded JSON")
+    void serialize_ShouldReturnBase64UrlJson() {
+        Map<String, String> payload = Map.of("id", "alpaca-01");
+        String result = CookieManager.serialize(payload);
 
-        // Decode back to JSON
-        byte[] decodedBytes = Base64.getUrlDecoder().decode(encoded);
-        String json = new String(decodedBytes, StandardCharsets.UTF_8);
-
-        assertTrue(json.contains("\"key\":\"value\""), "JSON must contain key:value pair");
-        assertTrue(
-                json.startsWith("{") && json.endsWith("}"), "Decoded string should be valid JSON");
-    }
-
-    // Prepare a simple POJO for testing
-    public static class TestPojo {
-        public String foo;
-        public int bar;
-
-        // Default constructor needed for Jackson
-        public TestPojo() {}
+        assertNotNull(result);
+        byte[] decoded = Base64.getUrlDecoder().decode(result);
+        String json = new String(decoded, StandardCharsets.UTF_8);
+        assertTrue(json.contains("alpaca-01"));
     }
 
     @Test
-    @DisplayName("deserialize converts cookie value back to original object")
-    void deserializeConvertsCookieValueToObject() {
-        TestPojo original = new TestPojo();
-        original.foo = "hello";
-        original.bar = 42;
+    @DisplayName("deserialize: Should convert Base64 cookie value back to object")
+    void deserialize_ShouldReturnObjectFromCookie() {
+        String json = "{\"id\":\"alpaca-01\"}";
+        String base64Value =
+                Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        Cookie cookie = new Cookie("data", base64Value);
 
-        // Serialize to Base64 JSON
-        String json = "{\"foo\":\"hello\",\"bar\":42}";
-        String base64 =
-                Base64.getUrlEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        Map<?, ?> result = CookieManager.deserialize(cookie, Map.class);
 
-        Cookie cookie = new Cookie("myCookie", base64);
-        TestPojo result = CookieManager.deserialize(cookie, TestPojo.class);
-
-        assertNotNull(result, "Resulting object should not be null");
-        assertEquals("hello", result.foo, "Field 'foo' must match original");
-        assertEquals(42, result.bar, "Field 'bar' must match original");
+        assertEquals("alpaca-01", result.get("id"));
     }
 
     @Test
-    @DisplayName("deserialize throws RuntimeException on invalid Base64 or JSON")
-    void deserializeThrowsOnInvalidValue() {
-        Cookie invalid = new Cookie("bad", "not_base64!");
-        assertThrows(
-                RuntimeException.class, () -> CookieManager.deserialize(invalid, Object.class));
+    @DisplayName("justSerialize: Should return raw JSON string")
+    void justSerialize_ShouldReturnRawJson() {
+        Map<String, Integer> payload = Map.of("code", 200);
+        String result = CookieManager.justSerialize(payload);
+
+        assertEquals("{\"code\":200}", result);
     }
 
     @Test
-    @DisplayName("justSerialize returns raw JSON string for object")
-    void justSerializeReturnsRawJson() {
-        Map<String, String> data = Map.of("alpha", "beta");
-        String json = CookieManager.justSerialize(data);
-
-        assertTrue(json.contains("\"alpha\":\"beta\""), "Raw JSON should contain alpha:beta");
-        assertTrue(json.startsWith("{") && json.endsWith("}"), "Output should be JSON format");
-    }
-
-    @Test
-    @DisplayName("serialize throws RuntimeException when ObjectMapper fails")
-    void serializeThrowsOnSerializationError() {
-        Object unserializable =
+    @DisplayName("Serialization Errors: Should wrap Jackson exceptions in RuntimeException")
+    void serialization_ShouldThrowRuntimeException_OnFailure() {
+        Object circularReference =
                 new Object() {
-                    // Jackson can't serialize this
-                    private final Thread thread = new Thread();
+                    public Object getSelf() {
+                        return this;
+                    }
                 };
 
-        assertThrows(
-                RuntimeException.class,
-                () -> CookieManager.serialize(unserializable),
-                "Expected RuntimeException due to serialization failure");
+        assertThrows(RuntimeException.class, () -> CookieManager.serialize(circularReference));
+        assertThrows(RuntimeException.class, () -> CookieManager.justSerialize(circularReference));
     }
 
     @Test
-    @DisplayName("justSerialize throws RuntimeException when ObjectMapper fails")
-    void justSerializeThrowsOnSerializationError() {
-        Object unserializable =
-                new Object() {
-                    // Jackson can't serialize this
-                    private final Thread thread = new Thread();
-                };
-
-        RuntimeException exception =
-                assertThrows(
-                        RuntimeException.class,
-                        () -> CookieManager.justSerialize(unserializable),
-                        "Expected RuntimeException due to serialization failure");
-
-        assertNotNull(exception.getLocalizedMessage(), "Exception cause should not be null");
+    @DisplayName("deserialize Error: Should throw RuntimeException on invalid data")
+    void deserialize_ShouldThrowRuntimeException_OnInvalidData() {
+        Cookie badCookie = new Cookie("bad", "not-json-at-all");
+        assertThrows(RuntimeException.class, () -> CookieManager.deserialize(badCookie, Map.class));
     }
 }

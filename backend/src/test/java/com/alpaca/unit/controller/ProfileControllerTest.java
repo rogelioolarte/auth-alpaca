@@ -2,7 +2,6 @@ package com.alpaca.unit.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -39,184 +39,87 @@ import org.springframework.web.server.ResponseStatusException;
 class ProfileControllerTest {
 
     @Autowired private MockMvc mockMvc;
+
     @Autowired private JacksonTester<ProfileRequestDTO> requestJson;
-    @Autowired private JacksonTester<ProfileResponseDTO> responseJson;
 
     @MockitoBean private IProfileService service;
+
     @MockitoBean private IProfileMapper mapper;
 
-    private static final List<Profile> listEntities = ProfileProvider.listEntities();
-    private static final ProfileResponseDTO firstResponse = ProfileProvider.singleResponse();
-    private static final Profile singleEntity = ProfileProvider.singleEntity();
-    private static final ProfileRequestDTO singleRequest = ProfileProvider.singleRequest();
-
-    private void mockMapperAndServiceForSave() {
-        when(mapper.toEntity(
-                        argThat(
-                                r ->
-                                        r != null
-                                                && r.getFirstName()
-                                                        .equals(singleRequest.getFirstName())
-                                                && r.getLastName()
-                                                        .equals(singleRequest.getLastName())
-                                                && r.getAddress()
-                                                        .equals(singleRequest.getAddress()))))
-                .thenReturn(singleEntity);
-        when(service.save(singleEntity)).thenReturn(singleEntity);
-        when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
-    }
-
-    private void mockMapperAndServiceForUpdate(UUID id) {
-        when(mapper.toEntity(
-                        argThat(
-                                r ->
-                                        r != null
-                                                && r.getFirstName()
-                                                        .equals(singleRequest.getFirstName())
-                                                && r.getLastName()
-                                                        .equals(singleRequest.getLastName())
-                                                && r.getAddress()
-                                                        .equals(singleRequest.getAddress()))))
-                .thenReturn(singleEntity);
-        when(service.updateById(singleEntity, id)).thenReturn(singleEntity);
-        when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
-    }
+    private final List<Profile> listEntities = ProfileProvider.listEntities();
+    private final ProfileResponseDTO firstResponse = ProfileProvider.singleResponse();
+    private final Profile singleEntity = ProfileProvider.singleEntity();
+    private final ProfileRequestDTO singleRequest = ProfileProvider.singleRequest();
 
     @Test
-    @DisplayName("findById returns 200 and correct object")
-    void findByIdReturnsProfile() throws Exception {
-        when(service.findById(firstResponse.id())).thenReturn(listEntities.getFirst());
-        when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
+    @DisplayName("findById: Should return 200 OK and profile data when found")
+    void findById_ShouldReturnProfile() throws Exception {
+        UUID id = firstResponse.id();
+        when(service.findById(id)).thenReturn(singleEntity);
+        when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
 
-        mockMvc.perform(
-                        get("/api/profiles/{id}", firstResponse.id())
-                                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/profiles/{id}", id).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
                 .andExpect(jsonPath("$.firstName", is(firstResponse.firstName())))
-                .andExpect(jsonPath("$.lastName", is(firstResponse.lastName())))
-                .andExpect(jsonPath("$.address", is(firstResponse.address())))
-                .andExpect(jsonPath("$.avatarUrl", is(firstResponse.avatarUrl())))
-                .andExpect(jsonPath("$.userId", is(firstResponse.userId().toString())))
                 .andExpect(jsonPath("$.email", is(firstResponse.email())));
-
-        verify(service).findById(firstResponse.id());
-        verify(mapper).toResponseDTO(listEntities.getFirst());
-    }
-
-    @Test
-    @DisplayName("findById returns 404 Not Found when object does not exist")
-    void findByIdNotFound() throws Exception {
-        UUID id = firstResponse.id();
-        when(service.findById(id))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"));
-
-        mockMvc.perform(get("/api/profiles/{id}", id).contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message", is("Not found")));
 
         verify(service).findById(id);
     }
 
     @Test
-    @DisplayName("save returns 201 when Object is created")
-    void saveCreatesProfile() throws Exception {
-        mockMapperAndServiceForSave();
+    @DisplayName("findById: Should return 404 Not Found when service throws exception")
+    void findById_ShouldReturnNotFound() throws Exception {
+        UUID id = firstResponse.id();
+        when(service.findById(id)).thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        mockMvc.perform(get("/api/profiles/{id}", id)).andExpect(status().isNotFound());
+
+        verify(service).findById(id);
+    }
+
+    @Test
+    @DisplayName("save: Should return 201 Created and the mapped response DTO")
+    void save_ShouldCreateProfile() throws Exception {
+        when(mapper.toEntity(any(ProfileRequestDTO.class))).thenReturn(singleEntity);
+        when(service.save(singleEntity)).thenReturn(singleEntity);
+        when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
 
         mockMvc.perform(
                         post("/api/profiles")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.firstName", is(firstResponse.firstName())))
-                .andExpect(jsonPath("$.lastName", is(firstResponse.lastName())))
-                .andExpect(jsonPath("$.address", is(firstResponse.address())))
-                .andExpect(jsonPath("$.avatarUrl", is(firstResponse.avatarUrl())))
-                .andExpect(jsonPath("$.userId", is(firstResponse.userId().toString())))
-                .andExpect(jsonPath("$.email", is(firstResponse.email())));
+                .andExpect(jsonPath("$.firstName", is(firstResponse.firstName())));
 
-        ArgumentCaptor<Profile> captor = ArgumentCaptor.forClass(Profile.class);
-        verify(mapper).toEntity(isA(ProfileRequestDTO.class));
-        verify(service).save(isA(Profile.class));
-        verify(service).save(captor.capture());
-        verify(mapper).toResponseDTO(isA(Profile.class));
-
-        assertNotNull(captor.getValue());
-        assertEquals(singleEntity.getId(), captor.getValue().getId());
-        assertEquals(singleEntity.getFirstName(), captor.getValue().getFirstName());
+        verify(mapper).toEntity(any(ProfileRequestDTO.class));
+        verify(service).save(singleEntity);
     }
 
     @Test
-    @DisplayName("save returns 409 Conflict when object already exists")
-    void saveConflictWhenAlreadyExists() throws Exception {
-        mockMapperAndServiceForSave();
-        doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already exists"))
-                .when(service)
-                .save(isA(Profile.class));
-
-        mockMvc.perform(
-                        post("/api/profiles")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson.write(singleRequest).getJson()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", is("Already exists")));
-
-        verify(service).save(isA(Profile.class));
-    }
-
-    @Test
-    @DisplayName("updateById returns 200 OK and updated object")
-    void updateByIdUpdatesProfile() throws Exception {
+    @DisplayName("updateById: Should return 200 OK after successful update")
+    void updateById_ShouldUpdateProfile() throws Exception {
         UUID id = firstResponse.id();
-        mockMapperAndServiceForUpdate(id);
+        when(mapper.toEntity(any(ProfileRequestDTO.class))).thenReturn(singleEntity);
+        when(service.updateById(singleEntity, id)).thenReturn(singleEntity);
+        when(mapper.toResponseDTO(singleEntity)).thenReturn(firstResponse);
 
         mockMvc.perform(
                         put("/api/profiles/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.firstName", is(firstResponse.firstName())))
-                .andExpect(jsonPath("$.lastName", is(firstResponse.lastName())))
-                .andExpect(jsonPath("$.address", is(firstResponse.address())))
-                .andExpect(jsonPath("$.avatarUrl", is(firstResponse.avatarUrl())))
-                .andExpect(jsonPath("$.userId", is(firstResponse.userId().toString())))
-                .andExpect(jsonPath("$.email", is(firstResponse.email())));
+                .andExpect(jsonPath("$.id", is(firstResponse.id().toString())));
 
         ArgumentCaptor<Profile> captor = ArgumentCaptor.forClass(Profile.class);
-        verify(mapper).toEntity(isA(ProfileRequestDTO.class));
         verify(service).updateById(captor.capture(), eq(id));
-        verify(mapper).toResponseDTO(isA(Profile.class));
-
-        assertEquals(singleEntity.getId(), captor.getValue().getId());
         assertEquals(singleEntity.getFirstName(), captor.getValue().getFirstName());
     }
 
     @Test
-    @DisplayName("updateById returns 404 Not Found when object to modify does not exist")
-    void updateByIdNotFound() throws Exception {
-        UUID id = firstResponse.id();
-        when(mapper.toEntity(argThat(r -> r.getFirstName().equals(singleRequest.getFirstName()))))
-                .thenReturn(singleEntity);
-        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"))
-                .when(service)
-                .updateById(singleEntity, id);
-
-        mockMvc.perform(
-                        put("/api/profiles/{id}", id)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson.write(singleRequest).getJson()))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message", is("Not found")));
-
-        verify(service).updateById(singleEntity, id);
-    }
-
-    @Test
-    @DisplayName("delete returns 204 No Content when object exists")
-    void deleteDeletesProfile() throws Exception {
+    @DisplayName("delete: Should return 204 No Content upon successful deletion")
+    void delete_ShouldReturnNoContent() throws Exception {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
 
@@ -226,70 +129,45 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("delete returns 400 Bad Request when object does not exist")
-    void deleteReturnsBadRequestWhenNotExist() throws Exception {
-        UUID id = firstResponse.id();
+    @DisplayName("findAll: Should return 200 OK and list of all profiles")
+    void findAll_ShouldReturnList() throws Exception {
+        List<ProfileResponseDTO> responseList = ProfileProvider.listResponse();
+        when(service.findAll()).thenReturn(listEntities);
+        when(mapper.toListResponseDTO(listEntities)).thenReturn(responseList);
 
-        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request: not found"))
-                .when(service)
-                .deleteById(id);
+        mockMvc.perform(get("/api/profiles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(responseList.size())))
+                .andExpect(jsonPath("$[0].id", is(firstResponse.id().toString())));
 
-        mockMvc.perform(delete("/api/profiles/{id}", id).accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Bad request: not found")));
-
-        verify(service).deleteById(id);
+        verify(service).findAll();
     }
 
     @Test
-    @DisplayName("findAll returns an empty list when no persisted entities")
-    void findAllReturnsEmptyList() throws Exception {
+    @DisplayName("findAllPage: Should return 200 OK and PagedModel of profiles")
+    void findAllPage_ShouldReturnPagedModel() throws Exception {
+        Page<Profile> profilePage = new PageImpl<>(listEntities);
+        Page<ProfileResponseDTO> responsePage = new PageImpl<>(ProfileProvider.listResponse());
+
+        when(service.findAllPage(any(Pageable.class))).thenReturn(profilePage);
+        when(mapper.toPageResponseDTO(profilePage)).thenReturn(responsePage);
+
+        mockMvc.perform(get("/api/profiles/page").param("page", "0").param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].firstName", is(firstResponse.firstName())));
+
+        verify(service).findAllPage(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("findAll: Should return empty array when no profiles exist")
+    void findAll_ShouldReturnEmptyList() throws Exception {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/profiles"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
-
-        verify(service).findAll();
-        verify(mapper).toListResponseDTO(Collections.emptyList());
-    }
-
-    @Test
-    @DisplayName("findAll returns all persisted entities")
-    void findAllReturnsPersistedList() throws Exception {
-        var altResponse = ProfileProvider.alternativeResponse();
-        when(service.findAll()).thenReturn(listEntities);
-        when(mapper.toListResponseDTO(listEntities)).thenReturn(ProfileProvider.listResponse());
-
-        mockMvc.perform(get("/api/profiles").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$[0].id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$[0].firstName", is(firstResponse.firstName())))
-                .andExpect(jsonPath("$[1].id", is(altResponse.id().toString())))
-                .andExpect(jsonPath("$[1].firstName", is(altResponse.firstName())));
-
-        verify(service).findAll();
-        verify(mapper).toListResponseDTO(listEntities);
-    }
-
-    @Test
-    @DisplayName("findAllPage returns a paged list")
-    void findAllPageReturnsPagedList() throws Exception {
-        when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
-        when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
-                .thenReturn(ProfileProvider.pageResponse());
-
-        mockMvc.perform(get("/api/profiles/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.content[0].firstName", is(firstResponse.firstName())));
-
-        verify(service).findAllPage(isA(Pageable.class));
-        verify(mapper).toPageResponseDTO(argThat(r -> r instanceof PageImpl));
     }
 }

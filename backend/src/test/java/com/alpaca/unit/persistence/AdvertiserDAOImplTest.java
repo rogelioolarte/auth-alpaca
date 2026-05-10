@@ -11,6 +11,7 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.AdvertiserDAOImpl;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.resources.AdvertiserProvider;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 
 /** Unit tests for {@link AdvertiserDAOImpl}. */
 @ExtendWith(MockitoExtension.class)
@@ -31,10 +34,13 @@ class AdvertiserDAOImplTest {
     @InjectMocks private AdvertiserDAOImpl dao;
 
     private Advertiser firstEntity;
+    private Page<Advertiser> entitiesPage;
 
     @BeforeEach
     void setup() {
         firstEntity = AdvertiserProvider.singleEntity();
+        List<Advertiser> entities = AdvertiserProvider.listEntities();
+        entitiesPage = new PageImpl<>(entities);
     }
 
     @Nested
@@ -160,5 +166,23 @@ class AdvertiserDAOImplTest {
             when(repo.countByUserId(userId)).thenReturn(0L);
             assertThat(dao.existsByUniqueProperties(firstEntity)).isFalse();
         }
+    }
+
+    @Test
+    @DisplayName("findAllPageByIndexedTrue: Should return all entities by indexed true")
+    void findAllPageByIndexedTrue_Success() {
+        when(repo.findAllPageByIndexedTrue(null)).thenReturn(entitiesPage);
+        assertThat(dao.findAllPageByIndexedTrue(null)).isEqualTo(entitiesPage);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        List<UUID> ids = entitiesPage.getContent().stream().map(Advertiser::getId).toList();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

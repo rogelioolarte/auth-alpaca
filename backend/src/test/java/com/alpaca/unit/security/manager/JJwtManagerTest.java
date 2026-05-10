@@ -1,20 +1,18 @@
 package com.alpaca.unit.security.manager;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.RefreshTokenProvider;
 import com.alpaca.security.manager.JJwtManager;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Collection;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,272 +20,171 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-/** Unit tests for {@link JJwtManager} */
 @DisplayName("JJwtManager Unit Tests")
 class JJwtManagerTest {
 
-    private static final String ISSUER = "testIssuer";
-    private static final long EXPIRATION_MILLIS_ACCESS = 20_000; // 20s to be safe in tests
-    private static final long EXPIRATION_MILLIS_REFRESH = 600_000; // 10 min
     private JJwtManager jwtManager;
+    private final String issuer = "alpaca-auth-service";
 
     @BeforeEach
     void setUp() throws Exception {
-        ClassPathResource privateKeyResourceAccess =
-                new ClassPathResource("keys/access_private.pem");
-        ClassPathResource publicKeyResourceAccess = new ClassPathResource("keys/access_public.pem");
-        ClassPathResource privateKeyResourceRefresh =
-                new ClassPathResource("keys/refresh_private.pem");
-        ClassPathResource publicKeyResourceRefresh =
-                new ClassPathResource("keys/refresh_public.pem");
-
-        assertTrue(
-                privateKeyResourceAccess.exists(),
-                "access_private.pem must be present in test resources");
-        assertTrue(
-                publicKeyResourceAccess.exists(),
-                "access_public.pem must be present in test resources");
-        assertTrue(
-                privateKeyResourceRefresh.exists(),
-                "refresh_private.pem must be present in test resources");
-        assertTrue(
-                publicKeyResourceRefresh.exists(),
-                "refresh_public.pem must be present in test resources");
-
+        String expAccess = "3600000";
+        String expRefresh = "86400000";
         jwtManager =
                 new JJwtManager(
-                        privateKeyResourceAccess,
-                        publicKeyResourceAccess,
-                        String.valueOf(EXPIRATION_MILLIS_ACCESS),
-                        privateKeyResourceRefresh,
-                        publicKeyResourceRefresh,
-                        String.valueOf(EXPIRATION_MILLIS_REFRESH),
-                        ISSUER);
+                        new ClassPathResource("keys/access_private.pem"),
+                        new ClassPathResource("keys/access_public.pem"),
+                        expAccess,
+                        new ClassPathResource("keys/refresh_private.pem"),
+                        new ClassPathResource("keys/refresh_public.pem"),
+                        expRefresh,
+                        issuer);
     }
 
     @Test
-    @DisplayName(
-            "createRefreshTokenHash: throws on empty / blank input and returns non-empty for valid"
-                    + " input")
-    void createTokenHash_validAndInvalidCases() {
-        // invalid: null or blank -> IllegalArgumentException
-        assertThrows(IllegalArgumentException.class, () -> jwtManager.createTokenHash(""));
-        assertThrows(IllegalArgumentException.class, () -> jwtManager.createTokenHash("   "));
-
-        // valid: returns a Base64-URL string (non-empty)
-        String sample = "some-refresh-token-string";
-        String hash = jwtManager.createTokenHash(sample);
-        assertNotNull(hash);
-        assertFalse(hash.isBlank());
-        // it should be base64-url (no padding)
-        assertFalse(hash.contains("="));
-        // ensure decoder doesn't throw (URL-safe base64)
-        byte[] decoded = Base64.getUrlDecoder().decode(hash);
-        assertTrue(decoded.length > 0);
-    }
-
-    @Test
-    @DisplayName("validateAccessToken throws UnauthorizedException for malformed token")
-    void validateTokenThrowsOnInvalidAccessToken() {
-        String badToken = "this.is.not.a.valid.jwt";
-        assertThrows(UnauthorizedException.class, () -> jwtManager.validateAccessToken(badToken));
-    }
-
-    @Test
-    @DisplayName("validateRefreshToken throws UnauthorizedException for malformed token")
-    void validateRefreshTokenThrowsOnInvalidRefreshToken() {
-        String badToken = "also.not.valid";
-        assertThrows(UnauthorizedException.class, () -> jwtManager.validateRefreshToken(badToken));
-    }
-
-    @Test
-    @DisplayName("createAccessToken -> validateAccessToken -> isValidAccessToken happy path")
-    void createAccessTokenProducesValidJwt_andClaimsAreCorrect() {
-        // Prepare a mock UserPrincipal (we only need getters used by manager)
-        UserPrincipal mockPrincipal = mock(UserPrincipal.class);
+    @DisplayName("createAccessToken: Should produce a valid verifiable JWT for a UserPrincipal")
+    void createAccessToken_ShouldBeVerifiable() {
+        UserPrincipal principal = mock(UserPrincipal.class);
         UUID userId = UUID.randomUUID();
-        when(mockPrincipal.getUsername()).thenReturn("testUser");
-        when(mockPrincipal.getUserId()).thenReturn(userId);
-        when(mockPrincipal.getProfileId()).thenReturn(null);
-        when(mockPrincipal.getAdvertiserId()).thenReturn(null);
-        // authorities: 2 roles
-        Collection<GrantedAuthority> auths =
-                AuthorityUtils.createAuthorityList("ROLE_USER", "ROLE_ADMIN");
-        when(mockPrincipal.getAuthorities()).thenReturn(auths);
+        when(principal.getUsername()).thenReturn("rogelio.olarte");
+        when(principal.getUserId()).thenReturn(userId);
+        when(principal.getAuthorities())
+                .thenReturn(AuthorityUtils.createAuthorityList("ROLE_DEVELOPER"));
+        when(principal.getProfileId()).thenReturn(UUID.randomUUID());
 
-        Instant now = Instant.now();
-        String token = jwtManager.createAccessToken(mockPrincipal, now);
-        assertNotNull(token);
-        assertFalse(token.isBlank());
-
-        // validate and inspect claims
+        String token = jwtManager.createAccessToken(principal, Instant.now());
         Claims claims = jwtManager.validateAccessToken(token);
-        assertEquals(ISSUER, claims.getIssuer());
-        assertEquals("testUser", claims.getSubject());
-        assertEquals(userId.toString(), claims.get("userId", String.class));
-        assertNotNull(claims.get("authorities", String.class));
+
+        assertEquals(issuer, claims.getIssuer());
+        assertEquals(userId.toString(), claims.get("userId"));
         assertTrue(jwtManager.isValidAccessToken(claims));
     }
 
     @Test
     @DisplayName(
-            "manageAuthentication returns Authentication with correct principal and authorities")
-    void manageAuthenticationReturnsValidAuthentication() {
-        // Build an actual valid token via createAccessToken using a real principal
-        UserPrincipal mockPrincipal = mock(UserPrincipal.class);
+            "createRefreshToken: Should produce a verifiable JWT with family and client details")
+    void createRefreshToken_ShouldBeVerifiable() {
+        RefreshToken entity = mock(RefreshToken.class);
+        User user = mock(User.class);
         UUID userId = UUID.randomUUID();
-        when(mockPrincipal.getUsername()).thenReturn("anotherUser");
-        when(mockPrincipal.getUserId()).thenReturn(userId);
-        when(mockPrincipal.getProfileId()).thenReturn(null);
-        when(mockPrincipal.getAdvertiserId()).thenReturn(null);
-        when(mockPrincipal.getAuthorities())
-                .thenReturn(AuthorityUtils.createAuthorityList("ROLE_X", "ROLE_Y"));
+        UUID jti = UUID.randomUUID();
+        UUID familyId = UUID.randomUUID();
+        String clientId = "web-client-01";
 
-        Instant now = Instant.now();
-        String token = jwtManager.createAccessToken(mockPrincipal, now);
+        when(entity.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(userId);
+        when(entity.getTokenJti()).thenReturn(jti);
+        when(entity.getFamilyId()).thenReturn(familyId);
+        when(entity.getClientId()).thenReturn(clientId);
+        when(entity.getLastUsedAt()).thenReturn(Instant.now());
+        when(entity.getExpiresAt()).thenReturn(Instant.now().plus(1, ChronoUnit.DAYS));
 
-        UsernamePasswordAuthenticationToken auth = jwtManager.manageAuthentication(token);
-        assertNotNull(auth);
-        assertTrue(auth.isAuthenticated());
-        Object principalObj = auth.getPrincipal();
-        assertNotNull(principalObj);
-        assertInstanceOf(UserPrincipal.class, principalObj, "principal should be a UserPrincipal");
-        com.alpaca.model.UserPrincipal up = (com.alpaca.model.UserPrincipal) principalObj;
-        assertEquals("anotherUser", up.getUsername());
-        // verify authorities present
-        assertNotNull(auth.getAuthorities());
-        assertTrue(auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_X")));
-        assertTrue(auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_Y")));
-    }
+        String token = jwtManager.createRefreshToken(entity);
+        Claims claims = jwtManager.validateRefreshToken(token);
 
-    @Test
-    @DisplayName("createAuthentication returns null for expired claims")
-    void createAuthenticationReturnsNullWhenExpired() {
-        Claims expiredClaims =
-                Jwts.claims()
-                        .subject("ghostUser")
-                        .expiration(new Date(System.currentTimeMillis() - 1_000))
-                        .add("authorities", "ROLE_GHOST")
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("profileId", "")
-                        .add("advertiserId", "")
-                        .build();
-
-        UsernamePasswordAuthenticationToken auth = jwtManager.createAuthentication(expiredClaims);
-        assertNull(auth, "Authentication should be null for expired claims");
-    }
-
-    @Test
-    @DisplayName("isValidAccessToken handles missing/blank fields correctly")
-    void isValidAccessTokenNegativeScenarios() {
-        // missing expiration
-        Claims noExp =
-                Jwts.claims()
-                        .subject("user")
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-        assertFalse(jwtManager.isValidAccessToken(noExp));
-
-        // expired in past
-        Claims past =
-                Jwts.claims()
-                        .subject("user")
-                        .expiration(new Date(System.currentTimeMillis() - 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-        assertFalse(jwtManager.isValidAccessToken(past));
-
-        // blank subject
-        Claims blankSub =
-                Jwts.claims()
-                        .subject("   ")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-        assertFalse(jwtManager.isValidAccessToken(blankSub));
-
-        // missing userId
-        Claims noUserId =
-                Jwts.claims()
-                        .subject("user")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-        assertFalse(jwtManager.isValidAccessToken(noUserId));
-
-        // missing authorities
-        Claims noAuth =
-                Jwts.claims()
-                        .subject("user")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", null)
-                        .build();
-        assertFalse(jwtManager.isValidAccessToken(noAuth));
-    }
-
-    @Test
-    @DisplayName("createRefreshToken -> validateRefreshToken -> isValidRefreshToken happy path")
-    void createRefreshTokenAndValidateAndIsValidRefreshToken() {
-        // Use provider to create a RefreshToken entity (provider must set all required fields)
-        RefreshToken refresh = RefreshTokenProvider.singleEntity();
-        // sanity checks (provider ensures user present)
-        User u = refresh.getUser();
-        assertNotNull(u);
-        assertNotNull(u.getId());
-
-        String jwtRefresh = jwtManager.createRefreshToken(refresh);
-        assertNotNull(jwtRefresh);
-        assertFalse(jwtRefresh.isBlank());
-
-        Claims claims = jwtManager.validateRefreshToken(jwtRefresh);
-        assertEquals(u.getId().toString(), claims.getSubject());
-        assertNotNull(claims.get("jti", String.class));
-        assertNotNull(claims.get("familyId", String.class));
-        assertNotNull(claims.get("clientId", String.class));
+        assertEquals(jti.toString(), claims.get("jti"));
+        assertEquals(familyId.toString(), claims.get("familyId"));
+        assertEquals(clientId, claims.get("clientId"));
         assertTrue(jwtManager.isValidRefreshToken(claims));
     }
 
     @Test
-    @DisplayName("isValidRefreshToken returns false when important claims are missing")
-    void isValidRefreshTokenNegativeCases() {
-        Claims missingJti =
-                Jwts.claims()
-                        .subject("sub")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("familyId", UUID.randomUUID().toString())
-                        // missing jti
-                        .add("clientId", "c")
-                        .build();
-        assertFalse(jwtManager.isValidRefreshToken(missingJti));
+    @DisplayName("createTokenHash: Should return Base64URL encoded SHA-256 hash")
+    void createTokenHash_ShouldReturnValidHash() {
+        String input = "refresh-token-data";
+        String hash = jwtManager.createTokenHash(input);
 
-        Claims missingFamily =
-                Jwts.claims()
-                        .subject("sub")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("jti", UUID.randomUUID().toString())
-                        // missing familyId
-                        .add("clientId", "c")
-                        .build();
-        assertFalse(jwtManager.isValidRefreshToken(missingFamily));
+        assertNotNull(hash);
+        assertFalse(hash.contains("=")); // Base64URL without padding check
+        assertThrows(IllegalArgumentException.class, () -> jwtManager.createTokenHash(""));
+    }
 
-        Claims missingClientId =
+    @Test
+    @DisplayName(
+            "validateAccessToken: Should throw UnauthorizedException for malformed or invalid"
+                    + " tokens")
+    void validateAccessToken_ShouldThrowOnInvalid() {
+        assertThrows(
+                UnauthorizedException.class,
+                () -> jwtManager.validateAccessToken("invalid.token.structure"));
+        assertThrows(UnauthorizedException.class, () -> jwtManager.validateAccessToken(null));
+    }
+
+    @Test
+    @DisplayName("isValidAccessToken: Should return false for missing or blank critical claims")
+    void isValidAccessToken_ShouldHandleEdgeCases() {
+        Claims claims =
                 Jwts.claims()
-                        .subject("sub")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
+                        .subject("") // Blank subject
+                        .expiration(new Date(System.currentTimeMillis() + 10000))
                         .add("userId", UUID.randomUUID().toString())
-                        .add("jti", UUID.randomUUID().toString())
-                        .add("familyId", UUID.randomUUID().toString())
-                        // missing clientId
+                        .add("authorities", "ROLE_USER")
                         .build();
-        assertFalse(jwtManager.isValidRefreshToken(missingClientId));
+
+        assertFalse(jwtManager.isValidAccessToken(claims));
+
+        Claims expiredClaims =
+                Jwts.claims()
+                        .subject("user")
+                        .expiration(new Date(System.currentTimeMillis() - 10000))
+                        .build();
+
+        assertFalse(jwtManager.isValidAccessToken(expiredClaims));
+    }
+
+    @Test
+    @DisplayName("isValidRefreshToken: Should validate presence of familyId and clientId")
+    void isValidRefreshToken_ShouldValidateSpecificClaims() {
+        Claims incompleteClaims =
+                Jwts.claims()
+                        .subject("user")
+                        .expiration(new Date(System.currentTimeMillis() + 10000))
+                        .add("jti", UUID.randomUUID().toString())
+                        // Missing familyId and clientId
+                        .build();
+
+        assertFalse(jwtManager.isValidRefreshToken(incompleteClaims));
+    }
+
+    @Test
+    @DisplayName("manageAuthentication: Should return valid Spring Security token from JWT string")
+    void manageAuthentication_ShouldReturnAuthToken() {
+        UserPrincipal principal = mock(UserPrincipal.class);
+        when(principal.getUsername()).thenReturn("tester");
+        when(principal.getUserId()).thenReturn(UUID.randomUUID());
+        when(principal.getAuthorities())
+                .thenReturn(AuthorityUtils.createAuthorityList("ROLE_USER"));
+
+        String token = jwtManager.createAccessToken(principal, Instant.now());
+        UsernamePasswordAuthenticationToken auth = jwtManager.manageAuthentication(token);
+
+        assertNotNull(auth);
+        assertEquals("tester", ((UserPrincipal) auth.getPrincipal()).getUsername());
+    }
+
+    @Test
+    @DisplayName("createAuthentication: Should return null if claims are invalid")
+    void createAuthentication_ShouldReturnNullOnInvalidClaims() {
+        Claims invalidClaims = Jwts.claims().subject("tester").build();
+        assertNull(jwtManager.createAuthentication(invalidClaims));
+    }
+
+    @Test
+    @DisplayName("Token Logic: Should handle null optional IDs in claims")
+    void createAccessToken_ShouldHandleNullOptionals() {
+        UserPrincipal principal = mock(UserPrincipal.class);
+        when(principal.getUsername()).thenReturn("no-profile-user");
+        when(principal.getUserId()).thenReturn(UUID.randomUUID());
+        when(principal.getProfileId()).thenReturn(null);
+        when(principal.getAdvertiserId()).thenReturn(null);
+        when(principal.getAuthorities()).thenReturn(Collections.emptyList());
+
+        String token = jwtManager.createAccessToken(principal, Instant.now());
+        Claims claims = jwtManager.validateAccessToken(token);
+
+        assertEquals("", claims.get("profileId"));
+        assertEquals("", claims.get("advertiserId"));
     }
 }

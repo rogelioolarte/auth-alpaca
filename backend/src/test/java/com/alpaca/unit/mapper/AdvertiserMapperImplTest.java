@@ -63,6 +63,16 @@ class AdvertiserMapperImplTest {
         assertEquals(entity.getTitle(), responseDTO.title());
         assertEquals(entity.getDescription(), responseDTO.description());
         assertEquals(entity.getUser().getId(), responseDTO.userId());
+        assertEquals(entity.getUser().getEmail(), responseDTO.email());
+
+        Advertiser altEntity = AdvertiserProvider.alternativeEntity();
+        altEntity.setUser(null);
+        AdvertiserResponseDTO altResponseDTO = mapper.toResponseDTO(altEntity);
+        assertNotNull(altResponseDTO);
+        assertEquals(altEntity.getId(), altResponseDTO.id());
+        assertEquals(altEntity.getTitle(), altResponseDTO.title());
+        assertEquals(altEntity.getDescription(), altResponseDTO.description());
+        assertNull(altEntity.getUser());
     }
 
     @Test

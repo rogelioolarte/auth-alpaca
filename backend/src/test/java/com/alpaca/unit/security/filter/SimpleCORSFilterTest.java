@@ -42,7 +42,8 @@ class SimpleCORSFilterTest {
                 response.getHeader("Access-Control-Allow-Methods"));
         assertEquals("3600", response.getHeader("Access-Control-Max-Age"));
         assertEquals(
-                "Content-Type, Accept, X-Requested-With, remember-me, Authorization",
+                "Content-Type, Accept, X-Requested-With, remember-me, Authorization, X-Client-Id,"
+                        + " User-Agent, X-Refresh-Token",
                 response.getHeader("Access-Control-Allow-Headers"));
 
         // Verify filter chain is invoked exactly once

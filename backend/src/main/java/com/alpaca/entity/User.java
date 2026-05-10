@@ -13,6 +13,30 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  * database and stores authentication and authorization details. It includes information about
  * roles, entity status, and authentication settings.
  */
+@NamedEntityGraph(
+        name = "User.withAuthorities",
+        attributeNodes = {
+            @NamedAttributeNode("profile"),
+            @NamedAttributeNode("advertiser"),
+            @NamedAttributeNode(value = "userRoles", subgraph = "userRoles-subgraph")
+        },
+        subgraphs = {
+            @NamedSubgraph(
+                    name = "userRoles-subgraph",
+                    attributeNodes = {
+                        @NamedAttributeNode(value = "role", subgraph = "role-subgraph")
+                    }),
+            @NamedSubgraph(
+                    name = "role-subgraph",
+                    attributeNodes = {
+                        @NamedAttributeNode(
+                                value = "rolePermissions",
+                                subgraph = "permission-subgraph")
+                    }),
+            @NamedSubgraph(
+                    name = "permission-subgraph",
+                    attributeNodes = {@NamedAttributeNode("permission")})
+        })
 @Builder
 @Getter
 @Setter

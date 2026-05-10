@@ -134,31 +134,4 @@ public class AuthServiceImpl implements IAuthService {
     public UserDetails loadUserByUsername(String username) {
         return new UserPrincipal(userService.findByEmail(username));
     }
-
-    /**
-     * Validates raw password against stored user details and enforces account status checks.
-     *
-     * @param rawPassword the entered password
-     * @param userDetails stored user details
-     * @return authenticated {@link UserDetails}
-     * @throws BadRequestException if validation fails
-     * @throws UnauthorizedException if account is disabled or locked
-     */
-    public UserDetails validateUserDetails(String rawPassword, UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BadRequestException("Invalid Username or Password");
-        }
-        if (rawPassword == null
-                || rawPassword.isBlank()
-                || !passwordManager.matches(rawPassword, userDetails.getPassword())) {
-            throw new BadRequestException("Invalid Password");
-        }
-        if (!(userDetails.isEnabled()
-                && userDetails.isAccountNonLocked()
-                && userDetails.isAccountNonExpired()
-                && userDetails.isCredentialsNonExpired())) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        return userDetails;
-    }
 }

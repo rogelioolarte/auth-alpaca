@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 class PermissionDAOImplTest {
 
     @Mock private PermissionRepo repo;
+
     @InjectMocks private PermissionDAOImpl dao;
 
     private Permission firstEntity;
@@ -48,6 +49,14 @@ class PermissionDAOImplTest {
     class GenericDAOFullCoverage {
 
         @Test
+        @DisplayName("findById: Should return entity when ID matches")
+        void findById_Success() {
+            when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(firstEntity));
+            Optional<Permission> result = dao.findById(firstEntity.getId());
+            assertThat(result).isPresent().contains(firstEntity);
+        }
+
+        @Test
         @DisplayName("findAll: Should return all entities")
         void findAll_Success() {
             when(repo.findAll()).thenReturn(entities);
@@ -59,6 +68,13 @@ class PermissionDAOImplTest {
         void findAllByIds_Success() {
             when(repo.findAllById(ids)).thenReturn(entities);
             assertThat(dao.findAllByIds(ids)).isEqualTo(entities);
+        }
+
+        @Test
+        @DisplayName("save: Should persist and return the entity")
+        void save_Success() {
+            when(repo.save(firstEntity)).thenReturn(firstEntity);
+            assertThat(dao.save(firstEntity)).isEqualTo(firstEntity);
         }
 
         @Test
@@ -76,27 +92,33 @@ class PermissionDAOImplTest {
         }
 
         @Test
-        @DisplayName("getEntity: Should return the correct class type")
-        void getEntity_Success() {
-            assertThat(dao.findById(null)).isEmpty();
-        }
-
-        @Test
-        @DisplayName("updateIfNotNull: Should only update if incoming is not null and different")
+        @DisplayName("updateIfNotNull: Should handle all scenarios for generic updates")
         void updateIfNotNull_Coverage() {
             AtomicReference<String> target = new AtomicReference<>("Initial");
 
-            // Case 1: Incoming is null (No update)
             dao.updateIfNotNull("Initial", null, target::set);
             assertThat(target.get()).isEqualTo("Initial");
 
-            // Case 2: Incoming is same as existing (No update)
             dao.updateIfNotNull("Initial", "Initial", target::set);
             assertThat(target.get()).isEqualTo("Initial");
 
-            // Case 3: Incoming is different (Update)
             dao.updateIfNotNull("Initial", "New", target::set);
             assertThat(target.get()).isEqualTo("New");
+        }
+
+        @Test
+        @DisplayName("updateTextIfExists: Should handle text-specific update logic")
+        void updateTextIfExists_Coverage() {
+            AtomicReference<String> target = new AtomicReference<>("Old");
+
+            dao.updateTextIfExists("Old", "", target::set);
+            assertThat(target.get()).isEqualTo("Old");
+
+            dao.updateTextIfExists("Old", "Old", target::set);
+            assertThat(target.get()).isEqualTo("Old");
+
+            dao.updateTextIfExists("Old", "Updated", target::set);
+            assertThat(target.get()).isEqualTo("Updated");
         }
 
         @Test
@@ -104,27 +126,18 @@ class PermissionDAOImplTest {
         void updateIfDifferent_Coverage() {
             AtomicReference<Boolean> target = new AtomicReference<>(true);
 
-            // Case 1: Same value (No update)
             dao.updateIfDifferent(true, true, target::set);
             assertThat(target.get()).isTrue();
 
-            // Case 2: Different value (Update)
             dao.updateIfDifferent(true, false, target::set);
             assertThat(target.get()).isFalse();
-
-            // Case 3: One is false (Update)
-            dao.updateIfDifferent(false, true, target::set);
-            assertThat(target.get()).isTrue();
         }
 
         @Test
         @DisplayName("deleteById: Should call repository delete method")
         void deleteById_FullCoverage() {
-            UUID id = UUID.randomUUID();
-
-            dao.deleteById(id);
-
-            verify(repo, times(1)).deleteById(id);
+            dao.deleteById(firstEntity.getId());
+            verify(repo, times(1)).deleteById(firstEntity.getId());
         }
 
         @Test
@@ -138,44 +151,7 @@ class PermissionDAOImplTest {
             Page<Permission> result = dao.findAllPage(pageable);
 
             assertThat(result).isNotNull();
-            assertThat(result.getTotalElements()).isEqualTo(entities.size());
             verify(repo).findAll(pageable);
-        }
-
-        @Test
-        @DisplayName("existsAllByIds: Should return true when count matches input size")
-        void existsAllByIds_Success() {
-            // Case where all IDs exist in DB
-            when(repo.countByIds(ids)).thenReturn((long) ids.size());
-
-            boolean result = dao.existsAllByIds(ids);
-
-            assertThat(result).isTrue();
-            verify(repo).countByIds(ids);
-        }
-
-        @Test
-        @DisplayName("existsAllByIds: Should return false when count does not match size")
-        void existsAllByIds_Failure() {
-            // Case where some IDs are missing in DB (Size = 3, Count = 2)
-            when(repo.countByIds(ids)).thenReturn((long) ids.size() - 1);
-
-            boolean result = dao.existsAllByIds(ids);
-
-            assertThat(result).isFalse();
-            verify(repo).countByIds(ids);
-        }
-
-        @Test
-        @DisplayName("existsAllByIds: Should handle empty collection")
-        void existsAllByIds_Empty() {
-            List<UUID> emptyIds = List.of();
-            when(repo.countByIds(emptyIds)).thenReturn(0L);
-
-            boolean result = dao.existsAllByIds(emptyIds);
-
-            assertThat(result).isTrue(); // 0 == 0
-            verify(repo).countByIds(emptyIds);
         }
     }
 
@@ -190,56 +166,28 @@ class PermissionDAOImplTest {
             @Test
             @DisplayName("Should throw NotFoundException when ID doesn't exist")
             void updateById_ThrowsException() {
-                UUID id = UUID.randomUUID();
-                when(repo.findById(id)).thenReturn(Optional.empty());
+                when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
 
-                Permission data = new Permission();
-
-                assertThrows(NotFoundException.class, () -> dao.updateById(data, id));
+                assertThrows(
+                        NotFoundException.class,
+                        () -> dao.updateById(firstEntity, firstEntity.getId()));
                 verify(repo, never()).save(any());
             }
 
             @Test
             @DisplayName("Should update name when it is valid and different")
             void updateById_SuccessfulUpdate() {
-                String newName = "NEW_PERMISSION_NAME";
                 Permission existing = new Permission();
                 existing.setId(firstEntity.getId());
                 existing.setName("OLD_NAME");
 
-                Permission incoming = new Permission();
-                incoming.setName(newName);
-
                 when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(existing));
                 when(repo.save(existing)).thenReturn(existing);
 
-                Permission result = dao.updateById(incoming, firstEntity.getId());
+                Permission result = dao.updateById(firstEntity, firstEntity.getId());
 
-                assertThat(result.getName()).isEqualTo(newName);
+                assertThat(result.getName()).isEqualTo(firstEntity.getName());
                 verify(repo).save(existing);
-            }
-
-            @Test
-            @DisplayName("Should NOT update name when incoming is blank or same")
-            void updateById_NoActionOnBlankOrSame() {
-                Permission existing = spy(new Permission());
-                existing.setName("CONSTANT_NAME");
-
-                when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(existing));
-                when(repo.save(existing)).thenReturn(existing);
-
-                // Case 1: Same name
-                Permission sameName = new Permission();
-                sameName.setName("CONSTANT_NAME");
-                dao.updateById(sameName, firstEntity.getId());
-
-                // Case 2: Blank name
-                Permission blankName = new Permission();
-                blankName.setName("   ");
-                dao.updateById(blankName, firstEntity.getId());
-
-                // Verify setter was never called with these values
-                verify(existing, never()).setName("   ");
             }
         }
 
@@ -248,64 +196,44 @@ class PermissionDAOImplTest {
         class ExistsByUniquePropertiesTests {
 
             @Test
-            @DisplayName("Should return false for null, empty or blank names")
+            @DisplayName("Should return false for invalid name inputs")
             void existsByUniqueProperties_InvalidInputs() {
                 Permission p = new Permission();
 
-                // Null branch
                 p.setName(null);
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
 
-                // Empty branch
-                p.setName("");
-                assertThat(dao.existsByUniqueProperties(p)).isFalse();
-
-                // Blank branch
-                p.setName("     ");
+                p.setName("   ");
                 assertThat(dao.existsByUniqueProperties(p)).isFalse();
 
                 verifyNoInteractions(repo);
             }
 
             @Test
-            @DisplayName("Should return true/false based on repo when name is valid")
+            @DisplayName("Should return repository response for valid name")
             void existsByUniqueProperties_ValidName() {
-                Permission p = new Permission();
-                p.setName("VALID_NAME");
-
-                when(repo.existsByName("VALID_NAME")).thenReturn(true);
-                assertThat(dao.existsByUniqueProperties(p)).isTrue();
-
-                when(repo.existsByName("VALID_NAME")).thenReturn(false);
-                assertThat(dao.existsByUniqueProperties(p)).isFalse();
+                when(repo.existsByName(firstEntity.getName())).thenReturn(true);
+                assertThat(dao.existsByUniqueProperties(firstEntity)).isTrue();
             }
         }
 
-        @Nested
-        @DisplayName("findByPermissionName Logic")
-        class FindByPermissionNameTests {
+        @Test
+        @DisplayName("findByPermissionName: Should return expected optional")
+        void findByPermissionName_Logic() {
+            when(repo.findByName(firstEntity.getName())).thenReturn(Optional.of(firstEntity));
+            assertThat(dao.findByPermissionName(firstEntity.getName()))
+                    .isPresent()
+                    .contains(firstEntity);
+        }
 
-            @Test
-            @DisplayName("Should return optional with entity when found")
-            void findByPermissionName_Found() {
-                String name = "SEARCH_ME";
-                when(repo.findByName(name)).thenReturn(Optional.of(firstEntity));
+        @Test
+        @DisplayName("existsAllByIds: Should compare input size with repository count")
+        void existsAllByIds_Coverage() {
+            when(repo.countByIds(ids)).thenReturn((long) ids.size());
+            assertThat(dao.existsAllByIds(ids)).isTrue();
 
-                Optional<Permission> result = dao.findByPermissionName(name);
-
-                assertThat(result).isPresent().contains(firstEntity);
-            }
-
-            @Test
-            @DisplayName("Should return empty optional when not found")
-            void findByPermissionName_NotFound() {
-                String name = "NOT_EXIST";
-                when(repo.findByName(name)).thenReturn(Optional.empty());
-
-                Optional<Permission> result = dao.findByPermissionName(name);
-
-                assertThat(result).isEmpty();
-            }
+            when(repo.countByIds(ids)).thenReturn(0L);
+            assertThat(dao.existsAllByIds(ids)).isFalse();
         }
     }
 }

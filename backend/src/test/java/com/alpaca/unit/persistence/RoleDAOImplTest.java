@@ -12,10 +12,7 @@ import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.resources.RoleProvider;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -178,5 +175,16 @@ class RoleDAOImplTest {
             when(repo.existsByName("ADMIN")).thenReturn(true);
             assertThat(dao.existsByUniqueProperties(validRole)).isTrue();
         }
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        List<UUID> ids = RoleProvider.listEntities().stream().map(Role::getId).toList();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

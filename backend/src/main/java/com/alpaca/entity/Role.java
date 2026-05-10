@@ -45,7 +45,7 @@ public class Role extends Auditable {
             mappedBy = "role",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     private Set<RolePermission> rolePermissions = new HashSet<>();
 
     /**
@@ -58,7 +58,7 @@ public class Role extends Auditable {
             mappedBy = "role",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     private Set<UserRole> userRoles = new HashSet<>();
 
     /**

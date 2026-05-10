@@ -108,7 +108,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         if (email == null || email.isBlank())
             throw new BadRequestException("Email must not be null or blank");
         // Retrieves a User with Roles and Permissions
-        return dao.findByEmailWithAuthorities(email)
+        return dao.findByEmail(email)
                 .orElseThrow(
                         () ->
                                 new UsernameNotFoundException(

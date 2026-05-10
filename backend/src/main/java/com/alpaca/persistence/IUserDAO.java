@@ -31,7 +31,5 @@ public interface IUserDAO extends IGenericDAO<User, UUID> {
      */
     boolean existsByEmail(String email);
 
-    Optional<User> findByEmailWithAuthorities(String email);
-
     Optional<User> lockFindUserById(UUID userId);
 }

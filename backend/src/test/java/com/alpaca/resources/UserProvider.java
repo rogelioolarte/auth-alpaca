@@ -63,7 +63,7 @@ public class UserProvider {
 
     public static User singleEntity() {
         return User.builder()
-                .id(UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"))
+                .id(UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"))
                 .email("admin@admin.com")
                 .password("123456789")
                 .enabled(true)
@@ -80,7 +80,7 @@ public class UserProvider {
 
     public static User alternativeEntity() {
         return User.builder()
-                .id(UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"))
+                .id(UUID.fromString("019e0f52-a9da-7560-a196-359bbcf6571c"))
                 .email("user@user.com")
                 .password("1234567890")
                 .enabled(true)
@@ -131,7 +131,7 @@ public class UserProvider {
 
     public static UserResponseDTO singleResponse() {
         return new UserResponseDTO(
-                UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"),
+                UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"),
                 "admin@admin.com",
                 new ArrayList<>(List.of(RoleProvider.singleResponse())),
                 null,
@@ -140,7 +140,7 @@ public class UserProvider {
 
     public static UserResponseDTO alternativeResponse() {
         return new UserResponseDTO(
-                UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
+                UUID.fromString("019e0f52-a9da-7560-a196-359bbcf6571c"),
                 "user@user.com",
                 new ArrayList<>(List.of(RoleProvider.alternativeResponse())),
                 null,

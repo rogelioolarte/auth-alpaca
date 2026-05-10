@@ -1,5 +1,6 @@
 package com.alpaca.unit.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -9,7 +10,9 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.RefreshTokenDAOImpl;
 import com.alpaca.repository.RefreshTokenRepo;
+import com.alpaca.resources.RefreshTokenProvider;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +35,16 @@ class RefreshTokenDAOImplTest {
     @InjectMocks private RefreshTokenDAOImpl dao;
 
     private RefreshToken existingToken;
+    private List<RefreshToken> entities;
+    private List<UUID> ids;
     private final UUID tokenId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
         existingToken = new RefreshToken();
         existingToken.setId(tokenId);
+        entities = RefreshTokenProvider.listEntities();
+        ids = entities.stream().map(RefreshToken::getId).toList();
     }
 
     // --- updateById Tests ---
@@ -210,5 +217,23 @@ class RefreshTokenDAOImplTest {
 
         // Note: The DAO calls repo.revokeFamilyOnReuse
         verify(repo).revokeFamilyOnReuse(familyId, now, reason);
+    }
+
+    @Test
+    @DisplayName("findAllByFamilyId: Should return all entities by Id")
+    void findAllByFamilyId_Success() {
+        UUID id = UUID.randomUUID();
+        when(repo.findAllByFamilyId(id)).thenReturn(entities);
+        assertThat(dao.findAllByFamilyId(id)).isEqualTo(entities);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

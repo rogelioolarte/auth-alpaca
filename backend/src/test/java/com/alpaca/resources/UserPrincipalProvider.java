@@ -10,7 +10,7 @@ public class UserPrincipalProvider {
     public static UserPrincipal firstResponse() {
         return new UserPrincipal(
                 new User(
-                        UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"),
+                        UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"),
                         "admin@admin.com",
                         "123456789",
                         true,
@@ -31,7 +31,7 @@ public class UserPrincipalProvider {
     public static UserPrincipal alternativeResponse() {
         return new UserPrincipal(
                 new User(
-                        UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"),
+                        UUID.fromString("019e0f52-a9da-7560-a196-359bbcf6571c"),
                         "user@user.com",
                         "1234567890",
                         true,

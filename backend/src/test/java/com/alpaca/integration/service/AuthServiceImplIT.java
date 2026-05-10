@@ -9,7 +9,6 @@ import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.RefreshTokenProvider;
 import com.alpaca.resources.UserProvider;
@@ -28,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AuthServiceImpl} */
@@ -196,60 +194,5 @@ class AuthServiceImplIT {
 
         assertNotNull(principal);
         assertEquals(user.getId(), principal.getUserId());
-    }
-
-    // ------------------------------------------------
-    // validateUserDetails
-    // ------------------------------------------------
-
-    @Test
-    void validateUserDetailsShouldFailWhenUserNull() {
-
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails(null, null));
-    }
-
-    @Test
-    void validateUserDetailsShouldFailWhenPasswordInvalid() {
-
-        User user = UserProvider.singleTemplate();
-
-        user.setPassword(passwordManager.encodePassword(user.getPassword()));
-
-        UserPrincipal principal = new UserPrincipal(user);
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.validateUserDetails("wrong-password", principal));
-    }
-
-    @Test
-    void validateUserDetailsShouldFailWhenAccountDisabled() {
-
-        User user = UserProvider.createUser(false, true, true, true, true, true);
-
-        String raw = user.getPassword();
-
-        user.setPassword(passwordManager.encodePassword(raw));
-
-        UserPrincipal principal = new UserPrincipal(user);
-
-        assertThrows(
-                UnauthorizedException.class, () -> service.validateUserDetails(raw, principal));
-    }
-
-    @Test
-    void validateUserDetailsShouldReturnUserWhenValid() {
-
-        User user = UserProvider.singleTemplate();
-
-        String raw = user.getPassword();
-
-        user.setPassword(passwordManager.encodePassword(raw));
-
-        UserPrincipal principal = new UserPrincipal(user);
-
-        UserDetails result = service.validateUserDetails(raw, principal);
-
-        assertEquals(principal, result);
     }
 }

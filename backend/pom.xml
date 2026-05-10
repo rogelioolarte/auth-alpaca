@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
+		<version>3.5.14</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
@@ -53,10 +53,11 @@
 		<spotless.version>3.0.0</spotless.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-		<uuid-generator-version>5.1.1</uuid-generator-version>
-        <dotenv-version>3.2.0</dotenv-version>
-        <bucket4j-version>8.10.1</bucket4j-version>
-		<caffeine-version>3.2.3</caffeine-version>
+		<uuid-generator.version>5.1.1</uuid-generator.version>
+        <dotenv.version>3.2.0</dotenv.version>
+        <bucket4j.version>8.10.1</bucket4j.version>
+		<caffeine.version>3.2.3</caffeine.version>
+		<bouncycastle.version>1.84</bouncycastle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -89,9 +90,14 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.uuid</groupId>
 			<artifactId>java-uuid-generator</artifactId>
-			<version>${uuid-generator-version}</version>
+			<version>${uuid-generator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -131,17 +137,17 @@
 		<dependency>
 			<groupId>io.github.cdimascio</groupId>
 			<artifactId>dotenv-java</artifactId>
-			<version>${dotenv-version}</version>
+			<version>${dotenv.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
-			<version>${bucket4j-version}</version>
+			<version>${bucket4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
-			<version>${caffeine-version}</version>
+			<version>${caffeine.version}</version>
 		</dependency>
 	</dependencies>
 	<profiles>

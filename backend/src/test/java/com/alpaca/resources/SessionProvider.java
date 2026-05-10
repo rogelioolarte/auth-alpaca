@@ -2,6 +2,8 @@ package com.alpaca.resources;
 
 import com.alpaca.entity.Session;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class SessionProvider {
@@ -9,7 +11,7 @@ public class SessionProvider {
     public static Session singleEntity() {
         Session session = new Session();
         Instant now = Instant.now();
-        session.setId(UUID.fromString("1632eb79-63a4-4213-b905-0ad176f0004a"));
+        session.setId(UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"));
         session.setUser(UserProvider.singleEntity());
         session.setFamilyId(UUID.fromString("2632eb79-63a4-4213-b905-0ad176f0004b"));
         session.setCreatedAt(now);
@@ -25,7 +27,7 @@ public class SessionProvider {
 
     public static Session alternativeEntity() {
         Session session = new Session();
-        session.setId(UUID.fromString("982a1001-b033-48f6-b2e6-6b327f0a61eb"));
+        session.setId(UUID.fromString("019e0f52-a9da-7560-a196-359bbcf6571c"));
         session.setUser(UserProvider.alternativeEntity());
         session.setFamilyId(UUID.fromString("a82a1001-b033-48f6-b2e6-6b327f0a61ec"));
         session.setCreatedAt(Instant.parse("2024-01-02T11:00:00Z"));
@@ -81,5 +83,9 @@ public class SessionProvider {
         session.setRevokedAt(null);
         session.setRevokeReason(null);
         return session;
+    }
+
+    public static List<Session> listEntities() {
+        return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 }

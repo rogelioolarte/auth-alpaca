@@ -1,10 +1,9 @@
 package com.alpaca.config;
 
 import com.alpaca.security.filter.JwtTokenValidatorFilter;
+import com.alpaca.security.manager.CustomAuthenticationManager;
 import com.alpaca.security.manager.JJwtManager;
-import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.*;
-import com.alpaca.service.IAuthService;
 import com.alpaca.service.IOAuth2Service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -41,7 +38,7 @@ import org.springframework.web.client.RestClient;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -49,13 +46,12 @@ public class SecurityConfig {
     private static final String O_AUTH_2_REDIRECTION_END_POINT = "/oauth2/callback/*";
 
     private final JJwtManager jwtManager;
-    private final PasswordManager passwordManager;
-    private final IAuthService authService;
     private final IOAuth2Service securityService;
     private final AuthFailureHandler oauth2FailureHandler;
     private final AuthSuccessHandler oauth2SuccessHandler;
     private final CookieAuthReqRepo cookieAuthReqRepo;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final CustomAuthenticationManager authenticationManager;
 
     /**
      * Configures security filter chain with authentication and authorization settings.
@@ -105,7 +101,7 @@ public class SecurityConfig {
                         exceptionHandling
                                 .accessDeniedHandler(accessDeniedHandler())
                                 .authenticationEntryPoint(authenticationEntryPoint()));
-        http.authenticationProvider(provider(authService));
+        http.authenticationProvider(authenticationManager);
         http.addFilterBefore(
                 new JwtTokenValidatorFilter(jwtManager), BasicAuthenticationFilter.class);
         return http.build();
@@ -170,18 +166,5 @@ public class SecurityConfig {
     public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration)
             throws Exception {
         return configuration.getAuthenticationManager();
-    }
-
-    /**
-     * Configures an authentication provider with password encoding and user details service.
-     *
-     * @param authService Authentication Service Implementation.
-     * @return AuthenticationProvider instance.
-     */
-    @Bean
-    public AuthenticationProvider provider(IAuthService authService) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(authService);
-        provider.setPasswordEncoder(passwordManager.passwordEncoder());
-        return provider;
     }
 }

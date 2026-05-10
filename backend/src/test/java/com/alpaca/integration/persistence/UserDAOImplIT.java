@@ -160,7 +160,7 @@ class UserDAOImplIT {
     @Transactional
     void findByEmailWithAuthorities() {
 
-        Optional<User> found = dao.findByEmailWithAuthorities(persisted.getEmail());
+        Optional<User> found = dao.findByEmail(persisted.getEmail());
 
         assertTrue(found.isPresent());
         assertEquals(persisted.getId(), found.get().getId());

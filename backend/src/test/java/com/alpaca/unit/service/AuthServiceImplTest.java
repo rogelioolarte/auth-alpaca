@@ -2,7 +2,8 @@ package com.alpaca.unit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
@@ -259,48 +260,5 @@ class AuthServiceImplTest {
         when(userService.findByEmail(user.getEmail())).thenReturn(user);
         UserDetails result = service.loadUserByUsername(user.getEmail());
         assertEquals(user.getEmail(), result.getUsername());
-    }
-
-    @Test
-    void validateUserDetails_NullDetails_ThrowsBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails("pw", null));
-    }
-
-    @Test
-    void validateUserDetails_BlankPassword_ThrowsBadRequest() {
-        UserPrincipal principal = new UserPrincipal(user);
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails("", principal));
-    }
-
-    @Test
-    void validateUserDetails_PasswordMismatch_ThrowsBadRequest() {
-        UserPrincipal principal = new UserPrincipal(user);
-        String raw = "wrong";
-        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(false);
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails(raw, principal));
-    }
-
-    @Test
-    void validateUserDetails_AccountInactive_ThrowsUnauthorized() {
-        user.setEnabled(false);
-        UserPrincipal principal = new UserPrincipal(user);
-        String raw = "correct";
-        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(true);
-        assertThrows(
-                UnauthorizedException.class, () -> service.validateUserDetails(raw, principal));
-    }
-
-    @Test
-    void validateUserDetails_Success() {
-        user.setEnabled(true);
-        user.setAccountNonLocked(true);
-        user.setAccountNonExpired(true);
-        user.setCredentialNonExpired(true);
-        UserPrincipal principal = new UserPrincipal(user);
-        String raw = "correct";
-        when(passwordManager.matches(raw, principal.getPassword())).thenReturn(true);
-
-        UserDetails result = service.validateUserDetails(raw, principal);
-        assertEquals(principal, result);
     }
 }

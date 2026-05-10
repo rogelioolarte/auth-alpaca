@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of the {@link IUserDAO} interface for managing {@link User} entities. Extends the
@@ -85,9 +86,9 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
                                                         getEntity().getName(), id.toString())));
 
         updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
-        if (user.getPassword() != null
-                && user.getPassword().isBlank()
+        if (StringUtils.hasText(user.getPassword())
                 && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
+            System.out.println("entro aqui");
             existingUser.setPassword(passwordManager.encodePassword(user.getPassword()));
         }
 
@@ -160,11 +161,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
             return false;
         }
         return repo.existsByEmail(email);
-    }
-
-    @Override
-    public Optional<User> findByEmailWithAuthorities(String email) {
-        return repo.findByEmailWithAuthorities(email);
     }
 
     @Override

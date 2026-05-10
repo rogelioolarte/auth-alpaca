@@ -1,5 +1,6 @@
 package com.alpaca.unit.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -11,6 +12,7 @@ import com.alpaca.persistence.impl.ProfileDAOImpl;
 import com.alpaca.repository.ProfileRepo;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,5 +184,16 @@ class ProfileDAOImplTest {
 
         assertFalse(dao.existsByUniqueProperties(profile));
         verify(repo).countByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        List<UUID> ids = ProfileProvider.listEntities().stream().map(Profile::getId).toList();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

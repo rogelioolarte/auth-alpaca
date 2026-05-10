@@ -1,5 +1,6 @@
 package com.alpaca.unit.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -14,10 +15,8 @@ import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import com.alpaca.security.manager.PasswordManager;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserDAOImplTest {
 
     @Mock private UserRepo repo;
+    @Mock private PasswordManager passwordManager;
 
     @InjectMocks private UserDAOImpl dao;
 
@@ -113,7 +113,9 @@ class UserDAOImplTest {
         updateData.setAdvertiser(advertiser);
 
         when(repo.findById(id)).thenReturn(Optional.of(existingUser));
-        when(repo.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        when(passwordManager.matches(any(), any())).thenReturn(false);
+        when(passwordManager.encodePassword(any())).thenReturn(updateData.getPassword());
+        when(repo.save(existingUser)).thenAnswer(i -> i.getArgument(0));
 
         // Act
         User result = dao.updateById(updateData, id);
@@ -221,12 +223,12 @@ class UserDAOImplTest {
     @DisplayName("Should find user with authorities by email")
     void findByEmailWithAuthorities_ReturnsUser() {
         String email = "auth@test.com";
-        when(repo.findByEmailWithAuthorities(email)).thenReturn(Optional.of(firstEntity));
+        when(repo.findByEmail(email)).thenReturn(Optional.of(firstEntity));
 
-        Optional<User> result = dao.findByEmailWithAuthorities(email);
+        Optional<User> result = dao.findByEmail(email);
 
         assertTrue(result.isPresent());
-        verify(repo).findByEmailWithAuthorities(email);
+        verify(repo).findByEmail(email);
     }
 
     @Test
@@ -239,5 +241,16 @@ class UserDAOImplTest {
         assertTrue(result.isPresent());
         assertEquals(id, result.get().getId());
         verify(repo).lockFindUserById(id);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: Should compare input size with repository count")
+    void existsAllByIds_Coverage() {
+        List<UUID> ids = UserProvider.listEntities().stream().map(User::getId).toList();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        assertThat(dao.existsAllByIds(ids)).isTrue();
+
+        when(repo.countByIds(ids)).thenReturn(0L);
+        assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

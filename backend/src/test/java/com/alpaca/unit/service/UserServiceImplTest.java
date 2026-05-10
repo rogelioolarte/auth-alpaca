@@ -1,7 +1,8 @@
 package com.alpaca.unit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -117,7 +118,7 @@ class UserServiceImplTest {
     @Test
     void findByEmail_WhenUserNotFound_ThrowsUsernameNotFoundException() {
         String email = secondUser.getEmail();
-        when(dao.findByEmailWithAuthorities(email)).thenReturn(Optional.empty());
+        when(dao.findByEmail(email)).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () -> service.findByEmail(email));
     }
@@ -125,11 +126,11 @@ class UserServiceImplTest {
     @Test
     void findByEmail_WhenUserExists_ReturnsUser() {
         String email = firstUser.getEmail();
-        when(dao.findByEmailWithAuthorities(email)).thenReturn(Optional.of(firstUser));
+        when(dao.findByEmail(email)).thenReturn(Optional.of(firstUser));
 
         User result = service.findByEmail(email);
 
         assertEquals(firstUser, result);
-        verify(dao).findByEmailWithAuthorities(email);
+        verify(dao).findByEmail(email);
     }
 }

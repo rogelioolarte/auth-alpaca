@@ -1,8 +1,6 @@
 package com.alpaca.unit.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.controller.RefreshTokenController;
@@ -12,172 +10,117 @@ import com.alpaca.exception.RateLimitExceededException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /** Unit tests for {@link RefreshTokenController} */
+@ExtendWith(MockitoExtension.class)
 class RefreshTokenControllerTest {
 
-    private IRefreshTokenService refreshTokenService;
-    private IPRateLimit rateLimit;
-    private RefreshTokenController controller;
+    @Mock private IRefreshTokenService refreshTokenService;
+
+    @Mock private IPRateLimit rateLimit;
+
+    @Mock private HttpServletRequest request;
+
+    @Mock private UserPrincipal userPrincipal;
+
+    @InjectMocks private RefreshTokenController controller;
+
+    private MockedStatic<Utils> utilsMock;
+    private final String clientIp = "192.168.1.100";
+    private final String refreshToken = "valid-refresh-token";
+    private final String clientId = "alpaca-web-client";
+    private final String userAgent = "Mozilla/5.0-Test";
+    private final AuthResponseDTO authResponse = new AuthResponseDTO("new-access", "new-refresh");
 
     @BeforeEach
     void setUp() {
-        refreshTokenService = mock(IRefreshTokenService.class);
-        rateLimit = mock(IPRateLimit.class);
-        controller = new RefreshTokenController(refreshTokenService, rateLimit);
+        utilsMock = mockStatic(Utils.class);
+        utilsMock
+                .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
+                .thenReturn(clientIp);
     }
 
     @AfterEach
     void tearDown() {
-        Mockito.clearInvocations(refreshTokenService, rateLimit);
+        utilsMock.close();
     }
 
     @Test
-    void rotateRefreshToken_success_usesRemoteAddressWhenNoXForwardedFor() {
-        // Arrange
-        String refreshToken = "r.t.k";
-        String clientId = "web-client";
-        String userAgent = "UA";
-        UserPrincipal userPrincipal = new UserPrincipal();
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        // No X-Forwarded-For header
-        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-        when(request.getRemoteAddr()).thenReturn("10.0.0.5");
+    @DisplayName("rotateRefreshToken: Should return OK and new tokens when request is valid")
+    void rotateRefreshToken_ShouldReturnOk_WhenSuccessful() {
+        RateLimitResult allowedResult = new RateLimitResult(true, 0);
+        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
+        when(refreshTokenService.rotateRefreshToken(refreshToken, clientId, userAgent, clientIp))
+                .thenReturn(authResponse);
 
-        // rate limit allows
-        RateLimitResult allowed = new RateLimitResult(true, 0);
-        when(rateLimit.check("10.0.0.5")).thenReturn(allowed);
-
-        AuthResponseDTO expected = new AuthResponseDTO("access-1", "refresh-1");
-        when(refreshTokenService.rotateRefreshToken(
-                        eq(refreshToken), eq(clientId), eq(userAgent), eq("10.0.0.5")))
-                .thenReturn(expected);
-
-        // Act
-        ResponseEntity<AuthResponseDTO> resp =
+        ResponseEntity<AuthResponseDTO> response =
                 controller.rotateRefreshToken(
                         refreshToken, clientId, userAgent, userPrincipal, request);
 
-        // Assert
-        assertNotNull(resp);
-        assertTrue(resp.getStatusCode().is2xxSuccessful());
-        assertEquals(expected, resp.getBody());
-        // verify rateLimit was checked with extracted IP
-        verify(rateLimit).check("10.0.0.5");
-        // verify service called with expected args
-        verify(refreshTokenService)
-                .rotateRefreshToken(eq(refreshToken), eq(clientId), eq(userAgent), eq("10.0.0.5"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(authResponse.accessToken(), response.getBody().accessToken());
+        verify(rateLimit).check(clientIp);
+        verify(refreshTokenService).rotateRefreshToken(refreshToken, clientId, userAgent, clientIp);
     }
 
     @Test
-    void rotateRefreshToken_success_usesXForwardedForHeaderWhenPresent() {
-        // Arrange
-        String refreshToken = "rt-xyz";
-        String clientId = "mobile-client";
-        String userAgent = "MobileUA";
-        UserPrincipal userPrincipal = new UserPrincipal();
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("X-Forwarded-For")).thenReturn("5.6.7.8"); // trusted header present
-        // remote address should be ignored by Utils.extractClientIP in presence of header
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+    @DisplayName(
+            "rotateRefreshToken: Should throw RateLimitExceededException when rate limit is"
+                    + " reached")
+    void rotateRefreshToken_ShouldThrowException_WhenRateLimited() {
+        RateLimitResult deniedResult = new RateLimitResult(false, 60);
+        when(rateLimit.check(clientIp)).thenReturn(deniedResult);
 
-        RateLimitResult allowed = new RateLimitResult(true, 0);
-        when(rateLimit.check("5.6.7.8")).thenReturn(allowed);
-
-        AuthResponseDTO expected = new AuthResponseDTO("a", "r");
-        when(refreshTokenService.rotateRefreshToken(
-                        eq(refreshToken), eq(clientId), eq(userAgent), eq("5.6.7.8")))
-                .thenReturn(expected);
-
-        // Act
-        ResponseEntity<AuthResponseDTO> resp =
-                controller.rotateRefreshToken(
-                        refreshToken, clientId, userAgent, userPrincipal, request);
-
-        // Assert
-        assertNotNull(resp);
-        assertEquals(expected, resp.getBody());
-        verify(rateLimit).check("5.6.7.8");
-        verify(refreshTokenService)
-                .rotateRefreshToken(eq(refreshToken), eq(clientId), eq(userAgent), eq("5.6.7.8"));
-    }
-
-    @Test
-    void rotateRefreshToken_rateLimitExceeded_throwsAndDoesNotCallService() {
-        // Arrange
-        String refreshToken = "rt-deny";
-        String clientId = "client-deny";
-        String userAgent = "UA-deny";
-        UserPrincipal userPrincipal = new UserPrincipal();
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-        when(request.getRemoteAddr()).thenReturn("192.0.2.1");
-
-        RateLimitResult denied = new RateLimitResult(false, 42);
-        when(rateLimit.check("192.0.2.1")).thenReturn(denied);
-
-        // Act & Assert
-        RateLimitExceededException ex =
+        RateLimitExceededException exception =
                 assertThrows(
                         RateLimitExceededException.class,
                         () ->
                                 controller.rotateRefreshToken(
                                         refreshToken, clientId, userAgent, userPrincipal, request));
-        assertEquals(42, ex.getRetryAfterSeconds());
-        // service must NOT be invoked
-        verify(refreshTokenService, never())
-                .rotateRefreshToken(anyString(), anyString(), anyString(), anyString());
-        verify(rateLimit).check("192.0.2.1");
+
+        assertEquals(deniedResult.retryAfterSeconds(), exception.getRetryAfterSeconds());
+        verify(rateLimit).check(clientIp);
+        verifyNoInteractions(refreshTokenService);
     }
 
     @Test
-    void rotateRefreshToken_capturesArguments_passesIpToService() {
-        // Extra test to assert exact captured args passed to service
-        String refreshToken = "rt-capture";
-        String clientId = "c-capture";
-        String userAgent = "UA-capture";
-        UserPrincipal userPrincipal = new UserPrincipal();
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-        when(request.getRemoteAddr()).thenReturn("203.0.113.9");
+    @DisplayName("rotateRefreshToken: Should return Unauthorized when user principal is missing")
+    void rotateRefreshToken_ShouldReturnUnauthorized_WhenUserIsNull() {
+        RateLimitResult allowedResult = new RateLimitResult(true, 0);
+        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
 
-        RateLimitResult allowed = new RateLimitResult(true, 0);
-        when(rateLimit.check("203.0.113.9")).thenReturn(allowed);
+        ResponseEntity<AuthResponseDTO> response =
+                controller.rotateRefreshToken(refreshToken, clientId, userAgent, null, request);
 
-        AuthResponseDTO expected = new AuthResponseDTO("acc", "ref");
-        when(refreshTokenService.rotateRefreshToken(
-                        anyString(), anyString(), anyString(), anyString()))
-                .thenReturn(expected);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(rateLimit).check(clientIp);
+        verifyNoInteractions(refreshTokenService);
+    }
 
-        // Act
-        ResponseEntity<AuthResponseDTO> resp =
-                controller.rotateRefreshToken(
-                        refreshToken, clientId, userAgent, userPrincipal, request);
+    @Test
+    @DisplayName("rotateRefreshToken: Should use extracted IP for rate limit check")
+    void rotateRefreshToken_ShouldUseExtractedIp() {
+        RateLimitResult allowedResult = new RateLimitResult(true, 0);
+        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
+        when(refreshTokenService.rotateRefreshToken(any(), any(), any(), any()))
+                .thenReturn(authResponse);
 
-        // Assert
-        assertEquals(expected, resp.getBody());
-        ArgumentCaptor<String> refreshCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> clientCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> uaCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> ipCaptor = ArgumentCaptor.forClass(String.class);
+        controller.rotateRefreshToken(refreshToken, clientId, userAgent, userPrincipal, request);
 
-        verify(refreshTokenService)
-                .rotateRefreshToken(
-                        refreshCaptor.capture(),
-                        clientCaptor.capture(),
-                        uaCaptor.capture(),
-                        ipCaptor.capture());
-
-        assertEquals(refreshToken, refreshCaptor.getValue());
-        assertEquals(clientId, clientCaptor.getValue());
-        assertEquals(userAgent, uaCaptor.getValue());
-        assertEquals("203.0.113.9", ipCaptor.getValue());
+        utilsMock.verify(() -> Utils.extractClientIP(request));
+        verify(rateLimit).check(clientIp);
     }
 }

@@ -17,6 +17,8 @@ import { User } from '@app/models/user';
 import { Role } from '@app/models/role';
 import { UserDialog, UserDialogData } from './dialogs/user-dialog/user-dialog';
 import { ListDialog, ListDialogData } from '@app/components/pure/dialogs/list-dialog/list-dialog';
+import { AuthenticationService } from '@app/auth/authentication-service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-users',
@@ -40,6 +42,8 @@ export class Users implements OnInit {
   private readonly roleService = inject(RoleService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthenticationService);
+  private readonly myUser = toSignal(this.authService.getUserInfo());
 
   public displayedColumns = [/* 'id',  */ 'email', 'profile', 'advertiser', 'roles', 'actions'];
   public users = signal<User[]>([]);
@@ -109,6 +113,9 @@ export class Users implements OnInit {
             next: () => {
               this.snackBar.open('User updated', 'Close', { duration: 3000 });
               this.loadUsers();
+              if(this.myUser()?.id === user.id) {
+                this.authService.rotateTokens().subscribe();
+              }
             },
             error: () => {
               this.snackBar.open('Error updating user', 'Close', { duration: 3000 });
