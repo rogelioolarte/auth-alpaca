@@ -295,6 +295,13 @@ public class User extends Auditable {
                 && this.credentialNonExpired;
     }
 
+    public void setAllowed(boolean value) {
+        this.enabled = value;
+        this.accountNonExpired = value;
+        this.accountNonLocked = value;
+        this.credentialNonExpired = value;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

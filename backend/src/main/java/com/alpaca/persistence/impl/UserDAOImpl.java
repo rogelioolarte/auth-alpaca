@@ -88,7 +88,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
         if (StringUtils.hasText(user.getPassword())
                 && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
-            System.out.println("entro aqui");
             existingUser.setPassword(passwordManager.encodePassword(user.getPassword()));
         }
 

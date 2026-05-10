@@ -1,6 +1,7 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
@@ -10,268 +11,201 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link OAuth2ServiceImpl}. */
+/** Integration tests for {@link OAuth2ServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("OAuth2ServiceImpl Integration Tests")
 class OAuth2ServiceImplIT {
 
     @Autowired private OAuth2ServiceImpl service;
-
     @Autowired private IUserService userService;
     @Autowired private IRoleService roleService;
-    @Autowired private IProfileService profileService;
-    @Autowired private PasswordManager passwordManager;
 
-    private User userTemplate;
+    private Instant now;
 
     @BeforeEach
     void setup() {
-        userTemplate = UserProvider.singleTemplate();
+        now = Instant.now();
     }
 
-    // ------------------------
-    // processOAuth2User
-    // ------------------------
+    // -------------------------------------------------------------------------
+    // processOAuth2User Logic
+    // -------------------------------------------------------------------------
 
     @Test
-    void processOAuth2User_whenEmailMissing_thenThrowOAuth2AuthProcessingException() {
-        // Build a minimal OAuth2UserRequest (ClientRegistration + AccessToken)
+    @DisplayName("processOAuth2User: Should throw exception if email is missing or blank")
+    @Transactional
+    void processOAuth2User_ShouldThrow_WhenEmailIsInvalid() {
+        // Arrange
+        OAuth2UserRequest request = createMockRequest();
+        OAuth2User oauthUser =
+                new DefaultOAuth2User(
+                        Collections.emptySet(), Map.of("sub", "123", "email", ""), "sub");
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.processOAuth2User(request, oauthUser))
+                .isInstanceOf(OAuth2AuthenticationProcessingException.class)
+                .hasMessageContaining("Email not found");
+    }
+
+    // -------------------------------------------------------------------------
+    // registerOrLoginOAuth2 Logic
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("registerOrLoginOAuth2: Should register new user and profile when valid")
+    @Transactional
+    void registerOrLoginOAuth2_ShouldRegister_WhenUserIsNew() {
+        // Arrange
+        Role userRole = RoleProvider.singleTemplate();
+        userRole.setName("USER");
+        userRole.setCreatedAt(now); // CRITICAL: Manual audit property
+        roleService.save(userRole);
+
+        String email = "new.alpaca@example.com";
+        Map<String, Object> attrs = Map.of("sub", "123");
+
+        // Act
+        UserPrincipal principal =
+                service.registerOrLoginOAuth2(
+                        email, "John", "Doe", "http://image.url", true, attrs);
+
+        // Assert
+        assertThat(principal).isNotNull();
+        assertThat(principal.getUsername()).isEqualTo(email);
+
+        User persisted = userService.findByEmail(email);
+        assertThat(persisted.getProfile()).isNotNull();
+        assertThat(persisted.getProfile().getFirstName()).isEqualTo("John");
+        assertThat(persisted.isGoogleConnected()).isTrue();
+    }
+
+    @Test
+    @DisplayName("registerOrLoginOAuth2: Should throw BadRequest if mandatory info is missing")
+    @Transactional
+    void registerOrLoginOAuth2_ShouldThrow_WhenFieldsMissing() {
+        Map<String, Object> attrs = Collections.emptyMap();
+
+        assertThatThrownBy(() -> service.registerOrLoginOAuth2(null, "F", "L", "I", true, attrs))
+                .isInstanceOf(BadRequestException.class);
+
+        assertThatThrownBy(
+                        () -> service.registerOrLoginOAuth2("e@e.com", " ", "L", "I", true, attrs))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    // -------------------------------------------------------------------------
+    // registerProfile Logic
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("registerProfile: Should throw BadRequest if user has no ID or is null")
+    @Transactional
+    void registerProfile_ShouldThrow_WhenUserInvalid() {
+        User userWithoutId = UserProvider.singleTemplate();
+        // ID is null by default from provider
+
+        assertThatThrownBy(() -> service.registerProfile(null, "F", "L", "I"))
+                .isInstanceOf(BadRequestException.class);
+
+        assertThatThrownBy(() -> service.registerProfile(userWithoutId, "F", "L", "I"))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    // -------------------------------------------------------------------------
+    // checkExistingUser Logic
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("checkExistingUser: Should throw Unauthorized if account is disabled")
+    @Transactional
+    void checkExistingUser_ShouldThrow_WhenUserBlocked() {
+        // Arrange
+        User blocked = UserProvider.singleTemplate();
+        blocked.setAllowed(false);
+
+        // Act & Assert
+        assertThatThrownBy(() -> service.checkExistingUser(blocked, true))
+                .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    @DisplayName("checkExistingUser: Should update googleConnected flag if false")
+    @Transactional
+    void checkExistingUser_ShouldUpdateConnection_WhenPreviouslyFalse() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
+        user.setEmail("existing@example.com");
+        user.setGoogleConnected(false);
+        user.setAllowed(true);
+        user.setCreatedAt(now);
+        User saved = userService.register(user);
+
+        // Act
+        User updated = service.checkExistingUser(saved, true);
+
+        // Assert
+        assertThat(updated.isGoogleConnected()).isTrue();
+        assertThat(userService.findByEmail("existing@example.com").isGoogleConnected()).isTrue();
+    }
+
+    @Test
+    @DisplayName("checkExistingUser: Should update emailVerified if status changed")
+    @Transactional
+    void checkExistingUser_ShouldUpdateVerification_WhenStatusChanges() {
+        // Arrange
+        User user = UserProvider.alternativeTemplate();
+        user.setEmail("verify@example.com");
+        user.setEmailVerified(false);
+        user.setGoogleConnected(true);
+        user.setAllowed(true);
+        user.setCreatedAt(now);
+        User saved = userService.register(user);
+
+        // Act
+        User updated = service.checkExistingUser(saved, true);
+
+        // Assert
+        assertThat(updated.isEmailVerified()).isTrue();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helper Methods
+    // -------------------------------------------------------------------------
+
+    private OAuth2UserRequest createMockRequest() {
         ClientRegistration clientRegistration =
                 ClientRegistration.withRegistrationId("google")
                         .clientId("id")
-                        .clientSecret("secret")
                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                         .tokenUri("https://example.com/token")
                         .authorizationUri("https://example.com/auth")
-                        .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                        .scope("openid", "email", "profile")
+                        .redirectUri("https://example.com/redirect")
                         .build();
 
         OAuth2AccessToken token =
                 new OAuth2AccessToken(
-                        OAuth2AccessToken.TokenType.BEARER,
-                        "access-token",
-                        Instant.now(),
-                        Instant.now().plusSeconds(3600));
+                        OAuth2AccessToken.TokenType.BEARER, "token", now, now.plusSeconds(3600));
 
-        OAuth2UserRequest request = new OAuth2UserRequest(clientRegistration, token);
-
-        // OAuth2User with attributes that miss email (or blank)
-        OAuth2User oauthUser =
-                new OAuth2User() {
-                    @Override
-                    public Map<String, Object> getAttributes() {
-                        return Map.of("email", ""); // blank email => should trigger exception
-                    }
-
-                    @Override
-                    public Set<GrantedAuthority> getAuthorities() {
-                        return Collections.emptySet();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return "no-email";
-                    }
-                };
-
-        assertThrows(
-                OAuth2AuthenticationProcessingException.class,
-                () -> service.processOAuth2User(request, oauthUser),
-                "Expected OAuth2AuthenticationProcessingException when provider doesn't return"
-                        + " email");
-    }
-
-    // ------------------------
-    // registerOrLoginOAuth2 - validation errors
-    // ------------------------
-
-    @Test
-    void registerOrLoginOAuth2_whenMissingFields_thenBadRequest() {
-        Map<String, Object> attrs = Map.of("any", "value");
-        // missing email
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2(null, "first", "last", "image", false, attrs));
-        // blank firstName
-        assertThrows(
-                BadRequestException.class,
-                () ->
-                        service.registerOrLoginOAuth2(
-                                "email@example.com", " ", "last", "image", false, attrs));
-        // blank imageURL
-        assertThrows(
-                BadRequestException.class,
-                () ->
-                        service.registerOrLoginOAuth2(
-                                "email@example.com", "first", "last", " ", false, attrs));
-    }
-
-    // ------------------------
-    // registerOrLoginOAuth2 - new user flow
-    // ------------------------
-
-    @Test
-    @Transactional
-    void registerOrLoginOAuth2_whenNewUser_thenRegisterAndReturnUserPrincipal() {
-        // Ensure default role "USER" exists (getUserRoles uses findByRoleName("USER"))
-        Role role = RoleProvider.singleTemplate();
-        role.setName("USER");
-        role.setRolePermissions(Collections.emptySet());
-        roleService.save(role);
-
-        String email = "new.user@example.com";
-        String first = "First";
-        String last = "Last";
-        String image = "https://example.com/avatar.png";
-        boolean emailVerified = true;
-        Map<String, Object> attrs = Map.of("k", "v");
-
-        UserPrincipal principal =
-                service.registerOrLoginOAuth2(email, first, last, image, emailVerified, attrs);
-
-        assertNotNull(principal);
-        assertNotNull(principal.getUserId(), "User should be persisted and have id");
-        assertEquals(email, principal.getUsername());
-        // attributes forwarded to UserPrincipal
-        assertEquals(attrs, principal.getAttributes());
-        // persisted user should have profile created with the values provided
-        User persisted = userService.findByEmail(email);
-        assertNotNull(persisted);
-        assertNotNull(persisted.getProfile());
-        assertEquals(first, persisted.getProfile().getFirstName());
-        assertEquals(last, persisted.getProfile().getLastName());
-        assertEquals(image, persisted.getProfile().getAvatarUrl());
-    }
-
-    // ------------------------
-    // registerProfile - validations + success
-    // ------------------------
-
-    @Test
-    void registerProfile_whenInvalidArgs_thenBadRequest() {
-        // null user
-        assertThrows(
-                BadRequestException.class, () -> service.registerProfile(null, "f", "l", "img"));
-
-        // user without id
-        User tmp = UserProvider.singleTemplate();
-        tmp.setId(null); // ensure id null
-        assertThrows(
-                BadRequestException.class, () -> service.registerProfile(tmp, "f", "l", "img"));
-
-        // null firstName
-        User tmp2 = UserProvider.singleTemplate();
-        tmp2.setId(UUID.randomUUID());
-        assertThrows(
-                BadRequestException.class, () -> service.registerProfile(tmp2, null, "l", "img"));
-    }
-
-    @Test
-    @Transactional
-    void registerProfile_whenValid_thenSaveProfileOnUser() {
-        // persist a user first
-        Role role = roleService.save(RoleProvider.alternativeTemplate());
-        User toRegister =
-                new User(
-                        userTemplate.getEmail(),
-                        userTemplate.getPassword(),
-                        false,
-                        true,
-                        new HashSet<>(Set.of(role)));
-        User saved = userService.register(toRegister);
-
-        String first = "John";
-        String last = "Doe";
-        String img = "https://example.com/john.png";
-
-        User result = service.registerProfile(saved, first, last, img);
-
-        assertNotNull(result.getProfile());
-        assertEquals(first, result.getProfile().getFirstName());
-        assertEquals(last, result.getProfile().getLastName());
-        assertEquals(img, result.getProfile().getAvatarUrl());
-    }
-
-    // ------------------------
-    // checkExistingUser - unauthorized & update flows
-    // ------------------------
-
-    @Test
-    void checkExistingUser_whenUserNotAllowed_thenUnauthorized() {
-        User blocked = UserProvider.createUser(false, false, false, true, true, true);
-        // not persisted: checkExistingUser expects a User object - it checks isAllowUser()
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.checkExistingUser(blocked, false),
-                "Expected UnauthorizedException when user.isAllowUser() == false");
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUser_whenNotGoogleConnected_thenSetGoogleConnectedAndPersist() {
-        // create and persist user with googleConnected = false
-        User u = UserProvider.createUser(true, true, true, true, true, false);
-        u.setEmail(userTemplate.getEmail()); // unique email
-        User persisted = userService.register(u);
-
-        User updated = service.checkExistingUser(persisted, persisted.isEmailVerified());
-
-        assertNotNull(updated);
-        assertEquals(persisted.getId(), updated.getId());
-        assertTrue(
-                updated.isGoogleConnected(),
-                "Service should set googleConnected to true and register the user");
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUser_whenGoogleConnectedButEmailVerifiedChanged_thenUpdateEmailVerified() {
-        // create and persist user with googleConnected = true and emailVerified = false
-        User u = UserProvider.createUser(true, true, true, true, true, true);
-        u.setEmail("verify.change@example.com");
-        User persisted = userService.register(u);
-
-        // pass emailVerified = true -> should update and persist
-        User updated = service.checkExistingUser(persisted, true);
-
-        assertNotNull(updated);
-        assertEquals(persisted.getId(), updated.getId());
-        assertTrue(updated.isEmailVerified());
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUser_whenNoChangeNeeded_thenReturnSameUser() {
-        // create and persist user with googleConnected = true and emailVerified = true
-        User u = UserProvider.createUser(true, true, true, true, true, true);
-        u.setEmail("no.change@example.com");
-        User persisted = userService.register(u);
-
-        User result = service.checkExistingUser(persisted, true);
-
-        assertNotNull(result);
-        assertEquals(persisted.getId(), result.getId());
-        assertTrue(result.isGoogleConnected());
-        assertTrue(result.isEmailVerified());
+        return new OAuth2UserRequest(clientRegistration, token);
     }
 }

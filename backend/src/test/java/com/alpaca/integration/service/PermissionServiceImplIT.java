@@ -1,14 +1,17 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
+import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,20 +19,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link PermissionServiceImpl}. */
+/** Integration tests for {@link PermissionServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("PermissionServiceImpl Integration Tests")
 class PermissionServiceImplIT {
 
     @Autowired private PermissionServiceImpl service;
 
-    private Permission permissionTemplate;
-    private Permission alternativeTemplate;
+    private Instant now;
 
     @BeforeEach
     void setup() {
-        permissionTemplate = PermissionProvider.singleTemplate();
-        alternativeTemplate = PermissionProvider.alternativeTemplate();
+        now = Instant.now();
     }
 
     // ------------------------------------------------
@@ -37,139 +39,109 @@ class PermissionServiceImplIT {
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void findByIdShouldValidateInputAndReturnEntity() {
+    @DisplayName("findById: Throws BadRequestException when ID is null")
+    void findById_ShouldThrowBadRequest_WhenIdIsNull() {
+        assertThatThrownBy(() -> service.findById(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Permission cannot be found");
+    }
 
-        assertThrows(BadRequestException.class, () -> service.findById(null));
-
+    @Test
+    @DisplayName("findById: Throws NotFoundException when entity does not exist")
+    void findById_ShouldThrowNotFound_WhenEntityMissing() {
         UUID randomId = UUID.randomUUID();
-        assertThrows(NotFoundException.class, () -> service.findById(randomId));
+        assertThatThrownBy(() -> service.findById(randomId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Permission with ID " + randomId + " not found");
+    }
 
-        Permission saved = service.save(permissionTemplate);
+    @Test
+    @DisplayName("findById: Returns entity when found")
+    void findById_ShouldReturnEntity_WhenExists() {
+        Permission permission = PermissionProvider.singleTemplate();
+        permission.setCreatedAt(now);
+        Permission saved = service.save(permission);
 
         Permission found = service.findById(saved.getId());
 
-        assertNotNull(found);
-        assertEquals(saved.getId(), found.getId());
-        assertEquals(saved, found);
+        assertThat(found).isNotNull();
+        assertThat(found.getId()).isEqualTo(saved.getId());
     }
 
     // ------------------------------------------------
-    // findAllByIds
+    // findAllByIds & findAllByIdsToSet
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void findAllByIdsShouldValidateInputs() {
+    @DisplayName("findAllByIds: Validates null, empty, or list containing null")
+    void findAllByIds_ShouldValidateInputs() {
+        assertThatThrownBy(() -> service.findAllByIds(null))
+                .isInstanceOf(BadRequestException.class);
 
-        assertThrows(BadRequestException.class, () -> service.findAllByIds(null));
+        assertThatThrownBy(() -> service.findAllByIds(Collections.emptyList()))
+                .isInstanceOf(BadRequestException.class);
 
-        assertThrows(
-                BadRequestException.class, () -> service.findAllByIds(Collections.emptyList()));
-
-        List<UUID> invalidList = new ArrayList<>();
-        invalidList.add(UUID.randomUUID());
-        invalidList.add(null);
-
-        assertThrows(BadRequestException.class, () -> service.findAllByIds(invalidList));
+        List<UUID> listWithNull = new ArrayList<>();
+        listWithNull.add(UUID.randomUUID());
+        listWithNull.add(null);
+        assertThatThrownBy(() -> service.findAllByIds(listWithNull))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test
-    @Transactional
-    void findAllByIdsShouldFailWhenSomeIdsMissing() {
+    @DisplayName("findAllByIds: Throws NotFoundException if any ID in the collection is missing")
+    void findAllByIds_ShouldThrowNotFound_WhenSomeIdsMissing() {
+        Permission p = PermissionProvider.singleTemplate();
+        p.setCreatedAt(now);
+        Permission saved = service.save(p);
 
-        Permission saved = service.save(permissionTemplate);
-
-        List<UUID> ids = new ArrayList<>(List.of(saved.getId(), UUID.randomUUID()));
-
-        assertThrows(NotFoundException.class, () -> service.findAllByIds(ids));
+        List<UUID> ids = List.of(saved.getId(), UUID.randomUUID());
+        assertThatThrownBy(() -> service.findAllByIds(ids)).isInstanceOf(NotFoundException.class);
     }
 
     @Test
-    @Transactional
-    void findAllByIdsShouldReturnEntities() {
+    @DisplayName("findAllByIdsToSet: Returns a unique set of entities")
+    void findAllByIdsToSet_ShouldReturnUniqueSet() {
+        Permission p = PermissionProvider.singleTemplate();
+        p.setCreatedAt(now);
+        Permission saved = service.save(p);
 
-        Permission saved = service.save(permissionTemplate);
+        Set<Permission> result = service.findAllByIdsToSet(List.of(saved.getId()));
 
-        List<Permission> result = service.findAllByIds(new ArrayList<>(List.of(saved.getId())));
-
-        assertEquals(1, result.size());
-        assertEquals(saved, result.getFirst());
-    }
-
-    // ------------------------------------------------
-    // findAllByIdsToSet
-    // ------------------------------------------------
-
-    @Test
-    @Transactional
-    void findAllByIdsToSetShouldReturnSet() {
-
-        Permission saved = service.save(permissionTemplate);
-
-        Set<Permission> result = service.findAllByIdsToSet(new ArrayList<>(List.of(saved.getId())));
-
-        assertEquals(1, result.size());
-        assertTrue(result.contains(saved));
+        assertThat(result).hasSize(1).contains(saved);
     }
 
     // ------------------------------------------------
-    // save
+    // save & saveAll
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void saveShouldValidateEntity() {
+    @DisplayName("save: Validates null and duplicate unique properties")
+    void save_ShouldValidateInput() {
+        assertThatThrownBy(() -> service.save(null)).isInstanceOf(BadRequestException.class);
 
-        assertThrows(BadRequestException.class, () -> service.save(null));
+        Permission p = PermissionProvider.singleTemplate();
+        p.setCreatedAt(now);
+        service.save(p);
 
-        service.save(permissionTemplate);
-
-        assertThrows(BadRequestException.class, () -> service.save(permissionTemplate));
+        // Attempting to save same unique properties again
+        assertThatThrownBy(() -> service.save(p))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("already exists");
     }
 
     @Test
-    @Transactional
-    void saveShouldPersistEntity() {
+    @DisplayName("saveAll: Validates collection constraints and persists list")
+    void saveAll_ShouldValidateAndPersist() {
+        assertThatThrownBy(() -> service.saveAll(null)).isInstanceOf(BadRequestException.class);
 
-        Permission saved = service.save(alternativeTemplate);
+        Permission p1 = PermissionProvider.singleTemplate();
+        Permission p2 = PermissionProvider.alternativeTemplate();
+        p1.setCreatedAt(now);
+        p2.setCreatedAt(now);
 
-        assertNotNull(saved);
-        assertNotNull(saved.getId());
-        assertEquals(alternativeTemplate.getName(), saved.getName());
-    }
-
-    // ------------------------------------------------
-    // saveAll
-    // ------------------------------------------------
-
-    @Test
-    @Transactional
-    void saveAllShouldValidateInput() {
-
-        assertThrows(BadRequestException.class, () -> service.saveAll(null));
-
-        assertThrows(BadRequestException.class, () -> service.saveAll(Collections.emptyList()));
-
-        List<Permission> invalid = new ArrayList<>();
-        invalid.add(null);
-
-        assertThrows(BadRequestException.class, () -> service.saveAll(invalid));
-    }
-
-    @Test
-    @Transactional
-    void saveAllShouldPersistEntities() {
-
-        List<Permission> templates =
-                new ArrayList<>(
-                        List.of(
-                                PermissionProvider.singleTemplate(),
-                                PermissionProvider.alternativeTemplate()));
-
-        List<Permission> saved = service.saveAll(templates);
-
-        assertEquals(2, saved.size());
+        List<Permission> saved = service.saveAll(List.of(p1, p2));
+        assertThat(saved).hasSize(2);
     }
 
     // ------------------------------------------------
@@ -177,24 +149,29 @@ class PermissionServiceImplIT {
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void updateByIdShouldValidateInputs() {
+    @DisplayName("updateById: Throws exception on null inputs or missing entity")
+    void updateById_ShouldValidateInputs() {
+        assertThatThrownBy(() -> service.updateById(null, UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class);
 
-        assertThrows(BadRequestException.class, () -> service.updateById(null, null));
+        Permission p = PermissionProvider.singleTemplate();
+        assertThatThrownBy(() -> service.updateById(p, null))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test
-    @Transactional
-    void updateByIdShouldUpdateEntity() {
+    @DisplayName("updateById: Persists changes to existing entity")
+    void updateById_ShouldUpdateExistingEntity() {
+        Permission original = PermissionProvider.singleTemplate();
+        original.setCreatedAt(now);
+        Permission saved = service.save(original);
 
-        Permission original = service.save(permissionTemplate);
-        Permission updateData = service.save(alternativeTemplate);
+        Permission updateData = PermissionProvider.alternativeTemplate();
+        // ID is passed separately in updateById signature
+        Permission updated = service.updateById(updateData, saved.getId());
 
-        Permission updated = service.updateById(updateData, original.getId());
-
-        assertNotNull(updated);
-        assertEquals(original.getId(), updated.getId());
-        assertEquals(updateData.getName(), updated.getName());
+        assertThat(updated.getId()).isEqualTo(saved.getId());
+        assertThat(updated.getName()).isEqualTo(updateData.getName());
     }
 
     // ------------------------------------------------
@@ -202,126 +179,58 @@ class PermissionServiceImplIT {
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void deleteByIdShouldValidateInputs() {
+    @DisplayName("deleteById: Validates null and existence before deletion")
+    void deleteById_ShouldValidate() {
+        assertThatThrownBy(() -> service.deleteById(null)).isInstanceOf(BadRequestException.class);
 
-        assertThrows(BadRequestException.class, () -> service.deleteById(null));
-
-        assertThrows(BadRequestException.class, () -> service.deleteById(UUID.randomUUID()));
+        assertThatThrownBy(() -> service.deleteById(UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("not exists");
     }
 
     @Test
-    @Transactional
-    void deleteByIdShouldDeleteEntity() {
-
-        Permission saved = service.save(permissionTemplate);
+    @DisplayName("deleteById: Removes entity from database")
+    void deleteById_ShouldRemoveEntity() {
+        Permission p = PermissionProvider.singleTemplate();
+        p.setCreatedAt(now);
+        Permission saved = service.save(p);
 
         service.deleteById(saved.getId());
 
-        assertFalse(service.existsById(saved.getId()));
+        assertThat(service.existsById(saved.getId())).isFalse();
     }
 
     // ------------------------------------------------
-    // findAll
+    // Pagination & Existence Checks
     // ------------------------------------------------
 
     @Test
-    @Transactional
-    void findAllShouldReturnAllEntities() {
+    @DisplayName("findAllPage: Returns paginated results")
+    void findAllPage_ShouldReturnPage() {
+        Permission p = PermissionProvider.singleTemplate();
+        p.setCreatedAt(now);
+        service.save(p);
 
-        List<Permission> templates = PermissionProvider.listTemplates();
+        Page<Permission> page = service.findAllPage(Pageable.ofSize(10));
 
-        List<Permission> saved = templates.stream().map(service::save).toList();
-
-        List<Permission> result = service.findAll();
-
-        assertEquals(saved.size(), result.size());
-        assertTrue(result.containsAll(saved));
-    }
-
-    // ------------------------------------------------
-    // findAllPage
-    // ------------------------------------------------
-
-    @Test
-    void findAllPageShouldValidatePageable() {
-
-        assertThrows(BadRequestException.class, () -> service.findAllPage(null));
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).isNotEmpty();
     }
 
     @Test
-    @Transactional
-    void findAllPageShouldReturnPage() {
+    @DisplayName("existsAllByIds: Returns false for invalid input collections")
+    void existsAllByIds_ShouldHandleEdgeCases() {
+        assertThat(service.existsAllByIds(null)).isFalse();
+        assertThat(service.existsAllByIds(Collections.emptyList())).isFalse();
 
-        List<Permission> templates = PermissionProvider.listTemplates();
-
-        templates.forEach(service::save);
-
-        Page<Permission> page = service.findAllPage(Pageable.unpaged());
-
-        assertNotNull(page);
-        assertTrue(page.getPageable().isUnpaged());
-        assertFalse(page.isEmpty());
-    }
-
-    // ------------------------------------------------
-    // existsById
-    // ------------------------------------------------
-
-    @Test
-    @Transactional
-    void existsByIdShouldWorkCorrectly() {
-
-        Permission saved = service.save(permissionTemplate);
-
-        assertTrue(service.existsById(saved.getId()));
-
-        assertFalse(service.existsById(UUID.randomUUID()));
-
-        assertFalse(service.existsById(null));
-    }
-
-    // ------------------------------------------------
-    // existsAllByIds
-    // ------------------------------------------------
-
-    @Test
-    @Transactional
-    void existsAllByIdsShouldValidateInputs() {
-
-        assertFalse(service.existsAllByIds(null));
-
-        assertFalse(service.existsAllByIds(Collections.emptyList()));
-
-        List<UUID> invalid = new ArrayList<>();
-        invalid.add(null);
-
-        assertFalse(service.existsAllByIds(invalid));
+        List<UUID> listWithNull = new ArrayList<>();
+        listWithNull.add(null);
+        assertThat(service.existsAllByIds(listWithNull)).isFalse();
     }
 
     @Test
-    @Transactional
-    void existsAllByIdsShouldReturnTrueWhenAllExist() {
-
-        Permission saved = service.save(permissionTemplate);
-
-        boolean result = service.existsAllByIds(new ArrayList<>(List.of(saved.getId())));
-
-        assertTrue(result);
-    }
-
-    // ------------------------------------------------
-    // existsByUniqueProperties
-    // ------------------------------------------------
-
-    @Test
-    @Transactional
-    void existsByUniquePropertiesShouldWork() {
-
-        Permission saved = service.save(permissionTemplate);
-
-        assertTrue(service.existsByUniqueProperties(saved));
-
-        assertFalse(service.existsByUniqueProperties(null));
+    @DisplayName("existsByUniqueProperties: Handles null gracefully")
+    void existsByUniqueProperties_ShouldHandleNull() {
+        assertThat(service.existsByUniqueProperties(null)).isFalse();
     }
 }

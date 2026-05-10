@@ -12,6 +12,7 @@ import com.alpaca.repository.PermissionRepo;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.RoleProvider;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -23,12 +24,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link com.alpaca.persistence.impl.RoleDAOImpl}. */
+/** Integration tests for {@link RoleDAOImpl}. */
 @DataJpaTest
 @Import({RoleDAOImpl.class, PermissionDAOImpl.class})
 class RoleDAOImplIT {
 
-    @Autowired private IRoleDAO dao; // should be RoleDAOImpl bean
+    @Autowired private IRoleDAO dao;
     @Autowired private RoleRepo repo;
     @Autowired private PermissionRepo permissionRepo;
 
@@ -64,18 +65,11 @@ class RoleDAOImplIT {
     void updateById() {
         UUID id = saved.getId();
 
-        // full update: new name, description and a permission
         Role request = new Role();
         request.setName("NEW_ROLE_NAME");
         request.setDescription("New description");
 
         Permission newPermission = permissionRepo.save(new Permission("PERM1"));
-        // Depending on your entity model, set of permissions might require wrapper RolePermission
-        // objects;
-        // RoleDAOImpl expects "role.getRolePermissions()" to be non-null and non-empty to perform
-        // replacement.
-        // Here we assume RoleProvider and entity allow request.setRolePermissions(Set.of(...)) to
-        // work.
         request.setRolePermissions(Set.of(newPermission));
 
         Role out = dao.updateById(request, id);
@@ -90,7 +84,6 @@ class RoleDAOImplIT {
         // partial update: blank and null ignored
         Role partial = new Role();
         partial.setName("PARTIAL_NAME");
-        // description left null, permissions empty
         Role outPartial = dao.updateById(partial, id);
         assertEquals("PARTIAL_NAME", outPartial.getName());
         assertEquals(
@@ -132,5 +125,18 @@ class RoleDAOImplIT {
         exists.setName(saved.getName());
         exists.setDescription(saved.getDescription());
         assertTrue(dao.existsByUniqueProperties(exists));
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: verifies presence of multiple IDs")
+    @Transactional
+    void existsAllByIds_ShouldVerifyCount() {
+        Role role2 = RoleProvider.alternativeTemplate();
+        role2.setCreatedAt(saved.getCreatedAt());
+        Role t1 = saved;
+        Role t2 = repo.saveAndFlush(role2);
+
+        assertTrue(dao.existsAllByIds(List.of(t1.getId(), t2.getId())));
+        assertFalse(dao.existsAllByIds(List.of(t1.getId(), UUID.randomUUID())));
     }
 }

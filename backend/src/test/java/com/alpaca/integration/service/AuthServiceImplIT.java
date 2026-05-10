@@ -1,6 +1,10 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
@@ -9,190 +13,413 @@ import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.RefreshTokenProvider;
+import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.security.manager.JJwtManager;
-import com.alpaca.security.manager.PasswordManager;
+import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.service.IRoleService;
+import com.alpaca.service.ISessionService;
+import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.AuthServiceImpl;
-import com.alpaca.service.impl.RoleServiceImpl;
-import com.alpaca.service.impl.SessionServiceImpl;
-import com.alpaca.service.impl.UserServiceImpl;
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AuthServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("AuthServiceImpl Integration Tests")
 class AuthServiceImplIT {
 
-    @Autowired private AuthServiceImpl service;
+    @Autowired private AuthServiceImpl authService;
 
-    @Autowired private UserServiceImpl userService;
+    @Autowired private IUserService userService;
 
-    @Autowired private RoleServiceImpl roleService;
-
-    @Autowired private SessionServiceImpl sessionService;
-
-    @Autowired private IRefreshTokenService refreshTokenService;
-
-    @Autowired private PasswordManager passwordManager;
+    @Autowired private IRoleService roleService;
 
     @Autowired private JJwtManager jwtManager;
 
-    private User userTemplate;
+    @MockitoBean private TokenExchangeManager exchangeManager;
 
-    private AuthLoginRequestDTO request;
+    @MockitoBean private IRefreshTokenService refreshTokenService;
+
+    @MockitoBean private ISessionService sessionService;
+
+    private AuthLoginRequestDTO loginRequest;
+
+    private Instant now;
 
     @BeforeEach
     void setup() {
+        now = Instant.now();
 
-        userTemplate = UserProvider.singleTemplate();
+        User template = UserProvider.singleTemplate();
 
-        String rawPassword = userTemplate.getPassword();
-
-        request =
+        loginRequest =
                 new AuthLoginRequestDTO(
-                        userTemplate.getEmail(),
-                        rawPassword,
+                        template.getEmail(),
+                        "Password123!",
                         "JUnit-Agent",
                         "test-client",
                         "127.0.0.1");
+
+        SecurityContextHolder.clearContext();
     }
 
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
     // register
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
 
     @Test
     @Transactional
-    void registerShouldCreateUserAndReturnTokens() {
-        roleService.save(new Role("USER", "", new HashSet<>()));
-        AuthResponseDTO response = service.register(request);
+    @DisplayName("register: should create user and return tokens")
+    void register_shouldCreateUserAndReturnTokens() {
+        Role role = RoleProvider.singleTemplate();
+        role.setCreatedAt(now);
+        role.setName("USER");
 
-        assertNotNull(response);
-        assertNotNull(response.accessToken());
-        assertNotNull(response.refreshToken());
+        roleService.save(role);
 
-        assertTrue(
-                jwtManager.isValidAccessToken(
-                        jwtManager.validateAccessToken(response.accessToken())));
+        AuthResponseDTO expected = new AuthResponseDTO("access-token", "refresh-token");
+
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
+                .thenReturn(expected);
+
+        AuthResponseDTO response = authService.register(loginRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access-token");
+        assertThat(response.refreshToken()).isEqualTo("refresh-token");
+
+        assertThat(userService.existsByEmail(loginRequest.email())).isTrue();
+
+        verify(sessionService)
+                .createSession(
+                        any(),
+                        eq(loginRequest.userAgent()),
+                        eq(loginRequest.clientId()),
+                        eq(loginRequest.clientIp()));
+
+        verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
     }
 
     @Test
     @Transactional
-    void registerShouldFailWhenEmailAlreadyExists() {
-        roleService.save(new Role("USER", "", new HashSet<>()));
-        service.register(request);
+    @DisplayName("register: should throw when email already exists")
+    void register_shouldThrowWhenEmailAlreadyExists() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
 
-        assertThrows(BadRequestException.class, () -> service.register(request));
+        userService.register(user);
+
+        assertThatThrownBy(() -> authService.register(loginRequest))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Email already registered");
     }
 
-    // ------------------------------------------------
-    // login
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
+    // login(UserPrincipal)
+    // -------------------------------------------------------------------------
 
     @Test
     @Transactional
-    void loginShouldGenerateTokens() {
+    @DisplayName("login(UserPrincipal): should create session and generate tokens")
+    void loginUserPrincipal_shouldCreateSessionAndGenerateTokens() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
 
-        User user = userService.register(userTemplate);
+        User savedUser = userService.register(user);
 
-        UserPrincipal principal = new UserPrincipal(user);
+        UserPrincipal principal = new UserPrincipal(savedUser);
 
-        AuthResponseDTO response = service.login(principal, request);
+        AuthResponseDTO expected = new AuthResponseDTO("access", "refresh");
 
-        assertNotNull(response);
-        assertNotNull(response.accessToken());
-        assertNotNull(response.refreshToken());
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
+                .thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(principal, loginRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access");
+        assertThat(response.refreshToken()).isEqualTo("refresh");
+
+        verify(sessionService)
+                .createSession(
+                        savedUser.getId(),
+                        loginRequest.userAgent(),
+                        loginRequest.clientId(),
+                        loginRequest.clientIp());
+
+        verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
     }
 
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
+    // login(AuthCode)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when code is null")
+    void loginAuthCode_shouldThrowWhenCodeIsNull() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode(null);
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Exchange code is required");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when code is empty")
+    void loginAuthCode_shouldThrowWhenCodeIsEmpty() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("");
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Exchange code is required");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when verifier is null")
+    void loginAuthCode_shouldThrowWhenVerifierIsNull() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("valid-code");
+        authCode.setCodeVerifier(null);
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when verifier format is invalid")
+    void loginAuthCode_shouldThrowWhenVerifierIsInvalid() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("valid-code");
+        authCode.setCodeVerifier("short");
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Invalid code-verifier format");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when auth code does not exist")
+    void loginAuthCode_shouldThrowWhenAuthCodeDoesNotExist() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("missing-code");
+        authCode.setCodeVerifier(verifier);
+
+        when(exchangeManager.consumeCode("missing-code")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when challenge does not match")
+    void loginAuthCode_shouldThrowWhenChallengeDoesNotMatch() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge("invalid-challenge");
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when auth code is expired")
+    void loginAuthCode_shouldThrowWhenCodeExpired() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.minusSeconds(1));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when redirect uri mismatches")
+    void loginAuthCode_shouldThrowWhenRedirectUriMismatch() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/other");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should generate jwt tokens when auth code is valid")
+    void loginAuthCode_shouldGenerateJwtTokensWhenValid() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+
+        AuthResponseDTO expected = new AuthResponseDTO("access", "refresh");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        when(refreshTokenService.generateJWTTokens(savedCode)).thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access");
+        assertThat(response.refreshToken()).isEqualTo("refresh");
+
+        verify(refreshTokenService).generateJWTTokens(savedCode);
+    }
+
+    // -------------------------------------------------------------------------
     // logout
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
 
     @Test
-    void logoutShouldFailWhenTokenBlank() {
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.logout("", "client", "agent", "127.0.0.1"));
+    @DisplayName("logout: should throw when refresh token is blank")
+    void logout_shouldThrowWhenRefreshTokenIsBlank() {
+        assertThatThrownBy(() -> authService.logout("", "cli", "ua", "ip"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Invalid Refresh Token");
     }
 
     @Test
-    void logoutShouldFailWhenTokenNotFound() {
+    @DisplayName("logout: should throw when refresh token is not found")
+    void logout_shouldThrowWhenRefreshTokenNotFound() {
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.empty());
 
-        String fakeToken = "fake-token";
-
-        assertThrows(
-                NotFoundException.class,
-                () -> service.logout(fakeToken, "client", "agent", "127.0.0.1"));
+        assertThatThrownBy(
+                        () -> authService.logout("missing-token", "client", "agent", "127.0.0.1"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Refresh Token Not Found");
     }
 
     @Test
-    @Transactional
-    void logoutShouldFailWhenTokenAlreadyRevoked() {
-        User user = userService.save(userTemplate);
-        String rawToken = "raw-token";
-        String jwtRT = jwtManager.createTokenHash(rawToken);
+    @DisplayName("logout: should throw when refresh token already revoked")
+    void logout_shouldThrowWhenRefreshTokenAlreadyRevoked() {
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setTokenHash(jwtRT);
-        token.setExpiresAt(Instant.now().plusSeconds(50));
-        token.setUser(user);
         token.setRevoked(true);
 
-        refreshTokenService.save(token);
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.of(token));
 
-        assertThrows(
-                BadRequestException.class,
-                () ->
-                        service.logout(
-                                rawToken,
-                                token.getClientId(),
-                                token.getUserAgent(),
-                                token.getIpAddress()));
+        assertThatThrownBy(
+                        () -> authService.logout("refresh-token", "client", "agent", "127.0.0.1"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Refresh Token already revoked");
     }
 
     @Test
-    @Transactional
-    void logoutShouldRevokeTokenAndClearContext() {
-        roleService.save(new Role("USER", "", new HashSet<>()));
-        AuthResponseDTO register = service.register(request);
-        UsernamePasswordAuthenticationToken userToken =
-                jwtManager.manageAuthentication(register.accessToken());
+    @DisplayName("logout: should revoke token family and clear security context")
+    void logout_shouldRevokeFamilyAndClearSecurityContext() {
+        RefreshToken token = RefreshTokenProvider.singleTemplate();
+        token.setRevoked(false);
+        token.setFamilyId(java.util.UUID.randomUUID());
 
-        AuthResponseDTO response = service.login((UserPrincipal) userToken.getPrincipal(), request);
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.of(token));
 
-        service.logout(
-                response.refreshToken(),
-                request.clientId(),
-                request.userAgent(),
-                request.clientIp());
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken("user", "password"));
 
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        authService.logout("refresh-token", "client", "agent", "127.0.0.1");
+
+        verify(refreshTokenService)
+                .revokeRefreshTokensAndSessionByFamilyId(
+                        eq(token.getFamilyId()), any(Instant.class), eq("logout-session"));
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
     // loadUserByUsername
-    // ------------------------------------------------
+    // -------------------------------------------------------------------------
 
     @Test
     @Transactional
-    void loadUserByUsernameShouldReturnPrincipal() {
+    @DisplayName("loadUserByUsername: should return user principal")
+    void loadUserByUsername_shouldReturnUserPrincipal() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
 
-        User user = userService.register(userTemplate);
+        userService.register(user);
 
-        UserPrincipal principal = (UserPrincipal) service.loadUserByUsername(user.getEmail());
+        UserDetails result = authService.loadUserByUsername(user.getEmail());
 
-        assertNotNull(principal);
-        assertEquals(user.getId(), principal.getUserId());
+        assertThat(result).isInstanceOf(UserPrincipal.class);
+        assertThat(result.getUsername()).isEqualTo(user.getEmail());
+    }
+
+    @Test
+    @DisplayName("loadUserByUsername: should throw when user does not exist")
+    void loadUserByUsername_shouldThrowWhenUserDoesNotExist() {
+        assertThatThrownBy(() -> authService.loadUserByUsername("missing@test.com"))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
 }

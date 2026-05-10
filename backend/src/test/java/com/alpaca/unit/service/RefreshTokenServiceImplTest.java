@@ -2,7 +2,6 @@ package com.alpaca.unit.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.response.AuthResponseDTO;
@@ -44,217 +43,490 @@ class RefreshTokenServiceImplTest {
 
     @InjectMocks private RefreshTokenServiceImpl service;
 
-    private RefreshToken testRefreshToken;
-    private Session testSession;
-    private User testUser;
+    private RefreshToken refreshToken;
+    private Session session;
+    private User user;
     private UserPrincipal userPrincipal;
 
     @BeforeEach
     void setUp() {
-        testUser = UserProvider.singleEntity();
-        testSession = SessionProvider.singleEntity();
-        testRefreshToken = RefreshTokenProvider.singleEntity();
-        testRefreshToken.setUser(testUser);
-        testRefreshToken.setFamilyId(testSession.getFamilyId());
-        userPrincipal = new UserPrincipal(testUser);
+        user = UserProvider.singleEntity();
+        session = SessionProvider.singleEntity();
+        refreshToken = RefreshTokenProvider.singleEntity();
+
+        refreshToken.setUser(user);
+        refreshToken.setFamilyId(session.getFamilyId());
+        refreshToken.setClientId(session.getClientId());
+        refreshToken.setUserAgent(session.getUserAgent());
+        refreshToken.setCreatedAt(Instant.now());
+        refreshToken.setExpiresAt(Instant.now().plusSeconds(300));
+
+        userPrincipal = new UserPrincipal(user);
     }
 
     @Test
-    void rotateRefreshToken_ValidToken_ReturnsNewTokens() {
-        String oldToken = "valid.old.token";
-        String hashed = "hashed_old";
-        String newToken = "new.token";
-        String newHash = "hashed_new";
+    void rotateRefreshToken_WhenValidRequest_ThenRotateSuccessfully() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+        String newRefreshTokenJwt = "new-refresh-token";
+        String newRefreshTokenHash = "new-refresh-token-hash";
+        String accessToken = "access-token";
         UUID newJti = UUID.randomUUID();
 
-        when(manager.createTokenHash(oldToken)).thenReturn(hashed);
-        when(dao.findByTokenHashSecure(hashed)).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(testRefreshToken.getFamilyId()))
-                .thenReturn(Optional.of(testSession));
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+        when(sessionService.findSessionByFamilyId(refreshToken.getFamilyId()))
+                .thenReturn(Optional.of(session));
         when(uuidv7Generator.generate()).thenReturn(newJti);
-        when(manager.getJwtTimeExpRefresh()).thenReturn(1000L);
-        when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(newToken);
-        when(manager.createTokenHash(newToken)).thenReturn(newHash);
-        when(dao.save(any(RefreshToken.class))).thenAnswer(i -> i.getArgument(0));
+        when(manager.getJwtTimeExpRefresh()).thenReturn(300_000L);
+        when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(newRefreshTokenJwt);
+        when(manager.createTokenHash(newRefreshTokenJwt)).thenReturn(newRefreshTokenHash);
+        when(dao.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(manager.createAccessToken(any(UserPrincipal.class), any(Instant.class)))
-                .thenReturn("access_token");
+                .thenReturn(accessToken);
 
         AuthResponseDTO response =
                 service.rotateRefreshToken(
-                        oldToken,
-                        testRefreshToken.getClientId(),
-                        testRefreshToken.getUserAgent(),
-                        "127.0.0.1");
+                        oldRefreshToken,
+                        refreshToken.getClientId(),
+                        refreshToken.getUserAgent(),
+                        refreshToken.getIpAddress());
 
-        assertNotNull(response);
-        assertEquals(newToken, response.refreshToken());
+        assertAll(
+                () -> assertNotNull(response),
+                () -> assertEquals(accessToken, response.accessToken()),
+                () -> assertEquals(newRefreshTokenJwt, response.refreshToken()),
+                () -> assertTrue(refreshToken.isRevoked()),
+                () -> assertEquals("rotation", refreshToken.getRevokeReason()),
+                () -> assertNotNull(refreshToken.getRevokedAt()),
+                () -> assertNotNull(refreshToken.getReplacedBy()));
+
         verify(dao, times(2)).save(any(RefreshToken.class));
+        verify(manager).createAccessToken(any(UserPrincipal.class), any(Instant.class));
     }
 
     @Test
-    void rotateRefreshToken_InvalidParams_ThrowsBadRequest() {
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken("", "c", "u", "i"));
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken("t", "", "u", "i"));
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken("t", "c", "", "i"));
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken("t", "c", "u", ""));
+    void rotateRefreshToken_WhenSessionRevoked_ThenThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+
+        session.setRevoked(true);
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+        when(sessionService.findSessionByFamilyId(refreshToken.getFamilyId()))
+                .thenReturn(Optional.of(session));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Revoked Session", exception.getReason());
+
+        verify(dao, never()).save(any(RefreshToken.class));
     }
 
     @Test
-    void rotateRefreshToken_TokenNotFound_ReuseDetection() {
-        String oldToken = "ghost.token";
-        String hashed = "hashed_ghost";
-        UUID familyId = UUID.randomUUID();
+    void rotateRefreshToken_WhenSessionRevokedAtBeforeNow_ThenThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
 
-        when(manager.createTokenHash(oldToken)).thenReturn(hashed);
-        when(dao.findByTokenHashSecure(hashed)).thenReturn(Optional.empty());
-        when(dao.findFamilyIdByTokenHash(hashed)).thenReturn(Optional.of(familyId));
+        session.setRevoked(false);
+        session.setRevokedAt(Instant.now().minusSeconds(60));
 
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.rotateRefreshToken(oldToken, "c", "u", "i"));
-        verify(dao).revokeFamilyWithReason(eq(familyId), any(), eq("reuse-detected"));
-        verify(sessionService).revokeSessionByFamilyId(eq(familyId), any(), eq("reuse-detected"));
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+        when(sessionService.findSessionByFamilyId(refreshToken.getFamilyId()))
+                .thenReturn(Optional.of(session));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Revoked Session", exception.getReason());
+
+        verify(dao, never()).save(any(RefreshToken.class));
     }
 
     @Test
-    void rotateRefreshToken_NoTokenAndNoFamily_ThrowsUnauthorized() {
-        when(manager.createTokenHash(anyString())).thenReturn("hash");
-        when(dao.findByTokenHashSecure(anyString())).thenReturn(Optional.empty());
-        when(dao.findFamilyIdByTokenHash(anyString())).thenReturn(Optional.empty());
+    void rotateRefreshToken_WhenRefreshTokenIsBlank_ThenThrowBadRequestException() {
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        " ",
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
 
-        assertThrows(
-                UnauthorizedException.class, () -> service.rotateRefreshToken("t", "c", "u", "i"));
+        assertEquals("Invalid Refresh Token", exception.getReason());
     }
 
     @Test
-    void rotateRefreshToken_MissingUserOrFamily_ThrowsBadRequest() {
-        String token = "token";
-        testRefreshToken.setUser(null);
-        when(manager.createTokenHash(token)).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
+    void rotateRefreshToken_WhenClientIdIsBlank_ThenThrowBadRequestException() {
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        "token",
+                                        " ",
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
 
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken(token, "c", "u", "i"));
-
-        testRefreshToken.setUser(testUser);
-        testRefreshToken.setFamilyId(null);
-        assertThrows(
-                BadRequestException.class, () -> service.rotateRefreshToken(token, "c", "u", "i"));
+        assertEquals("Invalid Client ID", exception.getReason());
     }
 
     @Test
-    void rotateRefreshToken_SessionRevoked_ThrowsUnauthorized() {
-        testSession.setRevoked(true);
-        when(manager.createTokenHash(anyString())).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(any())).thenReturn(Optional.of(testSession));
+    void rotateRefreshToken_WhenUserAgentIsBlank_ThenThrowBadRequestException() {
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        "token",
+                                        refreshToken.getClientId(),
+                                        " ",
+                                        refreshToken.getIpAddress()));
 
-        assertThrows(
-                UnauthorizedException.class, () -> service.rotateRefreshToken("t", "c", "u", "i"));
+        assertEquals("Invalid User Agent", exception.getReason());
     }
 
     @Test
-    void validateRefreshToken_RevokedWithReplacement_ReuseDetection() {
-        testRefreshToken.setRevoked(true);
-        testRefreshToken.setReplacedBy(new RefreshToken());
-        when(manager.createTokenHash(anyString())).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(any())).thenReturn(Optional.of(testSession));
+    void rotateRefreshToken_WhenClientIpIsBlank_ThenThrowBadRequestException() {
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        "token",
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        " "));
 
-        assertThrows(
-                UnauthorizedException.class, () -> service.rotateRefreshToken("t", "c", "u", "i"));
+        assertEquals("Invalid Client IP", exception.getReason());
+    }
+
+    @Test
+    void rotateRefreshToken_WhenTokenDoesNotExist_ThenThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.empty());
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Invalid Refresh Token", exception.getReason());
+
+        verify(dao, never()).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void
+            rotateRefreshToken_WhenRefreshTokenAlreadyRevoked_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+
+        refreshToken.setRevoked(true);
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+
         verify(dao)
                 .revokeFamilyWithReason(
-                        eq(testRefreshToken.getFamilyId()), any(), eq("reuse-detected"));
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("reuse-detected"));
+        verify(sessionService)
+                .revokeSessionByFamilyId(
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("reuse-detected"));
     }
 
     @Test
-    void validateRefreshToken_Expired_ThrowsUnauthorized() {
-        testRefreshToken.setExpiresAt(Instant.now().minusSeconds(60));
-        when(manager.createTokenHash(anyString())).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(any())).thenReturn(Optional.of(testSession));
+    void
+            rotateRefreshToken_WhenRefreshTokenAlreadyReplaced_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
 
-        assertThrows(
-                UnauthorizedException.class, () -> service.rotateRefreshToken("t", "c", "u", "i"));
+        refreshToken.setReplacedBy(new RefreshToken());
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+
+        verify(dao)
+                .revokeFamilyWithReason(
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("reuse-detected"));
     }
 
     @Test
-    void validateRefreshToken_IssuedBeforeInvalidation_ThrowsUnauthorized() {
-        testUser.setTokensInvalidBefore(Instant.now().plusSeconds(60));
-        testRefreshToken.setCreatedAt(Instant.now());
-        when(manager.createTokenHash(anyString())).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(any())).thenReturn(Optional.of(testSession));
+    void
+            rotateRefreshToken_WhenRefreshTokenExpired_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
 
-        assertThrows(
-                UnauthorizedException.class, () -> service.rotateRefreshToken("t", "c", "u", "i"));
+        refreshToken.setExpiresAt(Instant.now().minusSeconds(60));
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+
+        verify(dao)
+                .revokeFamilyWithReason(
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("reuse-detected"));
     }
 
     @Test
-    void validateRefreshToken_MismatchedClientOrUA_RevokesAndThrows() {
-        when(manager.createTokenHash(anyString())).thenReturn("h");
-        when(dao.findByTokenHashSecure("h")).thenReturn(Optional.of(testRefreshToken));
-        when(sessionService.findSessionByFamilyId(any())).thenReturn(Optional.of(testSession));
+    void
+            rotateRefreshToken_WhenTokenIssuedBeforeTokensInvalidBefore_ThenThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
 
-        assertThrows(
-                UnauthorizedException.class,
-                () ->
-                        service.rotateRefreshToken(
-                                "t", "wrong-client", testRefreshToken.getUserAgent(), "i"));
-        verify(dao).revokeFamilyWithReason(any(), any(), eq("client-mismatch"));
+        user.setTokensInvalidBefore(Instant.now().plusSeconds(60));
 
-        assertThrows(
-                UnauthorizedException.class,
-                () ->
-                        service.rotateRefreshToken(
-                                "t", testRefreshToken.getClientId(), "wrong-ua", "i"));
-        verify(dao).revokeFamilyWithReason(any(), any(), eq("ua-mismatch"));
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
     }
 
     @Test
-    void generateJWTTokens_WithUserPrincipal_Success() {
-        when(uuidv7Generator.generate()).thenReturn(UUID.randomUUID());
-        when(manager.getJwtTimeExpRefresh()).thenReturn(1000L);
-        when(manager.createRefreshToken(any())).thenReturn("rt");
-        when(manager.createTokenHash("rt")).thenReturn("h");
-        when(manager.createAccessToken(any(), any())).thenReturn("at");
+    void rotateRefreshToken_WhenClientIdMismatch_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+        String invalidClientId = "invalid-client-id";
 
-        AuthResponseDTO response = service.generateJWTTokens(userPrincipal, testSession);
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
 
-        assertNotNull(response);
-        assertEquals("at", response.accessToken());
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        invalidClientId,
+                                        refreshToken.getUserAgent(),
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("Client mismatch", exception.getReason());
+
+        verify(dao)
+                .revokeFamilyWithReason(
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("client-mismatch"));
+    }
+
+    @Test
+    void rotateRefreshToken_WhenUserAgentMismatch_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        String oldRefreshToken = "old-refresh-token";
+        String oldRefreshTokenHash = "old-refresh-token-hash";
+        String invalidUserAgent = "invalid-user-agent";
+
+        when(manager.createTokenHash(oldRefreshToken)).thenReturn(oldRefreshTokenHash);
+        when(dao.findByTokenHashSecure(oldRefreshTokenHash)).thenReturn(Optional.of(refreshToken));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        oldRefreshToken,
+                                        refreshToken.getClientId(),
+                                        invalidUserAgent,
+                                        refreshToken.getIpAddress()));
+
+        assertEquals("User-Agent mismatch", exception.getReason());
+
+        verify(dao)
+                .revokeFamilyWithReason(
+                        eq(refreshToken.getFamilyId()), any(Instant.class), eq("ua-mismatch"));
+    }
+
+    @Test
+    void generateJWTTokens_WhenUsingUserPrincipal_ThenGenerateTokensSuccessfully() {
+        UUID refreshTokenId = UUID.randomUUID();
+        String refreshTokenJwt = "refresh-token";
+        String refreshTokenHash = "refresh-token-hash";
+        String accessToken = "access-token";
+
+        when(uuidv7Generator.generate()).thenReturn(refreshTokenId);
+        when(manager.getJwtTimeExpRefresh()).thenReturn(300_000L);
+        when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(refreshTokenJwt);
+        when(manager.createTokenHash(refreshTokenJwt)).thenReturn(refreshTokenHash);
+        when(manager.createAccessToken(userPrincipal, session.getLastSeenAt()))
+                .thenReturn(accessToken);
+
+        AuthResponseDTO response = service.generateJWTTokens(userPrincipal, session);
+
+        assertAll(
+                () -> assertNotNull(response),
+                () -> assertEquals(accessToken, response.accessToken()),
+                () -> assertEquals(refreshTokenJwt, response.refreshToken()));
+
         verify(dao).save(any(RefreshToken.class));
     }
 
     @Test
-    void generateJWTTokens_WithAuthCode_Success() {
-        AuthCode code =
-                new AuthCode("code", "challenge", "cid", "ua", "ip", testUser.getId(), "uri");
-        when(userService.findById(testUser.getId())).thenReturn(testUser);
-        when(sessionService.createSession(any(), any(), any(), any())).thenReturn(testSession);
-        when(uuidv7Generator.generate()).thenReturn(UUID.randomUUID());
-        when(manager.createRefreshToken(any())).thenReturn("rt");
-        when(manager.createTokenHash("rt")).thenReturn("h");
-        when(manager.createAccessToken(any(), any())).thenReturn("at");
+    void generateJWTTokens_WhenUsingAuthCode_ThenGenerateTokensSuccessfully() {
+        UUID refreshTokenId = UUID.randomUUID();
+        String refreshTokenJwt = "refresh-token";
+        String refreshTokenHash = "refresh-token-hash";
+        String accessToken = "access-token";
 
-        AuthResponseDTO response = service.generateJWTTokens(code);
+        AuthCode authCode =
+                new AuthCode(
+                        "authorization-code",
+                        "challenge",
+                        session.getClientId(),
+                        session.getUserAgent(),
+                        session.getIpAddress(),
+                        user.getId(),
+                        "redirect-uri");
 
-        assertNotNull(response);
+        when(userService.findById(authCode.getUserId())).thenReturn(user);
+        when(sessionService.createSession(
+                        authCode.getUserId(),
+                        authCode.getUserAgent(),
+                        authCode.getClientId(),
+                        authCode.getClientIp()))
+                .thenReturn(session);
+        when(uuidv7Generator.generate()).thenReturn(refreshTokenId);
+        when(manager.getJwtTimeExpRefresh()).thenReturn(300_000L);
+        when(manager.createRefreshToken(any(RefreshToken.class))).thenReturn(refreshTokenJwt);
+        when(manager.createTokenHash(refreshTokenJwt)).thenReturn(refreshTokenHash);
+        when(manager.createAccessToken(any(UserPrincipal.class), any(Instant.class)))
+                .thenReturn(accessToken);
+
+        AuthResponseDTO response = service.generateJWTTokens(authCode);
+
+        assertAll(
+                () -> assertNotNull(response),
+                () -> assertEquals(accessToken, response.accessToken()),
+                () -> assertEquals(refreshTokenJwt, response.refreshToken()));
+
+        verify(userService).findById(authCode.getUserId());
+        verify(sessionService)
+                .createSession(
+                        authCode.getUserId(),
+                        authCode.getUserAgent(),
+                        authCode.getClientId(),
+                        authCode.getClientIp());
         verify(dao).save(any(RefreshToken.class));
     }
 
     @Test
-    void delegations_VerifyDaoCalls() {
-        String hash = "hash";
-        service.findFamilyIdByTokenHash(hash);
+    void revokeRefreshTokensAndSessionByFamilyId_WhenInvoked_ThenDelegateCorrectly() {
+        UUID familyId = UUID.randomUUID();
+        Instant revokedAt = Instant.now();
+        String reason = "reuse-detected";
+
+        service.revokeRefreshTokensAndSessionByFamilyId(familyId, revokedAt, reason);
+
+        verify(dao).revokeFamilyWithReason(familyId, revokedAt, reason);
+        verify(sessionService).revokeSessionByFamilyId(familyId, revokedAt, reason);
+    }
+
+    @Test
+    void revokeFamilyWithReason_WhenInvoked_ThenDelegateCorrectly() {
+        UUID familyId = UUID.randomUUID();
+        Instant revokedAt = Instant.now();
+        String reason = "manual-revocation";
+
+        service.revokeFamilyWithReason(familyId, revokedAt, reason);
+
+        verify(dao).revokeFamilyWithReason(familyId, revokedAt, reason);
+    }
+
+    @Test
+    void findFamilyIdByTokenHash_WhenInvoked_ThenReturnExpectedResult() {
+        String hash = "token-hash";
+        UUID familyId = UUID.randomUUID();
+
+        when(dao.findFamilyIdByTokenHash(hash)).thenReturn(Optional.of(familyId));
+
+        Optional<UUID> result = service.findFamilyIdByTokenHash(hash);
+
+        assertTrue(result.isPresent());
+        assertEquals(familyId, result.get());
+
         verify(dao).findFamilyIdByTokenHash(hash);
+    }
 
-        service.findByTokenHashSecure(hash);
+    @Test
+    void findByTokenHashSecure_WhenInvoked_ThenReturnExpectedResult() {
+        String hash = "token-hash";
+
+        when(dao.findByTokenHashSecure(hash)).thenReturn(Optional.of(refreshToken));
+
+        Optional<RefreshToken> result = service.findByTokenHashSecure(hash);
+
+        assertTrue(result.isPresent());
+        assertEquals(refreshToken, result.get());
+
         verify(dao).findByTokenHashSecure(hash);
     }
 }

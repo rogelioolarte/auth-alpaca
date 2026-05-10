@@ -10,7 +10,6 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
-import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
 import java.time.Instant;
@@ -37,7 +36,6 @@ public class AuthServiceImpl implements IAuthService {
     private final IUserService userService;
     private final ISessionService sessionService;
     private final IRefreshTokenService refreshTokenService;
-    private final PasswordManager passwordManager;
     private final JJwtManager manager;
     private final TokenExchangeManager exchangeManager;
     private final JJwtManager jJwtManager;
@@ -68,6 +66,7 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Invalid code-verifier format");
         }
         AuthCode savedAuthCode = exchangeManager.consumeCode(authCode.getCode()).orElse(null);
+
         if (savedAuthCode == null) {
             throw new UnauthorizedException("Code Invalid or Expired");
         }

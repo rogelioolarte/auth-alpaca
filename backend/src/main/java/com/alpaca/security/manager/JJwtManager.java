@@ -179,12 +179,12 @@ public class JJwtManager {
         return Jwts.builder()
                 .issuer(jwtIssuer)
                 .subject(
-                        (refreshToken.getUser().getId() != null
+                        (refreshToken.getUser() != null && refreshToken.getUser().getId() != null
                                 ? refreshToken.getUser().getId().toString()
                                 : ""))
                 .claim(
                         CLAIM_KEY_USER_ID,
-                        refreshToken.getUser().getId() != null
+                        refreshToken.getUser() != null && refreshToken.getUser().getId() != null
                                 ? refreshToken.getUser().getId().toString()
                                 : "")
                 .claim(

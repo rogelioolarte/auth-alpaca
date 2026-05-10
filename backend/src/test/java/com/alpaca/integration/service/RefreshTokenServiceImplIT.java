@@ -8,6 +8,8 @@ import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.resources.RefreshTokenProvider;
 import com.alpaca.resources.SessionProvider;
@@ -21,15 +23,17 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-/** Integration tests for {@link RefreshTokenServiceImpl}. */
+/** Integration tests for {@link RefreshTokenServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("RefreshTokenServiceImpl Integration Tests")
 class RefreshTokenServiceImplIT {
 
     @Autowired private RefreshTokenServiceImpl service;
@@ -51,119 +55,126 @@ class RefreshTokenServiceImplIT {
         userTemplate = UserProvider.singleTemplate();
     }
 
-    // -------------------------
-    // Input validations (rotateRefreshToken)
-    // -------------------------
+    // ------------------------------------------------
+    // rotateRefreshToken - input validations
+    // ------------------------------------------------
 
     @Test
-    void rotateRefreshToken_whenOldTokenBlank_thenBadRequest() {
+    void rotateRefreshToken_whenOldRefreshTokenIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
                 () -> service.rotateRefreshToken(" ", "client", "agent", "127.0.0.1"));
     }
 
     @Test
-    void rotateRefreshToken_whenClientIdBlank_thenBadRequest() {
+    void rotateRefreshToken_whenClientIdIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("old", " ", "agent", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token", " ", "agent", "127.0.0.1"));
     }
 
     @Test
-    void rotateRefreshToken_whenUserAgentBlank_thenBadRequest() {
+    void rotateRefreshToken_whenUserAgentIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("old", "client", " ", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token", "client", " ", "127.0.0.1"));
     }
 
     @Test
-    void rotateRefreshToken_whenClientIpBlank_thenBadRequest() {
+    void rotateRefreshToken_whenClientIpIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("old", "client", "agent", " "));
+                () -> service.rotateRefreshToken("token", "client", "agent", " "));
     }
 
-    // -------------------------
-    // rotateRefreshToken : token not found -> Unauthorized
-    // -------------------------
+    // ------------------------------------------------
+    // rotateRefreshToken - token not found
+    // ------------------------------------------------
 
     @Test
-    void rotateRefreshToken_whenTokenHashNotFound_thenUnauthorized() {
-        // Use a random string that will not map to any saved token
-        String fakeRaw = "this-token-does-not-exist";
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.rotateRefreshToken(fakeRaw, "client", "agent", "127.0.0.1"));
-    }
-
-    // -------------------------
-    // rotateRefreshToken : revoked session
-    // -------------------------
-
-    @Test
-    @Transactional
-    void rotateRefreshToken_whenSessionRevoked_thenUnauthorized() {
-        // prepare user
-        User persistedUser = userService.register(userTemplate);
-
-        // prepare a family id
-        UUID familyId = uuidv7Generator.generate();
-
-        // create session and set revoked = true
-        Session s = SessionProvider.singleTemplate();
-        s.setFamilyId(familyId);
-        s.setRevoked(true);
-        s.setLastSeenAt(Instant.now());
-        s.setUser(persistedUser);
-        sessionService.save(s);
-
-        // create refresh token that belongs to familyId and points to savedSession.getUser()
-        RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(familyId);
-        token.setClientId("client-1");
-        token.setUserAgent("agent-1");
-        token.setIpAddress("127.0.0.1");
-        token.setUser(persistedUser);
-        token.setCreatedAt(Instant.now());
-        token.setExpiresAt(Instant.now().plusSeconds(3600));
-        // create jwt + hash
-        String jwt = jwtManager.createRefreshToken(token);
-        token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
-
-        // rotating should fail because session is revoked
+    void rotateRefreshToken_whenTokenDoesNotExist_thenThrowUnauthorized() {
         assertThrows(
                 UnauthorizedException.class,
                 () ->
                         service.rotateRefreshToken(
-                                jwt,
-                                saved.getClientId(),
-                                saved.getUserAgent(),
-                                saved.getIpAddress()));
+                                "non-existent-token", "client", "agent", "127.0.0.1"));
     }
 
-    // -------------------------
+    // ------------------------------------------------
+    // rotateRefreshToken - revoked session
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    void rotateRefreshToken_whenSessionIsRevoked_thenThrowUnauthorized() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
+
+        UUID familyId = uuidv7Generator.generate();
+
+        Session session = SessionProvider.singleTemplate();
+        session.setCreatedAt(Instant.now());
+        session.setUser(persistedUser);
+        session.setFamilyId(familyId);
+        session.setLastSeenAt(Instant.now());
+        session.setRevoked(true);
+        session.setRevokedAt(Instant.now().minusSeconds(10));
+
+        sessionService.save(session);
+
+        RefreshToken refreshToken = RefreshTokenProvider.singleTemplate();
+        refreshToken.setCreatedAt(Instant.now());
+        refreshToken.setUser(persistedUser);
+        refreshToken.setFamilyId(familyId);
+        refreshToken.setClientId("client");
+        refreshToken.setUserAgent("agent");
+        refreshToken.setIpAddress("127.0.0.1");
+        refreshToken.setExpiresAt(Instant.now().plusSeconds(3600));
+
+        String jwt = jwtManager.createRefreshToken(refreshToken);
+        refreshToken.setTokenHash(jwtManager.createTokenHash(jwt));
+
+        RefreshToken persistedToken = service.save(refreshToken);
+
+        UnauthorizedException ex =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        jwt,
+                                        persistedToken.getClientId(),
+                                        persistedToken.getUserAgent(),
+                                        persistedToken.getIpAddress()));
+
+        assertEquals("Revoked Session", ex.getReason());
+    }
+
+    // ------------------------------------------------
     // validateRefreshToken branches
-    // -------------------------
+    // ------------------------------------------------
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenTokenRevoked_andReplacedByNull_thenUnauthorizedRevokedToken() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenTokenIsRevoked_thenThrowReuseDetected() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
+        token.setCreatedAt(Instant.now());
         token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
         token.setRevoked(true);
-        token.setReplacedBy(null);
         token.setClientId("client");
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
-        token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
@@ -171,43 +182,47 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        saved.getClientId(),
-                                        saved.getUserAgent(),
-                                        saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("Revoked Refresh Token"));
+                                        persisted.getClientId(),
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenTokenRevoked_andReplacedByNotNull_thenUnauthorizedReuseDetected() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenTokenWasAlreadyReplaced_thenThrowReuseDetected() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         UUID familyId = uuidv7Generator.generate();
 
-        // create original token (replaced)
-        RefreshToken replaced = RefreshTokenProvider.singleTemplate();
-        replaced.setFamilyId(familyId);
-        replaced.setUser(persistedUser);
-        replaced.setCreatedAt(Instant.now());
-        replaced.setExpiresAt(Instant.now().plusSeconds(3600));
-        String jwtReplaced = jwtManager.createRefreshToken(replaced);
-        replaced.setTokenHash(jwtManager.createTokenHash(jwtReplaced));
-        replaced = service.save(replaced);
+        RefreshToken replacement = RefreshTokenProvider.singleTemplate();
+        replacement.setCreatedAt(Instant.now());
+        replacement.setUser(persistedUser);
+        replacement.setFamilyId(familyId);
+        replacement.setClientId("client");
+        replacement.setUserAgent("agent");
+        replacement.setIpAddress("127.0.0.1");
+        replacement.setExpiresAt(Instant.now().plusSeconds(3600));
 
-        // create token that is revoked and has replacedBy set
+        replacement = service.save(replacement);
+
         RefreshToken token = RefreshTokenProvider.singleTemplate();
+        token.setCreatedAt(Instant.now());
+        token.setUser(persistedUser);
         token.setFamilyId(familyId);
-        token.setUser(persistedUser);
-        token.setRevoked(true);
-        token.setReplacedBy(replaced);
         token.setClientId("client");
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
-        token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
+        token.setReplacedBy(replacement);
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
@@ -215,28 +230,33 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        saved.getClientId(),
-                                        saved.getUserAgent(),
-                                        saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("Reuse Detected Refresh Token"));
+                                        persisted.getClientId(),
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenExpired_thenUnauthorizedExpired() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenTokenExpired_thenThrowReuseDetected() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
-        token.setUser(persistedUser);
         token.setCreatedAt(Instant.now().minusSeconds(3600));
-        token.setExpiresAt(Instant.now().minusSeconds(10)); // expired
+        token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
         token.setClientId("client");
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
+        token.setExpiresAt(Instant.now().minusSeconds(1));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
@@ -244,32 +264,33 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        saved.getClientId(),
-                                        saved.getUserAgent(),
-                                        saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("Expired Refresh Token"));
+                                        persisted.getClientId(),
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenIssuedBeforeTokensInvalidBefore_thenUnauthorized() {
-        // user with tokensInvalidBefore set after token.createdAt -> should fail
-        User persistedUser = userService.register(userTemplate);
-        Instant tokensInvalidBefore = Instant.now().plusSeconds(3600);
-        persistedUser.setTokensInvalidBefore(tokensInvalidBefore);
-        userService.register(persistedUser); // persist update
+    void rotateRefreshToken_whenExpiresAtIsNull_thenThrowReuseDetected() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
-        token.setUser(persistedUser);
         token.setCreatedAt(Instant.now());
-        token.setExpiresAt(Instant.now().plusSeconds(3600));
+        token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
         token.setClientId("client");
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
+        token.setExpiresAt(Instant.now().minusSeconds(3600));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
@@ -277,28 +298,35 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        saved.getClientId(),
-                                        saved.getUserAgent(),
-                                        saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("Refresh Token issued before tokens_invalid_before"));
+                                        persisted.getClientId(),
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
+
+        assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenClientIdMismatch_thenUnauthorizedClientMismatch() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenCreatedBeforeTokensInvalidBefore_thenThrowUnauthorized() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
+
+        persistedUser.setTokensInvalidBefore(Instant.now().plusSeconds(3600));
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
+        token.setCreatedAt(Instant.now());
         token.setUser(persistedUser);
-        token.setClientId("client-A");
+        token.setFamilyId(uuidv7Generator.generate());
+        token.setClientId("client");
         token.setUserAgent("agent");
         token.setIpAddress("127.0.0.1");
-        token.setCreatedAt(Instant.now());
         token.setExpiresAt(Instant.now().plusSeconds(3600));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
@@ -306,178 +334,264 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        "client-B",
-                                        saved.getUserAgent(),
-                                        saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("Client mismatch"));
+                                        persisted.getClientId(),
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
+
+        assertEquals("Refresh Token issued before tokens_invalid_before", ex.getReason());
     }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenUserAgentMismatch_thenUnauthorizedUaMismatch() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenClientIdMismatch_thenThrowUnauthorized() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
-        token.setUser(persistedUser);
-        token.setClientId("client");
-        token.setUserAgent("agent-A");
-        token.setIpAddress("127.0.0.1");
         token.setCreatedAt(Instant.now());
+        token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
+        token.setClientId("client-a");
+        token.setUserAgent("agent");
+        token.setIpAddress("127.0.0.1");
         token.setExpiresAt(Instant.now().plusSeconds(3600));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
+
+        RefreshToken persisted = service.save(token);
 
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        jwt, saved.getClientId(), "agent-B", saved.getIpAddress()));
-        assertTrue(ex.getMessage().contains("User-Agent mismatch"));
-    }
+                                        jwt,
+                                        "client-b",
+                                        persisted.getUserAgent(),
+                                        persisted.getIpAddress()));
 
-    // -------------------------
-    // rotateRefreshToken success path
-    // -------------------------
+        assertEquals("Client mismatch", ex.getReason());
+    }
 
     @Test
     @Transactional
-    void rotateRefreshToken_whenValid_thenRotateAndReturnTokens() {
-        User persistedUser = userService.register(userTemplate);
+    void rotateRefreshToken_whenUserAgentMismatch_thenThrowUnauthorized() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
+
+        RefreshToken token = RefreshTokenProvider.singleTemplate();
+        token.setCreatedAt(Instant.now());
+        token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
+        token.setClientId("client");
+        token.setUserAgent("agent-a");
+        token.setIpAddress("127.0.0.1");
+        token.setExpiresAt(Instant.now().plusSeconds(3600));
+
+        String jwt = jwtManager.createRefreshToken(token);
+        token.setTokenHash(jwtManager.createTokenHash(jwt));
+
+        RefreshToken persisted = service.save(token);
+
+        UnauthorizedException ex =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.rotateRefreshToken(
+                                        jwt,
+                                        persisted.getClientId(),
+                                        "agent-b",
+                                        persisted.getIpAddress()));
+
+        assertEquals("User-Agent mismatch", ex.getReason());
+    }
+
+    // ------------------------------------------------
+    // rotateRefreshToken - success path
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    void rotateRefreshToken_whenTokenIsValid_thenRotateSuccessfully() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         UUID familyId = uuidv7Generator.generate();
-
-        // create old token valid
-        RefreshToken old = RefreshTokenProvider.singleTemplate();
-        old.setFamilyId(familyId);
-        old.setUser(persistedUser);
-        old.setClientId("client-ok");
-        old.setUserAgent("agent-ok");
-        old.setIpAddress("127.0.0.1");
-        old.setRevoked(false);
-        old.setRevokedAt(null);
         Instant now = Instant.now();
-        old.setCreatedAt(now.minusSeconds(10));
-        old.setExpiresAt(now.plusSeconds(5000));
 
-        String oldJwt = jwtManager.createRefreshToken(old);
-        old.setTokenHash(jwtManager.createTokenHash(oldJwt));
-        RefreshToken savedOld = service.save(old);
+        Session session = SessionProvider.singleTemplate();
+        session.setCreatedAt(now);
+        session.setUser(persistedUser);
+        session.setFamilyId(familyId);
+        session.setLastSeenAt(now);
+        session.setClientId("client");
+        session.setUserAgent("agent");
+        session.setIpAddress("127.0.0.1");
+        session.setRevoked(false);
 
-        // create a session not revoked for that family id
-        Session s = SessionProvider.singleTemplate();
-        s.setFamilyId(familyId);
-        s.setClientId(savedOld.getClientId());
-        s.setIpAddress(savedOld.getIpAddress());
-        s.setUserAgent(savedOld.getUserAgent());
-        s.setUser(persistedUser);
-        s.setLastSeenAt(now);
-        s.setRevoked(false);
-        s.setRevokedAt(null);
-        sessionService.save(s);
+        sessionService.save(session);
 
-        // rotate
+        RefreshToken oldToken = RefreshTokenProvider.singleTemplate();
+        oldToken.setCreatedAt(now.minusSeconds(5));
+        oldToken.setUser(persistedUser);
+        oldToken.setFamilyId(familyId);
+        oldToken.setClientId("client");
+        oldToken.setUserAgent("agent");
+        oldToken.setIpAddress("127.0.0.1");
+        oldToken.setExpiresAt(now.plusSeconds(3600));
+        oldToken.setRevoked(false);
+
+        String oldJwt = jwtManager.createRefreshToken(oldToken);
+        oldToken.setTokenHash(jwtManager.createTokenHash(oldJwt));
+
+        RefreshToken persistedOldToken = service.save(oldToken);
+
         AuthResponseDTO response =
                 service.rotateRefreshToken(
                         oldJwt,
-                        savedOld.getClientId(),
-                        savedOld.getUserAgent(),
-                        savedOld.getIpAddress());
+                        persistedOldToken.getClientId(),
+                        persistedOldToken.getUserAgent(),
+                        persistedOldToken.getIpAddress());
 
         assertNotNull(response);
         assertTrue(StringUtils.hasText(response.accessToken()));
         assertTrue(StringUtils.hasText(response.refreshToken()));
 
-        // Old token should be revoked and replacedBy set
-        RefreshToken reloadedOld =
-                refreshTokenDAO.findByTokenHashSecure(savedOld.getTokenHash()).orElse(null);
-        assertNotNull(reloadedOld);
-        assertTrue(reloadedOld.isRevoked());
-        assertNotNull(reloadedOld.getReplacedBy());
+        RefreshToken updatedOldToken =
+                refreshTokenDAO
+                        .findByTokenHashSecure(persistedOldToken.getTokenHash())
+                        .orElseThrow();
 
-        // New token must be persisted with tokenHash from response.refreshToken()
+        assertTrue(updatedOldToken.isRevoked());
+        assertNotNull(updatedOldToken.getRevokedAt());
+        assertEquals("rotation", updatedOldToken.getRevokeReason());
+        assertNotNull(updatedOldToken.getReplacedBy());
+
         String newHash = jwtManager.createTokenHash(response.refreshToken());
-        Optional<RefreshToken> newTokenOpt = refreshTokenDAO.findByTokenHashSecure(newHash);
-        assertTrue(newTokenOpt.isPresent());
-        RefreshToken newToken = newTokenOpt.get();
-        assertEquals(savedOld.getFamilyId(), newToken.getFamilyId());
-        assertEquals(savedOld.getUser().getId(), newToken.getUser().getId());
+
+        RefreshToken newToken = refreshTokenDAO.findByTokenHashSecure(newHash).orElseThrow();
+
+        assertEquals(familyId, newToken.getFamilyId());
+        assertEquals(persistedUser.getId(), newToken.getUser().getId());
     }
 
-    // -------------------------
-    // generateJWTTokens
-    // -------------------------
+    // ------------------------------------------------
+    // generateJWTTokens(UserPrincipal, Session)
+    // ------------------------------------------------
 
     @Test
     @Transactional
-    void generateJWTTokens_shouldCreateAndPersistRefreshTokenAndReturnTokens() {
-        User persistedUser = userService.register(userTemplate);
-        UUID familyId = UUID.randomUUID();
-        // create and persist session used for tokens
-        Session s = SessionProvider.singleTemplate();
-        s.setUser(persistedUser);
-        s.setFamilyId(familyId);
-        s.setLastSeenAt(Instant.now());
-        s.setClientId("client-gen");
-        Session savedSession = sessionService.save(s);
+    void generateJWTTokens_whenUsingUserPrincipalAndSession_thenPersistRefreshToken() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
-        // prepare user principal-like object (service.create uses UserPrincipal when building
-        // access token)
-        // but generateJWTTokens signature accepts UserPrincipal and Session; here we only need
-        // session and user principal
-        com.alpaca.model.UserPrincipal userPrincipal =
-                new com.alpaca.model.UserPrincipal(persistedUser);
+        Session session = SessionProvider.singleTemplate();
+        session.setCreatedAt(Instant.now());
+        session.setUser(persistedUser);
+        session.setFamilyId(uuidv7Generator.generate());
+        session.setLastSeenAt(Instant.now());
 
-        AuthResponseDTO response = service.generateJWTTokens(userPrincipal, savedSession);
+        Session persistedSession = sessionService.save(session);
+
+        UserPrincipal principal = new UserPrincipal(persistedUser);
+
+        AuthResponseDTO response = service.generateJWTTokens(principal, persistedSession);
 
         assertNotNull(response);
         assertTrue(StringUtils.hasText(response.accessToken()));
         assertTrue(StringUtils.hasText(response.refreshToken()));
 
-        // token should be persisted
-        String refreshHash = jwtManager.createTokenHash(response.refreshToken());
-        Optional<RefreshToken> persisted = refreshTokenDAO.findByTokenHashSecure(refreshHash);
-        assertTrue(persisted.isPresent());
-        assertEquals(persistedUser.getId(), persisted.get().getUser().getId());
+        String hash = jwtManager.createTokenHash(response.refreshToken());
+
+        Optional<RefreshToken> persistedToken = refreshTokenDAO.findByTokenHashSecure(hash);
+
+        assertTrue(persistedToken.isPresent());
+        assertEquals(persistedUser.getId(), persistedToken.get().getUser().getId());
     }
 
-    // -------------------------
-    // thin delegations
-    // -------------------------
+    // ------------------------------------------------
+    // generateJWTTokens(AuthCode)
+    // ------------------------------------------------
 
     @Test
     @Transactional
-    void findFamilyIdAndFindByTokenHashSecure_andRevokeFamily_shouldWork() {
-        User persistedUser = userService.register(userTemplate);
+    void generateJWTTokens_whenUsingAuthCode_thenCreateSessionAndPersistRefreshToken() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
+
+        AuthCode authCode =
+                new AuthCode(
+                        "code",
+                        "challenge",
+                        "client-id",
+                        "agent",
+                        "127.0.0.1",
+                        persistedUser.getId(),
+                        "http://localhost:4200");
+
+        AuthResponseDTO response = service.generateJWTTokens(authCode);
+
+        assertNotNull(response);
+        assertTrue(StringUtils.hasText(response.accessToken()));
+        assertTrue(StringUtils.hasText(response.refreshToken()));
+
+        String hash = jwtManager.createTokenHash(response.refreshToken());
+
+        Optional<RefreshToken> persistedToken = refreshTokenDAO.findByTokenHashSecure(hash);
+
+        assertTrue(persistedToken.isPresent());
+        assertEquals(persistedUser.getId(), persistedToken.get().getUser().getId());
+    }
+
+    // ------------------------------------------------
+    // Delegations
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    void delegationMethods_shouldWorkCorrectly() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(Instant.now());
+        User persistedUser = userService.register(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
-        token.setFamilyId(uuidv7Generator.generate());
-        token.setUser(persistedUser);
-        token.setClientId("c");
-        token.setUserAgent("a");
-        token.setIpAddress("127.0.0.1");
         token.setCreatedAt(Instant.now());
+        token.setUser(persistedUser);
+        token.setFamilyId(uuidv7Generator.generate());
+        token.setClientId("client");
+        token.setUserAgent("agent");
+        token.setIpAddress("127.0.0.1");
         token.setExpiresAt(Instant.now().plusSeconds(3600));
+
         String jwt = jwtManager.createRefreshToken(token);
         token.setTokenHash(jwtManager.createTokenHash(jwt));
-        RefreshToken saved = service.save(token);
 
-        // findFamilyIdByTokenHash
-        Optional<UUID> fam = service.findFamilyIdByTokenHash(saved.getTokenHash());
-        assertTrue(fam.isPresent());
-        assertEquals(saved.getFamilyId(), fam.get());
+        RefreshToken persisted = service.save(token);
 
-        // findByTokenHashSecure
-        Optional<RefreshToken> found = service.findByTokenHashSecure(saved.getTokenHash());
+        Optional<UUID> familyId = service.findFamilyIdByTokenHash(persisted.getTokenHash());
+
+        assertTrue(familyId.isPresent());
+        assertEquals(persisted.getFamilyId(), familyId.get());
+
+        Optional<RefreshToken> found = service.findByTokenHashSecure(persisted.getTokenHash());
+
         assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
+        assertEquals(persisted.getId(), found.get().getId());
 
-        // revoke family just ensures DAO call does not fail (no exception)
-        service.revokeFamilyWithReason(saved.getFamilyId(), Instant.now(), "test-reason");
-        // and wrapper
-        service.revokeRefreshTokensAndSessionByFamilyId(
-                saved.getFamilyId(), Instant.now(), "test-reason-2");
+        assertDoesNotThrow(
+                () ->
+                        service.revokeFamilyWithReason(
+                                persisted.getFamilyId(), Instant.now(), "reason"));
+
+        assertDoesNotThrow(
+                () ->
+                        service.revokeRefreshTokensAndSessionByFamilyId(
+                                persisted.getFamilyId(), Instant.now(), "reason-2"));
     }
 }

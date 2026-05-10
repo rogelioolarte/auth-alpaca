@@ -70,6 +70,21 @@ public class SessionProvider {
         return session;
     }
 
+    public static Session alternativeTemplate() {
+        Session session = new Session();
+        Instant now = Instant.now();
+        session.setCreatedAt(now);
+        session.setLastSeenAt(now);
+        session.setFamilyId(UUID.fromString("019e101e-d981-7edf-a4cf-04e4a03fffed"));
+        session.setIpAddress("127.0.0.1");
+        session.setUserAgent("Mozilla");
+        session.setClientId("web-client");
+        session.setRevoked(false);
+        session.setRevokedAt(null);
+        session.setRevokeReason(null);
+        return session;
+    }
+
     public static Session randomTemplate() {
         Session session = new Session();
         Instant now = Instant.now();

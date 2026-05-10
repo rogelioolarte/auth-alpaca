@@ -88,23 +88,13 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String oldRefreshTokenHash = manager.createTokenHash(oldRefreshToken);
         Optional<RefreshToken> optToken = dao.findByTokenHashSecure(oldRefreshTokenHash);
         if (optToken.isEmpty()) {
-            dao.findFamilyIdByTokenHash(oldRefreshTokenHash)
-                    .ifPresent(
-                            familyId -> {
-                                revokeRefreshTokensAndSessionByFamilyId(
-                                        familyId, now, MESSAGE_REUSE_REASON);
-                                logWhenReuseDetected(familyId.toString(), clientIp, userAgent);
-                            });
-            throw new UnauthorizedException("Reuse Detected Refresh Token");
+            throw new UnauthorizedException("Invalid Refresh Token");
         }
 
         RefreshToken actualRefreshToken = optToken.get();
-        if (actualRefreshToken.getUser() == null) {
-            throw new BadRequestException("Invalid User ID");
-        }
-        if (actualRefreshToken.getFamilyId() == null) {
-            throw new BadRequestException("Invalid Family ID");
-        }
+
+        validateRefreshToken(clientId, actualRefreshToken, now, clientIp, userAgent);
+
         sessionService
                 .findSessionByFamilyId(actualRefreshToken.getFamilyId())
                 .ifPresent(
@@ -115,7 +105,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                                 throw new UnauthorizedException("Revoked Session");
                             }
                         });
-        validateRefreshToken(clientId, actualRefreshToken, now, clientIp, userAgent);
 
         actualRefreshToken.setRevoked(true);
         actualRefreshToken.setRevokedAt(now);
@@ -188,25 +177,22 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
     private void validateRefreshToken(
             String clientId, RefreshToken token, Instant now, String clientIp, String userAgent) {
-        if (token.getFamilyId() == null) {
-            throw new BadRequestException("RefreshToken without familyId");
-        }
         if (token.isRevoked()) {
-            if (token.getReplacedBy() != null) {
-                revokeRefreshTokensAndSessionByFamilyId(
-                        token.getFamilyId(), now, MESSAGE_REUSE_REASON);
-                logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
-                throw new UnauthorizedException("Reuse Detected Refresh Token");
-            } else {
-                throw new UnauthorizedException("Revoked Refresh Token");
-            }
+            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+            throw new UnauthorizedException("Reuse Detected Refresh Token");
+        }
+        if (token.getReplacedBy() != null) {
+            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+            throw new UnauthorizedException("Reuse Detected Refresh Token");
         }
         if (token.getExpiresAt().isBefore(now)) {
-            throw new UnauthorizedException("Expired Refresh Token");
+            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+            throw new UnauthorizedException("Reuse Detected Refresh Token");
         }
-        if (token.getUser() != null
-                && token.getUser().getTokensInvalidBefore() != null
-                && token.getCreatedAt() != null
+        if (token.getUser().getTokensInvalidBefore() != null
                 && token.getCreatedAt().isBefore(token.getUser().getTokensInvalidBefore())) {
             throw new UnauthorizedException("Refresh Token issued before tokens_invalid_before");
         }

@@ -1,113 +1,169 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.UserServiceImpl;
-import java.util.HashSet;
+import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link UserServiceImpl}. */
+/** Integration tests for {@link UserServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("UserServiceImpl Integration Tests")
 class UserServiceImplIT {
 
     @Autowired private UserServiceImpl service;
 
-    private User firstTemplate;
-    private User alternativeTemplate;
+    private Instant now;
 
     @BeforeEach
     void setup() {
-        firstTemplate = UserProvider.singleTemplate();
-        alternativeTemplate = UserProvider.alternativeTemplate();
+        now = Instant.now();
     }
 
-    // --- register ---
+    // -------------------------------------------------------------------------
+    // Registration & Saving
+    // -------------------------------------------------------------------------
 
     @Test
+    @DisplayName("register: Should encode password and persist user when valid")
     @Transactional
-    void register_whenUserIsNull_thenThrowBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.register(null));
-    }
+    void register_ShouldPersistUser_WhenValid() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
 
-    @Test
-    @Transactional
-    void register_whenValidUser_thenPersistAndReturn() {
-        User toRegister =
-                new User(firstTemplate.getEmail(), firstTemplate.getPassword(), new HashSet<>());
-        User saved = service.register(toRegister);
+        // Act
+        User saved = service.register(user);
 
-        assertNotNull(saved);
-        assertNotNull(saved.getId());
-        assertEquals(firstTemplate.getEmail(), saved.getEmail());
-
-        // findByEmail should now return the persisted user
-        User found = service.findByEmail(firstTemplate.getEmail());
-        assertNotNull(found);
-        assertEquals(saved.getId(), found.getId());
-        assertEquals(saved.getEmail(), found.getEmail());
-    }
-
-    // --- existsByEmail ---
-
-    @Test
-    @Transactional
-    void existsByEmail_whenNoUser_thenFalse() {
-        // alternativeTemplate email should not exist yet
-        assertFalse(service.existsByEmail(alternativeTemplate.getEmail()));
+        // Assert
+        assertThat(saved).isNotNull();
+        assertThat(saved.getId()).isNotNull();
+        assertThat(saved.getCreatedAt()).isAfter(now);
+        // Password should be modified by PasswordManager (assuming Argon2id-like output)
+        assertThat(saved.getPassword()).isNotEqualTo("rawPassword");
     }
 
     @Test
+    @DisplayName("register: Should throw BadRequestException when user is null")
     @Transactional
-    void existsByEmail_whenUserExists_thenTrue() {
-        User toRegister =
-                new User(firstTemplate.getEmail(), firstTemplate.getPassword(), new HashSet<>());
-        service.register(toRegister);
-
-        assertTrue(service.existsByEmail(firstTemplate.getEmail()));
-    }
-
-    // --- findByEmail ---
-
-    @Test
-    @Transactional
-    void findByEmail_whenEmailIsNull_thenThrowBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.findByEmail(null));
+    void register_ShouldThrowBadRequest_WhenUserIsNull() {
+        assertThatThrownBy(() -> service.register(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("User cannot be created");
     }
 
     @Test
+    @DisplayName("save: Should act as alias for register")
     @Transactional
-    void findByEmail_whenEmailIsBlank_thenThrowBadRequest() {
-        assertThrows(BadRequestException.class, () -> service.findByEmail("   "));
+    void save_ShouldRegisterUser() {
+        // Arrange
+        User user = UserProvider.alternativeTemplate();
+        user.setCreatedAt(now);
+
+        // Act
+        User saved = service.save(user);
+
+        // Assert
+        assertThat(saved.getId()).isNotNull();
+        assertThat(service.existsByEmail(user.getEmail())).isTrue();
+    }
+
+    // -------------------------------------------------------------------------
+    // Update Logic
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("updateById: Should update user when inputs are valid")
+    @Transactional
+    void updateById_ShouldReturnUpdatedUser() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        User saved = service.register(user);
+
+        saved.setEmail("updated@alpaca.com");
+
+        // Act
+        User updated = service.updateById(saved, saved.getId());
+
+        // Assert
+        assertThat(updated.getEmail()).isEqualTo("updated@alpaca.com");
     }
 
     @Test
+    @DisplayName("updateById: Should throw BadRequestException when user or UUID is null")
     @Transactional
-    void findByEmail_whenNotFound_thenThrowUsernameNotFoundException() {
-        // alternativeTemplate email not persisted -> should throw UsernameNotFoundException
-        assertThrows(
-                UsernameNotFoundException.class,
-                () -> service.findByEmail(alternativeTemplate.getEmail()));
+    void updateById_ShouldThrowBadRequest_WhenInputsAreNull() {
+        assertThatThrownBy(() -> service.updateById(null, UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class);
+
+        assertThatThrownBy(() -> service.updateById(UserProvider.singleTemplate(), null))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    // -------------------------------------------------------------------------
+    // Email Queries
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("existsByEmail: Should return true if user exists")
+    @Transactional
+    void existsByEmail_ShouldReturnTrue_WhenExists() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        service.register(user);
+
+        // Act & Assert
+        assertThat(service.existsByEmail(user.getEmail())).isTrue();
+        assertThat(service.existsByEmail("non-existent@alpaca.com")).isFalse();
     }
 
     @Test
+    @DisplayName("findByEmail: Should return user when email matches")
     @Transactional
-    void findByEmail_whenExists_thenReturnUser() {
-        User toRegister =
-                new User(firstTemplate.getEmail(), firstTemplate.getPassword(), new HashSet<>());
-        User saved = service.register(toRegister);
+    void findByEmail_ShouldReturnUser_WhenExists() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        User saved = service.register(user);
 
-        User found = service.findByEmail(firstTemplate.getEmail());
-        assertNotNull(found);
-        assertEquals(saved.getId(), found.getId());
-        assertEquals(saved.getEmail(), found.getEmail());
+        // Act
+        User found = service.findByEmail(saved.getEmail());
+
+        // Assert
+        assertThat(found).isNotNull();
+        assertThat(found.getEmail()).isEqualTo(saved.getEmail());
+    }
+
+    @Test
+    @DisplayName("findByEmail: Should throw UsernameNotFoundException when email is not found")
+    @Transactional
+    void findByEmail_ShouldThrowNotFound_WhenMissing() {
+        assertThatThrownBy(() -> service.findByEmail("ghost@alpaca.com"))
+                .isInstanceOf(UsernameNotFoundException.class)
+                .hasMessage("The email does not match any account");
+    }
+
+    @Test
+    @DisplayName("findByEmail: Should throw BadRequestException when email is null or blank")
+    @Transactional
+    void findByEmail_ShouldThrowBadRequest_WhenEmailInvalid() {
+        assertThatThrownBy(() -> service.findByEmail(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Email must not be null or blank");
+
+        assertThatThrownBy(() -> service.findByEmail("")).isInstanceOf(BadRequestException.class);
     }
 }

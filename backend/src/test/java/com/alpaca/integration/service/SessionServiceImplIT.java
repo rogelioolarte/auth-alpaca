@@ -3,7 +3,6 @@ package com.alpaca.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.ExceededSessionsException;
@@ -16,215 +15,222 @@ import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.SessionServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link SessionServiceImpl}. */
+/** Integration tests for {@link SessionServiceImpl} */
 @SpringBootTest
 @Transactional
+@DisplayName("SessionServiceImpl Integration Tests")
 class SessionServiceImplIT {
 
     @Autowired private SessionServiceImpl sessionService;
-
     @Autowired private IUserDAO userDAO;
-
     @Autowired private ISessionDAO sessionDAO;
-
     @Autowired private IRefreshTokenDAO refreshTokenDAO;
-
     @Autowired private UUIDv7Generator uuidv7Generator;
 
-    // ---------------------------------------------------------
-    // createSession
-    // ---------------------------------------------------------
+    private Instant now;
+
+    @BeforeEach
+    void setup() {
+        // No save operations here per best practices
+        now = Instant.now();
+    }
 
     @Test
+    @DisplayName("createSession: Create new session when user exists and device is unique")
     @Transactional
-    void createSession_shouldCreateNewSession_whenUserExistsAndDeviceIsNew() {
+    void createSession_ShouldCreateNew_WhenDeviceIsNew() {
+        // Arrange
         User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
         userDAO.save(user);
 
-        String userAgent = "Chrome";
-        String clientId = "web";
-        String ip = "127.0.0.1";
+        String agent = "Mozilla/5.0";
+        String client = "web-app";
+        String ip = "192.168.1.1";
 
-        Session result = sessionService.createSession(user.getId(), userAgent, clientId, ip);
+        // Act
+        Session result = sessionService.createSession(user.getId(), agent, client, ip);
 
+        // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isNotNull();
-        assertThat(result.getFamilyId()).isNotNull();
-        assertThat(result.getRevokedAt()).isNull();
         assertThat(result.getUser().getId()).isEqualTo(user.getId());
-        assertThat(result.getUserAgent()).isEqualTo(userAgent);
-        assertThat(result.getClientId()).isEqualTo(clientId);
+        assertThat(result.getUserAgent()).isEqualTo(agent);
         assertThat(result.getIpAddress()).isEqualTo(ip);
+        assertThat(result.isRevoked()).isFalse();
         assertThat(result.getLastSeenAt()).isNotNull();
     }
 
     @Test
+    @DisplayName("createSession: Reuse existing session and rotate family ID when device matches")
     @Transactional
-    void createSession_shouldReuseSession_whenSameDeviceLogsAgain() {
+    void createSession_ShouldReuse_WhenDeviceMatches() {
+        // Arrange
         User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
         userDAO.save(user);
 
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-        session.setUserAgent("Chrome");
-        session.setClientId("web");
+        Session existing = SessionProvider.singleTemplate();
+        existing.setUser(user);
+        existing.setUserAgent("Mobile-App");
+        existing.setClientId("ios");
+        existing.setIpAddress("10.0.0.1");
+        existing.setCreatedAt(now);
+        sessionDAO.save(existing);
 
-        sessionDAO.save(session);
+        UUID oldFamilyId = existing.getFamilyId();
 
-        UUID previousFamily = session.getFamilyId();
+        // Act
+        Session result =
+                sessionService.createSession(user.getId(), "Mobile-App", "ios", "10.0.0.1");
 
-        Session result = sessionService.createSession(user.getId(), "Chrome", "web", "127.0.0.1");
-
-        assertThat(result.getId()).isEqualTo(session.getId());
-        assertThat(result.getFamilyId()).isNotEqualTo(previousFamily);
-        assertThat(result.getRevokedAt()).isNull();
+        // Assert
+        assertThat(result.getId()).isEqualTo(existing.getId());
+        assertThat(result.getFamilyId()).isNotEqualTo(oldFamilyId);
+        assertThat(result.getLastSeenAt()).isAfterOrEqualTo(now);
     }
 
     @Test
+    @DisplayName(
+            "createSession: Throw ExceededSessionsException when limit is reached"
+                    + " (infinityLogin=false)")
     @Transactional
-    void createSession_shouldRevokeRefreshTokenFamily_whenSessionReused() {
+    void createSession_ShouldThrow_WhenMaxSessionsReached() {
+        // Manually instantiate service to control property values for this edge case
+        SessionServiceImpl restrictedService =
+                new SessionServiceImpl(
+                        sessionDAO, userDAO, refreshTokenDAO, uuidv7Generator, 2, false);
+
+        // Arrange
         User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
         userDAO.save(user);
 
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-        session.setUserAgent("Chrome");
-        session.setClientId("web");
-
-        sessionDAO.save(session);
-
-        UUID oldFamilyId = session.getFamilyId();
-
-        sessionService.createSession(user.getId(), "Chrome", "web", "127.0.0.1");
-
-        List<RefreshToken> revokedTokens = refreshTokenDAO.findAllByFamilyId(oldFamilyId);
-
-        assertThat(revokedTokens).isNotNull();
-    }
-
-    @Test
-    @Transactional
-    void createSession_shouldThrowExceededSessionsException_whenMaxSessionsReached() {
-        User user = UserProvider.singleTemplate();
-        userDAO.save(user);
-
-        int maxSessions = 10;
-
-        for (int i = 0; i < maxSessions; i++) {
-            Session session = SessionProvider.randomTemplate();
-            session.setUser(user);
-            session.setUserAgent("agent-" + i);
-            session.setClientId("web");
-            sessionDAO.save(session);
+        for (int i = 0; i < 2; i++) {
+            Session s = SessionProvider.randomTemplate();
+            s.setUser(user);
+            s.setUserAgent("Agent-" + i);
+            s.setCreatedAt(now);
+            sessionDAO.save(s);
         }
 
+        // Act & Assert
         assertThatThrownBy(
                         () ->
-                                sessionService.createSession(
-                                        user.getId(), "another-device", "web", "127.0.0.1"))
+                                restrictedService.createSession(
+                                        user.getId(), "New-Agent", "web", "1.1.1.1"))
                 .isInstanceOf(ExceededSessionsException.class);
     }
 
     @Test
+    @DisplayName("createSession: Revoke oldest session when limit is reached (infinityLogin=true)")
     @Transactional
-    void createSession_shouldThrowNotFoundException_whenUserDoesNotExist() {
-        UUID randomUserId = UUID.randomUUID();
+    void createSession_ShouldRevokeOldest_WhenInfinityLoginTrue() {
+        // Arrange: limit of 1 session, infinity login enabled
+        SessionServiceImpl infinityService =
+                new SessionServiceImpl(
+                        sessionDAO, userDAO, refreshTokenDAO, uuidv7Generator, 1, true);
 
-        assertThatThrownBy(
-                        () ->
-                                sessionService.createSession(
-                                        randomUserId, "Chrome", "web", "127.0.0.1"))
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        userDAO.save(user);
+
+        Session oldest = SessionProvider.singleTemplate();
+        oldest.setUser(user);
+        oldest.setCreatedAt(now.minusSeconds(100)); // Make it clearly oldest
+        oldest.setLastSeenAt(now.minusSeconds(100));
+        sessionDAO.save(oldest);
+
+        // Act
+        Session newest =
+                infinityService.createSession(user.getId(), "New-Device", "web", "2.2.2.2");
+
+        // Assert
+        Session updatedOldest = sessionDAO.findById(oldest.getId()).orElseThrow();
+        assertThat(updatedOldest.getRevokedAt()).isNotNull(); // Oldest was revoked
+        assertThat(newest.getId()).isNotEqualTo(oldest.getId()); // New session created
+    }
+
+    @Test
+    @DisplayName("createSession: Throw NotFoundException when userId is invalid")
+    @Transactional
+    void createSession_ShouldThrowNotFound_WhenUserMissing() {
+        UUID randomId = UUID.randomUUID();
+        assertThatThrownBy(() -> sessionService.createSession(randomId, "agent", "client", "ip"))
                 .isInstanceOf(NotFoundException.class);
     }
 
-    // ---------------------------------------------------------
-    // findSessionByFamilyId
-    // ---------------------------------------------------------
-
     @Test
+    @DisplayName("revokeSessionByFamilyId: Mark session as revoked")
     @Transactional
-    void findSessionByFamilyId_shouldReturnSession_whenExists() {
+    void revokeSessionByFamilyId_ShouldUpdateStatus() {
+        // Arrange
         User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
         userDAO.save(user);
 
         Session session = SessionProvider.singleTemplate();
         session.setUser(user);
-
+        session.setCreatedAt(now);
         sessionDAO.save(session);
 
+        // Act
+        sessionService.revokeSessionByFamilyId(session.getFamilyId(), now, "Log out");
+
+        // Assert
+        Optional<Session> updated = sessionDAO.findById(session.getId());
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getRevokedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("findSessionByFamilyId: Retrieve session by family correlation")
+    @Transactional
+    void findSessionByFamilyId_ShouldReturnSession() {
+        // Arrange
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        userDAO.save(user);
+
+        Session session = SessionProvider.singleTemplate();
+        session.setUser(user);
+        session.setCreatedAt(now);
+        sessionDAO.save(session);
+
+        // Act
         Optional<Session> result = sessionService.findSessionByFamilyId(session.getFamilyId());
 
+        // Assert
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo(session.getId());
     }
 
     @Test
+    @DisplayName("existsByUniqueProperties: Check existence based on unique constraints")
     @Transactional
-    void findSessionByFamilyId_shouldReturnEmpty_whenNotExists() {
-        Optional<Session> result = sessionService.findSessionByFamilyId(UUID.randomUUID());
-
-        assertThat(result).isEmpty();
-    }
-
-    // ---------------------------------------------------------
-    // revokeSessionByFamilyId
-    // ---------------------------------------------------------
-
-    @Test
-    @Transactional
-    void revokeSessionByFamilyId_shouldRevokeSession() {
+    void existsByUniqueProperties_ShouldReturnCorrectBoolean() {
+        // Arrange
         User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
         userDAO.save(user);
 
         Session session = SessionProvider.singleTemplate();
         session.setUser(user);
-
+        session.setCreatedAt(now);
         sessionDAO.save(session);
 
-        Instant revokedAt = Instant.now();
+        // Act & Assert
+        assertThat(sessionService.existsByUniqueProperties(session)).isTrue();
 
-        sessionService.revokeSessionByFamilyId(session.getFamilyId(), revokedAt, "security-breach");
-
-        Session updated = sessionDAO.findById(session.getId()).orElseThrow();
-
-        assertThat(updated.getRevokedAt()).isNotNull();
-    }
-
-    // ---------------------------------------------------------
-    // existsByUniqueProperties
-    // ---------------------------------------------------------
-
-    @Test
-    @Transactional
-    void existsByUniqueProperties_shouldReturnTrue_whenSessionExists() {
-        User user = UserProvider.singleTemplate();
-        userDAO.save(user);
-
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-
-        sessionDAO.save(session);
-
-        boolean exists = sessionService.existsByUniqueProperties(session);
-
-        assertThat(exists).isTrue();
-    }
-
-    @Test
-    @Transactional
-    void existsByUniqueProperties_shouldReturnFalse_whenSessionNotExists() {
-        Session session = SessionProvider.singleTemplate();
-
-        boolean exists = sessionService.existsByUniqueProperties(session);
-
-        assertThat(exists).isFalse();
+        Session nonExistent = SessionProvider.alternativeTemplate();
+        assertThat(sessionService.existsByUniqueProperties(nonExistent)).isFalse();
     }
 }

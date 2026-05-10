@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link SessionDAOImpl} */
 @DataJpaTest
@@ -238,9 +239,6 @@ class SessionDAOImplIT {
         User unsavedSec = UserProvider.alternativeTemplate();
         unsavedSec.setCreatedAt(Instant.now());
         unsavedSec.setCreatedBy(UUID.randomUUID().toString());
-        User secondUser = userRepo.save(unsavedSec);
-        Session secondSession = newSession(secondUser);
-        Session s2 = dao.save(secondSession);
 
         UUID firstUserId = s1.getUser().getId();
 
@@ -263,5 +261,33 @@ class SessionDAOImplIT {
 
         assertTrue(db.isRevoked());
         assertEquals("security", db.getRevokeReason());
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: verifies multiple IDs against database count")
+    @Transactional
+    void existsAllByIds_ShouldHandleCollections() {
+        // Arrange
+        User owner = UserProvider.singleTemplate();
+        owner.setCreatedAt(now);
+        userRepo.save(owner);
+
+        User owner2 = UserProvider.alternativeTemplate();
+        owner2.setCreatedAt(now);
+        userRepo.save(owner2);
+
+        Session p1 = SessionProvider.singleTemplate();
+        p1.setCreatedAt(now);
+        p1.setUser(owner);
+        Session p2 = SessionProvider.alternativeTemplate();
+        p2.setCreatedAt(now);
+        p2.setUser(owner2);
+
+        UUID id1 = repo.save(p1).getId();
+        UUID id2 = repo.save(p2).getId();
+
+        // Act & Assert
+        assertTrue(dao.existsAllByIds(List.of(id1, id2)));
+        assertFalse(dao.existsAllByIds(List.of(id1, UUID.randomUUID())));
     }
 }

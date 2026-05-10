@@ -1,7 +1,6 @@
 package com.alpaca.resources;
 
 import com.alpaca.entity.RefreshToken;
-import com.alpaca.entity.Session;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ public class RefreshTokenProvider {
                 .tokenHash("hashed_refresh_token_value")
                 .tokenJti(UUID.fromString("2632eb79-63a4-4213-b905-0ad176f0004b"))
                 .familyId(UUID.fromString("3632eb79-63a4-4213-b905-0ad176f0004c"))
-                .clientId("web-client")
+                .clientId("web-client-0")
                 .ipAddress("127.0.0.1")
                 .userAgent("Mozilla/5.0")
                 .expiresAt(Instant.parse("2027-01-02T10:00:00Z"))
@@ -58,27 +57,19 @@ public class RefreshTokenProvider {
                 .build();
     }
 
-    public static RefreshToken revokedEntity() {
-        RefreshToken token = new RefreshToken();
-        token.setId(UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"));
-        token.setUser(UserProvider.singleEntity());
-        token.setTokenHash("revoked_hashed_refresh_token");
-        token.setTokenJti(UUID.fromString("119b2092-e007-7671-a9fe-b2713081ea09"));
-        token.setFamilyId(UUID.fromString("219b2092-e007-7671-a9fe-b2713081ea10"));
-        token.setRevoked(true);
-        token.setRevokedAt(Instant.parse("2024-01-01T09:50:00Z"));
-        token.setExpiresAt(Instant.parse("2024-01-02T09:00:00Z"));
-        token.setLastUsedAt(Instant.parse("2024-01-01T09:45:00Z"));
-        token.setClientId("desktop-client");
-        token.setIpAddress("10.0.0.1");
-        token.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36");
-        token.setRevokeReason("user_logout");
-        return token;
-    }
-
-    public static RefreshToken createFromSession(
-            Session session, UUID tokenJti, Instant expiresAt, Instant lastUsedAt) {
-        return new RefreshToken(session, tokenJti, expiresAt, lastUsedAt);
+    public static RefreshToken alternativeTemplate() {
+        return RefreshToken.builder()
+                .tokenHash("hashed_refresh_token_value_alt")
+                .tokenJti(UUID.fromString("019e0fea-8342-7663-be6e-9535953577e5"))
+                .familyId(UUID.fromString("019e0feb-31df-778c-a3ab-144dd876e1ed"))
+                .clientId("web-client-1")
+                .ipAddress("127.0.0.1")
+                .userAgent("Mozilla/5.0")
+                .expiresAt(Instant.parse("2027-01-02T10:00:00Z"))
+                .lastUsedAt(Instant.parse("2024-01-01T10:30:00Z"))
+                .revoked(false)
+                .revokedAt(null)
+                .build();
     }
 
     public static List<RefreshToken> listEntities() {

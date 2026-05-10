@@ -72,7 +72,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public List<T> findAllByIds(Collection<I> is) {
-        if (is == null || is.isEmpty() || is.contains(null)) {
+        if (is == null || is.isEmpty() || hasNull(is)) {
             throw new BadRequestException(String.format("%s(s) cannot be found", getEntityName()));
         }
         if (!existsAllByIds(is)) {
@@ -121,7 +121,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public List<T> saveAll(Collection<T> t) {
-        if (t == null || t.isEmpty() || t.contains(null)) {
+        if (t == null || t.isEmpty() || hasNull(t)) {
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
         }
         return getDAO().saveAll(t);
@@ -218,7 +218,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public boolean existsAllByIds(Collection<I> is) {
-        if (is == null || is.isEmpty() || is.contains(null)) return false;
+        if (is == null || is.isEmpty() || hasNull(is)) return false;
         return getDAO().existsAllByIds(is);
     }
 
@@ -233,5 +233,12 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     public boolean existsByUniqueProperties(T t) {
         if (t == null) return false;
         return getDAO().existsByUniqueProperties(t);
+    }
+
+    public boolean hasNull(Collection<?> collection) {
+        for (Object element : collection) {
+            if (element == null) return true;
+        }
+        return false;
     }
 }

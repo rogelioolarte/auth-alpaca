@@ -34,6 +34,10 @@ public class ProfileProvider {
         return new Profile(null, "Admin", "Last", "av admin 01", "https://foto.admin.com", null);
     }
 
+    public static Profile alternativeTemplate() {
+        return new Profile(null, "User", "Last", "av admin 01", "https://foto.user.com", null);
+    }
+
     public static Profile singleEntity() {
         return new Profile(
                 UUID.fromString("fb2ba5e5-37c8-4645-994e-6a6953188801"),

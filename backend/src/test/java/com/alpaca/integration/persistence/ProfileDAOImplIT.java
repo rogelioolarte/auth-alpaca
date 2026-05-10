@@ -12,6 +12,7 @@ import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,160 +25,200 @@ import org.springframework.transaction.annotation.Transactional;
 /** Integration tests for {@link ProfileDAOImpl} */
 @DataJpaTest
 @Import({ProfileDAOImpl.class})
+@DisplayName("ProfileDAOImpl Integration Tests")
 class ProfileDAOImplIT {
 
     @Autowired private IProfileDAO dao;
-
     @Autowired private ProfileRepo repo;
-
     @Autowired private UserRepo userRepo;
 
-    private Profile saved;
-    private User owner;
+    private Instant now;
 
     @BeforeEach
     void setup() {
-        User unsaved = UserProvider.singleTemplate();
-        Instant now = Instant.now();
-        unsaved.setCreatedAt(now);
-        unsaved.setCreatedBy(UUID.randomUUID().toString());
-        owner = userRepo.save(unsaved);
-
-        Profile template = ProfileProvider.singleTemplate();
-        template.setUser(owner);
-        template.setCreatedBy(UUID.randomUUID().toString());
-        template.setCreatedAt(now);
-
-        saved = repo.save(template);
+        now = Instant.now();
     }
 
     @Test
-    @DisplayName("findById returns empty when missing and present when exists")
+    @DisplayName("updateById: performs full update on all scalar fields and associations")
     @Transactional
-    void findById() {
+    void updateById_ShouldPerformFullUpdate() {
+        // Arrange
+        User initialOwner = UserProvider.singleTemplate();
+        initialOwner.setCreatedAt(now);
+        User persistedInitialOwner = userRepo.save(initialOwner);
 
-        UUID missingId = UUID.randomUUID();
-        assertTrue(dao.findById(missingId).isEmpty());
+        Profile initial = ProfileProvider.singleTemplate();
+        initial.setUser(persistedInitialOwner);
+        initial.setCreatedAt(now);
+        Profile persistedProfile = repo.save(initial);
 
-        Profile found = dao.findById(saved.getId()).orElseThrow();
+        User newOwner = UserProvider.alternativeTemplate();
+        newOwner.setCreatedAt(now);
+        User persistedNewOwner = userRepo.save(newOwner);
 
-        assertEquals(saved.getId(), found.getId());
-    }
+        Profile updateData = new Profile();
+        updateData.setFirstName("Jane");
+        updateData.setLastName("Smith");
+        updateData.setAddress("456 Elm St");
+        updateData.setAvatarUrl("http://avatar.com/jane");
+        updateData.setUser(persistedNewOwner);
 
-    @Test
-    @DisplayName("updateById updates non-null/blank fields only")
-    @Transactional
-    void updateById() {
+        // Act
+        Profile result = dao.updateById(updateData, persistedProfile.getId());
 
-        UUID id = saved.getId();
-
-        Profile update = new Profile();
-        update.setFirstName("Jane");
-        update.setLastName("Smith");
-        update.setAddress("456 Elm St");
-        update.setAvatarUrl("http://avatar/jane");
-
-        User newUser = userRepo.save(UserProvider.alternativeTemplate());
-        update.setUser(newUser);
-
-        Profile out = dao.updateById(update, id);
-
+        // Assert
         assertAll(
-                () -> assertEquals(id, out.getId()),
-                () -> assertEquals("Jane", out.getFirstName()),
-                () -> assertEquals("Smith", out.getLastName()),
-                () -> assertEquals("456 Elm St", out.getAddress()),
-                () -> assertEquals("http://avatar/jane", out.getAvatarUrl()),
-                () -> assertEquals(newUser.getId(), out.getUser().getId()));
+                () -> assertEquals("Jane", result.getFirstName()),
+                () -> assertEquals("Smith", result.getLastName()),
+                () -> assertEquals("456 Elm St", result.getAddress()),
+                () -> assertEquals("http://avatar.com/jane", result.getAvatarUrl()),
+                () -> assertEquals(persistedNewOwner.getId(), result.getUser().getId()));
     }
 
     @Test
-    @DisplayName("updateById ignores null and blank values")
+    @DisplayName("updateById: ignores null and blank values to maintain existing data")
     @Transactional
-    void updateByIdPartial() {
+    void updateById_ShouldIgnoreInvalidValues() {
+        // Arrange
+        User owner = UserProvider.singleTemplate();
+        owner.setCreatedAt(now);
+        User persistedOwner = userRepo.save(owner);
 
-        UUID id = saved.getId();
+        Profile initial = ProfileProvider.singleTemplate();
+        initial.setUser(persistedOwner);
+        initial.setCreatedAt(now);
+        Profile persistedProfile = repo.save(initial);
 
-        Profile partial = new Profile();
-        partial.setFirstName("Alice");
-        partial.setLastName("  ");
-        partial.setAvatarUrl("");
+        Profile updateData = new Profile();
+        updateData.setFirstName("Alice");
+        updateData.setLastName("  "); // Blank should be ignored
+        updateData.setAddress(""); // Empty should be ignored
+        updateData.setAvatarUrl(null); // Null should be ignored
 
-        Profile out = dao.updateById(partial, id);
+        // Act
+        Profile result = dao.updateById(updateData, persistedProfile.getId());
 
-        assertEquals("Alice", out.getFirstName());
-        assertEquals(saved.getLastName(), out.getLastName());
-        assertEquals(saved.getAddress(), out.getAddress());
-        assertEquals(saved.getAvatarUrl(), out.getAvatarUrl());
-        assertEquals(saved.getUser().getId(), out.getUser().getId());
+        // Assert
+        assertAll(
+                () -> assertEquals("Alice", result.getFirstName()),
+                () -> assertEquals(initial.getLastName(), result.getLastName()),
+                () -> assertEquals(initial.getAddress(), result.getAddress()),
+                () -> assertEquals(initial.getAvatarUrl(), result.getAvatarUrl()));
     }
 
     @Test
-    @DisplayName("updateById does not update user when same id")
+    @DisplayName(
+            "updateById: handles case where existing profile user is null and new user is provided")
     @Transactional
-    void updateByIdSameUser() {
+    void updateById_ShouldSetUserWhenCurrentlyNull() {
+        // Arrange
+        Profile initial = ProfileProvider.singleTemplate();
+        initial.setUser(null);
+        initial.setCreatedAt(now);
+        Profile persistedProfile = repo.save(initial);
 
-        Profile update = new Profile();
-        update.setUser(owner);
+        User newUser = UserProvider.singleTemplate();
+        newUser.setCreatedAt(now);
+        User persistedNewUser = userRepo.save(newUser);
 
-        Profile out = dao.updateById(update, saved.getId());
+        Profile updateData = new Profile();
+        updateData.setUser(persistedNewUser);
 
-        assertEquals(owner.getId(), out.getUser().getId());
+        // Act
+        Profile result = dao.updateById(updateData, persistedProfile.getId());
+
+        // Assert
+        assertNotNull(result.getUser());
+        assertEquals(persistedNewUser.getId(), result.getUser().getId());
     }
 
     @Test
-    @DisplayName("updateById updates user when existing profile has null user")
+    @DisplayName("updateById: throws NotFoundException when entity does not exist")
     @Transactional
-    void updateByIdExistingUserNull() {
-
-        Profile profileWithoutUser = ProfileProvider.singleTemplate();
-        profileWithoutUser.setUser(null);
-
-        Profile stored = repo.save(profileWithoutUser);
-
-        User newUser = userRepo.save(UserProvider.alternativeTemplate());
-
-        Profile update = new Profile();
-        update.setUser(newUser);
-
-        Profile out = dao.updateById(update, stored.getId());
-
-        assertEquals(newUser.getId(), out.getUser().getId());
+    void updateById_ShouldThrowNotFound() {
+        Profile data = new Profile();
+        UUID randomId = UUID.randomUUID();
+        assertThrows(NotFoundException.class, () -> dao.updateById(data, randomId));
     }
 
     @Test
-    @DisplayName("updateById throws NotFoundException when id does not exist")
+    @DisplayName("existsByUniqueProperties: validates existence based on User ID")
     @Transactional
-    void updateByIdNotFound() {
+    void existsByUniqueProperties_ShouldValidateCorrectly() {
+        // Arrange
+        User owner = UserProvider.singleTemplate();
+        owner.setCreatedAt(now);
+        User persistedOwner = userRepo.save(owner);
 
-        Profile update = new Profile();
-        update.setFirstName("Ghost");
+        Profile profile = ProfileProvider.singleTemplate();
+        profile.setUser(persistedOwner);
+        profile.setCreatedAt(now);
+        repo.save(profile);
 
-        assertThrows(NotFoundException.class, () -> dao.updateById(update, UUID.randomUUID()));
+        // Act & Assert
+        Profile probe = new Profile();
+        probe.setUser(persistedOwner);
+        assertTrue(dao.existsByUniqueProperties(probe), "Should exist for persisted user");
+
+        // Null User check
+        Profile noUserProbe = new Profile();
+        assertFalse(dao.existsByUniqueProperties(noUserProbe), "Should be false for null user");
+
+        // Unsaved User check
+        Profile unsavedUserProbe = new Profile();
+        unsavedUserProbe.setUser(new User());
+        assertFalse(
+                dao.existsByUniqueProperties(unsavedUserProbe), "Should be false for unsaved user");
     }
 
     @Test
-    @DisplayName("existsByUniqueProperties covers null, missing id and existing cases")
+    @DisplayName("existsAllByIds: verifies multiple IDs against database count")
     @Transactional
-    void existsByUniqueProperties() {
+    void existsAllByIds_ShouldHandleCollections() {
+        // Arrange
+        User owner = UserProvider.singleTemplate();
+        owner.setCreatedAt(now);
+        userRepo.save(owner);
 
-        Profile noUser = ProfileProvider.singleTemplate();
-        noUser.setUser(null);
-        noUser.setCreatedAt(Instant.now());
-        noUser.setCreatedBy(UUID.randomUUID().toString());
+        User owner2 = UserProvider.alternativeTemplate();
+        owner2.setCreatedAt(now);
+        userRepo.save(owner2);
 
-        assertFalse(dao.existsByUniqueProperties(noUser));
+        Profile p1 = ProfileProvider.singleTemplate();
+        p1.setCreatedAt(now);
+        p1.setUser(owner);
+        Profile p2 = ProfileProvider.alternativeTemplate();
+        p2.setCreatedAt(now);
+        p2.setUser(owner2);
 
-        Profile noId = ProfileProvider.singleTemplate();
-        noId.setUser(new User());
-        noId.setCreatedAt(Instant.now());
-        noId.setCreatedBy(UUID.randomUUID().toString());
+        UUID id1 = repo.save(p1).getId();
+        UUID id2 = repo.save(p2).getId();
 
-        assertFalse(dao.existsByUniqueProperties(noId));
+        // Act & Assert
+        assertTrue(dao.existsAllByIds(List.of(id1, id2)));
+        assertFalse(dao.existsAllByIds(List.of(id1, UUID.randomUUID())));
+    }
 
-        Profile check = ProfileProvider.singleTemplate();
-        check.setUser(owner);
+    @Test
+    @DisplayName("findById: standard generic behavior check")
+    @Transactional
+    void findById_ShouldRetrieveEntity() {
+        // Arrange
+        User owner = UserProvider.singleTemplate();
+        owner.setCreatedAt(now);
+        userRepo.save(owner);
 
-        assertTrue(dao.existsByUniqueProperties(check));
+        Profile profile = ProfileProvider.singleTemplate();
+        profile.setCreatedAt(now);
+        profile.setUser(owner);
+        Profile persisted = repo.save(profile);
+
+        // Act
+        var found = dao.findById(persisted.getId());
+
+        // Assert
+        assertTrue(found.isPresent());
+        assertEquals(persisted.getId(), found.get().getId());
     }
 }
