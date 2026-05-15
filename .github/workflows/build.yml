@@ -6,6 +6,10 @@ on:
       - main
       - dev
 
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+
   pull_request:
     branches:
       - main
@@ -14,31 +18,40 @@ on:
       - opened
       - synchronize
       - reopened
-  
+
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: sonar-${{ github.ref }}
+  group: sonar-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  defaults:
-      run:
-        working-directory: backend
-
   sonar:
     name: Build, Test and Analyze
     runs-on: ubuntu-latest
 
-    timeout-minutes: 20
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        working-directory: backend
 
     env:
       JAVA_VERSION: '25'
+
       MAVEN_OPTS: >-
+        -Xms512m
         -Xmx2g
+        -XX:+UseG1GC
         -Djava.awt.headless=true
+
+      SEGMENT_DOWNLOAD_TIMEOUT_MINS: '5'
 
     steps:
       - name: Checkout repository
@@ -52,24 +65,52 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+          cache-dependency-path: backend/pom.xml
 
-      - name: Prefetch Maven dependencies
-        run: mvn -B dependency:go-offline
+      - name: Validate Maven Wrapper
+        uses: gradle/actions/wrapper-validation@v4
 
-      - name: Verify project
-        run: >
-          mvn
-          -B
-          --no-transfer-progress
-          clean verify
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Prefetch dependencies
+        run: |
+          ./mvnw \
+            -B \
+            --no-transfer-progress \
+            dependency:go-offline
+
+      - name: Run tests and verification
+        run: |
+          ./mvnw \
+            -B \
+            --no-transfer-progress \
+            clean verify
 
       - name: SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          mvn
-          -B
-          --no-transfer-progress
-          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.projectKey=rogelioolarte_auth-alpaca
+        run: |
+          ./mvnw \
+            -B \
+            --no-transfer-progress \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=rogelioolarte_auth-alpaca \
+            -Dsonar.qualitygate.wait=true
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            backend/**/target/surefire-reports/**
+            backend/**/target/failsafe-reports/**
+
+      - name: Upload JaCoCo reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/**/target/site/jacoco/**
