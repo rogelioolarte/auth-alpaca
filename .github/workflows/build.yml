@@ -96,7 +96,6 @@ jobs:
             -B \
             --no-transfer-progress \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=rogelioolarte_auth-alpaca \
             -Dsonar.qualitygate.wait=true \
             -Dsonar.qualitygate.timeout=300
 
