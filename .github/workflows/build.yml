@@ -1,0 +1,71 @@
+name: SonarQube
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    name: Build, Test and Analyze
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    env:
+      JAVA_VERSION: '25'
+      MAVEN_OPTS: >-
+        -Xmx2g
+        -Djava.awt.headless=true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Prefetch Maven dependencies
+        run: mvn -B dependency:go-offline
+
+      - name: Verify project
+        run: >
+          mvn
+          -B
+          --no-transfer-progress
+          clean verify
+
+      - name: SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          mvn
+          -B
+          --no-transfer-progress
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.projectKey=rogelioolarte_auth-alpaca

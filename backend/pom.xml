@@ -47,6 +47,7 @@
 		<tag>HEAD</tag>
 	</scm>
 	<properties>
+        <sonar.organization>rogelioolarte</sonar.organization>
 		<java.version>25</java.version>
 		<maven.compiler.args>--enable-preview</maven.compiler.args>
 		<jjwt.version>0.13.0</jjwt.version>
