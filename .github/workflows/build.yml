@@ -68,22 +68,19 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
-      - name: Validate Maven Wrapper
-        uses: gradle/actions/wrapper-validation@v4
-
       - name: Make Maven Wrapper executable
         run: chmod +x mvnw
 
       - name: Download Maven dependencies
         run: |
-          ./mvnw \
+          mvn \
             -B \
             --no-transfer-progress \
             dependency:go-offline
 
       - name: Run tests and build
         run: |
-          ./mvnw \
+          mvn \
             -B \
             --no-transfer-progress \
             clean verify
@@ -93,7 +90,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./mvnw \
+          mvn \
             -B \
             --no-transfer-progress \
             org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
