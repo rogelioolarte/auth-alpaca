@@ -68,8 +68,11 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
-      - name: Make Maven Wrapper executable
-        run: chmod +x mvnw
+      - name: Make scripts executable
+        run: chmod +x generate_keys_test.sh
+
+      - name: Run key generation script
+        run: ./generate_keys_test.sh
 
       - name: Download Maven dependencies
         run: |
