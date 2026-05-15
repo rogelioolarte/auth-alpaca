@@ -1,4 +1,4 @@
-name: SonarQube
+name: Workflow for SonarQube
 
 on:
   push:
