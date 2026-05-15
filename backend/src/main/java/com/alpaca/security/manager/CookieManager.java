@@ -2,9 +2,6 @@ package com.alpaca.security.manager;
 
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
 import com.alpaca.security.oauth2.AuthResponseTypeDeserializer;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +10,9 @@ import java.util.Base64;
 import java.util.Optional;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /**
  * Utility class for managing HTTP cookies and serializing/deserializing objects in a secure manner.
@@ -28,17 +28,19 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
  */
 public class CookieManager {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final SimpleModule module = new SimpleModule();
+    private static final JsonMapper JSON_MAPPER;
+    private static final SimpleModule MODULE = new SimpleModule();
 
     static {
-        module.addDeserializer(OAuth2AuthorizationRequest.class, new AuthRequestDeserializer());
-        module.addDeserializer(
+        MODULE.addDeserializer(OAuth2AuthorizationRequest.class, new AuthRequestDeserializer());
+        MODULE.addDeserializer(
                 OAuth2AuthorizationResponseType.class, new AuthResponseTypeDeserializer());
-        objectMapper
-                .registerModule(module)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+        JSON_MAPPER =
+                JsonMapper.builder()
+                        .addModule(MODULE)
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
+                        .build();
     }
 
     /**
@@ -109,7 +111,7 @@ public class CookieManager {
         try {
             return Base64.getUrlEncoder()
                     .encodeToString(
-                            objectMapper
+                            JSON_MAPPER
                                     .writeValueAsString(object)
                                     .getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
@@ -128,7 +130,7 @@ public class CookieManager {
      */
     public static <T> T deserialize(Cookie cookie, Class<T> t) {
         try {
-            return objectMapper.readValue(
+            return JSON_MAPPER.readValue(
                     new String(
                             Base64.getDecoder().decode(cookie.getValue()), StandardCharsets.UTF_8),
                     t);
@@ -146,7 +148,7 @@ public class CookieManager {
      */
     public static String justSerialize(Object object) {
         try {
-            return objectMapper.writeValueAsString(object);
+            return JSON_MAPPER.writeValueAsString(object);
         } catch (Exception e) {
             throw new RuntimeException("Error serializing object", e.getCause());
         }

@@ -1,6 +1,7 @@
 package com.alpaca.unit.security.manager;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alpaca.model.AuthCode;
 import com.alpaca.security.manager.TokenExchangeManager;

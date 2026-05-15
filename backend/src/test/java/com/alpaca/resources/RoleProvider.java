@@ -12,20 +12,12 @@ public class RoleProvider {
         return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
-    public static List<RoleRequestDTO> listRequest() {
-        return new ArrayList<>(List.of(singleRequest(), alternativeRequest()));
-    }
-
     public static List<RoleResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
 
     public static PageImpl<RoleResponseDTO> pageResponse() {
         return new PageImpl<>(listResponse());
-    }
-
-    public static PageImpl<Role> pageEntities() {
-        return new PageImpl<>(listEntities());
     }
 
     public static Role singleTemplate() {
@@ -76,13 +68,6 @@ public class RoleProvider {
                 "ADMIN",
                 "It's an admin",
                 new HashSet<>(Set.of(PermissionProvider.singleEntity().getId())));
-    }
-
-    public static RoleRequestDTO alternativeRequest() {
-        return new RoleRequestDTO(
-                "USER",
-                "It's an user",
-                new HashSet<>(Set.of(PermissionProvider.alternativeEntity().getId())));
     }
 
     public static RoleResponseDTO singleResponse() {

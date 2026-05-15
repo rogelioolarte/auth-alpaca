@@ -18,8 +18,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -86,7 +86,9 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      */
     @Override
     public void onAuthenticationSuccess(
-            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull Authentication authentication)
             throws IOException {
         if (response.isCommitted()) {
             logger.debug("Response already committed; cannot redirect");
@@ -102,6 +104,9 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         clearAuthenticationAttributes(request, response);
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        if (userPrincipal == null) {
+            throw new UnauthorizedException("Invalid Credentials");
+        }
         String code = uuidGenerator.generate().toString();
         String clientId = Optional.ofNullable(request.getHeader("X-Client-Id")).orElse("");
         String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
@@ -141,8 +146,11 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      * @throws UnauthorizedException if the requested redirect URI is not authorized
      */
     @Override
+    @NonNull
     protected String determineTargetUrl(
-            HttpServletRequest request, HttpServletResponse response, Authentication auth) {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            Authentication auth) {
 
         if (authorizedRedirectUris.isEmpty()) {
             throw new InternalErrorException("Bad configuration of Authorized Redirect URIs");
@@ -174,10 +182,10 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      * a successful authentication flow.
      *
      * @param request the current HTTP request
-     * @param response the current HTTP response
+     * @param ignoredResponse the current HTTP response
      */
     protected void clearAuthenticationAttributes(
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request, HttpServletResponse ignoredResponse) {
         super.clearAuthenticationAttributes(request);
     }
 

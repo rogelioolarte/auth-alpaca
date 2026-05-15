@@ -39,22 +39,6 @@ public class SessionProvider {
         return session;
     }
 
-    public static Session revokedEntity() {
-        Session session = new Session();
-        session.setId(UUID.fromString("019b2092-e007-7671-a9fe-b2713081ea08"));
-        session.setUser(UserProvider.singleEntity());
-        session.setFamilyId(UUID.fromString("119b2092-e007-7671-a9fe-b2713081ea09"));
-        session.setCreatedAt(Instant.parse("2024-01-01T09:00:00Z"));
-        session.setLastSeenAt(Instant.parse("2024-01-01T09:45:00Z"));
-        session.setIpAddress("10.0.0.1");
-        session.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36");
-        session.setClientId("desktop-client");
-        session.setRevoked(true);
-        session.setRevokedAt(Instant.parse("2024-01-01T09:50:00Z"));
-        session.setRevokeReason("user_logout");
-        return session;
-    }
-
     public static Session singleTemplate() {
         Session session = new Session();
         Instant now = Instant.now();

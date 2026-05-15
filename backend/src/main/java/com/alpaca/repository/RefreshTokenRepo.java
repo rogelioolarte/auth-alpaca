@@ -90,40 +90,6 @@ public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
             @Param("reason") String reason);
 
     /**
-     * Revokes a specific refresh token by its identifier, if it is not already revoked.
-     *
-     * @param id the UUID of the refresh token to revoke
-     * @param revokedAt timestamp at which revocation occurred
-     * @param reason the reason for revocation
-     * @return the number of tokens revoked (0 or 1)
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(
-            """
-            UPDATE RefreshToken r
-               SET r.revoked = true,
-                   r.revokedAt = :revokedAt,
-                   r.revokeReason = :reason
-             WHERE r.id = :id
-             AND r.revoked = false
-             AND r.replacedBy IS NULL
-            """)
-    int revokeByIdWithReason(
-            @Param("id") UUID id,
-            @Param("revokedAt") Instant revokedAt,
-            @Param("reason") String reason);
-
-    @Query(
-            """
-            SELECT COUNT(r) > 0
-            FROM RefreshToken r
-            WHERE r.familyId = :familyId
-            AND r.revoked = false
-            AND r.expiresAt > CURRENT_TIMESTAMP
-            """)
-    boolean existsActiveTokenInFamily(UUID familyId);
-
-    /**
      * Counts the number of entities with the given IDs.
      *
      * @param ids The collection of entity IDs to count - must not be null.

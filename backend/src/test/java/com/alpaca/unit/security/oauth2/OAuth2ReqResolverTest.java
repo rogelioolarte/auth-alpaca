@@ -1,7 +1,8 @@
 package com.alpaca.unit.security.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import jakarta.servlet.http.HttpServletRequest;

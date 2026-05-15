@@ -3,7 +3,9 @@ package com.alpaca.security.manager;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.service.IAuthService;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,7 +24,7 @@ public class CustomAuthenticationManager implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
         String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
+        String password = Objects.requireNonNull(authentication.getCredentials()).toString();
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         validateUserDetails(password, userDetails);
@@ -32,7 +34,7 @@ public class CustomAuthenticationManager implements AuthenticationProvider {
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(@NonNull Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 

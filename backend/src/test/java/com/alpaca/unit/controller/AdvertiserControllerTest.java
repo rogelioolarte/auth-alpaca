@@ -4,7 +4,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.alpaca.controller.AdvertiserController;
 import com.alpaca.dto.request.AdvertiserRequestDTO;
@@ -12,6 +13,7 @@ import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
 import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.resources.AdvertiserProvider;
+import com.alpaca.resources.WithMockCustomUser;
 import com.alpaca.service.IAdvertiserService;
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(AdvertiserController.class)
+@WithMockCustomUser
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureJsonTesters
 class AdvertiserControllerTest {
@@ -153,9 +156,9 @@ class AdvertiserControllerTest {
     @DisplayName("findAllPageForAdmin: Should return paged model for admin")
     void findAllPageForAdmin_ShouldReturnPagedModel() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Advertiser> entityPage = new PageImpl<>(listEntities);
+        Page<Advertiser> entityPage = new PageImpl<>(listEntities, pageable, 10);
         Page<AdvertiserResponseDTO> responsePage =
-                new PageImpl<>(AdvertiserProvider.listResponse());
+                new PageImpl<>(AdvertiserProvider.listResponse(), pageable, 10);
 
         when(service.findAllPage(any(Pageable.class))).thenReturn(entityPage);
         when(mapper.toPageResponseDTO(entityPage)).thenReturn(responsePage);
@@ -171,9 +174,9 @@ class AdvertiserControllerTest {
     @DisplayName("findAllPage: Should return paged model of indexed advertisers")
     void findAllPage_ShouldReturnIndexedPagedModel() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Advertiser> entityPage = new PageImpl<>(listEntities);
+        Page<Advertiser> entityPage = new PageImpl<>(listEntities, pageable, 10);
         Page<AdvertiserResponseDTO> responsePage =
-                new PageImpl<>(AdvertiserProvider.listResponse());
+                new PageImpl<>(AdvertiserProvider.listResponse(), pageable, 10);
 
         when(service.findAllPageByIndexedTrue(any(Pageable.class))).thenReturn(entityPage);
         when(mapper.toPageResponseDTO(entityPage)).thenReturn(responsePage);

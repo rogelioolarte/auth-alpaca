@@ -4,7 +4,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.alpaca.controller.ProfileController;
 import com.alpaca.dto.request.ProfileRequestDTO;
@@ -12,6 +13,7 @@ import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.resources.ProfileProvider;
+import com.alpaca.resources.WithMockCustomUser;
 import com.alpaca.service.IProfileService;
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -34,16 +36,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(ProfileController.class)
+@WithMockCustomUser
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureJsonTesters
 class ProfileControllerTest {
 
     @Autowired private MockMvc mockMvc;
-
     @Autowired private JacksonTester<ProfileRequestDTO> requestJson;
-
     @MockitoBean private IProfileService service;
-
     @MockitoBean private IProfileMapper mapper;
 
     private final List<Profile> listEntities = ProfileProvider.listEntities();

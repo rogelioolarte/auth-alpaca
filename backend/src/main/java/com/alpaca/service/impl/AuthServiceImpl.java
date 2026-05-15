@@ -14,6 +14,7 @@ import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -130,7 +131,8 @@ public class AuthServiceImpl implements IAuthService {
      * @throws UsernameNotFoundException if user is not found
      */
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    @NonNull
+    public UserDetails loadUserByUsername(@NonNull String username) {
         return new UserPrincipal(userService.findByEmail(username));
     }
 }

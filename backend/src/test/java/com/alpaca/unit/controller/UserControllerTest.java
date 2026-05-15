@@ -13,6 +13,7 @@ import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.mapper.IUserMapper;
 import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.WithMockCustomUser;
 import com.alpaca.service.IUserService;
 import java.util.Collections;
 import java.util.List;
@@ -22,9 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(controllers = UserController.class)
+@WithMockCustomUser
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureJsonTesters
 class UserControllerTest {

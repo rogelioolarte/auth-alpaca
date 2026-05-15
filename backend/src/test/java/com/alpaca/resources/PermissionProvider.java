@@ -15,10 +15,10 @@ public class PermissionProvider {
                         new Permission(alternativeEntity().getName())));
     }
 
-    public static List<PermissionRequestDTO> listRequest() {
-        return new ArrayList<>(List.of(singleRequest(), alternativeRequest()));
-    }
-
+    /**
+     * public static List<PermissionRequestDTO> listRequest() { return new
+     * ArrayList<>(List.of(singleRequest(), alternativeRequest())); }
+     */
     public static List<PermissionResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
     }
@@ -31,14 +31,13 @@ public class PermissionProvider {
         return new PageImpl<>(listEntities());
     }
 
-    public static Permission templateSingleEntity() {
-        return new Permission(null, "CREATE", new HashSet<>());
-    }
-
-    public static Permission templateAlternativeEntity() {
-        return new Permission(null, "READ", new HashSet<>());
-    }
-
+    /**
+     * public static Permission templateSingleEntity() { return new Permission(null, "CREATE", new
+     * HashSet<>()); }
+     *
+     * <p>public static Permission templateAlternativeEntity() { return new Permission(null, "READ",
+     * new HashSet<>()); }
+     */
     public static Permission singleEntity() {
         return new Permission(
                 UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "CREATE", new HashSet<>());
@@ -57,18 +56,18 @@ public class PermissionProvider {
         return Permission.builder().name("READ").rolePermissions(Collections.emptySet()).build();
     }
 
-    public static List<Permission> listTemplates() {
-        return new ArrayList<>(List.of(singleTemplate(), alternativeTemplate()));
-    }
-
+    /**
+     * public static List<Permission> listTemplates() { return new
+     * ArrayList<>(List.of(singleTemplate(), alternativeTemplate())); }
+     */
     public static PermissionRequestDTO singleRequest() {
         return new PermissionRequestDTO("CREATE");
     }
 
-    public static PermissionRequestDTO alternativeRequest() {
-        return new PermissionRequestDTO("READ");
-    }
-
+    /**
+     * public static PermissionRequestDTO alternativeRequest() { return new
+     * PermissionRequestDTO("READ"); }
+     */
     public static PermissionResponseDTO singleResponse() {
         return new PermissionResponseDTO(
                 UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "CREATE");

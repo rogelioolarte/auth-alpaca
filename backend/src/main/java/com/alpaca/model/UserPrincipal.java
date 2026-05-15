@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -141,6 +142,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @return the username of the user.
      */
     @Override
+    @NonNull
     public String getName() {
         return username;
     }

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -58,9 +59,9 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     @Override
     public void onAuthenticationFailure(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException exception)
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull AuthenticationException exception)
             throws IOException {
         if (response.isCommitted()) {
             logger.debug("Response already committed, cannot redirect");

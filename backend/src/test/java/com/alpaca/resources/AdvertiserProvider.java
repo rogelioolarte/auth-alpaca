@@ -6,7 +6,6 @@ import com.alpaca.entity.Advertiser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.PageImpl;
 
 public class AdvertiserProvider {
 
@@ -14,20 +13,8 @@ public class AdvertiserProvider {
         return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
-    public static List<AdvertiserRequestDTO> listRequest() {
-        return new ArrayList<>(List.of(singleRequest(), alternativeRequest()));
-    }
-
     public static List<AdvertiserResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
-    }
-
-    public static PageImpl<AdvertiserResponseDTO> pageResponse() {
-        return new PageImpl<>(listResponse());
-    }
-
-    public static PageImpl<Advertiser> pageEntities() {
-        return new PageImpl<>(listEntities());
     }
 
     public static Advertiser singleTemplate() {
@@ -112,18 +99,6 @@ public class AdvertiserProvider {
                 "https://location.com/advertiser1",
                 true,
                 UserProvider.singleEntity().getId().toString());
-    }
-
-    public static AdvertiserRequestDTO alternativeRequest() {
-        return new AdvertiserRequestDTO(
-                "Advertiser_2",
-                "Advertiser version 2",
-                "https://banner.com/advertiser2",
-                "https://avatar.com/advertiser2",
-                "av. root 321",
-                "https://location.com/advertiser2",
-                true,
-                UserProvider.alternativeEntity().getId().toString());
     }
 
     public static AdvertiserResponseDTO singleResponse() {

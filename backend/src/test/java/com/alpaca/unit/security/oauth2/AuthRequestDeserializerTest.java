@@ -3,11 +3,6 @@ package com.alpaca.unit.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,18 +11,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /** Unit tests for {@link AuthRequestDeserializer} */
 @DisplayName("AuthRequestDeserializer Unit Tests")
 class AuthRequestDeserializerTest {
 
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @BeforeEach
     void setUp() {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(OAuth2AuthorizationRequest.class, new AuthRequestDeserializer());
-        mapper = new ObjectMapper().registerModule(module);
+        mapper = JsonMapper.builder().addModule(module).build();
     }
 
     @Nested
@@ -36,18 +37,16 @@ class AuthRequestDeserializerTest {
 
         @Test
         @DisplayName("Given valid full JSON, parses all fields correctly")
-        void givenValidJson_parsesAllFields() throws Exception {
+        void givenValidJson_parsesAllFields() {
             String json =
                     """
-                    {
-                      "clientId":"my-client",
+                      {"clientId":"my-client",
                       "authorizationUri":"https://auth.example.com",
                       "redirectUri":"https://app.example.com/callback",
                       "state":"xyz-state",
                       "scopes":["read","write"],
                       "attributes":{"roles": ["user","admin"]},
-                      "additionalParameters":{"baz":[123, 124]}
-                    }
+                      "additionalParameters":{"baz":[123, 124]}}
                     """;
             OAuth2AuthorizationRequest req =
                     mapper.readValue(json, OAuth2AuthorizationRequest.class);
@@ -78,16 +77,16 @@ class AuthRequestDeserializerTest {
                       "redirectUri":"r1"
                     }
                     """;
-            JsonMappingException ex =
+            JacksonException ex =
                     assertThrows(
-                            JsonMappingException.class,
+                            JacksonException.class,
                             () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
-            assertTrue(ex.getOriginalMessage().contains("Missing required field 'state'"));
+            assertTrue(ex.getOriginalMessage().contains("Missing required field state"));
         }
 
         @Test
         @DisplayName("Empty or missing scopes yields empty set")
-        void missingScopes_producesEmptyScopes() throws Exception {
+        void missingScopes_producesEmptyScopes() {
             String jsonWithoutScopes =
                     """
                     {
@@ -113,7 +112,7 @@ class AuthRequestDeserializerTest {
 
         @Test
         @DisplayName("Unknown fields are ignored")
-        void unknownFields_areIgnored() throws Exception {
+        void unknownFields_areIgnored() {
             String json =
                     """
                     {
@@ -131,7 +130,7 @@ class AuthRequestDeserializerTest {
 
         @Test
         @DisplayName("Non‑array scopes node is skipped")
-        void nonArrayScopes_skipped() throws Exception {
+        void nonArrayScopes_skipped() {
             String json =
                     """
                     {
@@ -147,7 +146,7 @@ class AuthRequestDeserializerTest {
 
         @Test
         @DisplayName("Given scopes array with only non‑string elements, returns empty set")
-        void arrayWithNonStringScopes_skipped() throws Exception {
+        void arrayWithNonStringScopes_skipped() {
             String json =
                     """
                     {
@@ -168,13 +167,14 @@ class AuthRequestDeserializerTest {
 
         @Test
         @DisplayName("Given advances null currentToken to START_OBJECT")
-        void deserialize_directly_advancesParserFromNull() throws Exception {
+        void deserialize_directly_advancesParserFromNull() {
             String json =
                     """
                     { "clientId":"c","authorizationUri":"u","redirectUri":"r","state":"s" }
                     """;
             JsonFactory factory = new JsonFactory();
-            try (JsonParser parser = factory.createParser(json)) {
+            ObjectReadContext context = new ObjectReadContext.Base();
+            try (JsonParser parser = factory.createParser(context, json)) {
                 assertNull(parser.currentToken(), "Must start with null token");
                 AuthRequestDeserializer desert = new AuthRequestDeserializer();
                 OAuth2AuthorizationRequest req = desert.deserialize(parser, null);
@@ -189,9 +189,9 @@ class AuthRequestDeserializerTest {
                     """
                         [ "not", "an", "object" ]
                     """;
-            JsonMappingException ex =
+            JacksonException ex =
                     assertThrows(
-                            JsonMappingException.class,
+                            JacksonException.class,
                             () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
             assertTrue(
                     ex.getOriginalMessage()

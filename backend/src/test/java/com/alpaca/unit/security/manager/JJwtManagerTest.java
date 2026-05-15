@@ -1,7 +1,8 @@
 package com.alpaca.unit.security.manager;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;
@@ -161,6 +162,7 @@ class JJwtManagerTest {
         UsernamePasswordAuthenticationToken auth = jwtManager.manageAuthentication(token);
 
         assertNotNull(auth);
+        assertNotNull(auth.getPrincipal());
         assertEquals("tester", ((UserPrincipal) auth.getPrincipal()).getUsername());
     }
 

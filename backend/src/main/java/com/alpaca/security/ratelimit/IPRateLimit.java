@@ -28,7 +28,7 @@ public class IPRateLimit {
                 false, Duration.ofNanos(probe.getNanosToWaitForRefill()).getSeconds());
     }
 
-    private Bucket createBucket(String ip) {
+    private Bucket createBucket(String ignoreIp) {
         return Bucket.builder()
                 .addLimit(limit -> limit.capacity(MAX_REQUESTS).refillGreedy(MAX_REQUESTS, WINDOW))
                 .build();

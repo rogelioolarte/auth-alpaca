@@ -5,7 +5,6 @@ import com.alpaca.security.manager.CustomAuthenticationManager;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IOAuth2Service;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,10 +57,9 @@ public class SecurityConfig {
      *
      * @param http HttpSecurity configuration.
      * @return SecurityFilterChain instance.
-     * @throws Exception if an error occurs during configuration.
      */
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(Customizer.withDefaults());
         http.formLogin(AbstractHttpConfigurer::disable);
@@ -120,14 +118,17 @@ public class SecurityConfig {
                 new AccessTokenResConverter());
         RestClientAuthorizationCodeTokenResponseClient client =
                 new RestClientAuthorizationCodeTokenResponseClient();
-        client.setRestClient(
+        RestClient restClient =
                 RestClient.builder()
-                        .messageConverters(
-                                List.of(
-                                        new FormHttpMessageConverter(),
-                                        tokenResponseHttpMessageConverter))
+                        .configureMessageConverters(
+                                builder ->
+                                        builder.addCustomConverter(new FormHttpMessageConverter())
+                                                .addCustomConverter(
+                                                        tokenResponseHttpMessageConverter)
+                                                .build())
                         .defaultStatusHandler(new OAuth2ErrorResponseErrorHandler())
-                        .build());
+                        .build();
+        client.setRestClient(restClient);
         return client;
     }
 
@@ -160,11 +161,9 @@ public class SecurityConfig {
      *
      * @param configuration AuthenticationConfiguration instance.
      * @return AuthenticationManager instance.
-     * @throws Exception if an error occurs.
      */
     @Bean
-    public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration)
-            throws Exception {
+    public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 }

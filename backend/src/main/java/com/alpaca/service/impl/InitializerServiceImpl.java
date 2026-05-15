@@ -3,6 +3,7 @@ package com.alpaca.service.impl;
 import com.alpaca.service.DataService;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
@@ -34,7 +35,7 @@ public class InitializerServiceImpl implements ApplicationRunner {
      */
     @Override
     @Generated
-    public void run(ApplicationArguments args) {
+    public void run(@NonNull ApplicationArguments args) {
         dataService.initializeData();
     }
 }

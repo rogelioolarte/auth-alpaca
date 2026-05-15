@@ -1,6 +1,7 @@
 package com.alpaca.unit.security.oauth2;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.security.manager.CookieManager;

@@ -6,7 +6,6 @@ import com.alpaca.entity.Profile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.PageImpl;
 
 public class ProfileProvider {
 
@@ -14,20 +13,8 @@ public class ProfileProvider {
         return new ArrayList<>(List.of(singleEntity(), alternativeEntity()));
     }
 
-    public static List<ProfileRequestDTO> listRequest() {
-        return new ArrayList<>(List.of(singleRequest(), alternativeRequest()));
-    }
-
     public static List<ProfileResponseDTO> listResponse() {
         return new ArrayList<>(List.of(singleResponse(), alternativeResponse()));
-    }
-
-    public static PageImpl<ProfileResponseDTO> pageResponse() {
-        return new PageImpl<>(listResponse());
-    }
-
-    public static PageImpl<Profile> pageEntities() {
-        return new PageImpl<>(listEntities());
     }
 
     public static Profile singleTemplate() {
@@ -65,15 +52,6 @@ public class ProfileProvider {
                 "av admin 01",
                 "https://foto.admin.com",
                 UserProvider.singleEntity().getId().toString());
-    }
-
-    public static ProfileRequestDTO alternativeRequest() {
-        return new ProfileRequestDTO(
-                "User",
-                "Last",
-                "av user 01",
-                "https://foto.user.com",
-                UserProvider.alternativeEntity().getId().toString());
     }
 
     public static ProfileResponseDTO singleResponse() {

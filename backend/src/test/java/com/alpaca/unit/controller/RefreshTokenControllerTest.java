@@ -1,126 +1,187 @@
 package com.alpaca.unit.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.alpaca.controller.RefreshTokenController;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.dto.response.RateLimitResult;
-import com.alpaca.exception.RateLimitExceededException;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.resources.WithMockCustomUser;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-/** Unit tests for {@link RefreshTokenController} */
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = RefreshTokenController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class RefreshTokenControllerTest {
 
-    @Mock private IRefreshTokenService refreshTokenService;
+    @Autowired private MockMvc mockMvc;
 
-    @Mock private IPRateLimit rateLimit;
+    @MockitoBean private IRefreshTokenService service;
 
-    @Mock private HttpServletRequest request;
+    @MockitoBean private IPRateLimit rateLimit;
 
-    @Mock private UserPrincipal userPrincipal;
-
-    @InjectMocks private RefreshTokenController controller;
+    @MockitoBean private UserPrincipal userPrincipal;
 
     private MockedStatic<Utils> utilsMock;
-    private final String clientIp = "192.168.1.100";
-    private final String refreshToken = "valid-refresh-token";
-    private final String clientId = "alpaca-web-client";
-    private final String userAgent = "Mozilla/5.0-Test";
-    private final AuthResponseDTO authResponse = new AuthResponseDTO("new-access", "new-refresh");
 
-    @BeforeEach
-    void setUp() {
-        utilsMock = mockStatic(Utils.class);
-        utilsMock
-                .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
-                .thenReturn(clientIp);
-    }
+    private static final String CLIENT_IP = "192.168.1.100";
+    private static final String REFRESH_TOKEN = "refresh-token";
+    private static final String CLIENT_ID = "alpaca-client";
+    private static final String USER_AGENT = "Mozilla/5.0";
+
+    private static final AuthResponseDTO RESPONSE =
+            new AuthResponseDTO("new-access-token", "new-refresh-token");
 
     @AfterEach
     void tearDown() {
-        utilsMock.close();
+        if (utilsMock != null) {
+            utilsMock.close();
+        }
+    }
+
+    private void mockClientIp() {
+        utilsMock = mockStatic(Utils.class);
+        utilsMock
+                .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
+                .thenReturn(CLIENT_IP);
     }
 
     @Test
-    @DisplayName("rotateRefreshToken: Should return OK and new tokens when request is valid")
-    void rotateRefreshToken_ShouldReturnOk_WhenSuccessful() {
+    @WithMockCustomUser
+    @DisplayName("rotateRefreshToken returns 200 OK and rotated tokens")
+    void rotateRefreshTokenReturnsRotatedTokens() throws Exception {
+        mockClientIp();
+
         RateLimitResult allowedResult = new RateLimitResult(true, 0);
-        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
-        when(refreshTokenService.rotateRefreshToken(refreshToken, clientId, userAgent, clientIp))
-                .thenReturn(authResponse);
 
-        ResponseEntity<AuthResponseDTO> response =
-                controller.rotateRefreshToken(
-                        refreshToken, clientId, userAgent, userPrincipal, request);
+        when(rateLimit.check(CLIENT_IP)).thenReturn(allowedResult);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse.accessToken(), response.getBody().accessToken());
-        verify(rateLimit).check(clientIp);
-        verify(refreshTokenService).rotateRefreshToken(refreshToken, clientId, userAgent, clientIp);
+        when(service.rotateRefreshToken(REFRESH_TOKEN, CLIENT_ID, USER_AGENT, CLIENT_IP))
+                .thenReturn(RESPONSE);
+
+        mockMvc.perform(
+                        post("/api/auth/rotate")
+                                .with(csrf())
+                                .principal(new TestingAuthenticationToken(userPrincipal, ""))
+                                .header("X-Refresh-Token", REFRESH_TOKEN)
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.accessToken", is(RESPONSE.accessToken())))
+                .andExpect(jsonPath("$.refreshToken", is(RESPONSE.refreshToken())));
+
+        verify(rateLimit).check(CLIENT_IP);
+
+        verify(service).rotateRefreshToken(REFRESH_TOKEN, CLIENT_ID, USER_AGENT, CLIENT_IP);
+
+        utilsMock.verify(() -> Utils.extractClientIP(any(HttpServletRequest.class)));
     }
 
     @Test
-    @DisplayName(
-            "rotateRefreshToken: Should throw RateLimitExceededException when rate limit is"
-                    + " reached")
-    void rotateRefreshToken_ShouldThrowException_WhenRateLimited() {
+    @DisplayName("rotateRefreshToken returns 429 Too Many Requests when rate limit exceeded")
+    void rotateRefreshTokenReturnsTooManyRequests() throws Exception {
+        mockClientIp();
+
         RateLimitResult deniedResult = new RateLimitResult(false, 60);
-        when(rateLimit.check(clientIp)).thenReturn(deniedResult);
 
-        RateLimitExceededException exception =
-                assertThrows(
-                        RateLimitExceededException.class,
-                        () ->
-                                controller.rotateRefreshToken(
-                                        refreshToken, clientId, userAgent, userPrincipal, request));
+        when(rateLimit.check(CLIENT_IP)).thenReturn(deniedResult);
 
-        assertEquals(deniedResult.retryAfterSeconds(), exception.getRetryAfterSeconds());
-        verify(rateLimit).check(clientIp);
-        verifyNoInteractions(refreshTokenService);
+        mockMvc.perform(
+                        post("/api/auth/rotate")
+                                .with(csrf())
+                                .principal(new TestingAuthenticationToken(userPrincipal, ""))
+                                .header("X-Refresh-Token", REFRESH_TOKEN)
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isTooManyRequests());
+
+        verify(rateLimit).check(CLIENT_IP);
+
+        verifyNoInteractions(service);
+
+        utilsMock.verify(() -> Utils.extractClientIP(any(HttpServletRequest.class)));
     }
 
     @Test
-    @DisplayName("rotateRefreshToken: Should return Unauthorized when user principal is missing")
-    void rotateRefreshToken_ShouldReturnUnauthorized_WhenUserIsNull() {
+    @DisplayName("rotateRefreshToken returns 401 Unauthorized when user is null")
+    void rotateRefreshTokenReturnsUnauthorizedWhenUserIsNull() throws Exception {
+        mockClientIp();
+
         RateLimitResult allowedResult = new RateLimitResult(true, 0);
-        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
 
-        ResponseEntity<AuthResponseDTO> response =
-                controller.rotateRefreshToken(refreshToken, clientId, userAgent, null, request);
+        when(rateLimit.check(CLIENT_IP)).thenReturn(allowedResult);
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(rateLimit).check(clientIp);
-        verifyNoInteractions(refreshTokenService);
+        mockMvc.perform(
+                        post("/api/auth/rotate")
+                                .with(csrf())
+                                .header("X-Refresh-Token", REFRESH_TOKEN)
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+
+        verify(rateLimit).check(CLIENT_IP);
+
+        verifyNoInteractions(service);
+
+        utilsMock.verify(() -> Utils.extractClientIP(any(HttpServletRequest.class)));
     }
 
     @Test
-    @DisplayName("rotateRefreshToken: Should use extracted IP for rate limit check")
-    void rotateRefreshToken_ShouldUseExtractedIp() {
+    @WithMockCustomUser
+    @DisplayName("rotateRefreshToken uses extracted client ip for rate limit and token rotation")
+    void rotateRefreshTokenUsesExtractedClientIp() throws Exception {
+        mockClientIp();
+
         RateLimitResult allowedResult = new RateLimitResult(true, 0);
-        when(rateLimit.check(clientIp)).thenReturn(allowedResult);
-        when(refreshTokenService.rotateRefreshToken(any(), any(), any(), any()))
-                .thenReturn(authResponse);
 
-        controller.rotateRefreshToken(refreshToken, clientId, userAgent, userPrincipal, request);
+        when(rateLimit.check(argThat(ip -> ip.equals(CLIENT_IP)))).thenReturn(allowedResult);
 
-        utilsMock.verify(() -> Utils.extractClientIP(request));
-        verify(rateLimit).check(clientIp);
+        when(service.rotateRefreshToken(
+                        argThat(token -> token.equals(REFRESH_TOKEN)),
+                        argThat(client -> client.equals(CLIENT_ID)),
+                        argThat(agent -> agent.equals(USER_AGENT)),
+                        argThat(ip -> ip.equals(CLIENT_IP))))
+                .thenReturn(RESPONSE);
+
+        mockMvc.perform(
+                        post("/api/auth/rotate")
+                                .with(csrf())
+                                .principal(new TestingAuthenticationToken(userPrincipal, ""))
+                                .header("X-Refresh-Token", REFRESH_TOKEN)
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT))
+                .andExpect(status().isOk());
+
+        verify(rateLimit).check(CLIENT_IP);
+
+        verify(service).rotateRefreshToken(REFRESH_TOKEN, CLIENT_ID, USER_AGENT, CLIENT_IP);
+
+        utilsMock.verify(() -> Utils.extractClientIP(any(HttpServletRequest.class)));
     }
 }

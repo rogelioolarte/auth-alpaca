@@ -1,174 +1,285 @@
 package com.alpaca.unit.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.alpaca.controller.AuthController;
-import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.resources.WithMockCustomUser;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
-/** Unit tests for {@link AuthController}. */
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = AuthController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureJsonTesters
 class AuthControllerTest {
 
-    @Mock private IAuthService authService;
+    @Autowired private MockMvc mockMvc;
 
-    @Mock private AuthenticationManager authenticationManager;
+    @Autowired private JacksonTester<AuthRequestDTO> requestJson;
 
-    @Mock private HttpServletRequest request;
+    @Autowired private JsonMapper jsonMapper;
 
-    @Mock private Authentication authentication;
+    @MockitoBean private IAuthService authService;
 
-    @Mock private UserPrincipal userPrincipal;
+    @MockitoBean private AuthenticationManager manager;
 
-    @InjectMocks private AuthController authController;
+    @MockitoBean private Authentication authentication;
+
+    @MockitoBean private UserPrincipal userPrincipal;
 
     private MockedStatic<Utils> utilsMock;
-    private final String clientIp = "192.168.1.1";
-    private final String clientId = "client-123";
-    private final String userAgent = "Mozilla/5.0";
-    private final AuthRequestDTO authRequest = new AuthRequestDTO("test@alpaca.com", "password123");
-    private final AuthResponseDTO authResponse =
-            new AuthResponseDTO("access-token", "refresh-token");
 
-    @BeforeEach
-    void setUp() {
-        utilsMock = mockStatic(Utils.class);
-        utilsMock
-                .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
-                .thenReturn(clientIp);
-    }
+    private static final String CLIENT_ID = "client-id";
+    private static final String USER_AGENT = "Mozilla/5.0";
+    private static final String CLIENT_IP = "192.168.1.10";
+
+    private static final AuthRequestDTO REQUEST =
+            new AuthRequestDTO("test@alpaca.com", "password123");
+
+    private static final AuthResponseDTO RESPONSE =
+            new AuthResponseDTO("access-token", "refresh-token");
 
     @AfterEach
     void tearDown() {
-        utilsMock.close();
-        SecurityContextHolder.clearContext();
+        if (utilsMock != null) {
+            utilsMock.close();
+        }
+    }
+
+    private void mockClientIp() {
+        utilsMock = mockStatic(Utils.class);
+        utilsMock
+                .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
+                .thenReturn(CLIENT_IP);
     }
 
     @Test
-    @DisplayName("login: Should return OK and token when credentials are valid")
-    void login_ShouldReturnOk_WhenAuthenticated() {
-        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+    @DisplayName("login returns 200 OK and authentication response")
+    void loginReturnsAuthenticationResponse() throws Exception {
+        mockClientIp();
+
+        UsernamePasswordAuthenticationToken expectedToken =
+                new UsernamePasswordAuthenticationToken(REQUEST.getEmail(), REQUEST.getPassword());
+
+        when(manager.authenticate(
+                        argThat(
+                                token ->
+                                        token instanceof UsernamePasswordAuthenticationToken
+                                                && Objects.equals(
+                                                        token.getPrincipal(),
+                                                        expectedToken.getPrincipal())
+                                                && Objects.equals(
+                                                        token.getCredentials(),
+                                                        expectedToken.getCredentials()))))
+                .thenReturn(authentication);
+
         when(authentication.getPrincipal()).thenReturn(userPrincipal);
-        when(authService.login(eq(userPrincipal), any(AuthLoginRequestDTO.class)))
-                .thenReturn(authResponse);
 
-        ResponseEntity<AuthResponseDTO> response =
-                authController.login(authRequest, clientId, userAgent, request);
+        when(authService.login(
+                        eq(userPrincipal),
+                        argThat(
+                                dto ->
+                                        dto.email().equals(REQUEST.getEmail())
+                                                && dto.password().equals(REQUEST.getPassword())
+                                                && dto.clientId().equals(CLIENT_ID)
+                                                && dto.userAgent().equals(USER_AGENT)
+                                                && dto.clientIp().equals(CLIENT_IP))))
+                .thenReturn(RESPONSE);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse.accessToken(), response.getBody().accessToken());
-        SecurityContext context = SecurityContextHolder.getContext();
-        assertEquals(authentication, context.getAuthentication());
+        mockMvc.perform(
+                        post("/api/auth/login")
+                                .with(csrf())
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(REQUEST).getJson()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.accessToken", is(RESPONSE.accessToken())))
+                .andExpect(jsonPath("$.refreshToken", is(RESPONSE.refreshToken())));
+
+        verify(manager)
+                .authenticate(
+                        argThat(
+                                token ->
+                                        token instanceof UsernamePasswordAuthenticationToken
+                                                && Objects.equals(
+                                                        token.getPrincipal(), REQUEST.getEmail())
+                                                && Objects.equals(
+                                                        token.getCredentials(),
+                                                        REQUEST.getPassword())));
+
         verify(authService)
                 .login(
                         eq(userPrincipal),
                         argThat(
                                 dto ->
-                                        dto.email().equals(authRequest.getEmail())
-                                                && dto.clientIp().equals(clientIp)));
+                                        dto.email().equals(REQUEST.getEmail())
+                                                && dto.password().equals(REQUEST.getPassword())
+                                                && dto.clientId().equals(CLIENT_ID)
+                                                && dto.userAgent().equals(USER_AGENT)
+                                                && dto.clientIp().equals(CLIENT_IP)));
     }
 
     @Test
-    @DisplayName("register: Should return OK and token upon successful registration")
-    void register_ShouldReturnOk_WhenDataIsValid() {
-        when(authService.register(any(AuthLoginRequestDTO.class))).thenReturn(authResponse);
+    @DisplayName("register returns 200 OK and authentication response")
+    void registerReturnsAuthenticationResponse() throws Exception {
+        mockClientIp();
 
-        ResponseEntity<AuthResponseDTO> response =
-                authController.register(authRequest, clientId, userAgent, request);
+        when(authService.register(
+                        argThat(
+                                dto ->
+                                        dto.email().equals(REQUEST.getEmail())
+                                                && dto.password().equals(REQUEST.getPassword())
+                                                && dto.clientId().equals(CLIENT_ID)
+                                                && dto.userAgent().equals(USER_AGENT)
+                                                && dto.clientIp().equals(CLIENT_IP))))
+                .thenReturn(RESPONSE);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse.refreshToken(), response.getBody().refreshToken());
-        verify(authService).register(argThat(dto -> dto.email().equals(authRequest.getEmail())));
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .with(csrf())
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson.write(REQUEST).getJson()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.accessToken", is(RESPONSE.accessToken())))
+                .andExpect(jsonPath("$.refreshToken", is(RESPONSE.refreshToken())));
+
+        verify(authService)
+                .register(
+                        argThat(
+                                dto ->
+                                        dto.email().equals(REQUEST.getEmail())
+                                                && dto.password().equals(REQUEST.getPassword())
+                                                && dto.clientId().equals(CLIENT_ID)
+                                                && dto.userAgent().equals(USER_AGENT)
+                                                && dto.clientIp().equals(CLIENT_IP)));
     }
 
     @Test
-    @DisplayName("logout: Should return success message and call service")
-    void logout_ShouldReturnSuccessMessage() {
-        String refreshToken = authResponse.refreshToken();
+    @DisplayName("logout returns 200 OK and success message")
+    void logoutReturnsSuccessMessage() throws Exception {
+        mockClientIp();
 
-        ResponseEntity<String> response =
-                authController.logout(refreshToken, clientId, userAgent, request);
+        mockMvc.perform(
+                        post("/api/auth/logout")
+                                .with(csrf())
+                                .header("X-Refresh-Token", RESPONSE.refreshToken())
+                                .header("X-Client-Id", CLIENT_ID)
+                                .header("User-Agent", USER_AGENT))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"Logout successful\"}"));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().contains("Logout successful"));
-        verify(authService).logout(refreshToken, clientId, userAgent, clientIp);
+        verify(authService).logout(RESPONSE.refreshToken(), CLIENT_ID, USER_AGENT, CLIENT_IP);
     }
 
     @Test
-    @DisplayName("exchangeToken: Should return tokens when valid code and verifier provided")
-    void exchangeToken_ShouldReturnTokens() {
+    @DisplayName("exchangeToken returns 200 OK and authentication response")
+    void exchangeTokenReturnsAuthenticationResponse() throws Exception {
+        mockClientIp();
+
         Map<String, String> body = new HashMap<>();
         body.put("code", "auth-code");
-        body.put("code_verifier", "verifier");
-        body.put("client_id", clientId);
+        body.put("code_verifier", "code-verifier");
+        body.put("redirect_uri", "http://localhost/callback");
+        body.put("client_id", CLIENT_ID);
 
-        when(authService.login(any(AuthCode.class))).thenReturn(authResponse);
+        when(authService.login(
+                        argThat(
+                                authCode ->
+                                        authCode.getCode().equals(body.get("code"))
+                                                && authCode.getCodeVerifier()
+                                                        .equals(body.get("code_verifier"))
+                                                && authCode.getRedirectUri()
+                                                        .equals(body.get("redirect_uri"))
+                                                && authCode.getClientId()
+                                                        .equals(body.get("client_id"))
+                                                && authCode.getUserAgent().equals(USER_AGENT)
+                                                && authCode.getClientIp().equals(CLIENT_IP))))
+                .thenReturn(RESPONSE);
 
-        ResponseEntity<AuthResponseDTO> response =
-                authController.exchangeToken(request, userAgent, body);
+        mockMvc.perform(
+                        post("/api/auth/exchange")
+                                .with(csrf())
+                                .header("User-Agent", USER_AGENT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(jsonMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.accessToken", is(RESPONSE.accessToken())))
+                .andExpect(jsonPath("$.refreshToken", is(RESPONSE.refreshToken())));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse.accessToken(), response.getBody().accessToken());
         verify(authService)
                 .login(
                         argThat(
                                 authCode ->
                                         authCode.getCode().equals(body.get("code"))
-                                                && authCode.getClientId().equals(clientId)));
+                                                && authCode.getCodeVerifier()
+                                                        .equals(body.get("code_verifier"))
+                                                && authCode.getRedirectUri()
+                                                        .equals(body.get("redirect_uri"))
+                                                && authCode.getClientId()
+                                                        .equals(body.get("client_id"))
+                                                && authCode.getUserAgent().equals(USER_AGENT)
+                                                && authCode.getClientIp().equals(CLIENT_IP)));
     }
 
     @Test
-    @DisplayName("getCurrentUser: Should return user principal when authenticated")
-    void getCurrentUser_ShouldReturnUser_WhenAuthenticated() {
-        ResponseEntity<UserPrincipal> response = authController.getCurrentUser(userPrincipal);
+    @WithMockCustomUser
+    @DisplayName("getCurrentUser returns 200 OK and authenticated user")
+    void getCurrentUserReturnsAuthenticatedUser() throws Exception {
+        when(userPrincipal.getUsername()).thenReturn(REQUEST.getEmail());
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(userPrincipal, response.getBody());
+        mockMvc.perform(get("/api/auth/me")).andExpect(status().isOk());
+
+        assertNotNull(userPrincipal);
+        assertEquals(REQUEST.getEmail(), userPrincipal.getUsername());
     }
 
     @Test
-    @DisplayName("getCurrentUser: Should return Unauthorized when principal is null")
-    void getCurrentUser_ShouldReturnUnauthorized_WhenPrincipalIsNull() {
-        ResponseEntity<UserPrincipal> response = authController.getCurrentUser(null);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNull(response.getBody());
-    }
-
-    @Test
-    @DisplayName("health: Should return online status message")
-    void health_ShouldReturnApiOnline() {
-        ResponseEntity<String> response = authController.health();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("API Online", response.getBody());
+    @DisplayName("health returns 200 OK and api online message")
+    void healthReturnsApiOnlineMessage() throws Exception {
+        mockMvc.perform(get("/api/auth"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("API Online"));
     }
 }

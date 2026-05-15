@@ -45,7 +45,11 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
         } catch (ResponseStatusException e) {
-            throw new InternalAuthenticationServiceException(e.getReason());
+            if (e.getReason() != null) {
+                throw new InternalAuthenticationServiceException(e.getReason());
+            } else {
+                throw new InternalAuthenticationServiceException(e.getMessage());
+            }
         } catch (Exception e) {
             throw new InternalAuthenticationServiceException(
                     "Error during authentication", e.getCause());

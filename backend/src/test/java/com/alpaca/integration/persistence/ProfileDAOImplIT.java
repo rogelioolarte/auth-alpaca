@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +61,7 @@ class ProfileDAOImplIT {
         updateData.setFirstName("Jane");
         updateData.setLastName("Smith");
         updateData.setAddress("456 Elm St");
-        updateData.setAvatarUrl("http://avatar.com/jane");
+        updateData.setAvatarUrl("https://avatar.com/jane");
         updateData.setUser(persistedNewOwner);
 
         // Act
@@ -72,7 +72,7 @@ class ProfileDAOImplIT {
                 () -> assertEquals("Jane", result.getFirstName()),
                 () -> assertEquals("Smith", result.getLastName()),
                 () -> assertEquals("456 Elm St", result.getAddress()),
-                () -> assertEquals("http://avatar.com/jane", result.getAvatarUrl()),
+                () -> assertEquals("https://avatar.com/jane", result.getAvatarUrl()),
                 () -> assertEquals(persistedNewOwner.getId(), result.getUser().getId()));
     }
 

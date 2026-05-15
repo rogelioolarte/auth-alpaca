@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.alpaca.security.oauth2.AccessTokenResConverter;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -131,6 +132,7 @@ class AccessTokenResConverterTest {
                                     Map.entry("other", 42));
 
                     @Override
+                    @NonNull
                     public Set<Entry<String, Object>> entrySet() {
                         // LinkedHashSet to preserve insertion order in the test
                         return new LinkedHashSet<>(entries);
