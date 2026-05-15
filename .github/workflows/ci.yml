@@ -39,6 +39,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_ORG_TOKEN }}
-          files: backend/target/jacoco-report/unit/jacoco.xml
+          files: backend/target/site/jacoco/jacoco.xml
           fail_ci_if_error: true
           verbose: true

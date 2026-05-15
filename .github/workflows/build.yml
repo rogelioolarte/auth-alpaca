@@ -8,12 +8,14 @@ on:
 
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/**'
 
   pull_request:
     branches:
       - main
       - dev
+
     types:
       - opened
       - synchronize
@@ -21,6 +23,7 @@ on:
 
     paths:
       - 'backend/**'
+      - 'frontend/**'
       - '.github/workflows/**'
 
 permissions:
@@ -32,11 +35,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sonar:
-    name: Build, Test and Analyze
+  backend:
+    name: Backend - Java 25 + Spring Boot 4
     runs-on: ubuntu-latest
 
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     defaults:
       run:
@@ -51,15 +54,13 @@ jobs:
         -XX:+UseG1GC
         -Djava.awt.headless=true
 
-      SEGMENT_DOWNLOAD_TIMEOUT_MINS: '5'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Setup JDK
+      - name: Setup Java 25
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -70,47 +71,123 @@ jobs:
       - name: Validate Maven Wrapper
         uses: gradle/actions/wrapper-validation@v4
 
-      - name: Make Maven Wrapper executable
+      - name: Make mvnw executable
         run: chmod +x mvnw
 
-      - name: Prefetch dependencies
+      - name: Download dependencies
         run: |
           ./mvnw \
             -B \
             --no-transfer-progress \
             dependency:go-offline
 
-      - name: Run tests and verification
+      - name: Run tests and build
         run: |
           ./mvnw \
             -B \
             --no-transfer-progress \
             clean verify
 
-      - name: SonarQube analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ./mvnw \
-            -B \
-            --no-transfer-progress \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=rogelioolarte_auth-alpaca \
-            -Dsonar.qualitygate.wait=true
-
-      - name: Upload test reports
+      - name: Upload backend test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: backend-test-reports
           path: |
             backend/**/target/surefire-reports/**
             backend/**/target/failsafe-reports/**
 
-      - name: Upload JaCoCo reports
+      - name: Upload backend coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-report
+          name: backend-jacoco
           path: backend/**/target/site/jacoco/**
+
+  frontend:
+    name: Frontend - Angular 21
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Angular tests
+        run: npm run test -- --watch=false --code-coverage
+
+      - name: Build Angular application
+        run: npm run build
+
+      - name: Upload frontend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/**
+
+  sonar:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+
+    needs:
+      - backend
+      - frontend
+
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn \
+            -f backend/pom.xml \
+            -B \
+            --no-transfer-progress \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=rogelioolarte_auth-alpaca \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.timeout=300 \
+            -Dsonar.sources=backend/src,frontend/src \
+            -Dsonar.tests=backend/src/test \
+            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info \
+            -Dsonar.coverage.jacoco.xmlReportPaths=backend/target/site/jacoco/jacoco.xml
