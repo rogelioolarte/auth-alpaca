@@ -91,10 +91,10 @@ jobs:
       - name: Debug Maven Sonar values
         run: |
           echo "ORG:"
-          ./mvnw help:evaluate -Dexpression=sonar.organization -q -DforceStdout
+          mvn help:evaluate -Dexpression=sonar.organization -q -DforceStdout
 
           echo "KEY:"
-          ./mvnw help:evaluate -Dexpression=sonar.projectKey -q -DforceStdout
+          mvn help:evaluate -Dexpression=sonar.projectKey -q -DforceStdout
 
       - name: SonarQube analysis
         env:
