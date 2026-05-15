@@ -125,14 +125,19 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Run Angular tests
-        run: npm run test -- --watch=false --code-coverage
+        run: bun run test --watch=false --code-coverage
 
       - name: Build Angular application
-        run: npm run build
+        run: bun run build
 
       - name: Upload frontend coverage
         if: always()
