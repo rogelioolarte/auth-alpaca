@@ -15,10 +15,6 @@ on:
       - synchronize
       - reopened
   
-  defaults:
-      run:
-        working-directory: backend
-
 permissions:
   contents: read
   pull-requests: read
@@ -28,6 +24,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  defaults:
+      run:
+        working-directory: backend
+
   sonar:
     name: Build, Test and Analyze
     runs-on: ubuntu-latest
