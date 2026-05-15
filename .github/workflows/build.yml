@@ -88,10 +88,13 @@ jobs:
             --no-transfer-progress \
             clean verify
 
-      - name: Debug Sonar properties
+      - name: Debug Maven Sonar values
         run: |
-          echo "Organization: $SONAR_ORG"
-          echo "Project Key: $SONAR_PROJECT_KEY"
+          echo "ORG:"
+          ./mvnw help:evaluate -Dexpression=sonar.organization -q -DforceStdout
+
+          echo "KEY:"
+          ./mvnw help:evaluate -Dexpression=sonar.projectKey -q -DforceStdout
 
       - name: SonarQube analysis
         env:
