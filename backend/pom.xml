@@ -8,8 +8,8 @@
 		<version>4.0.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>multiple-auth-api</artifactId>
+	<groupId>com.alpaca</groupId>
+	<artifactId>auth-alpaca</artifactId>
 	<version>2.0.0</version>
 	<name>Multiple Auth API</name>
 	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuth2 and JWT.</description>
@@ -48,7 +48,7 @@
 	</scm>
 	<properties>
         <sonar.organization>rogelioolarte</sonar.organization>
-		<sonar.projectKey>rogelioolarte_auth-alpaca</sonar.projectKey>
+		<sonar.projectKey>auth-alpaca</sonar.projectKey>
 		<java.version>25</java.version>
 		<maven.compiler.args>--enable-preview</maven.compiler.args>
 		<jjwt.version>0.13.0</jjwt.version>

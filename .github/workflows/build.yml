@@ -88,6 +88,11 @@ jobs:
             --no-transfer-progress \
             clean verify
 
+      - name: Debug Sonar properties
+        run: |
+          echo "Organization: $SONAR_ORG"
+          echo "Project Key: $SONAR_PROJECT_KEY"
+
       - name: SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
