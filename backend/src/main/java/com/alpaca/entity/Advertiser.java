@@ -75,44 +75,6 @@ public class Advertiser extends Auditable {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    /**
-     * Constructs an instance of a new Advertiser object with the specified attributes. The
-     * generated object is ready to be used and stored in the database.
-     *
-     * @param title Title name - must not be null
-     * @param description Short description of the Advertiser - must not be null
-     * @param bannerUrl URL of the Advertiser's banner image - must not be null
-     * @param avatarUrl URL of the Advertiser's avatar image - must not be null
-     * @param publicLocation Publicly visible location - must not be null
-     * @param publicUrlLocation URL of the public location - must not be null
-     * @param indexed indicates whether the Advertiser is indexed for public search
-     * @param paid indicates whether the Advertiser has a paid subscription
-     * @param verified indicates whether the Advertiser is verified
-     * @param user the User associated with this Advertiser - must not be null
-     */
-    public Advertiser(
-            String title,
-            String description,
-            String bannerUrl,
-            String avatarUrl,
-            String publicLocation,
-            String publicUrlLocation,
-            boolean indexed,
-            boolean paid,
-            boolean verified,
-            User user) {
-        this.title = title;
-        this.description = description;
-        this.bannerUrl = bannerUrl;
-        this.avatarUrl = avatarUrl;
-        this.publicLocation = publicLocation;
-        this.publicUrlLocation = publicUrlLocation;
-        this.indexed = indexed;
-        this.paid = paid;
-        this.verified = verified;
-        this.user = user;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

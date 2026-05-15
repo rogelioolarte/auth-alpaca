@@ -71,12 +71,13 @@ public class ProfileMapperImpl implements IProfileMapper {
     @Override
     public Profile toEntity(ProfileRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new Profile(
-                requestDTO.getFirstName(),
-                requestDTO.getLastName(),
-                requestDTO.getAddress(),
-                requestDTO.getAvatarUrl(),
-                userService.findById(UUID.fromString(requestDTO.getUserId())));
+        Profile entity = new Profile();
+        entity.setFirstName(requestDTO.getFirstName());
+        entity.setLastName(requestDTO.getLastName());
+        entity.setAddress(requestDTO.getAddress());
+        entity.setAvatarUrl(requestDTO.getAvatarUrl());
+        entity.setUser(userService.findById(UUID.fromString(requestDTO.getUserId())));
+        return entity;
     }
 
     /**

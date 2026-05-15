@@ -104,23 +104,36 @@ public class DataServiceImpl implements DataService {
                         new User("user@user.com", "123456789", new HashSet<>(Set.of(userRole))));
 
         profileService.save(
-                new Profile("Admin", "Last", "av admin 01", "https://foto.admin.com", adminUser));
+                Profile.builder()
+                        .firstName("Admin")
+                        .lastName("Last")
+                        .address("av admin 01")
+                        .avatarUrl("https://photo.admin.com")
+                        .user(adminUser)
+                        .build());
         profileService.save(
-                new Profile("User", "Last", "av user 01", "https://foto.user.com", userUser));
+                Profile.builder()
+                        .firstName("User")
+                        .lastName("Last")
+                        .address("av user 01")
+                        .avatarUrl("https://photo.user.com")
+                        .user(userUser)
+                        .build());
         profileService.save(
-                new Profile(
-                        "Manager",
-                        "Last",
-                        "av manager 01",
-                        "https://foto.invited.com",
-                        managerUser));
-        profileService.save(
-                new Profile(
-                        "Testing Profile",
-                        "Last",
-                        "av testing 01",
-                        "https://foto.testing.com",
-                        testGoogleUser));
+                Profile.builder()
+                        .firstName("Manager")
+                        .lastName("Last")
+                        .address("av manager 01")
+                        .avatarUrl("https://photo.manager.com")
+                        .user(managerUser)
+                        .build());
+        profileService.save(Profile.builder()
+                .firstName("Testing Profile")
+                .lastName("Last")
+                .address("av testing 01")
+                .avatarUrl("https://photo.testing.com")
+                .user(testGoogleUser)
+                .build());
     }
 
     /**

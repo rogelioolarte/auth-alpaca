@@ -87,10 +87,11 @@ public class UserMapperImpl implements IUserMapper {
     @Override
     public User toEntity(UserRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new User(
-                requestDTO.getEmail(),
-                requestDTO.getPassword(),
-                roleService.findAllByIdsToSet(requestDTO.getRoles()));
+        User entity = new User();
+        entity.setEmail(requestDTO.getEmail());
+        entity.setPassword(requestDTO.getPassword());
+        entity.setRoles(roleService.findAllByIdsToSet(requestDTO.getRoles()));
+        return entity;
     }
 
     /**

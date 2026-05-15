@@ -100,7 +100,7 @@ class UserDAOImplTest {
 
         // Roles
         Set<Role> roles = Set.of(RoleProvider.singleEntity());
-        updateData.setUserRoles(roles);
+        updateData.setRoles(roles);
 
         // Profile & Advertiser with IDs
         Profile profile = new Profile();
@@ -169,10 +169,10 @@ class UserDAOImplTest {
     void updateById_WhenRolesAreIdentical_SkipsUpdate() {
         Set<Role> roles = Set.of(RoleProvider.singleEntity());
         User existingUser = new User();
-        existingUser.setUserRoles(roles);
+        existingUser.setRoles(roles);
 
         User updateData = new User();
-        updateData.setUserRoles(new HashSet<>(roles)); // Same content, different instance
+        updateData.setRoles(new HashSet<>(roles)); // Same content, different instance
 
         when(repo.findById(id)).thenReturn(Optional.of(existingUser));
         when(repo.save(any(User.class))).thenAnswer(i -> i.getArgument(0));

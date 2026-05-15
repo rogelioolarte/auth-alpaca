@@ -66,7 +66,7 @@ class UserMapperImplTest {
         assertNull(mapper.toResponseDTO(null));
 
         User entity = UserProvider.singleEntity();
-        entity.setUserRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
+        entity.setRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
         when(roleMapper.toListResponseDTO(entity.getRoles()))
                 .thenReturn(new ArrayList<>(List.of(RoleProvider.singleResponse())));
         when(profileMapper.toResponseDTO(null)).thenReturn(ProfileProvider.singleResponse());

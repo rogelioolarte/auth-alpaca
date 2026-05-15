@@ -21,7 +21,7 @@ public class CustomUserSecurityContextFactory
 
         User user = UserProvider.singleEntity();
         List<Role> roles = RoleProvider.listEntities();
-        user.setUserRoles(roles);
+        user.setRoles(roles);
         UserPrincipal principal = new UserPrincipal(user);
 
         Authentication auth =

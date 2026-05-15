@@ -58,7 +58,9 @@ public class PermissionMapperImpl implements IPermissionMapper {
     @Override
     public Permission toEntity(PermissionRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new Permission(requestDTO.getName());
+        Permission entity = new Permission();
+        entity.setName(requestDTO.getName());
+        return entity;
     }
 
     /**

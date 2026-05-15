@@ -4,16 +4,15 @@ import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 /**
  * Represents a Profile entity in the system. This entity is mapped to the "profiles" table in the
  * database and stores personal details of a user, including name, address, and avatar. It has a
  * one-to-one relationship with the {@link User} entity.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor

@@ -202,7 +202,7 @@ public class User extends Auditable {
         this.userRoles = rolesToUserRoles(roles);
     }
 
-    public void setUserRoles(Collection<Role> roles) {
+    public void setRoles(Collection<Role> roles) {
         if (roles != null && !roles.isEmpty()) {
             this.userRoles.clear();
             Set<UserRole> newUserRoles = rolesToUserRoles(roles);
@@ -330,4 +330,5 @@ public class User extends Auditable {
                 googleConnected,
                 tokensInvalidBefore);
     }
+
 }

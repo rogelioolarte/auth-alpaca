@@ -39,12 +39,12 @@ public class AdvertiserProvider {
         Advertiser firstEntity =
                 new Advertiser(
                         null,
-                        "Advertiser_1",
-                        "Advertiser version 1",
-                        "https://banner.com/advertiser1",
-                        "https://avatar.com/advertiser1",
+                        "Advertiser_2",
+                        "Advertiser version 2",
+                        "https://banner.com/advertiser2",
+                        "https://avatar.com/advertiser2",
                         "av. root 123",
-                        "https://location.com/advertiser1",
+                        "https://location.com/advertiser2",
                         true,
                         true,
                         true,
