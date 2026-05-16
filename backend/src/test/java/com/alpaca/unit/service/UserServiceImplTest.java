@@ -31,7 +31,7 @@ class UserServiceImplTest {
 
     private User firstUser;
     private User secondUser;
-    private final String ENCODED_PW = "encoded_password";
+    private final String encodedPw = "encoded_password";
 
     @BeforeEach
     void setup() {
@@ -41,7 +41,7 @@ class UserServiceImplTest {
 
     @Test
     void save_DelegatesToRegister() {
-        when(passwordManager.encodePassword(firstUser.getPassword())).thenReturn(ENCODED_PW);
+        when(passwordManager.encodePassword(firstUser.getPassword())).thenReturn(encodedPw);
         when(dao.save(firstUser)).thenReturn(firstUser);
 
         User result = service.save(firstUser);
@@ -78,18 +78,18 @@ class UserServiceImplTest {
 
     @Test
     void register_WhenUserIsNull_ThrowsBadRequestException() {
-        assertThrows(BadRequestException.class, () -> service.register(null));
+        assertThrows(BadRequestException.class, () -> service.save(null));
     }
 
     @Test
     void register_WhenValid_EncodesPasswordAndSaves() {
-        when(passwordManager.encodePassword(secondUser.getPassword())).thenReturn(ENCODED_PW);
+        when(passwordManager.encodePassword(secondUser.getPassword())).thenReturn(encodedPw);
         when(dao.save(secondUser)).thenReturn(secondUser);
 
-        User result = service.register(secondUser);
+        User result = service.save(secondUser);
 
         assertEquals(secondUser, result);
-        assertEquals(ENCODED_PW, secondUser.getPassword());
+        assertEquals(encodedPw, secondUser.getPassword());
         verify(dao).save(secondUser);
     }
 

@@ -134,28 +134,38 @@ class OAuth2ServiceImplTest {
     // ---------------------------------------
     @Test
     void registerOrLoginOAuth2_whenMissingFields_throwsBadRequest() {
+        String emailA = "e";
+        String emailB = null;
+        String firstA = "f";
+        String firstB = " ";
+        String lastA = "l";
+        String lastB = null;
+        String imgA = "img";
+        String imgB = null;
+        Map<String, Object> attr = Map.of();
         BadRequestException ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2(null, "f", "l", "img", true, Map.of()));
+                        () -> service.registerOrLoginOAuth2(
+                                emailB, firstA, lastA, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2("e", " ", "l", "img", true, Map.of()));
+                        () -> service.registerOrLoginOAuth2(emailA, firstB, lastA, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2("e", "f", null, "img", true, Map.of()));
+                        () -> service.registerOrLoginOAuth2(emailA, firstA, lastB, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2("e", "f", "l", null, true, Map.of()));
+                        () -> service.registerOrLoginOAuth2(emailA, firstA, lastA, imgB, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
     }
 
@@ -214,28 +224,36 @@ class OAuth2ServiceImplTest {
     // ---------------------------------------
     @Test
     void registerProfile_whenInvalid_throwsBadRequest() {
+        User userA = new User();
+        User userB = null;
+        String firstA = "f";
+        String firstB = null;
+        String lastA = "l";
+        String lastB = null;
+        String imgA = "img";
+        String imgB = null;
         // user null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(null, "f", "l", "img"));
+                BadRequestException.class, () -> service.registerProfile(userB, firstA, lastA, imgA));
 
         // user.id null
         assertThrows(
                 BadRequestException.class,
-                () -> service.registerProfile(new User(), "f", "l", "img"));
+                () -> service.registerProfile(userA, firstA, lastA, imgA));
 
         // firstName null
         User hasId = new User();
         hasId.setId(UUID.randomUUID());
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, null, "l", "img"));
+                BadRequestException.class, () -> service.registerProfile(hasId, firstB, lastA, imgA));
 
         // lastName null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, "f", null, "img"));
+                BadRequestException.class, () -> service.registerProfile(hasId, firstA, lastB, imgA));
 
         // imageURL null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, "f", "l", null));
+                BadRequestException.class, () -> service.registerProfile(hasId, firstA, lastA, imgB));
     }
 
     @Test

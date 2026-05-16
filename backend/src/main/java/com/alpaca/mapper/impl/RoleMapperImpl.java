@@ -82,7 +82,7 @@ public class RoleMapperImpl implements IRoleMapper {
         Role entity = new Role();
         entity.setName(requestDTO.getName());
         entity.setDescription(requestDTO.getDescription());
-        entity.setRolePermissions(permissionService.findAllByIdsToSet(requestDTO.getPermissions()));
+        entity.setRolePermissions((permissionService.findAllByIds(requestDTO.getPermissions())));
         return entity;
     }
 

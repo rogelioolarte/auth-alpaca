@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class IPRateLimitTest {
 
     private IPRateLimit ipRateLimit;
-    private final String TEST_IP = "192.168.1.1";
+    private final String testIp = "192.168.1.1";
 
     @BeforeEach
     void setUp() {
@@ -22,20 +22,20 @@ class IPRateLimitTest {
     @Test
     @DisplayName("It must allow requests below the limit")
     void shouldAllowRequestWithinLimit() {
-        RateLimitResult result = ipRateLimit.check(TEST_IP);
+        RateLimitResult result = ipRateLimit.check(testIp);
 
         assertThat(result.allowed()).isTrue();
-        assertThat(result.retryAfterSeconds()).isEqualTo(0);
+        assertThat(result.retryAfterSeconds()).isZero();
     }
 
     @Test
     @DisplayName("You must block requests when the limit of 10 is exceeded.")
     void shouldBlockRequestWhenLimitExceeded() {
         for (int i = 0; i < 10; i++) {
-            ipRateLimit.check(TEST_IP);
+            ipRateLimit.check(testIp);
         }
 
-        RateLimitResult result = ipRateLimit.check(TEST_IP);
+        RateLimitResult result = ipRateLimit.check(testIp);
 
         assertThat(result.allowed()).isFalse();
         assertThat(result.retryAfterSeconds()).isGreaterThan(0);
@@ -47,10 +47,10 @@ class IPRateLimitTest {
         String otherIp = "10.0.0.1";
 
         for (int i = 0; i < 10; i++) {
-            ipRateLimit.check(TEST_IP);
+            ipRateLimit.check(testIp);
         }
 
-        assertThat(ipRateLimit.check(TEST_IP).allowed()).isFalse();
+        assertThat(ipRateLimit.check(testIp).allowed()).isFalse();
         assertThat(ipRateLimit.check(otherIp).allowed()).isTrue();
     }
 }

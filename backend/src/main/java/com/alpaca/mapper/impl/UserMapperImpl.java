@@ -90,7 +90,7 @@ public class UserMapperImpl implements IUserMapper {
         User entity = new User();
         entity.setEmail(requestDTO.getEmail());
         entity.setPassword(requestDTO.getPassword());
-        entity.setRoles(roleService.findAllByIdsToSet(requestDTO.getRoles()));
+        entity.setRoles(roleService.findAllByIds(requestDTO.getRoles()));
         return entity;
     }
 

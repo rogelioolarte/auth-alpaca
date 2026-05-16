@@ -44,7 +44,7 @@ class UserServiceImplIT {
         User user = UserProvider.singleTemplate();
 
         // Act
-        User saved = service.register(user);
+        User saved = service.save(user);
 
         // Assert
         assertThat(saved).isNotNull();
@@ -58,7 +58,7 @@ class UserServiceImplIT {
     @DisplayName("register: Should throw BadRequestException when user is null")
     @Transactional
     void register_ShouldThrowBadRequest_WhenUserIsNull() {
-        assertThatThrownBy(() -> service.register(null))
+        assertThatThrownBy(() -> service.save(null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("User cannot be created");
     }
@@ -90,7 +90,7 @@ class UserServiceImplIT {
         // Arrange
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
-        User saved = service.register(user);
+        User saved = service.save(user);
 
         saved.setEmail("updated@alpaca.com");
 
@@ -105,10 +105,12 @@ class UserServiceImplIT {
     @DisplayName("updateById: Should throw BadRequestException when user or UUID is null")
     @Transactional
     void updateById_ShouldThrowBadRequest_WhenInputsAreNull() {
-        assertThatThrownBy(() -> service.updateById(null, UUID.randomUUID()))
+        UUID id = UUID.randomUUID();
+        assertThatThrownBy(() -> service.updateById(null, id))
                 .isInstanceOf(BadRequestException.class);
 
-        assertThatThrownBy(() -> service.updateById(UserProvider.singleTemplate(), null))
+        User user = UserProvider.singleTemplate();
+        assertThatThrownBy(() -> service.updateById(user, null))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -123,7 +125,7 @@ class UserServiceImplIT {
         // Arrange
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
-        service.register(user);
+        service.save(user);
 
         // Act & Assert
         assertThat(service.existsByEmail(user.getEmail())).isTrue();
@@ -137,7 +139,7 @@ class UserServiceImplIT {
         // Arrange
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
-        User saved = service.register(user);
+        User saved = service.save(user);
 
         // Act
         User found = service.findByEmail(saved.getEmail());

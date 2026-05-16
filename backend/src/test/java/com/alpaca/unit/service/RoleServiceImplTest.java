@@ -68,7 +68,8 @@ class RoleServiceImplTest {
     @Test
     void findByRoleNameCaseThree() {
         when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> service.findByRoleName(secondEntity.getName()));
+        String name = secondEntity.getName();
+        assertThrows(NotFoundException.class, () -> service.findByRoleName(name));
         verify(dao).findByRoleName(secondEntity.getName());
     }
 

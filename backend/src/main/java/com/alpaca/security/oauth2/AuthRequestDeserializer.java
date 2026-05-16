@@ -64,7 +64,10 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
                             "Expected JSON object for OAuth2AuthorizationRequest");
         }
 
-        String clientId = null, authorizationUri = null, redirectUri = null, state = null;
+        String clientId = null;
+        String authorizationUri = null;
+        String redirectUri = null;
+        String state = null;
         Set<String> scopes = Collections.emptySet();
         Map<String, Object> attributes = Collections.emptyMap();
         Map<String, Object> additionalParameters = Collections.emptyMap();

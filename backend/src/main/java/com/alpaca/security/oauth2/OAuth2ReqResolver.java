@@ -86,7 +86,7 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
         try {
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, createHash(codeVerifier));
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException _) {
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeVerifier);
         }
     }

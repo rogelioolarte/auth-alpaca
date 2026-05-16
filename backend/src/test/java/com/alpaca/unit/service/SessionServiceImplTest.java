@@ -41,13 +41,13 @@ class SessionServiceImplTest {
     private SessionServiceImpl service;
     private User user;
     private Session session;
-    private final int MAX_SESSIONS = 2;
+    private final int maxSessions = 2;
 
     @BeforeEach
     void setUp() {
         service =
                 new SessionServiceImpl(
-                        dao, userDAO, refreshTokenDAO, uuidv7Generator, MAX_SESSIONS, false);
+                        dao, userDAO, refreshTokenDAO, uuidv7Generator, maxSessions, false);
         user = UserProvider.singleEntity();
         session = SessionProvider.singleEntity();
     }
@@ -135,7 +135,7 @@ class SessionServiceImplTest {
     void createSession_WhenInfinityLoginEnabled_RevokesOldestSession() {
         SessionServiceImpl infinityService =
                 new SessionServiceImpl(
-                        dao, userDAO, refreshTokenDAO, uuidv7Generator, MAX_SESSIONS, true);
+                        dao, userDAO, refreshTokenDAO, uuidv7Generator, maxSessions, true);
         UUID userId = user.getId();
         UUID newFamilyId = UUID.randomUUID();
         UUID oldestFamilyId = UUID.randomUUID();

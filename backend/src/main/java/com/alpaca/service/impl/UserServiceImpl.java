@@ -31,6 +31,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
 
     private final IUserDAO dao;
     private final PasswordManager passwordManager;
+    private static final String ERROR_CREATED_MESS = "%s cannot be created";
 
     /**
      * Provides the DAO component used by inherited service operations.
@@ -54,18 +55,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         return "User";
     }
 
-    @Override
-    public User save(User user) {
-        return this.register(user);
-    }
-
-    @Override
-    public User updateById(User user, UUID uuid) {
-        if (user == null || uuid == null)
-            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-        return dao.updateById(user, uuid);
-    }
-
     /**
      * Registers a new {@link User} in the system.
      *
@@ -75,11 +64,18 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      */
     @Transactional
     @Override
-    public User register(User user) {
+    public User save(User user) {
         if (user == null)
-            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
+            throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
         user.setPassword(passwordManager.encodePassword(user.getPassword()));
         return dao.save(user);
+    }
+
+    @Override
+    public User updateById(User user, UUID uuid) {
+        if (user == null || uuid == null)
+            throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
+        return dao.updateById(user, uuid);
     }
 
     /**

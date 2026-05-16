@@ -75,10 +75,11 @@ class PermissionServiceImplIT {
     @Test
     @DisplayName("findAllByIds: Validates null, empty, or list containing null")
     void findAllByIds_ShouldValidateInputs() {
+        List<UUID> emptyList = Collections.emptyList();
         assertThatThrownBy(() -> service.findAllByIds(null))
                 .isInstanceOf(BadRequestException.class);
 
-        assertThatThrownBy(() -> service.findAllByIds(Collections.emptyList()))
+        assertThatThrownBy(() -> service.findAllByIds(emptyList))
                 .isInstanceOf(BadRequestException.class);
 
         List<UUID> listWithNull = new ArrayList<>();
@@ -151,7 +152,8 @@ class PermissionServiceImplIT {
     @Test
     @DisplayName("updateById: Throws exception on null inputs or missing entity")
     void updateById_ShouldValidateInputs() {
-        assertThatThrownBy(() -> service.updateById(null, UUID.randomUUID()))
+        UUID id = UUID.randomUUID();
+        assertThatThrownBy(() -> service.updateById(null, id))
                 .isInstanceOf(BadRequestException.class);
 
         Permission p = PermissionProvider.singleTemplate();
@@ -181,9 +183,10 @@ class PermissionServiceImplIT {
     @Test
     @DisplayName("deleteById: Validates null and existence before deletion")
     void deleteById_ShouldValidate() {
+        UUID id = UUID.randomUUID();
         assertThatThrownBy(() -> service.deleteById(null)).isInstanceOf(BadRequestException.class);
 
-        assertThatThrownBy(() -> service.deleteById(UUID.randomUUID()))
+        assertThatThrownBy(() -> service.deleteById(id))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("not exists");
     }

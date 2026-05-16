@@ -9,22 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.json.JsonMapper;
-
 @ExtendWith(MockitoExtension.class)
 class AuthResponseTypeDeserializerTest {
 
     @Mock private JsonParser parser;
     @Mock private DeserializationContext ct;
-    private static final JsonMapper OBJECT_MAPPER = new JsonMapper();
-    private static final JavaType OA2R_MAPPER =
-            OBJECT_MAPPER.getTypeFactory().constructType(OAuth2AuthorizationRequest.class);
 
     private AuthResponseTypeDeserializer deserializer;
 

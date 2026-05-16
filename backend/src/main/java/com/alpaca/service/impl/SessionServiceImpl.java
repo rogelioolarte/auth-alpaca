@@ -114,11 +114,12 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         UUID newFamilyId = uuidv7Generator.generate();
         Instant now = Instant.now();
         Session newSession;
+        String newSessionCreatedReason = "new-session-created";
         if (session.isPresent()) {
             newSession = session.get();
             // All previous refresh tokens are revoked
             refreshTokenDAO.revokeFamilyWithReason(
-                    newSession.getFamilyId(), now, "new-session-created");
+                    newSession.getFamilyId(), now, newSessionCreatedReason);
         } else {
             List<Session> activeSessions =
                     dao.findActiveSessionsByUserOrderByLastSeen(userId, pageableForMaxSessions);
@@ -126,8 +127,8 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
                 if (this.infinityLogin) {
                     UUID oldestSessionFamilyId = activeSessions.getFirst().getFamilyId();
                     refreshTokenDAO.revokeFamilyWithReason(
-                            oldestSessionFamilyId, now, "new-session-created");
-                    dao.revokeSessionByFamilyId(oldestSessionFamilyId, now, "new-session-created");
+                            oldestSessionFamilyId, now, newSessionCreatedReason);
+                    dao.revokeSessionByFamilyId(oldestSessionFamilyId, now, newSessionCreatedReason);
                 } else {
                     throw new ExceededSessionsException(maxSessionsPerUser);
                 }

@@ -167,10 +167,10 @@ class PermissionDAOImplTest {
             @DisplayName("Should throw NotFoundException when ID doesn't exist")
             void updateById_ThrowsException() {
                 when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
-
+                UUID id = firstEntity.getId();
                 assertThrows(
                         NotFoundException.class,
-                        () -> dao.updateById(firstEntity, firstEntity.getId()));
+                        () -> dao.updateById(firstEntity, id));
                 verify(repo, never()).save(any());
             }
 

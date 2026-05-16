@@ -30,7 +30,7 @@ class RoleDAOImplTest {
     @InjectMocks private RoleDAOImpl dao;
 
     private Role firstEntity;
-    private final UUID TEST_ID = UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca");
+    private final UUID testId = UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca");
 
     @BeforeEach
     void setup() {
@@ -67,8 +67,9 @@ class RoleDAOImplTest {
         @DisplayName("Should throw NotFoundException and cover error message logic")
         void updateById_NotFound() {
             UUID id = UUID.randomUUID();
+            Role role = new Role();
             when(repo.findById(id)).thenReturn(Optional.empty());
-            assertThrows(NotFoundException.class, () -> dao.updateById(new Role(), id));
+            assertThrows(NotFoundException.class, () -> dao.updateById(role, id));
         }
 
         @Nested
@@ -84,10 +85,10 @@ class RoleDAOImplTest {
                 Role incoming = new Role();
                 incoming.setRolePermissions(null); // Gate 1 fails (A is false)
 
-                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.findById(testId)).thenReturn(Optional.of(existing));
                 when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
 
-                dao.updateById(incoming, TEST_ID);
+                dao.updateById(incoming, testId);
 
                 assertThat(existing.getRolePermissions()).isEmpty();
                 verify(repo).save(existing);
@@ -104,10 +105,10 @@ class RoleDAOImplTest {
                 incoming.setRolePermissions(
                         new HashSet<>()); // Gate 1 true, Gate 2 fails (B is false)
 
-                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.findById(testId)).thenReturn(Optional.of(existing));
                 when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
 
-                dao.updateById(incoming, TEST_ID);
+                dao.updateById(incoming, testId);
 
                 assertThat(existing.getRolePermissions()).isEmpty();
                 verify(repo).save(existing);
@@ -123,10 +124,10 @@ class RoleDAOImplTest {
                 Role incoming = new Role();
                 incoming.setRolePermissions(new HashSet<>(Set.of(p))); // Gate 1 true, Gate 2 true
 
-                when(repo.findById(TEST_ID)).thenReturn(Optional.of(existing));
+                when(repo.findById(testId)).thenReturn(Optional.of(existing));
                 when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
 
-                dao.updateById(incoming, TEST_ID);
+                dao.updateById(incoming, testId);
 
                 assertThat(existing.getRolePermissions()).hasSize(1);
                 verify(repo).save(existing);

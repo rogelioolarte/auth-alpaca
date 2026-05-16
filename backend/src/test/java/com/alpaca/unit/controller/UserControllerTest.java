@@ -268,7 +268,7 @@ class UserControllerTest {
     @DisplayName("findAllPage returns a paged list")
     void findAllPageReturnsPagedList() throws Exception {
         when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
-        when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
+        when(mapper.toPageResponseDTO(argThat(PageImpl.class::isInstance)))
                 .thenReturn(UserProvider.pageResponse());
 
         mockMvc.perform(get("/api/users/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
@@ -278,6 +278,6 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.content[0].email", is(firstResponse.email())));
 
         verify(service).findAllPage(isA(Pageable.class));
-        verify(mapper).toPageResponseDTO(argThat(r -> r instanceof PageImpl));
+        verify(mapper).toPageResponseDTO(argThat(PageImpl.class::isInstance));
     }
 }

@@ -1,5 +1,6 @@
 package com.alpaca.security.manager;
 
+import com.alpaca.exception.BadRequestException;
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
 import com.alpaca.security.oauth2.AuthResponseTypeDeserializer;
 import jakarta.servlet.http.Cookie;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
+
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 import tools.jackson.databind.DeserializationFeature;
@@ -20,13 +22,15 @@ import tools.jackson.databind.module.SimpleModule;
  * <p>Supports operations to read, add, delete cookies, as well as to serialize Java objects into
  * Base64-encoded JSON strings and to deserialize them back into objects. Custom Jackson
  * deserializers are registered to handle OAuth2-specific types like {@link
- * com.alpaca.security.oauth2.AuthRequestDeserializer}.
+ * AuthRequestDeserializer}.
  *
  * @see AuthRequestDeserializer
  * @see AuthResponseTypeDeserializer
  * @since 1.0
  */
 public class CookieManager {
+
+    private CookieManager() {}
 
     private static final JsonMapper JSON_MAPPER;
     private static final SimpleModule MODULE = new SimpleModule();
@@ -73,6 +77,7 @@ public class CookieManager {
     public static void addCookie(
             HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
+        cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
@@ -114,8 +119,8 @@ public class CookieManager {
                             JSON_MAPPER
                                     .writeValueAsString(object)
                                     .getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new RuntimeException("Error serializing object", e);
+        } catch (Exception _) {
+            throw new BadRequestException("Error serializing object");
         }
     }
 
@@ -134,8 +139,8 @@ public class CookieManager {
                     new String(
                             Base64.getDecoder().decode(cookie.getValue()), StandardCharsets.UTF_8),
                     t);
-        } catch (Exception e) {
-            throw new RuntimeException("Error deserializing cookie value", e);
+        } catch (Exception _) {
+            throw new BadRequestException("Error deserializing cookie value");
         }
     }
 
@@ -149,8 +154,8 @@ public class CookieManager {
     public static String justSerialize(Object object) {
         try {
             return JSON_MAPPER.writeValueAsString(object);
-        } catch (Exception e) {
-            throw new RuntimeException("Error serializing object", e.getCause());
+        } catch (Exception _) {
+            throw new BadRequestException("Error serializing object");
         }
     }
 }

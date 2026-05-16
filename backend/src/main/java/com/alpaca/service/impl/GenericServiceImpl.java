@@ -72,24 +72,15 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public List<T> findAllByIds(Collection<I> is) {
-        if (is == null || is.isEmpty() || hasNull(is)) {
+        if (invalidCollection(is)) {
             throw new BadRequestException(String.format("%s(s) cannot be found", getEntityName()));
         }
-        if (!existsAllByIds(is)) {
+        List<T> will = getDAO().findAllByIds(is);
+        if (will.size() != is.size()) {
             throw new NotFoundException(
                     String.format("Some %s(s) cannot be found", getEntityName()));
         }
-        return getDAO().findAllByIds(is);
-    }
-
-    /**
-     * Retrieves entities by IDs and returns them as a {@link Set}.
-     *
-     * @param is the collection of identifiers
-     * @return a set of entities corresponding to the provided IDs
-     */
-    public Set<T> findAllByIdsToSet(Collection<I> is) {
-        return new HashSet<>(findAllByIds(is));
+        return will;
     }
 
     /**
@@ -105,7 +96,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
         if (t == null) {
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
         }
-        if (existsByUniqueProperties(t)) {
+        if (getDAO().existsByUniqueProperties(t)) {
             throw new BadRequestException(String.format("%s already exists", getEntityName()));
         }
         return getDAO().save(t);
@@ -121,7 +112,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public List<T> saveAll(Collection<T> t) {
-        if (t == null || t.isEmpty() || hasNull(t)) {
+        if (invalidCollection(t)) {
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
         }
         return getDAO().saveAll(t);
@@ -162,7 +153,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
         if (i == null) {
             throw new BadRequestException(String.format("%s cannot be deleted", getEntityName()));
         }
-        if (!existsById(i)) {
+        if (!getDAO().existsById(i)) {
             throw new BadRequestException(String.format("%s not exists", getEntityName()));
         }
         getDAO().deleteById(i);
@@ -218,7 +209,7 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Transactional
     @Override
     public boolean existsAllByIds(Collection<I> is) {
-        if (is == null || is.isEmpty() || hasNull(is)) return false;
+        if (invalidCollection(is)) return false;
         return getDAO().existsAllByIds(is);
     }
 
@@ -233,6 +224,10 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     public boolean existsByUniqueProperties(T t) {
         if (t == null) return false;
         return getDAO().existsByUniqueProperties(t);
+    }
+
+    public boolean invalidCollection(Collection<?> is) {
+        return is == null || is.isEmpty() || hasNull(is);
     }
 
     public boolean hasNull(Collection<?> collection) {

@@ -14,6 +14,7 @@ import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Generated;
@@ -45,11 +46,8 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
         } catch (ResponseStatusException e) {
-            if (e.getReason() != null) {
-                throw new InternalAuthenticationServiceException(e.getReason());
-            } else {
-                throw new InternalAuthenticationServiceException(e.getMessage());
-            }
+            String reason = e.getReason();
+            throw new InternalAuthenticationServiceException(Objects.requireNonNullElseGet(reason, e::getMessage));
         } catch (Exception e) {
             throw new InternalAuthenticationServiceException(
                     "Error during authentication", e.getCause());

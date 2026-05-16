@@ -73,21 +73,24 @@ class RefreshTokenServiceImplIT {
     void rotateRefreshToken_whenClientIdIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token", " ", "agent", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token",
+                        " ", "agent", "127.0.0.1"));
     }
 
     @Test
     void rotateRefreshToken_whenUserAgentIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token", "client", " ", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token",
+                        "client", " ", "127.0.0.1"));
     }
 
     @Test
     void rotateRefreshToken_whenClientIpIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token", "client", "agent", " "));
+                () -> service.rotateRefreshToken("token",
+                        "client", "agent", " "));
     }
 
     // ------------------------------------------------
@@ -100,7 +103,8 @@ class RefreshTokenServiceImplIT {
                 UnauthorizedException.class,
                 () ->
                         service.rotateRefreshToken(
-                                "non-existent-token", "client", "agent", "127.0.0.1"));
+                                "non-existent-token",
+                                "client", "agent", "127.0.0.1"));
     }
 
     // ------------------------------------------------
@@ -137,6 +141,9 @@ class RefreshTokenServiceImplIT {
         refreshToken.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persistedToken = service.save(refreshToken);
+        String clientId = persistedToken.getClientId();
+        String userAgent = persistedToken.getUserAgent();
+        String ipAddress = persistedToken.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -144,9 +151,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persistedToken.getClientId(),
-                                        persistedToken.getUserAgent(),
-                                        persistedToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Revoked Session", ex.getReason());
     }
@@ -174,6 +181,9 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -181,9 +191,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -220,6 +230,9 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -227,9 +240,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -252,6 +265,9 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -259,9 +275,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -284,6 +300,9 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -291,9 +310,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -318,6 +337,9 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -325,9 +347,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Refresh Token issued before tokens_invalid_before", ex.getReason());
     }
@@ -350,6 +372,8 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String userAgent = persisted.getUserAgent();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -358,8 +382,8 @@ class RefreshTokenServiceImplIT {
                                 service.rotateRefreshToken(
                                         jwt,
                                         "client-b",
-                                        persisted.getUserAgent(),
-                                        persisted.getIpAddress()));
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Client mismatch", ex.getReason());
     }
@@ -382,6 +406,8 @@ class RefreshTokenServiceImplIT {
         token.setTokenHash(jwtManager.createTokenHash(jwt));
 
         RefreshToken persisted = service.save(token);
+        String clientId = persisted.getClientId();
+        String ipAddress = persisted.getIpAddress();
 
         UnauthorizedException ex =
                 assertThrows(
@@ -389,9 +415,9 @@ class RefreshTokenServiceImplIT {
                         () ->
                                 service.rotateRefreshToken(
                                         jwt,
-                                        persisted.getClientId(),
+                                        clientId,
                                         "agent-b",
-                                        persisted.getIpAddress()));
+                                        ipAddress));
 
         assertEquals("User-Agent mismatch", ex.getReason());
     }

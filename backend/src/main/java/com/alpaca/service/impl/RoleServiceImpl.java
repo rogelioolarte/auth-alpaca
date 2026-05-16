@@ -63,7 +63,7 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
     @Override
     public Set<Role> getUserRoles() {
         Set<Role> roles = HashSet.newHashSet(1);
-        roles.add(findByRoleName("USER"));
+        dao.findByRoleName("USER").ifPresent(roles::add);
         return roles;
     }
 

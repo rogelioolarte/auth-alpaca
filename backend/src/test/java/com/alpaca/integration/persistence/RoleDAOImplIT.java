@@ -95,8 +95,9 @@ class RoleDAOImplIT {
                 outPartial.getRolePermissions(),
                 "permissions must remain unchanged");
 
+        UUID idd = UUID.randomUUID();
         // non-existing id -> NotFoundException
-        assertThrows(NotFoundException.class, () -> dao.updateById(request, UUID.randomUUID()));
+        assertThrows(NotFoundException.class, () -> dao.updateById(request, idd));
     }
 
     @Test

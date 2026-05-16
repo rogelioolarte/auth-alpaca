@@ -69,7 +69,6 @@ class UserDAOImplIT {
     @DisplayName("updateById: updates all fields and relations when different")
     @Transactional
     void updateById_ShouldUpdateAllFields() {
-        User user = UserProvider.singleTemplate();
         userRepo.save(user);
 
         Profile profile = ProfileProvider.singleTemplate();

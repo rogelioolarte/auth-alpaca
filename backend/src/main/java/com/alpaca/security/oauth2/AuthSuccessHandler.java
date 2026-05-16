@@ -167,7 +167,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     protected String determineCodeChallenge(HttpServletRequest request) {
         OAuth2AuthorizationRequest authReq = repository.loadAuthorizationRequest(request);
-        String challenge = (String) authReq.getAttributes().get("client_code_challenge");
+        String challenge = (String) authReq.getAttributes().get(CLIENT_CODE_CHALLENGE);
         if (challenge != null && !challenge.isBlank()) {
             return challenge;
         }

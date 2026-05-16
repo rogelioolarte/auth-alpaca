@@ -168,9 +168,10 @@ class SessionDAOImplIT {
     @Test
     @DisplayName("updateById throws when session not found")
     void updateNotFound() {
-
+        Session session = new Session();
+        UUID id = UUID.randomUUID();
         assertThrows(
-                NotFoundException.class, () -> dao.updateById(new Session(), UUID.randomUUID()));
+                NotFoundException.class, () -> dao.updateById(session, id));
     }
 
     @Test

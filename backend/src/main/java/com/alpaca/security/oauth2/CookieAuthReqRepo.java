@@ -86,7 +86,7 @@ public class CookieAuthReqRepo
                     response, REDIRECT_PARAM_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
         }
         String clientCodeChallenge =
-                (String) authorizationRequest.getAttributes().get("client_code_challenge");
+                (String) authorizationRequest.getAttributes().get(CLIENT_CODE_CHALLENGE);
         if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
             CookieManager.addCookie(
                     response, CLIENT_CODE_CHALLENGE, clientCodeChallenge, COOKIE_EXPIRED_SECONDS);

@@ -58,12 +58,19 @@ class AuthServiceImplTest {
     private AuthResponseDTO authResponse;
     private AuthCode authCode;
 
+    String clientId;
+    String userAgent;
+    String ipAddress;
+
     @BeforeEach
     void setUp() {
         user = UserProvider.alternativeEntity();
         userPrincipal = new UserPrincipal(user);
 
         session = SessionProvider.singleEntity();
+        clientId = session.getClientId();
+        userAgent = session.getUserAgent();
+        ipAddress = session.getIpAddress();
 
         loginRequest =
                 new AuthLoginRequestDTO(
@@ -303,15 +310,16 @@ class AuthServiceImplTest {
 
     @Test
     void logout_WhenRefreshTokenIsInvalid_ThrowsBadRequestException() {
+        String refreshToken = " ";
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
                         () ->
                                 service.logout(
-                                        " ",
-                                        session.getClientId(),
-                                        session.getUserAgent(),
-                                        session.getIpAddress()));
+                                        refreshToken,
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
 
@@ -334,9 +342,9 @@ class AuthServiceImplTest {
                         () ->
                                 service.logout(
                                         refreshToken,
-                                        session.getClientId(),
-                                        session.getUserAgent(),
-                                        session.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Refresh Token Not Found", exception.getReason());
     }
@@ -360,9 +368,9 @@ class AuthServiceImplTest {
                         () ->
                                 service.logout(
                                         refreshToken,
-                                        session.getClientId(),
-                                        session.getUserAgent(),
-                                        session.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Refresh Token already revoked", exception.getReason());
     }
@@ -383,9 +391,9 @@ class AuthServiceImplTest {
 
         service.logout(
                 refreshToken,
-                session.getClientId(),
-                session.getUserAgent(),
-                session.getIpAddress());
+                clientId,
+                userAgent,
+                ipAddress);
 
         verify(refreshTokenService)
                 .revokeRefreshTokensAndSessionByFamilyId(

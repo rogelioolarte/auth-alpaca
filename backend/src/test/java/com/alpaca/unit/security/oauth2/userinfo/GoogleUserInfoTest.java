@@ -14,55 +14,55 @@ class GoogleUserInfoTest {
 
     private GoogleUserInfo userInfo;
 
-    private static final String sub = "123";
-    private static final String firstName = "FirstName";
-    private static final String lastName = "LastName";
-    private static final String email = "example@example.com";
-    private static final String picture = "https://example.com/image.jpg";
-    private static final String name = firstName + " " + lastName;
+    private static final String SUB = "123";
+    private static final String FIRST_NAME = "FirstName";
+    private static final String LAST_NAME = "LastName";
+    private static final String EMAIL_EXAMPLE = "example@example.com";
+    private static final String PICTURE_EXAMPLE = "https://example.com/image.jpg";
+    private static final String FULL_NAME = FIRST_NAME + " " + LAST_NAME;
 
     @BeforeEach
     void setUp() {
         userInfo =
                 new GoogleUserInfo(
                         Map.of(
-                                "sub", sub,
-                                "name", name,
-                                "given_name", firstName,
-                                "family_name", lastName,
-                                "email", email,
-                                "picture", picture,
+                                "sub", SUB,
+                                "name", FULL_NAME,
+                                "given_name", FIRST_NAME,
+                                "family_name", LAST_NAME,
+                                "email", EMAIL_EXAMPLE,
+                                "picture", PICTURE_EXAMPLE,
                                 "email_verified", true));
     }
 
     @Test
     void shouldReturnId() {
-        assertEquals(sub, userInfo.getId());
+        assertEquals(SUB, userInfo.getId());
     }
 
     @Test
     void shouldReturnFullName() {
-        assertEquals(name, userInfo.getFullName());
+        assertEquals(FULL_NAME, userInfo.getFullName());
     }
 
     @Test
     void shouldReturnFirstName() {
-        assertEquals(firstName, userInfo.getFirstName());
+        assertEquals(FIRST_NAME, userInfo.getFirstName());
     }
 
     @Test
     void shouldReturnLastName() {
-        assertEquals(lastName, userInfo.getLastName());
+        assertEquals(LAST_NAME, userInfo.getLastName());
     }
 
     @Test
     void shouldReturnEmail() {
-        assertEquals(email, userInfo.getEmail());
+        assertEquals(EMAIL_EXAMPLE, userInfo.getEmail());
     }
 
     @Test
     void shouldReturnImageUrl() {
-        assertEquals(picture, userInfo.getImageUrl());
+        assertEquals(PICTURE_EXAMPLE, userInfo.getImageUrl());
     }
 
     @Test

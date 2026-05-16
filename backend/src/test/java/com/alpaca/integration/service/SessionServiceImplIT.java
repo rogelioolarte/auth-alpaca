@@ -121,12 +121,15 @@ class SessionServiceImplIT {
             s.setCreatedAt(now);
             sessionDAO.save(s);
         }
+        UUID id = user.getId();
+        String agent = "New-Agent";
+        String client = "web";
+        String ip = "1.1.1.1";
 
         // Act & Assert
         assertThatThrownBy(
                         () ->
-                                restrictedService.createSession(
-                                        user.getId(), "New-Agent", "web", "1.1.1.1"))
+                                restrictedService.createSession(id, agent, client, ip))
                 .isInstanceOf(ExceededSessionsException.class);
     }
 

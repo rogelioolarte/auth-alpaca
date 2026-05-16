@@ -264,7 +264,7 @@ class RoleControllerTest {
     @DisplayName("findAllPage returns a paged list")
     void findAllPageReturnsPagedList() throws Exception {
         when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
-        when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
+        when(mapper.toPageResponseDTO(argThat(PageImpl.class::isInstance)))
                 .thenReturn(RoleProvider.pageResponse());
 
         mockMvc.perform(get("/api/roles/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
@@ -274,6 +274,6 @@ class RoleControllerTest {
                 .andExpect(jsonPath("$.content[0].name", is(firstResponse.name())));
 
         verify(service).findAllPage(isA(Pageable.class));
-        verify(mapper).toPageResponseDTO(argThat(r -> r instanceof PageImpl));
+        verify(mapper).toPageResponseDTO(argThat(PageImpl.class::isInstance));
     }
 }

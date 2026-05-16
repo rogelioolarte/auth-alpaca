@@ -16,6 +16,8 @@ import io.github.cdimascio.dotenv.Dotenv;
  */
 public class LoadEnv {
 
+    private LoadEnv() {}
+
     /**
      * Loads all entries from the `.env` file into JVM system properties. If a property already
      * exists in the system, it will not be overwritten by default, preserving environment-based

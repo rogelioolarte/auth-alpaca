@@ -4,7 +4,6 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,39 +11,29 @@ import org.springframework.data.domain.Pageable;
  * Generic service interface providing common CRUD operations.
  *
  * @param <T> The type of entity.
- * @param <ID> The type of the entity's identifier.
+ * @param <I> The type of the entity's identifier.
  */
-public interface IGenericService<T, ID> {
+public interface IGenericService<T, I> {
 
     /**
      * Finds an entity by its identifier.
      *
-     * @param id The identifier of the entity - must not be null.
+     * @param i The identifier of the entity - must not be null.
      * @return The entity if found.
      * @throws BadRequestException if the ID is null.
      * @throws NotFoundException if the entity is not found.
      */
-    T findById(ID id);
+    T findById(I i);
 
     /**
      * Finds all entities by their identifiers.
      *
-     * @param ids A collection of entity identifiers - must not be null or empty.
+     * @param is A collection of entity identifiers - must not be null or empty.
      * @return A list of found entities.
      * @throws BadRequestException if the IDs are null or empty.
      * @throws NotFoundException if any entity is not found.
      */
-    List<T> findAllByIds(Collection<ID> ids);
-
-    /**
-     * Finds all entities by their identifiers and returns them as a set.
-     *
-     * @param ids A collection of entity identifiers - must not be null or empty.
-     * @return A set of found entities.
-     * @throws BadRequestException if the IDs are null or empty.
-     * @throws NotFoundException if any entity is not found.
-     */
-    Set<T> findAllByIdsToSet(Collection<ID> ids);
+    List<T> findAllByIds(Collection<I> is);
 
     /**
      * Saves a new entity.
@@ -68,21 +57,21 @@ public interface IGenericService<T, ID> {
      * Updates an existing entity by its identifier.
      *
      * @param t The updated entity data - must not be null.
-     * @param id The identifier of the entity to update - must not be null.
+     * @param i The identifier of the entity to update - must not be null.
      * @return The updated entity.
      * @throws BadRequestException if the ID or entity is null.
      * @throws NotFoundException if the entity does not exist.
      */
-    T updateById(T t, ID id);
+    T updateById(T t, I i);
 
     /**
      * Deletes an entity by its identifier.
      *
-     * @param id The identifier of the entity to delete - must not be null.
+     * @param i The identifier of the entity to delete - must not be null.
      * @throws BadRequestException if the ID is null.
      * @throws NotFoundException if the entity does not exist.
      */
-    void deleteById(ID id);
+    void deleteById(I i);
 
     /**
      * Retrieves all entities.
@@ -103,18 +92,18 @@ public interface IGenericService<T, ID> {
     /**
      * Checks if an entity exists by its identifier.
      *
-     * @param id The identifier of the entity - must not be null.
+     * @param i The identifier of the entity - must not be null.
      * @return {@code true} if the entity exists, otherwise {@code false}.
      */
-    boolean existsById(ID id);
+    boolean existsById(I i);
 
     /**
      * Checks if multiple entities exist by their identifiers.
      *
-     * @param ids A collection of entity identifiers - must not be null or empty.
+     * @param is A collection of entity identifiers - must not be null or empty.
      * @return {@code true} if all entities exist, otherwise {@code false}.
      */
-    boolean existsAllByIds(Collection<ID> ids);
+    boolean existsAllByIds(Collection<I> is);
 
     /**
      * Checks if an entity exists based on its unique properties.

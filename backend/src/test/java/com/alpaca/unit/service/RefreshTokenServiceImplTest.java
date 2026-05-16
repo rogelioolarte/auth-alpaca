@@ -46,6 +46,9 @@ class RefreshTokenServiceImplTest {
     private Session session;
     private User user;
     private UserPrincipal userPrincipal;
+    private String clientId;
+    private String userAgent;
+    private String ipAddress;
 
     @BeforeEach
     void setUp() {
@@ -59,6 +62,10 @@ class RefreshTokenServiceImplTest {
         refreshToken.setUserAgent(session.getUserAgent());
         refreshToken.setCreatedAt(Instant.now());
         refreshToken.setExpiresAt(Instant.now().plusSeconds(300));
+
+        clientId = refreshToken.getClientId();
+        userAgent = refreshToken.getUserAgent();
+        ipAddress = refreshToken.getIpAddress();
 
         userPrincipal = new UserPrincipal(user);
     }
@@ -122,9 +129,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Revoked Session", exception.getReason());
 
@@ -150,9 +157,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Revoked Session", exception.getReason());
 
@@ -167,9 +174,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         " ",
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
     }
@@ -183,8 +190,8 @@ class RefreshTokenServiceImplTest {
                                 service.rotateRefreshToken(
                                         "token",
                                         " ",
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Invalid Client ID", exception.getReason());
     }
@@ -197,9 +204,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         "token",
-                                        refreshToken.getClientId(),
+                                        clientId,
                                         " ",
-                                        refreshToken.getIpAddress()));
+                                        ipAddress));
 
         assertEquals("Invalid User Agent", exception.getReason());
     }
@@ -212,8 +219,8 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         "token",
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
+                                        clientId,
+                                        userAgent,
                                         " "));
 
         assertEquals("Invalid Client IP", exception.getReason());
@@ -233,9 +240,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
 
@@ -259,9 +266,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", exception.getReason());
 
@@ -290,9 +297,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", exception.getReason());
 
@@ -318,9 +325,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", exception.getReason());
 
@@ -346,9 +353,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        clientId,
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
     }
@@ -369,8 +376,8 @@ class RefreshTokenServiceImplTest {
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
                                         invalidClientId,
-                                        refreshToken.getUserAgent(),
-                                        refreshToken.getIpAddress()));
+                                        userAgent,
+                                        ipAddress));
 
         assertEquals("Client mismatch", exception.getReason());
 
@@ -394,9 +401,9 @@ class RefreshTokenServiceImplTest {
                         () ->
                                 service.rotateRefreshToken(
                                         oldRefreshToken,
-                                        refreshToken.getClientId(),
+                                        clientId,
                                         invalidUserAgent,
-                                        refreshToken.getIpAddress()));
+                                        ipAddress));
 
         assertEquals("User-Agent mismatch", exception.getReason());
 

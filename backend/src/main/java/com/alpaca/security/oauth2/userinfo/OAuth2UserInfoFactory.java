@@ -27,6 +27,8 @@ import lombok.Generated;
 @Generated
 public class OAuth2UserInfoFactory {
 
+    private OAuth2UserInfoFactory() {}
+
     /**
      * Returns an {@link OAuth2UserInfo} instance suitable for the specified provider.
      *

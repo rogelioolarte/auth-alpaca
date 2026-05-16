@@ -86,7 +86,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
      * @return the redirection URL
      */
     private String resolveTargetUrl(HttpServletRequest request) {
-        return Optional.ofNullable(request.getParameter("redirect_uri"))
+        return Optional.ofNullable(request.getParameter(REDIRECT_PARAM_NAME))
                 .or(
                         () ->
                                 CookieManager.getCookie(request, REDIRECT_PARAM_NAME)

@@ -13,8 +13,8 @@ import org.springframework.data.repository.NoRepositoryBean;
  * this interface directly.
  *
  * @param <T> The entity type.
- * @param <ID> The primary key type of the entity.
+ * @param <I> The primary key type of the entity.
  * @see JpaRepository
  */
 @NoRepositoryBean
-public interface GenericRepo<T, ID> extends JpaRepository<T, ID> {}
+public interface GenericRepo<T, I> extends JpaRepository<T, I> {}

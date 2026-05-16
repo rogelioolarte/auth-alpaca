@@ -85,7 +85,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
                                                         "%s with ID %s not found",
                                                         getEntity().getName(), id.toString())));
 
-        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
         if (StringUtils.hasText(user.getPassword())
                 && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
             existingUser.setPassword(passwordManager.encodePassword(user.getPassword()));
@@ -95,24 +94,7 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
             existingUser.setRoles(user.getRoles());
         }
 
-        if (user.getProfile() != null && user.getProfile().getId() != null) {
-            UUID currentUserId =
-                    existingUser.getProfile() != null ? existingUser.getProfile().getId() : null;
-            if (!Objects.equals(user.getProfile().getId(), currentUserId)) {
-                existingUser.setProfile(user.getProfile());
-            }
-        }
-
-        if (user.getAdvertiser() != null && user.getAdvertiser().getId() != null) {
-            UUID currentUserId =
-                    existingUser.getAdvertiser() != null
-                            ? existingUser.getAdvertiser().getId()
-                            : null;
-            if (!Objects.equals(user.getAdvertiser().getId(), currentUserId)) {
-                existingUser.setAdvertiser(user.getAdvertiser());
-            }
-        }
-
+        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
         updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
         updateIfDifferent(
                 existingUser.isAccountNonLocked(),

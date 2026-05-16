@@ -34,7 +34,8 @@ public interface IUserService extends IGenericService<User, UUID> {
      * @return The registered user entity.
      * @throws BadRequestException If the provided user data is null.
      */
-    User register(User user);
+    @Override
+    User save(User user);
 
     /**
      * Checks if a user exists by their email address.
@@ -43,4 +44,5 @@ public interface IUserService extends IGenericService<User, UUID> {
      * @return {@code true} if a user with the given email exists, otherwise {@code false}.
      */
     boolean existsByEmail(String email);
+
 }

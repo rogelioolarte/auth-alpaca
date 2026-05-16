@@ -55,6 +55,7 @@ public class DataServiceImpl implements DataService {
         Permission updatePermission = permissionService.save(new Permission("UPDATE"));
         Permission deletePermission = permissionService.save(new Permission("DELETE"));
         Permission createPermission = permissionService.save(new Permission("CREATE"));
+        String commonPass = "123456789";
 
         Role adminRole =
                 roleService.save(
@@ -88,20 +89,20 @@ public class DataServiceImpl implements DataService {
                 userService.save(
                         new User(
                                 "mcqueenrayo104@gmail.com",
-                                "123456789",
+                                commonPass,
                                 new HashSet<>(Set.of(userRole))));
         User adminUser =
                 userService.save(
-                        new User("admin@admin.com", "123456789", new HashSet<>(Set.of(adminRole))));
+                        new User("admin@admin.com", commonPass, new HashSet<>(Set.of(adminRole))));
         User managerUser =
                 userService.save(
                         new User(
                                 "manager@manager.com",
-                                "123456789",
+                                commonPass,
                                 new HashSet<>(Set.of(managerRole))));
         User userUser =
                 userService.save(
-                        new User("user@user.com", "123456789", new HashSet<>(Set.of(userRole))));
+                        new User("user@user.com", commonPass, new HashSet<>(Set.of(userRole))));
 
         profileService.save(
                 Profile.builder()

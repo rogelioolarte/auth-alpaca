@@ -51,7 +51,7 @@ class AdvertiserDAOImplTest {
         void updateById_NotFound() {
             UUID id = UUID.randomUUID();
             when(repo.findById(id)).thenReturn(Optional.empty());
-            assertThrows(NotFoundException.class, () -> dao.updateById(new Advertiser(), id));
+            assertThrows(NotFoundException.class, () -> dao.updateById(firstEntity, id));
         }
 
         @Test

@@ -11,7 +11,6 @@ import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.resources.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,13 +34,16 @@ class PermissionServiceImplTest {
     private Permission secondEntity;
     private List<Permission> entities;
     private List<UUID> ids;
+    private final List<UUID> emptyIds = Collections.emptyList();
+    private List<UUID> someIds;
 
     @BeforeEach
     void setup() {
         firstEntity = PermissionProvider.singleEntity();
         secondEntity = PermissionProvider.alternativeEntity();
         entities = PermissionProvider.listEntities();
-        ids = entities.stream().map(Permission::getId).collect(Collectors.toList());
+        ids = entities.stream().map(Permission::getId).toList();
+        someIds = new ArrayList<>(List.of(firstEntity.getId()));
     }
 
     // --- findById ---
@@ -76,7 +78,7 @@ class PermissionServiceImplTest {
     @Test
     void findAllByIdsCaseTwo() {
         assertThrows(
-                BadRequestException.class, () -> service.findAllByIds(Collections.emptyList()));
+                BadRequestException.class, () -> service.findAllByIds(emptyIds));
     }
 
     @Test
@@ -88,15 +90,13 @@ class PermissionServiceImplTest {
 
     @Test
     void findAllByIdsCaseFour() {
-        List<UUID> someIds = List.of(secondEntity.getId());
         when(dao.existsAllByIds(someIds)).thenReturn(false);
-        assertThrows(NotFoundException.class, () -> service.findAllByIds(new ArrayList<>(someIds)));
+        assertThrows(NotFoundException.class, () -> service.findAllByIds(someIds));
         verify(dao).existsAllByIds(someIds);
     }
 
     @Test
     void findAllByIdsCaseFive() {
-        List<UUID> someIds = List.of(firstEntity.getId());
         when(dao.existsAllByIds(someIds)).thenReturn(true);
         when(dao.findAllByIds(someIds)).thenReturn(List.of(firstEntity));
         List<Permission> result = service.findAllByIds(new ArrayList<>(someIds));
@@ -105,50 +105,6 @@ class PermissionServiceImplTest {
         assertEquals(firstEntity, result.getFirst());
         verify(dao).existsAllByIds(someIds);
         verify(dao).findAllByIds(someIds);
-    }
-
-    // --- findAllByIdsToSet ---
-    @Test
-    void findAllByIdsToSetCaseOne() {
-        assertThrows(BadRequestException.class, () -> service.findAllByIdsToSet(null));
-    }
-
-    @Test
-    void findAllByIdsToSetCaseTwo() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.findAllByIdsToSet(Collections.emptyList()));
-    }
-
-    @Test
-    void findAllByIdsToSetCaseThree() {
-        UUID id = UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133");
-        List<UUID> uuids = new ArrayList<>();
-        uuids.add(id);
-        uuids.add(null);
-        assertThrows(BadRequestException.class, () -> service.findAllByIdsToSet(uuids));
-    }
-
-    @Test
-    void findAllByIdsToSetCaseFour() {
-        UUID secondId = UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4b3");
-        when(dao.existsAllByIds(List.of(secondId))).thenReturn(false);
-        assertThrows(
-                NotFoundException.class,
-                () -> service.findAllByIdsToSet(new ArrayList<>(List.of(secondId))));
-    }
-
-    @Test
-    void findAllByIdsToSetCaseFive() {
-        when(dao.existsAllByIds(List.of(firstEntity.getId()))).thenReturn(true);
-        when(dao.findAllByIds(List.of(firstEntity.getId()))).thenReturn(List.of(firstEntity));
-        Set<Permission> permissions =
-                service.findAllByIdsToSet(new ArrayList<>(List.of(firstEntity.getId())));
-        assertNotNull(permissions);
-        assertFalse(permissions.isEmpty());
-        assertEquals(Set.of(firstEntity), permissions);
-        verify(dao).existsAllByIds(List.of(firstEntity.getId()));
-        verify(dao).findAllByIds(List.of(firstEntity.getId()));
     }
 
     // --- save ---
@@ -183,7 +139,8 @@ class PermissionServiceImplTest {
 
     @Test
     void saveAllCaseTwo() {
-        assertThrows(BadRequestException.class, () -> service.saveAll(Collections.emptyList()));
+        List<Permission> permissions = Collections.emptyList();
+        assertThrows(BadRequestException.class, () -> service.saveAll(permissions));
     }
 
     @Test
