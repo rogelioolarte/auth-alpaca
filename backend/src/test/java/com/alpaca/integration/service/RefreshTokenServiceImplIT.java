@@ -73,24 +73,21 @@ class RefreshTokenServiceImplIT {
     void rotateRefreshToken_whenClientIdIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token",
-                        " ", "agent", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token", " ", "agent", "127.0.0.1"));
     }
 
     @Test
     void rotateRefreshToken_whenUserAgentIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token",
-                        "client", " ", "127.0.0.1"));
+                () -> service.rotateRefreshToken("token", "client", " ", "127.0.0.1"));
     }
 
     @Test
     void rotateRefreshToken_whenClientIpIsBlank_thenThrowBadRequest() {
         assertThrows(
                 BadRequestException.class,
-                () -> service.rotateRefreshToken("token",
-                        "client", "agent", " "));
+                () -> service.rotateRefreshToken("token", "client", "agent", " "));
     }
 
     // ------------------------------------------------
@@ -103,8 +100,7 @@ class RefreshTokenServiceImplIT {
                 UnauthorizedException.class,
                 () ->
                         service.rotateRefreshToken(
-                                "non-existent-token",
-                                "client", "agent", "127.0.0.1"));
+                                "non-existent-token", "client", "agent", "127.0.0.1"));
     }
 
     // ------------------------------------------------
@@ -114,7 +110,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenSessionIsRevoked_thenThrowUnauthorized() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         UUID familyId = uuidv7Generator.generate();
 
@@ -148,12 +144,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
         assertEquals("Revoked Session", ex.getReason());
     }
@@ -165,7 +156,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenTokenIsRevoked_thenThrowReuseDetected() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(Instant.now());
@@ -188,20 +179,15 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
-        assertEquals("Reuse Detected Refresh Token", ex.getReason());
+        assertEquals("Refresh Token already revoked", ex.getReason());
     }
 
     @Test
     @Transactional
     void rotateRefreshToken_whenTokenWasAlreadyReplaced_thenThrowReuseDetected() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         UUID familyId = uuidv7Generator.generate();
 
@@ -237,12 +223,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -250,7 +231,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenTokenExpired_thenThrowReuseDetected() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(now.minusSeconds(3600));
@@ -272,12 +253,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -285,7 +261,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenExpiresAtIsNull_thenThrowReuseDetected() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(Instant.now());
@@ -307,12 +283,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", ex.getReason());
     }
@@ -320,7 +291,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenCreatedBeforeTokensInvalidBefore_thenThrowUnauthorized() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         persistedUser.setTokensInvalidBefore(now.plusSeconds(3600));
 
@@ -344,12 +315,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, userAgent, ipAddress));
 
         assertEquals("Refresh Token issued before tokens_invalid_before", ex.getReason());
     }
@@ -357,7 +323,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenClientIdMismatch_thenThrowUnauthorized() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(Instant.now());
@@ -378,12 +344,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        "client-b",
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, "client-b", userAgent, ipAddress));
 
         assertEquals("Client mismatch", ex.getReason());
     }
@@ -391,7 +352,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenUserAgentMismatch_thenThrowUnauthorized() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(Instant.now());
@@ -412,12 +373,7 @@ class RefreshTokenServiceImplIT {
         UnauthorizedException ex =
                 assertThrows(
                         UnauthorizedException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        jwt,
-                                        clientId,
-                                        "agent-b",
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(jwt, clientId, "agent-b", ipAddress));
 
         assertEquals("User-Agent mismatch", ex.getReason());
     }
@@ -429,7 +385,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void rotateRefreshToken_whenTokenIsValid_thenRotateSuccessfully() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         UUID familyId = uuidv7Generator.generate();
 
@@ -496,7 +452,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void generateJWTTokens_whenUsingUserPrincipalAndSession_thenPersistRefreshToken() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         Session session = SessionProvider.singleTemplate();
         session.setCreatedAt(Instant.now());
@@ -529,7 +485,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void generateJWTTokens_whenUsingAuthCode_thenCreateSessionAndPersistRefreshToken() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         AuthCode authCode =
                 new AuthCode(
@@ -562,7 +518,7 @@ class RefreshTokenServiceImplIT {
     @Test
     @Transactional
     void delegationMethods_shouldWorkCorrectly() {
-        User persistedUser = userService.register(user);
+        User persistedUser = userService.save(user);
 
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setCreatedAt(Instant.now());

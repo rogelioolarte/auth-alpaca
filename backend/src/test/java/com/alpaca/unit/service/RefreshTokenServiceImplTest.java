@@ -128,10 +128,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Revoked Session", exception.getReason());
 
@@ -156,10 +153,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Revoked Session", exception.getReason());
 
@@ -171,12 +165,7 @@ class RefreshTokenServiceImplTest {
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        " ",
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken(" ", clientId, userAgent, ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
     }
@@ -186,12 +175,7 @@ class RefreshTokenServiceImplTest {
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        "token",
-                                        " ",
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.rotateRefreshToken("token", " ", userAgent, ipAddress));
 
         assertEquals("Invalid Client ID", exception.getReason());
     }
@@ -201,12 +185,7 @@ class RefreshTokenServiceImplTest {
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        "token",
-                                        clientId,
-                                        " ",
-                                        ipAddress));
+                        () -> service.rotateRefreshToken("token", clientId, " ", ipAddress));
 
         assertEquals("Invalid User Agent", exception.getReason());
     }
@@ -216,12 +195,7 @@ class RefreshTokenServiceImplTest {
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.rotateRefreshToken(
-                                        "token",
-                                        clientId,
-                                        userAgent,
-                                        " "));
+                        () -> service.rotateRefreshToken("token", clientId, userAgent, " "));
 
         assertEquals("Invalid Client IP", exception.getReason());
     }
@@ -239,10 +213,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
 
@@ -265,12 +236,9 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
-        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+        assertEquals("Refresh Token already revoked", exception.getReason());
 
         verify(dao)
                 .revokeFamilyWithReason(
@@ -296,10 +264,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", exception.getReason());
 
@@ -324,10 +289,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Reuse Detected Refresh Token", exception.getReason());
 
@@ -352,10 +314,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
     }
@@ -374,10 +333,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        invalidClientId,
-                                        userAgent,
-                                        ipAddress));
+                                        oldRefreshToken, invalidClientId, userAgent, ipAddress));
 
         assertEquals("Client mismatch", exception.getReason());
 
@@ -400,10 +356,7 @@ class RefreshTokenServiceImplTest {
                         UnauthorizedException.class,
                         () ->
                                 service.rotateRefreshToken(
-                                        oldRefreshToken,
-                                        clientId,
-                                        invalidUserAgent,
-                                        ipAddress));
+                                        oldRefreshToken, clientId, invalidUserAgent, ipAddress));
 
         assertEquals("User-Agent mismatch", exception.getReason());
 

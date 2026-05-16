@@ -158,7 +158,7 @@ class OAuth2ServiceImplIT {
         user.setGoogleConnected(false);
         user.setAllowed(true);
         user.setCreatedAt(now);
-        User saved = userService.register(user);
+        User saved = userService.save(user);
 
         // Act
         User updated = service.checkExistingUser(saved, true);
@@ -179,7 +179,7 @@ class OAuth2ServiceImplIT {
         user.setGoogleConnected(true);
         user.setAllowed(true);
         user.setCreatedAt(now);
-        User saved = userService.register(user);
+        User saved = userService.save(user);
 
         // Act
         User updated = service.checkExistingUser(saved, true);

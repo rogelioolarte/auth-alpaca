@@ -128,7 +128,8 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
                     UUID oldestSessionFamilyId = activeSessions.getFirst().getFamilyId();
                     refreshTokenDAO.revokeFamilyWithReason(
                             oldestSessionFamilyId, now, newSessionCreatedReason);
-                    dao.revokeSessionByFamilyId(oldestSessionFamilyId, now, newSessionCreatedReason);
+                    dao.revokeSessionByFamilyId(
+                            oldestSessionFamilyId, now, newSessionCreatedReason);
                 } else {
                     throw new ExceededSessionsException(maxSessionsPerUser);
                 }

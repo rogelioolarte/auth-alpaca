@@ -79,15 +79,15 @@ public class Advertiser extends Auditable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Advertiser that)) return false;
-        return indexed == that.indexed
-                && paid == that.paid
-                && verified == that.verified
-                && Objects.equals(title, that.title)
+        return Objects.equals(title, that.title)
                 && Objects.equals(description, that.description)
                 && Objects.equals(bannerUrl, that.bannerUrl)
                 && Objects.equals(avatarUrl, that.avatarUrl)
                 && Objects.equals(publicLocation, that.publicLocation)
-                && Objects.equals(publicUrlLocation, that.publicUrlLocation);
+                && Objects.equals(publicUrlLocation, that.publicUrlLocation)
+                && indexed == that.indexed
+                && paid == that.paid
+                && verified == that.verified;
     }
 
     @Override

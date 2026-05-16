@@ -168,9 +168,7 @@ class PermissionDAOImplTest {
             void updateById_ThrowsException() {
                 when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
                 UUID id = firstEntity.getId();
-                assertThrows(
-                        NotFoundException.class,
-                        () -> dao.updateById(firstEntity, id));
+                assertThrows(NotFoundException.class, () -> dao.updateById(firstEntity, id));
                 verify(repo, never()).save(any());
             }
 

@@ -86,6 +86,9 @@ class AuthServiceImplTest {
         authCode.setCode("authorization-code");
         authCode.setCodeVerifier("a".repeat(43));
         authCode.setRedirectUri("https://alpaca.com/callback");
+        authCode.setClientId(clientId);
+        authCode.setClientIp(ipAddress);
+        authCode.setUserAgent(userAgent);
     }
 
     @AfterEach
@@ -235,6 +238,9 @@ class AuthServiceImplTest {
     void login_WithAuthCode_ReturnsTokens() {
         AuthCode savedAuthCode = new AuthCode();
         savedAuthCode.setCodeChallenge("expected-challenge");
+        savedAuthCode.setClientId(clientId);
+        savedAuthCode.setClientIp(ipAddress);
+        savedAuthCode.setUserAgent(userAgent);
         savedAuthCode.setExpiresAt(Instant.now().plusSeconds(60));
         savedAuthCode.setRedirectUri(authCode.getRedirectUri());
 
@@ -266,7 +272,7 @@ class AuthServiceImplTest {
         assertEquals("Email already registered", exception.getReason());
 
         verify(userService).existsByEmail(loginRequest.email());
-        verify(userService, never()).register(any(User.class));
+        verify(userService, never()).save(any(User.class));
     }
 
     @Test
@@ -277,7 +283,7 @@ class AuthServiceImplTest {
 
         when(roleService.getUserRoles()).thenReturn(roles);
 
-        when(userService.register(any(User.class))).thenReturn(user);
+        when(userService.save(any(User.class))).thenReturn(user);
 
         when(sessionService.createSession(
                         user.getId(),
@@ -298,7 +304,7 @@ class AuthServiceImplTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-        verify(userService).register(userCaptor.capture());
+        verify(userService).save(userCaptor.capture());
 
         User capturedUser = userCaptor.getValue();
 
@@ -314,12 +320,7 @@ class AuthServiceImplTest {
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.logout(
-                                        refreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.logout(refreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Invalid Refresh Token", exception.getReason());
 
@@ -339,12 +340,7 @@ class AuthServiceImplTest {
         NotFoundException exception =
                 assertThrows(
                         NotFoundException.class,
-                        () ->
-                                service.logout(
-                                        refreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.logout(refreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Refresh Token Not Found", exception.getReason());
     }
@@ -361,16 +357,19 @@ class AuthServiceImplTest {
 
         when(refreshTokenService.findByTokenHashSecure(refreshTokenHash))
                 .thenReturn(Optional.of(storedRefreshToken));
+        doThrow(new BadRequestException("Refresh Token already revoked"))
+                .when(refreshTokenService)
+                .validateRefreshToken(
+                        eq(storedRefreshToken),
+                        eq(clientId),
+                        any(Instant.class),
+                        eq(ipAddress),
+                        eq(userAgent));
 
         BadRequestException exception =
                 assertThrows(
                         BadRequestException.class,
-                        () ->
-                                service.logout(
-                                        refreshToken,
-                                        clientId,
-                                        userAgent,
-                                        ipAddress));
+                        () -> service.logout(refreshToken, clientId, userAgent, ipAddress));
 
         assertEquals("Refresh Token already revoked", exception.getReason());
     }
@@ -389,11 +388,7 @@ class AuthServiceImplTest {
         when(refreshTokenService.findByTokenHashSecure(refreshTokenHash))
                 .thenReturn(Optional.of(storedRefreshToken));
 
-        service.logout(
-                refreshToken,
-                clientId,
-                userAgent,
-                ipAddress);
+        service.logout(refreshToken, clientId, userAgent, ipAddress);
 
         verify(refreshTokenService)
                 .revokeRefreshTokensAndSessionByFamilyId(

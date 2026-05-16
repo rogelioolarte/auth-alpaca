@@ -331,4 +331,24 @@ public class User extends Auditable {
                 tokensInvalidBefore);
     }
 
+    public void updateProfile(User newUser) {
+        if (newUser.getProfile() != null
+                && !Objects.equals(this.getProfile(), newUser.getProfile())) {
+            UUID currProfileId = this.getProfile() != null ? this.getProfile().getId() : null;
+            if (!Objects.equals(newUser.getProfile().getId(), currProfileId)) {
+                this.setProfile(newUser.getProfile());
+            }
+        }
+    }
+
+    public void updateAdvertiser(User newUser) {
+        if (newUser.getAdvertiser() != null
+                && !Objects.equals(this.getAdvertiser(), newUser.getAdvertiser())) {
+            UUID currAdvertiserId =
+                    this.getAdvertiser() != null ? this.getAdvertiser().getId() : null;
+            if (!Objects.equals(newUser.getAdvertiser().getId(), currAdvertiserId)) {
+                this.setAdvertiser(newUser.getAdvertiser());
+            }
+        }
+    }
 }

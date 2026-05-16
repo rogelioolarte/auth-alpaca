@@ -47,7 +47,8 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
             return processOAuth2User(userRequest, super.loadUser(userRequest));
         } catch (ResponseStatusException e) {
             String reason = e.getReason();
-            throw new InternalAuthenticationServiceException(Objects.requireNonNullElseGet(reason, e::getMessage));
+            throw new InternalAuthenticationServiceException(
+                    Objects.requireNonNullElseGet(reason, e::getMessage));
         } catch (Exception e) {
             throw new InternalAuthenticationServiceException(
                     "Error during authentication", e.getCause());
@@ -113,7 +114,7 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         if (!userService.existsByEmail(email)) {
             return new UserPrincipal(
                     registerProfile(
-                            userService.register(
+                            userService.save(
                                     new User(
                                             email,
                                             passwordManager.encodePassword(
@@ -167,11 +168,11 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         }
         if (!user.isGoogleConnected()) {
             user.setGoogleConnected(true);
-            return userService.register(user);
+            return userService.save(user);
         }
         if (user.isEmailVerified() != emailVerified) {
             user.setEmailVerified(emailVerified);
-            return userService.register(user);
+            return userService.save(user);
         }
         return user;
     }

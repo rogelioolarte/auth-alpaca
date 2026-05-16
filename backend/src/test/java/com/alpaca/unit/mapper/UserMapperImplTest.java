@@ -90,13 +90,13 @@ class UserMapperImplTest {
         assertNull(mapper.toEntity(null));
 
         UserRequestDTO request = UserProvider.singleRequest();
-        when(roleService.findAllByIdsToSet(request.getRoles()))
-                .thenReturn(new HashSet<>(Set.of(RoleProvider.singleEntity())));
+        when(roleService.findAllByIds(request.getRoles()))
+                .thenReturn(new ArrayList<>(List.of(RoleProvider.singleEntity())));
         User entity = mapper.toEntity(request);
         assertNotNull(entity);
         assertEquals(request.getEmail(), entity.getEmail());
         assertEquals(request.getRoles().iterator().next(), entity.getRoles().getFirst().getId());
-        verify(roleService).findAllByIdsToSet(request.getRoles());
+        verify(roleService).findAllByIds(request.getRoles());
     }
 
     @Test

@@ -107,7 +107,7 @@ class PermissionServiceImplIT {
         p.setCreatedAt(now);
         Permission saved = service.save(p);
 
-        Set<Permission> result = service.findAllByIdsToSet(List.of(saved.getId()));
+        Set<Permission> result = new HashSet<>(service.findAllByIds(List.of(saved.getId())));
 
         assertThat(result).hasSize(1).contains(saved);
     }

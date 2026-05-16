@@ -7,7 +7,6 @@ import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
 import com.alpaca.security.manager.PasswordManager;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -93,6 +92,9 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         if (user.getRoles() != null && !user.getRoles().equals(existingUser.getRoles())) {
             existingUser.setRoles(user.getRoles());
         }
+
+        existingUser.updateProfile(user);
+        existingUser.updateAdvertiser(user);
 
         updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
         updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);

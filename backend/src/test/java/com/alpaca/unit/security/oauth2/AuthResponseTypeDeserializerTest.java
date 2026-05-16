@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
+
 @ExtendWith(MockitoExtension.class)
 class AuthResponseTypeDeserializerTest {
 

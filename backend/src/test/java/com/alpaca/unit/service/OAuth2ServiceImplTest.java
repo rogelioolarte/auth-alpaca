@@ -98,7 +98,7 @@ class OAuth2ServiceImplTest {
         when(roleService.getUserRoles()).thenReturn(Set.of()); // empty set ok
         User registered = new User("new@example.com", "encoded", true, true, Set.of());
         registered.setId(UUID.randomUUID());
-        when(userService.register(any(User.class))).thenReturn(registered);
+        when(userService.save(any(User.class))).thenReturn(registered);
         // profile created inside registerProfile -> simulate profileService.save
         when(profileService.save(any(Profile.class))).thenReturn(profile);
 
@@ -116,7 +116,7 @@ class OAuth2ServiceImplTest {
 
         // verify registration happened with encoded password
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userService).register(userCaptor.capture());
+        verify(userService).save(userCaptor.capture());
         User passed = userCaptor.getValue();
         assertEquals("new@example.com", passed.getEmail());
         assertEquals("encoded", passed.getPassword());
@@ -135,37 +135,39 @@ class OAuth2ServiceImplTest {
     @Test
     void registerOrLoginOAuth2_whenMissingFields_throwsBadRequest() {
         String emailA = "e";
-        String emailB = null;
         String firstA = "f";
         String firstB = " ";
         String lastA = "l";
-        String lastB = null;
         String imgA = "img";
-        String imgB = null;
         Map<String, Object> attr = Map.of();
         BadRequestException ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2(
-                                emailB, firstA, lastA, imgA, true, attr));
+                        () -> service.registerOrLoginOAuth2(null, firstA, lastA, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2(emailA, firstB, lastA, imgA, true, attr));
+                        () ->
+                                service.registerOrLoginOAuth2(
+                                        emailA, firstB, lastA, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2(emailA, firstA, lastB, imgA, true, attr));
+                        () ->
+                                service.registerOrLoginOAuth2(
+                                        emailA, firstA, null, imgA, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
 
         ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> service.registerOrLoginOAuth2(emailA, firstA, lastA, imgB, true, attr));
+                        () ->
+                                service.registerOrLoginOAuth2(
+                                        emailA, firstA, lastA, null, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
     }
 
@@ -181,7 +183,7 @@ class OAuth2ServiceImplTest {
         // user not google connected but will be registered in checkExistingUser
         existing.setGoogleConnected(false);
         when(userService.findByEmail(email)).thenReturn(existing);
-        when(userService.register(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // Act
         UserPrincipal principal =
@@ -204,7 +206,7 @@ class OAuth2ServiceImplTest {
         when(roleService.getUserRoles()).thenReturn(Set.of());
         User registered = new User(email, "encoded-secret", true, true, Set.of());
         registered.setId(UUID.randomUUID());
-        when(userService.register(any(User.class))).thenReturn(registered);
+        when(userService.save(any(User.class))).thenReturn(registered);
         when(profileService.save(any(Profile.class))).thenReturn(profile);
 
         // Act
@@ -215,7 +217,7 @@ class OAuth2ServiceImplTest {
         assertNotNull(principal);
         assertEquals(email, principal.getUsername());
         verify(passwordManager).encodePassword(anyString());
-        verify(userService).register(any(User.class));
+        verify(userService).save(any(User.class));
         verify(profileService).save(any(Profile.class));
     }
 
@@ -225,16 +227,13 @@ class OAuth2ServiceImplTest {
     @Test
     void registerProfile_whenInvalid_throwsBadRequest() {
         User userA = new User();
-        User userB = null;
         String firstA = "f";
-        String firstB = null;
         String lastA = "l";
-        String lastB = null;
         String imgA = "img";
-        String imgB = null;
         // user null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(userB, firstA, lastA, imgA));
+                BadRequestException.class,
+                () -> service.registerProfile(null, firstA, lastA, imgA));
 
         // user.id null
         assertThrows(
@@ -245,15 +244,17 @@ class OAuth2ServiceImplTest {
         User hasId = new User();
         hasId.setId(UUID.randomUUID());
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, firstB, lastA, imgA));
+                BadRequestException.class, () -> service.registerProfile(hasId, null, lastA, imgA));
 
         // lastName null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, firstA, lastB, imgA));
+                BadRequestException.class,
+                () -> service.registerProfile(hasId, firstA, null, imgA));
 
         // imageURL null
         assertThrows(
-                BadRequestException.class, () -> service.registerProfile(hasId, firstA, lastA, imgB));
+                BadRequestException.class,
+                () -> service.registerProfile(hasId, firstA, lastA, null));
     }
 
     @Test
@@ -286,12 +287,12 @@ class OAuth2ServiceImplTest {
     void checkExistingUser_whenNotGoogleConnected_registersAndReturns() {
         User u = UserProvider.singleEntity();
         u.setGoogleConnected(false);
-        when(userService.register(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         User res = service.checkExistingUser(u, true);
 
         assertTrue(res.isGoogleConnected());
-        verify(userService).register(any(User.class));
+        verify(userService).save(any(User.class));
     }
 
     @Test
@@ -299,12 +300,12 @@ class OAuth2ServiceImplTest {
         User u = UserProvider.singleEntity();
         u.setGoogleConnected(true);
         u.setEmailVerified(false);
-        when(userService.register(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         User res = service.checkExistingUser(u, true);
 
         assertTrue(res.isEmailVerified());
-        verify(userService).register(any(User.class));
+        verify(userService).save(any(User.class));
     }
 
     @Test
@@ -316,6 +317,6 @@ class OAuth2ServiceImplTest {
         User res = service.checkExistingUser(u, true);
 
         assertSame(u, res);
-        verify(userService, never()).register(any());
+        verify(userService, never()).save(any());
     }
 }

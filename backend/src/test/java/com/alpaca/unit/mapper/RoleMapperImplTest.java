@@ -88,8 +88,8 @@ class RoleMapperImplTest {
     void toEntity() {
         assertNull(mapper.toEntity(null));
 
-        when(permissionService.findAllByIdsToSet(Set.of(PermissionProvider.singleEntity().getId())))
-                .thenReturn(new HashSet<>(Set.of(PermissionProvider.singleEntity())));
+        when(permissionService.findAllByIds(Set.of(PermissionProvider.singleEntity().getId())))
+                .thenReturn(new ArrayList<>(List.of(PermissionProvider.singleEntity())));
         Role entity = mapper.toEntity(RoleProvider.singleRequest());
         assertNotNull(entity);
         assertEquals(RoleProvider.singleRequest().getName(), entity.getName());
@@ -97,8 +97,7 @@ class RoleMapperImplTest {
         assertEquals(
                 RoleProvider.singleRequest().getPermissions().iterator().next(),
                 entity.getRolePermissions().iterator().next().getPermission().getId());
-        verify(permissionService)
-                .findAllByIdsToSet(Set.of(PermissionProvider.singleEntity().getId()));
+        verify(permissionService).findAllByIds(Set.of(PermissionProvider.singleEntity().getId()));
     }
 
     @Test

@@ -77,8 +77,7 @@ class PermissionServiceImplTest {
 
     @Test
     void findAllByIdsCaseTwo() {
-        assertThrows(
-                BadRequestException.class, () -> service.findAllByIds(emptyIds));
+        assertThrows(BadRequestException.class, () -> service.findAllByIds(emptyIds));
     }
 
     @Test
@@ -90,20 +89,18 @@ class PermissionServiceImplTest {
 
     @Test
     void findAllByIdsCaseFour() {
-        when(dao.existsAllByIds(someIds)).thenReturn(false);
+        when(dao.findAllByIds(someIds)).thenReturn(Collections.emptyList());
         assertThrows(NotFoundException.class, () -> service.findAllByIds(someIds));
-        verify(dao).existsAllByIds(someIds);
+        verify(dao).findAllByIds(someIds);
     }
 
     @Test
     void findAllByIdsCaseFive() {
-        when(dao.existsAllByIds(someIds)).thenReturn(true);
         when(dao.findAllByIds(someIds)).thenReturn(List.of(firstEntity));
         List<Permission> result = service.findAllByIds(new ArrayList<>(someIds));
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(firstEntity, result.getFirst());
-        verify(dao).existsAllByIds(someIds);
         verify(dao).findAllByIds(someIds);
     }
 

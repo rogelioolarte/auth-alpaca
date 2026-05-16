@@ -127,9 +127,7 @@ class SessionServiceImplIT {
         String ip = "1.1.1.1";
 
         // Act & Assert
-        assertThatThrownBy(
-                        () ->
-                                restrictedService.createSession(id, agent, client, ip))
+        assertThatThrownBy(() -> restrictedService.createSession(id, agent, client, ip))
                 .isInstanceOf(ExceededSessionsException.class);
     }
 

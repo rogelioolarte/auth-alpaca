@@ -3,6 +3,7 @@ package com.alpaca.service;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import java.time.Instant;
@@ -27,6 +28,10 @@ public interface IRefreshTokenService extends IGenericService<RefreshToken, UUID
     void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason);
 
     void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
+
+    void validateRefreshToken(
+            RefreshToken token, String clientId, Instant now, String clientIp, String userAgent)
+            throws UnauthorizedException;
 
     Optional<UUID> findFamilyIdByTokenHash(String hash);
 

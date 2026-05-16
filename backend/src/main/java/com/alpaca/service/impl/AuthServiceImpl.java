@@ -82,6 +82,17 @@ public class AuthServiceImpl implements IAuthService {
             throw new UnauthorizedException("Code Invalid or Expired");
         }
 
+        // Optional additional validation userAgent, clientId, ClientIp
+        if (!savedAuthCode.getClientId().equals(authCode.getClientId())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getUserAgent().equals(authCode.getUserAgent())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+
         return refreshTokenService.generateJWTTokens(savedAuthCode);
     }
 
@@ -97,7 +108,7 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Email already registered");
         }
         User user =
-                userService.register(
+                userService.save(
                         new User(
                                 requestDTO.email(),
                                 requestDTO.password(),
@@ -111,15 +122,17 @@ public class AuthServiceImpl implements IAuthService {
         if (!StringUtils.hasText(refreshToken)) {
             throw new BadRequestException("Invalid Refresh Token");
         }
+        Instant now = Instant.now();
         RefreshToken actualrefreshToken =
                 refreshTokenService
                         .findByTokenHashSecure(manager.createTokenHash(refreshToken))
                         .orElseThrow(() -> new NotFoundException("Refresh Token Not Found"));
-        if (actualrefreshToken.isRevoked()) {
-            throw new BadRequestException("Refresh Token already revoked");
-        }
+
+        refreshTokenService.validateRefreshToken(
+                actualrefreshToken, clientId, now, ipAddress, userAgent);
+
         refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
-                actualrefreshToken.getFamilyId(), Instant.now(), "logout-session");
+                actualrefreshToken.getFamilyId(), now, "logout-session");
         SecurityContextHolder.clearContext();
     }
 

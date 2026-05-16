@@ -128,13 +128,14 @@ public class DataServiceImpl implements DataService {
                         .avatarUrl("https://photo.manager.com")
                         .user(managerUser)
                         .build());
-        profileService.save(Profile.builder()
-                .firstName("Testing Profile")
-                .lastName("Last")
-                .address("av testing 01")
-                .avatarUrl("https://photo.testing.com")
-                .user(testGoogleUser)
-                .build());
+        profileService.save(
+                Profile.builder()
+                        .firstName("Testing Profile")
+                        .lastName("Last")
+                        .address("av testing 01")
+                        .avatarUrl("https://photo.testing.com")
+                        .user(testGoogleUser)
+                        .build());
     }
 
     /**

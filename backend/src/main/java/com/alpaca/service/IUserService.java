@@ -44,5 +44,4 @@ public interface IUserService extends IGenericService<User, UUID> {
      * @return {@code true} if a user with the given email exists, otherwise {@code false}.
      */
     boolean existsByEmail(String email);
-
 }

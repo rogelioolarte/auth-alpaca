@@ -93,7 +93,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
 
         RefreshToken actualRefreshToken = optToken.get();
 
-        validateRefreshToken(clientId, actualRefreshToken, now, clientIp, userAgent);
+        validateRefreshToken(actualRefreshToken, clientId, now, clientIp, userAgent);
 
         sessionService
                 .findSessionByFamilyId(actualRefreshToken.getFamilyId())
@@ -175,12 +175,14 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
-    private void validateRefreshToken(
-            String clientId, RefreshToken token, Instant now, String clientIp, String userAgent) {
+    @Override
+    public void validateRefreshToken(
+            RefreshToken token, String clientId, Instant now, String clientIp, String userAgent)
+            throws UnauthorizedException {
         if (token.isRevoked()) {
             revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
             logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
-            throw new UnauthorizedException("Reuse Detected Refresh Token");
+            throw new UnauthorizedException("Refresh Token already revoked");
         }
         if (token.getReplacedBy() != null) {
             revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);

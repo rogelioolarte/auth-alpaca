@@ -3,8 +3,7 @@ package com.alpaca.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
@@ -125,7 +124,7 @@ class AuthServiceImplIT {
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
 
-        userService.register(user);
+        userService.save(user);
 
         assertThatThrownBy(() -> authService.register(loginRequest))
                 .isInstanceOf(BadRequestException.class)
@@ -143,7 +142,7 @@ class AuthServiceImplIT {
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
 
-        User savedUser = userService.register(user);
+        User savedUser = userService.save(user);
 
         UserPrincipal principal = new UserPrincipal(savedUser);
 
@@ -318,11 +317,17 @@ class AuthServiceImplIT {
         savedCode.setCodeChallenge(challenge);
         savedCode.setRedirectUri("http://localhost/callback");
         savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientId("test-client");
+        savedCode.setClientIp("127.0.0.1");
 
         AuthCode request = new AuthCode();
         request.setCode("valid-code");
         request.setCodeVerifier(verifier);
         request.setRedirectUri("http://localhost/callback");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientId("test-client");
+        request.setClientIp("127.0.0.1");
 
         AuthResponseDTO expected = new AuthResponseDTO("access", "refresh");
 
@@ -367,12 +372,18 @@ class AuthServiceImplIT {
     void logout_shouldThrowWhenRefreshTokenAlreadyRevoked() {
         RefreshToken token = RefreshTokenProvider.singleTemplate();
         token.setRevoked(true);
+        token.setUserAgent("agent");
+        token.setClientId("client");
+        token.setIpAddress("127.0.0.1");
 
         when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.of(token));
+        doThrow(new UnauthorizedException("Refresh Token already revoked"))
+                .when(refreshTokenService)
+                .validateRefreshToken(any(), any(), any(Instant.class), any(), any());
 
         assertThatThrownBy(
                         () -> authService.logout("refresh-token", "client", "agent", "127.0.0.1"))
-                .isInstanceOf(BadRequestException.class)
+                .isInstanceOf(UnauthorizedException.class)
                 .hasMessageContaining("Refresh Token already revoked");
     }
 
@@ -408,7 +419,7 @@ class AuthServiceImplIT {
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
 
-        userService.register(user);
+        userService.save(user);
 
         UserDetails result = authService.loadUserByUsername(user.getEmail());
 
