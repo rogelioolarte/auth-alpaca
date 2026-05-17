@@ -97,4 +97,40 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
                                                 "%s with Name %s not found",
                                                 getEntityName(), roleName)));
     }
+
+    /**
+     * Updates an existing {@link Role} identified by the given ID with the non-null, non-blank
+     * properties from the supplied {@code role} object. Only changed fields are applied. Throws
+     * {@link NotFoundException} if no existing entity is found.
+     *
+     * @param role the role object containing updated values
+     * @param id the unique identifier of the role to update
+     * @return the updated and saved {@link Role} instance
+     * @throws NotFoundException if no role exists with the specified ID
+     */
+    @Transactional
+    @Override
+    public Role updateById(Role role, UUID id) {
+        if (role == null || id == null)
+            throw new BadRequestException(
+                    String.format("%s with ID %s cannot be updated", getEntityName(), id));
+
+        Role existingRole =
+                dao.findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with ID %s not found",
+                                                        getEntityName(), id)));
+
+        updateTextIfExists(existingRole.getName(), role.getName(), existingRole::setName);
+        updateTextIfExists(
+                existingRole.getDescription(), role.getDescription(), existingRole::setDescription);
+        if (role.getRolePermissions() != null
+                && !role.getRolePermissions().equals(existingRole.getRolePermissions())) {
+            existingRole.setRolePermissions(role.getPermissions());
+        }
+        return dao.save(existingRole);
+    }
 }

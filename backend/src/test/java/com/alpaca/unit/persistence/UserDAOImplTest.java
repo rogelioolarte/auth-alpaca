@@ -4,17 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.alpaca.entity.Advertiser;
-import com.alpaca.entity.Profile;
-import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
-import com.alpaca.security.manager.PasswordManager;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserDAOImplTest {
 
     @Mock private UserRepo repo;
-    @Mock private PasswordManager passwordManager;
 
     @InjectMocks private UserDAOImpl dao;
 
@@ -63,124 +55,6 @@ class UserDAOImplTest {
         assertTrue(result.isPresent());
         assertEquals(firstEntity, result.get());
         verify(repo).findByEmail(email);
-    }
-
-    // --- updateById Tests (The Core of Coverage) ---
-
-    @Test
-    @DisplayName("Should throw NotFoundException when updating non-existent user")
-    void updateById_WhenUserNotFound_ThrowsException() {
-        when(repo.findById(id)).thenReturn(Optional.empty());
-        User updateData = new User();
-
-        assertThrows(NotFoundException.class, () -> dao.updateById(updateData, id));
-        verify(repo).findById(id);
-    }
-
-    @Test
-    @DisplayName("Should update all complex fields and primitives when data is different")
-    void updateById_WhenAllFieldsAreNew_UpdatesEverything() {
-        // Arrange
-        User existingUser = new User();
-        existingUser.setId(id);
-        existingUser.setEmail("old@test.com");
-        existingUser.setEnabled(false);
-        existingUser.setProfile(null);
-        existingUser.setAdvertiser(AdvertiserProvider.singleEntity());
-
-        User updateData = new User();
-        updateData.setEmail("new@test.com");
-        updateData.setPassword("newPass");
-        updateData.setEnabled(true);
-        updateData.setAccountNonLocked(true);
-        updateData.setAccountNonExpired(true);
-        updateData.setCredentialNonExpired(true);
-        updateData.setEmailVerified(true);
-        updateData.setGoogleConnected(true);
-
-        // Roles
-        Set<Role> roles = Set.of(RoleProvider.singleEntity());
-        updateData.setRoles(roles);
-
-        // Profile & Advertiser with IDs
-        Profile profile = new Profile();
-        profile.setId(UUID.randomUUID());
-        updateData.setProfile(profile);
-
-        Advertiser advertiser = new Advertiser();
-        advertiser.setId(UUID.randomUUID());
-        updateData.setAdvertiser(advertiser);
-
-        when(repo.findById(id)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(any(), any())).thenReturn(false);
-        when(passwordManager.encodePassword(any())).thenReturn(updateData.getPassword());
-        when(repo.save(existingUser)).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = dao.updateById(updateData, id);
-
-        // Assert
-        assertAll(
-                () -> assertEquals("new@test.com", result.getEmail()),
-                () -> assertEquals("newPass", result.getPassword()),
-                () -> assertTrue(result.isEnabled()),
-                () -> assertTrue(result.isAccountNonLocked()),
-                () -> assertTrue(result.isAccountNonExpired()),
-                () -> assertTrue(result.isCredentialNonExpired()),
-                () -> assertTrue(result.isEmailVerified()),
-                () -> assertTrue(result.isGoogleConnected()),
-                () -> assertEquals(roles.size(), result.getUserRoles().size()),
-                () -> assertEquals(profile.getId(), result.getProfile().getId()),
-                () -> assertEquals(advertiser.getId(), result.getAdvertiser().getId()));
-        verify(repo).save(existingUser);
-    }
-
-    @Test
-    @DisplayName("Should not update Profile or Advertiser if their IDs are null or identical")
-    void updateById_WhenObjectsAreIdenticalOrInvalid_DoesNotUpdate() {
-        // Arrange
-        UUID profileId = UUID.randomUUID();
-        Profile existingProfile = new Profile();
-        existingProfile.setId(profileId);
-
-        User existingUser = new User();
-        existingUser.setProfile(existingProfile);
-
-        User updateData = new User();
-        // Case 1: Null profile in updateData -> no change
-        updateData.setProfile(null);
-        // Case 2: Profile with null ID -> no change
-        updateData.setAdvertiser(new Advertiser());
-
-        when(repo.findById(id)).thenReturn(Optional.of(existingUser));
-        when(repo.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        // Act
-        User result = dao.updateById(updateData, id);
-
-        // Assert
-        assertEquals(profileId, result.getProfile().getId());
-        assertNull(result.getAdvertiser());
-        verify(repo).save(existingUser);
-    }
-
-    @Test
-    @DisplayName("Should skip role update if roles are identical to existing ones")
-    void updateById_WhenRolesAreIdentical_SkipsUpdate() {
-        Set<Role> roles = Set.of(RoleProvider.singleEntity());
-        User existingUser = new User();
-        existingUser.setRoles(roles);
-
-        User updateData = new User();
-        updateData.setRoles(new HashSet<>(roles)); // Same content, different instance
-
-        when(repo.findById(id)).thenReturn(Optional.of(existingUser));
-        when(repo.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-
-        User result = dao.updateById(updateData, id);
-
-        assertEquals(roles.stream().toList(), result.getRoles());
-        verify(repo).save(existingUser);
     }
 
     // --- existsByUniqueProperties Tests ---

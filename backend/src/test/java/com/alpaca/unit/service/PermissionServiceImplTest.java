@@ -174,25 +174,6 @@ class PermissionServiceImplTest {
         assertThrows(BadRequestException.class, () -> service.updateById(firstEntity, null));
     }
 
-    @Test
-    void updateByIdCaseFour() {
-        UUID id = UUID.randomUUID();
-        when(dao.updateById(firstEntity, id)).thenReturn(null);
-        assertThrows(BadRequestException.class, () -> service.updateById(firstEntity, id));
-        verify(dao).updateById(firstEntity, id);
-    }
-
-    @Test
-    void updateByIdCaseFive() {
-        UUID id = secondEntity.getId();
-        when(dao.updateById(secondEntity, id)).thenReturn(secondEntity);
-        service.updateById(secondEntity, id);
-        ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
-        ArgumentCaptor<Permission> permissionCaptor = ArgumentCaptor.forClass(Permission.class);
-        verify(dao).updateById(permissionCaptor.capture(), idCaptor.capture());
-        assertEquals(secondEntity.getName(), permissionCaptor.getValue().getName());
-    }
-
     // --- deleteById ---
     @Test
     void deleteByIdCaseOne() {

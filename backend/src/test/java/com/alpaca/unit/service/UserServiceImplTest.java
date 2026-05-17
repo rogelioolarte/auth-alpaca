@@ -66,17 +66,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateById_WhenValid_ReturnsUpdatedUser() {
-        UUID id = firstUser.getId();
-        when(dao.updateById(firstUser, id)).thenReturn(firstUser);
-
-        User result = service.updateById(firstUser, id);
-
-        assertEquals(firstUser, result);
-        verify(dao).updateById(firstUser, id);
-    }
-
-    @Test
     void register_WhenUserIsNull_ThrowsBadRequestException() {
         assertThrows(BadRequestException.class, () -> service.save(null));
     }

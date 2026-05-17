@@ -1,20 +1,11 @@
 package com.alpaca.integration.persistence;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
-import com.alpaca.entity.Advertiser;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.persistence.impl.UserDAOImpl;
-import com.alpaca.repository.AdvertiserRepo;
-import com.alpaca.repository.ProfileRepo;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.security.manager.PasswordManager;
 import java.time.Instant;
@@ -38,8 +29,6 @@ class UserDAOImplIT {
 
     @Autowired private IUserDAO dao;
     @Autowired private UserRepo userRepo;
-    @Autowired private ProfileRepo profileRepo;
-    @Autowired private AdvertiserRepo advertiserRepo;
     @MockitoBean private PasswordManager passwordManager;
 
     private User user;
@@ -63,67 +52,6 @@ class UserDAOImplIT {
         Optional<User> found = dao.findByEmail(user.getEmail());
         assertTrue(found.isPresent());
         assertEquals(user.getEmail(), found.get().getEmail());
-    }
-
-    @Test
-    @DisplayName("updateById: updates all fields and relations when different")
-    @Transactional
-    void updateById_ShouldUpdateAllFields() {
-        userRepo.save(user);
-
-        Profile profile = ProfileProvider.singleTemplate();
-        profile.setUser(user);
-        profileRepo.save(profile);
-
-        Advertiser advertiser = AdvertiserProvider.singleTemplate();
-        advertiser.setUser(user);
-        advertiserRepo.save(advertiser);
-
-        String newPassword = "newEncodedPassword";
-        when(passwordManager.matches(anyString(), anyString())).thenReturn(false);
-        when(passwordManager.encodePassword(anyString())).thenReturn(newPassword);
-
-        User updateData = UserProvider.singleTemplate();
-        updateData.setEmail("updated@alpaca.com");
-        updateData.setPassword("newRawPassword");
-        updateData.setProfile(profile);
-        updateData.setAdvertiser(advertiser);
-        updateData.setEnabled(!user.isEnabled());
-
-        User result = dao.updateById(updateData, user.getId());
-
-        assertAll(
-                () -> assertEquals(updateData.getEmail(), result.getEmail()),
-                () -> assertEquals(newPassword, result.getPassword()),
-                () -> assertEquals(profile.getId(), result.getProfile().getId()),
-                () -> assertEquals(advertiser.getId(), result.getAdvertiser().getId()),
-                () -> assertEquals(updateData.isEnabled(), result.isEnabled()));
-    }
-
-    @Test
-    @DisplayName("updateById: ignores null or identical values during update")
-    @Transactional
-    void updateById_ShouldIgnoreIdenticalOrNullValues() {
-        userRepo.save(user);
-        String originalPassword = user.getPassword();
-
-        when(passwordManager.matches(anyString(), anyString())).thenReturn(true);
-
-        User partialUpdate = new User();
-        partialUpdate.setPassword("samePassword"); // matches true, should not re-encode
-
-        User result = dao.updateById(partialUpdate, user.getId());
-
-        assertEquals(originalPassword, result.getPassword());
-    }
-
-    @Test
-    @DisplayName("updateById: throws NotFoundException when ID does not exist")
-    @Transactional
-    void updateById_ShouldThrowNotFoundException() {
-        UUID randomId = UUID.randomUUID();
-
-        assertThrows(NotFoundException.class, () -> dao.updateById(user, randomId));
     }
 
     @Test

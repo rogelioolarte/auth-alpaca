@@ -1,17 +1,16 @@
 package com.alpaca.unit.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
-import com.alpaca.resources.PermissionProvider;
 import com.alpaca.resources.RoleProvider;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,7 +29,6 @@ class RoleDAOImplTest {
     @InjectMocks private RoleDAOImpl dao;
 
     private Role firstEntity;
-    private final UUID testId = UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca");
 
     @BeforeEach
     void setup() {
@@ -56,82 +54,6 @@ class RoleDAOImplTest {
             String name = "USER";
             when(repo.findByName(name)).thenReturn(Optional.of(firstEntity));
             assertThat(dao.findByRoleName(name)).isPresent();
-        }
-    }
-
-    @Nested
-    @DisplayName("updateById Logic")
-    class UpdateByIdTests {
-
-        @Test
-        @DisplayName("Should throw NotFoundException and cover error message logic")
-        void updateById_NotFound() {
-            UUID id = UUID.randomUUID();
-            Role role = new Role();
-            when(repo.findById(id)).thenReturn(Optional.empty());
-            assertThrows(NotFoundException.class, () -> dao.updateById(role, id));
-        }
-
-        @Nested
-        @DisplayName("updateById Branch Isolation")
-        class UpdateByIdTestsBranches {
-
-            @Test
-            @DisplayName("Branch 1: rolePermissions is null -> Should skip assignment")
-            void updateById_PermissionsNull() {
-                Role existing = new Role();
-                existing.setRolePermissions(new HashSet<>());
-
-                Role incoming = new Role();
-                incoming.setRolePermissions(null); // Gate 1 fails (A is false)
-
-                when(repo.findById(testId)).thenReturn(Optional.of(existing));
-                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
-
-                dao.updateById(incoming, testId);
-
-                assertThat(existing.getRolePermissions()).isEmpty();
-                verify(repo).save(existing);
-            }
-
-            @Test
-            @DisplayName(
-                    "Branch 2: rolePermissions is not null but empty -> Should skip assignment")
-            void updateById_PermissionsEmpty() {
-                Role existing = new Role();
-                existing.setRolePermissions(new HashSet<>());
-
-                Role incoming = new Role();
-                incoming.setRolePermissions(
-                        new HashSet<>()); // Gate 1 true, Gate 2 fails (B is false)
-
-                when(repo.findById(testId)).thenReturn(Optional.of(existing));
-                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
-
-                dao.updateById(incoming, testId);
-
-                assertThat(existing.getRolePermissions()).isEmpty();
-                verify(repo).save(existing);
-            }
-
-            @Test
-            @DisplayName("Branch 3: rolePermissions has data -> Should execute assignment")
-            void updateById_PermissionsSuccess() {
-                Role existing = new Role();
-                existing.setRolePermissions(new HashSet<>());
-
-                Permission p = PermissionProvider.singleEntity();
-                Role incoming = new Role();
-                incoming.setRolePermissions(new HashSet<>(Set.of(p))); // Gate 1 true, Gate 2 true
-
-                when(repo.findById(testId)).thenReturn(Optional.of(existing));
-                when(repo.save(any(Role.class))).thenAnswer(i -> i.getArguments()[0]);
-
-                dao.updateById(incoming, testId);
-
-                assertThat(existing.getRolePermissions()).hasSize(1);
-                verify(repo).save(existing);
-            }
         }
     }
 

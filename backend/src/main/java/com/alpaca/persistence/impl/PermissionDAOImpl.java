@@ -1,13 +1,13 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Permission;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IPermissionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.PermissionRepo;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,44 +28,9 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
      * @return the {@link GenericRepo} for {@link Permission}
      */
     @Override
+    @Generated
     protected GenericRepo<Permission, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the {@link Permission} entity class managed by this DAO.
-     *
-     * @return {@code Permission.class}
-     */
-    @Override
-    protected Class<Permission> getEntity() {
-        return Permission.class;
-    }
-
-    /**
-     * Updates an existing {@link Permission} identified by the given ID with the non-null and
-     * non-blank values from the provided {@code permission} object. Only changed fields are
-     * applied. Throws a {@link NotFoundException} if no matching entity is found.
-     *
-     * @param permission the permission object containing updated values
-     * @param id the unique identifier of the permission to update
-     * @return the updated and saved {@link Permission} instance
-     * @throws NotFoundException if no permission exists with the specified ID
-     */
-    @Override
-    public Permission updateById(Permission permission, UUID id) {
-        Permission existingPermission =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-
-        updateTextIfExists(
-                existingPermission.getName(), permission.getName(), existingPermission::setName);
-        return save(existingPermission);
     }
 
     /**

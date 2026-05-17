@@ -5,6 +5,7 @@ import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
@@ -236,5 +237,114 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                 familyId,
                 clientIp,
                 userAgent);
+    }
+
+    /**
+     * Updates an existing {@link RefreshToken} identified by {@code id} with values supplied in
+     * {@code refreshToken}. This method applies selective updates:
+     *
+     * <ul>
+     *   <li>Associations such as {@code user} and {@code replacedBy} are updated only if the
+     *       incoming association is non-null, has an identifier, and differs from the stored one.
+     *   <li>Scalar and timestamp fields are updated through helper methods that check for
+     *       non-nullity and inequality (e.g. {@code updateIfNotNull}, {@code updateIfDifferent}).
+     *   <li>Textual fields are updated only when incoming text is present and differs from the
+     *       existing value (see {@code updateTextIfExists}).
+     * </ul>
+     *
+     * <p>The specific fields that may be updated include: {@code user}, {@code replacedBy}, {@code
+     * tokenJti}, {@code familyId}, {@code revoked}, {@code revokedAt}, {@code expiresAt}, {@code
+     * lastUsedAt}, {@code tokenHash}, {@code clientId}, {@code ipAddress}, {@code userAgent}, and
+     * {@code revokeReason}.
+     *
+     * @param refreshToken the {@link RefreshToken} containing new values to apply; may include
+     *     nulls for fields that should remain unchanged
+     * @param id the unique identifier of the persisted {@link RefreshToken} to update
+     * @return the updated and saved {@link RefreshToken} instance
+     * @throws NotFoundException if a {@link RefreshToken} with the supplied {@code id} does not
+     *     exist
+     */
+    @Transactional
+    @Override
+    public RefreshToken updateById(RefreshToken refreshToken, UUID id) {
+        if (refreshToken == null || id == null)
+            throw new BadRequestException(
+                    String.format("%s with ID %s cannot be updated", getEntityName(), id));
+
+        RefreshToken existingRefreshToken =
+                dao.findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with ID %s not found",
+                                                        getEntityName(), id.toString())));
+
+        if (refreshToken.getUser() != null && refreshToken.getUser().getId() != null) {
+            UUID currentUserId =
+                    existingRefreshToken.getUser() != null
+                            ? existingRefreshToken.getUser().getId()
+                            : null;
+            if (!Objects.equals(refreshToken.getUser().getId(), currentUserId)) {
+                existingRefreshToken.setUser(refreshToken.getUser());
+            }
+        }
+
+        if (refreshToken.getReplacedBy() != null && refreshToken.getReplacedBy().getId() != null) {
+            UUID currentUserId =
+                    existingRefreshToken.getReplacedBy() != null
+                            ? existingRefreshToken.getReplacedBy().getId()
+                            : null;
+            if (!Objects.equals(refreshToken.getReplacedBy().getId(), currentUserId)) {
+                existingRefreshToken.setReplacedBy(refreshToken.getReplacedBy());
+            }
+        }
+
+        updateIfNotNull(
+                existingRefreshToken.getTokenJti(),
+                refreshToken.getTokenJti(),
+                existingRefreshToken::setTokenJti);
+        updateIfNotNull(
+                existingRefreshToken.getFamilyId(),
+                refreshToken.getFamilyId(),
+                existingRefreshToken::setFamilyId);
+        updateIfDifferent(
+                existingRefreshToken.isRevoked(),
+                refreshToken.isRevoked(),
+                existingRefreshToken::setRevoked);
+        updateIfNotNull(
+                existingRefreshToken.getRevokedAt(),
+                refreshToken.getRevokedAt(),
+                existingRefreshToken::setRevokedAt);
+        updateIfNotNull(
+                existingRefreshToken.getExpiresAt(),
+                refreshToken.getExpiresAt(),
+                existingRefreshToken::setExpiresAt);
+        updateIfNotNull(
+                existingRefreshToken.getLastUsedAt(),
+                refreshToken.getLastUsedAt(),
+                existingRefreshToken::setLastUsedAt);
+
+        updateTextIfExists(
+                existingRefreshToken.getTokenHash(),
+                refreshToken.getTokenHash(),
+                existingRefreshToken::setTokenHash);
+        updateTextIfExists(
+                existingRefreshToken.getClientId(),
+                refreshToken.getClientId(),
+                existingRefreshToken::setClientId);
+        updateTextIfExists(
+                existingRefreshToken.getIpAddress(),
+                refreshToken.getIpAddress(),
+                existingRefreshToken::setIpAddress);
+        updateTextIfExists(
+                existingRefreshToken.getUserAgent(),
+                refreshToken.getUserAgent(),
+                existingRefreshToken::setUserAgent);
+        updateTextIfExists(
+                existingRefreshToken.getRevokeReason(),
+                refreshToken.getRevokeReason(),
+                existingRefreshToken::setRevokeReason);
+        return dao.save(existingRefreshToken);
     }
 }

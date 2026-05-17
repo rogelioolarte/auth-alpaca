@@ -22,3 +22,9 @@ export enum AuthProvider {
   github = 'github',
   provider = 'provider',
 }
+
+export interface ChangePassword {
+  currentPassword: string;
+  newPassword: string;
+  reNewPassword: string;
+}

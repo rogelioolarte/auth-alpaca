@@ -1,5 +1,6 @@
 package com.alpaca.controller;
 
+import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.request.groups.OnCreate;
 import com.alpaca.dto.request.groups.OnUpdate;
@@ -8,7 +9,9 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IUserMapper;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IUserService;
+import com.alpaca.utils.IsAuthenticated;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,7 +83,7 @@ public class UserController {
      * @throws NotFoundException if no user is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateById(
             @Validated(OnUpdate.class) @RequestBody UserRequestDTO request, @PathVariable UUID id) {
@@ -126,5 +130,16 @@ public class UserController {
     public ResponseEntity<PagedModel<UserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+    }
+
+    @IsAuthenticated
+    @PutMapping("/change-password")
+    public ResponseEntity<UserPrincipal> changePassword(
+            @AuthenticationPrincipal UserPrincipal user, @RequestBody PasswordRequestDTO request) {
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        service.changePassword(user, request);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

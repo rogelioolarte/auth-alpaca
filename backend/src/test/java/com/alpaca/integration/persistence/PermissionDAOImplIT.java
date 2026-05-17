@@ -3,7 +3,6 @@ package com.alpaca.integration.persistence;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.entity.Permission;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
 import java.time.Instant;
@@ -86,37 +85,6 @@ class PermissionDAOImplIT {
         List<Permission> batch = dao.saveAll(Arrays.asList(x, y));
         assertEquals(2, batch.size());
         batch.forEach(item -> assertNotNull(item.getId()));
-    }
-
-    @Test
-    @DisplayName("updateById modifies only non-null/non-blank fields and throws when missing")
-    @Transactional
-    void updateById() {
-        Permission original = repo.save(singleEntity);
-        UUID id = original.getId();
-
-        // update existing (change name)
-        Permission update = new Permission();
-        update.setName("UPDATED_NAME");
-        Permission updated = dao.updateById(update, id);
-        assertEquals(id, updated.getId());
-        assertEquals("UPDATED_NAME", updated.getName());
-
-        // update with null name -> should keep current name unchanged
-        Permission nullUpdate = new Permission();
-        nullUpdate.setName(null);
-        Permission afterNullUpdate = dao.updateById(nullUpdate, id);
-        assertEquals("UPDATED_NAME", afterNullUpdate.getName(), "Null update must not overwrite");
-
-        // update with blank name -> should keep current name unchanged
-        Permission blankUpdate = new Permission();
-        blankUpdate.setName("   ");
-        Permission afterBlankUpdate = dao.updateById(blankUpdate, id);
-        assertEquals("UPDATED_NAME", afterBlankUpdate.getName(), "Blank update must not overwrite");
-
-        // update non-existing -> NotFoundException
-        UUID missing = UUID.randomUUID();
-        assertThrows(NotFoundException.class, () -> dao.updateById(update, missing));
     }
 
     @Test

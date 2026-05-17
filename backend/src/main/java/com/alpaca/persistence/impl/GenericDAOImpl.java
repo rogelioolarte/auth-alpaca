@@ -4,19 +4,17 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.repository.GenericRepo;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
+import lombok.Generated;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.util.StringUtils;
 
 /**
  * Abstract base implementation of {@link IGenericDAO}, providing generic CRUD and pagination
  * operations for any entity type {@code T} with identifier type {@code ID}.
  *
  * <p>Concrete DAO implementations must supply the specific {@link GenericRepo} and entity class by
- * implementing the abstract {@link #getRepo()} and {@link #getEntity()} methods.
+ * implementing the abstract {@link #getRepo()} method.
  *
  * <p>This class leverages Spring Data repositories to delegate standard persistence operations in a
  * type-safe, reusable fashion.
@@ -31,14 +29,8 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
      *
      * @return the repository instance for {@code T}
      */
+    @Generated
     protected abstract GenericRepo<T, I> getRepo();
-
-    /**
-     * Provides the entity class handled by this DAO implementation.
-     *
-     * @return the {@code Class} object representing {@code T}
-     */
-    protected abstract Class<T> getEntity();
 
     /**
      * Finds an entity by its identifier.
@@ -124,23 +116,5 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
     @Override
     public boolean existsById(I i) {
         return getRepo().existsById(i);
-    }
-
-    public <V> void updateIfNotNull(V existing, V incoming, Consumer<V> setter) {
-        if (incoming != null && !incoming.equals(existing)) {
-            setter.accept(incoming);
-        }
-    }
-
-    public void updateTextIfExists(String existing, String incoming, Consumer<String> setter) {
-        if (StringUtils.hasText(incoming) && !incoming.equals(existing)) {
-            setter.accept(incoming);
-        }
-    }
-
-    public void updateIfDifferent(boolean existing, boolean incoming, Consumer<Boolean> setter) {
-        if (!Objects.equals(existing, incoming)) {
-            setter.accept(incoming);
-        }
     }
 }

@@ -6,7 +6,6 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.alpaca.service.IOAuth2Service;
@@ -15,7 +14,6 @@ import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Generated;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -32,7 +30,6 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
     private final IRoleService roleService;
     private final IUserService userService;
     private final IProfileService profileService;
-    private final PasswordManager passwordManager;
 
     /**
      * Handles OAuth2 login by processing the provider's user data and delegating logic.
@@ -117,8 +114,7 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
                             userService.save(
                                     new User(
                                             email,
-                                            passwordManager.encodePassword(
-                                                    UUID.randomUUID().toString()),
+                                            null,
                                             emailVerified,
                                             true,
                                             roleService.getUserRoles())),

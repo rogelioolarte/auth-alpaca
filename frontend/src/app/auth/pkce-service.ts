@@ -35,10 +35,11 @@ export class PkceService {
     return stored;
   }
 
-  async generateCodeChallenge(verifier: string): Promise<string> {
-    this.assertVerifier(verifier);
+  async generateCodeChallenge(): Promise<string> {
+    const codeVerifier = this.generateCodeVerifier();
+    this.assertVerifier(codeVerifier);
 
-    const data = new TextEncoder().encode(verifier);
+    const data = new TextEncoder().encode(codeVerifier);
     const digest = await crypto.subtle.digest('SHA-256', data);
 
     return this.base64UrlEncode(new Uint8Array(digest));

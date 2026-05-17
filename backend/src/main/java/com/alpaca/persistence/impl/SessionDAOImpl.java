@@ -1,12 +1,15 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Session;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -35,83 +38,9 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      * @return the {@link GenericRepo} implementation used for CRUD operations on {@link Session}
      */
     @Override
+    @Generated
     protected GenericRepo<Session, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the entity class managed by this DAO.
-     *
-     * @return {@code Session.class}
-     */
-    @Override
-    protected Class<Session> getEntity() {
-        return Session.class;
-    }
-
-    /**
-     * Updates an existing {@link Session} identified by {@code id} using values from the supplied
-     * {@code session} parameter. The method applies selective updates:
-     *
-     * <ul>
-     *   <li>Association fields such as {@code user} are replaced only if the incoming association
-     *       is non-null, contains an identifier, and its id differs from the existing one.
-     *   <li>Scalar/timestamp fields are updated through helper methods that check for non-nullity
-     *       and inequality (e.g. {@code updateIfNotNull}, {@code updateIfDifferent}).
-     *   <li>Textual fields are updated only when incoming text is present and different from the
-     *       stored value (via {@code updateTextIfExists}).
-     * </ul>
-     *
-     * <p>The fields considered for update include {@code user}, {@code familyId}, {@code
-     * ipAddress}, {@code userAgent}, {@code clientId}, {@code revoked}, {@code revokedAt} and
-     * {@code revokeReason}.
-     *
-     * @param session the {@link Session} instance containing new values to apply; fields may be
-     *     {@code null} to indicate they should remain unchanged
-     * @param id the unique identifier of the persisted {@link Session} to update
-     * @return the updated and persisted {@link Session} instance
-     * @throws NotFoundException if no {@link Session} with the supplied {@code id} exists
-     */
-    @Override
-    public Session updateById(Session session, UUID id) {
-        Session existingSession =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-        if (session.getUser() != null && session.getUser().getId() != null) {
-            UUID currentUserId =
-                    existingSession.getUser() != null ? existingSession.getUser().getId() : null;
-            if (!Objects.equals(session.getUser().getId(), currentUserId)) {
-                existingSession.setUser(session.getUser());
-            }
-        }
-        updateIfNotNull(
-                existingSession.getFamilyId(), session.getFamilyId(), existingSession::setFamilyId);
-        updateTextIfExists(
-                existingSession.getIpAddress(),
-                session.getIpAddress(),
-                existingSession::setIpAddress);
-        updateTextIfExists(
-                existingSession.getUserAgent(),
-                session.getUserAgent(),
-                existingSession::setUserAgent);
-        updateTextIfExists(
-                existingSession.getClientId(), session.getClientId(), existingSession::setClientId);
-        updateIfDifferent(
-                existingSession.isRevoked(), session.isRevoked(), existingSession::setRevoked);
-        updateIfNotNull(
-                existingSession.getRevokedAt(),
-                session.getRevokedAt(),
-                existingSession::setRevokedAt);
-        updateTextIfExists(
-                existingSession.getRevokeReason(),
-                session.getRevokeReason(),
-                existingSession::setRevokeReason);
-        return save(existingSession);
     }
 
     /**

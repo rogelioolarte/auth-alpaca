@@ -1,13 +1,12 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Advertiser;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.repository.GenericRepo;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,65 +31,9 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
      * @return the {@link GenericRepo} for {@link Advertiser}
      */
     @Override
+    @Generated
     protected GenericRepo<Advertiser, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the {@link Advertiser} entity class managed by this DAO.
-     *
-     * @return {@code Advertiser.class}
-     */
-    @Override
-    protected Class<Advertiser> getEntity() {
-        return Advertiser.class;
-    }
-
-    /**
-     * Updates an existing {@link Advertiser} identified by the given ID with non-null and non-blank
-     * values from the provided {@code advertiser} object. Only changed fields are applied. Throws a
-     * {@link NotFoundException} if no matching entity is found.
-     *
-     * @param advertiser the advertiser object containing updated values
-     * @param id the unique identifier of the advertiser to update
-     * @return the updated and saved {@link Advertiser} instance
-     * @throws NotFoundException if no advertiser exists with the specified ID
-     */
-    @Override
-    public Advertiser updateById(Advertiser advertiser, UUID id) {
-        Advertiser existing =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-
-        updateTextIfExists(existing.getTitle(), advertiser.getTitle(), existing::setTitle);
-        updateTextIfExists(
-                existing.getDescription(), advertiser.getDescription(), existing::setDescription);
-        updateTextIfExists(
-                existing.getAvatarUrl(), advertiser.getAvatarUrl(), existing::setAvatarUrl);
-        updateTextIfExists(
-                existing.getBannerUrl(), advertiser.getBannerUrl(), existing::setBannerUrl);
-        updateTextIfExists(
-                existing.getPublicLocation(),
-                advertiser.getPublicLocation(),
-                existing::setPublicLocation);
-        updateTextIfExists(
-                existing.getPublicUrlLocation(),
-                advertiser.getPublicUrlLocation(),
-                existing::setPublicUrlLocation);
-        updateIfDifferent(existing.isIndexed(), advertiser.isIndexed(), existing::setIndexed);
-
-        if (advertiser.getUser() != null && advertiser.getUser().getId() != null) {
-            UUID currentUserId = existing.getUser() != null ? existing.getUser().getId() : null;
-            if (!Objects.equals(advertiser.getUser().getId(), currentUserId)) {
-                existing.setUser(advertiser.getUser());
-            }
-        }
-        return repo.save(existing);
     }
 
     /**

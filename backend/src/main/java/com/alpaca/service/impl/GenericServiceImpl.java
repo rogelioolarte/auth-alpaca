@@ -6,10 +6,12 @@ import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.service.IGenericService;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.function.Consumer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Abstract base implementation of {@link IGenericService}, providing reusable CRUD operations with
@@ -121,29 +123,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     }
 
     /**
-     * Updates an entity identified by its ID using the provided updated entity.
-     *
-     * @param t the entity with updated information; must not be {@code null}
-     * @param i the identifier of the entity to update; must not be {@code null}
-     * @return the updated entity
-     * @throws BadRequestException if validation fails or the entity cannot be updated
-     */
-    @Transactional
-    @Override
-    public T updateById(T t, I i) {
-        if (i == null || t == null) {
-            throw new BadRequestException(String.format("%s cannot be updated", getEntityName()));
-        }
-        return Optional.ofNullable(getDAO().updateById(t, i))
-                .orElseThrow(
-                        () ->
-                                new BadRequestException(
-                                        String.format(
-                                                "%s with ID %s cannot be updated",
-                                                getEntityName(), i)));
-    }
-
-    /**
      * Deletes an entity by its ID with validation of existence.
      *
      * @param i the identifier of the entity to delete; must not be {@code null}
@@ -237,5 +216,23 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
             if (element == null) return true;
         }
         return false;
+    }
+
+    public <V> void updateIfNotNull(V existing, V incoming, Consumer<V> setter) {
+        if (incoming != null && !incoming.equals(existing)) {
+            setter.accept(incoming);
+        }
+    }
+
+    public void updateTextIfExists(String existing, String incoming, Consumer<String> setter) {
+        if (StringUtils.hasText(incoming) && !incoming.equals(existing)) {
+            setter.accept(incoming);
+        }
+    }
+
+    public void updateIfDifferent(boolean existing, boolean incoming, Consumer<Boolean> setter) {
+        if (!Objects.equals(existing, incoming)) {
+            setter.accept(incoming);
+        }
     }
 }

@@ -1,18 +1,15 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.security.manager.PasswordManager;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * Implementation of the {@link IUserDAO} interface for managing {@link User} entities. Extends the
@@ -24,7 +21,6 @@ import org.springframework.util.StringUtils;
 public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO {
 
     private final UserRepo repo;
-    private final PasswordManager passwordManager;
 
     /**
      * Provides the repository used by the generic DAO operations.
@@ -35,17 +31,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     @Generated
     protected GenericRepo<User, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the entity class managed by this DAO.
-     *
-     * @return the {@code Class} object for {@link User}
-     */
-    @Override
-    @Generated
-    protected Class<User> getEntity() {
-        return User.class;
     }
 
     /**
@@ -60,65 +45,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
             return Optional.empty();
         }
         return repo.findByEmail(email);
-    }
-
-    /**
-     * Updates an existing {@link User} identified by the given ID with the non-null and non-blank
-     * properties provided in the supplied {@code user} object. Only fields that are different,
-     * non-null, and non-blank are updated. Throws a {@link NotFoundException} if no user with the
-     * specified ID exists.
-     *
-     * @param user user object containing updated values
-     * @param id the unique identifier of the user to update
-     * @return the updated and saved {@link User} instance
-     * @throws NotFoundException if no existing user is found with the given ID
-     */
-    @Override
-    public User updateById(User user, UUID id) {
-        User existingUser =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-
-        if (StringUtils.hasText(user.getPassword())
-                && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
-            existingUser.setPassword(passwordManager.encodePassword(user.getPassword()));
-        }
-
-        if (user.getRoles() != null && !user.getRoles().equals(existingUser.getRoles())) {
-            existingUser.setRoles(user.getRoles());
-        }
-
-        existingUser.updateProfile(user);
-        existingUser.updateAdvertiser(user);
-
-        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
-        updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
-        updateIfDifferent(
-                existingUser.isAccountNonLocked(),
-                user.isAccountNonLocked(),
-                existingUser::setAccountNonLocked);
-        updateIfDifferent(
-                existingUser.isAccountNonExpired(),
-                user.isAccountNonExpired(),
-                existingUser::setAccountNonExpired);
-        updateIfDifferent(
-                existingUser.isCredentialNonExpired(),
-                user.isCredentialNonExpired(),
-                existingUser::setCredentialNonExpired);
-        updateIfDifferent(
-                existingUser.isEmailVerified(),
-                user.isEmailVerified(),
-                existingUser::setEmailVerified);
-        updateIfDifferent(
-                existingUser.isGoogleConnected(),
-                user.isGoogleConnected(),
-                existingUser::setGoogleConnected);
-        return save(existingUser);
     }
 
     /**

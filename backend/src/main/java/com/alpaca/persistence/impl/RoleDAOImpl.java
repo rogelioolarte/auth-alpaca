@@ -1,13 +1,13 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Role;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.RoleRepo;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,18 +28,9 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
      * @return the {@link GenericRepo} implementation for {@link Role}
      */
     @Override
+    @Generated
     protected GenericRepo<Role, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the class object representing the entity managed by this DAO.
-     *
-     * @return {@code Role.class}
-     */
-    @Override
-    protected Class<Role> getEntity() {
-        return Role.class;
     }
 
     /**
@@ -54,37 +45,6 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
             return Optional.empty();
         }
         return repo.findByName(roleName);
-    }
-
-    /**
-     * Updates an existing {@link Role} identified by the given ID with the non-null, non-blank
-     * properties from the supplied {@code role} object. Only changed fields are applied. Throws
-     * {@link NotFoundException} if no existing entity is found.
-     *
-     * @param role the role object containing updated values
-     * @param id the unique identifier of the role to update
-     * @return the updated and saved {@link Role} instance
-     * @throws NotFoundException if no role exists with the specified ID
-     */
-    @Override
-    public Role updateById(Role role, UUID id) {
-        Role existingRole =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-
-        updateTextIfExists(existingRole.getName(), role.getName(), existingRole::setName);
-        updateTextIfExists(
-                existingRole.getDescription(), role.getDescription(), existingRole::setDescription);
-        if (role.getRolePermissions() != null
-                && !role.getRolePermissions().equals(existingRole.getRolePermissions())) {
-            existingRole.setRolePermissions(role.getPermissions());
-        }
-        return save(existingRole);
     }
 
     /**

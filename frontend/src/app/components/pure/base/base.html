@@ -15,11 +15,15 @@
             <mat-icon matListItemIcon>person</mat-icon>
             <span matListItemTitle>My Profile</span>
           </a>
-          <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active" class="nav-item">
-            <mat-icon matListItemIcon>campaign</mat-icon>
-            <span matListItemTitle>My Advertiser</span>
-          </a>
-          <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank" class="nav-item">
+           <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active" class="nav-item">
+             <mat-icon matListItemIcon>campaign</mat-icon>
+             <span matListItemTitle>My Advertiser</span>
+           </a>
+           <a mat-list-item routerLink="/dashboard/change-password" routerLinkActive="active" class="nav-item">
+             <mat-icon matListItemIcon>vpn_key</mat-icon>
+             <span matListItemTitle>Change Password</span>
+           </a>
+           <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank" class="nav-item">
             <mat-icon matListItemIcon>public</mat-icon>
             <span matListItemTitle>Public Site</span>
           </a>

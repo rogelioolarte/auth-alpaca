@@ -9,6 +9,7 @@ import { MyProfile } from './components/pages/my-profile/my-profile';
 import { MyAdvertiser } from './components/pages/my-advertiser/my-advertiser';
 import { Roles } from './components/pages/roles/roles';
 import { Permissions } from './components/pages/permissions/permissions';
+import { ChangePasswordComponent } from './components/pages/change-password/change-password';
 import { AdvertiserPage } from './components/pages/advertisers/advertisers';
 import { AdvertiserId } from './components/pages/advertiser-id/advertiser-id';
 import { Users } from './components/pages/users/users';
@@ -41,9 +42,10 @@ export const routes: Routes = [
           // Default child
           { path: '', component: Dashboard, pathMatch: 'full' },
 
-          // User routes
-          { path: 'profile', component: MyProfile },
-          { path: 'advertiser', component: MyAdvertiser },
+           // User routes
+           { path: 'profile', component: MyProfile },
+           { path: 'advertiser', component: MyAdvertiser },
+           { path: 'change-password', component: ChangePasswordComponent },
 
           // Admin routes (admin only)
           { path: 'users', component: Users, canActivate: [adminGuard] },

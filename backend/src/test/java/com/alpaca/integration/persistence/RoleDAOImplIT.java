@@ -2,9 +2,7 @@ package com.alpaca.integration.persistence;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.persistence.impl.RoleDAOImpl;
@@ -14,7 +12,6 @@ import com.alpaca.resources.RoleProvider;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,47 +54,6 @@ class RoleDAOImplIT {
         Optional<Role> found = dao.findByRoleName(saved.getName());
         assertTrue(found.isPresent(), "existing role name must be found");
         assertEquals(saved.getId(), found.get().getId());
-    }
-
-    @Test
-    @DisplayName("updateById updates non-null/blank fields only and throws if missing")
-    @Transactional
-    void updateById() {
-        UUID id = saved.getId();
-
-        Role request = new Role();
-        request.setName("NEW_ROLE_NAME");
-        request.setDescription("New description");
-
-        Permission newPermission = permissionRepo.save(new Permission("PERM1"));
-        request.setRolePermissions(Set.of(newPermission));
-
-        Role out = dao.updateById(request, id);
-        assertEquals(id, out.getId());
-        assertEquals("NEW_ROLE_NAME", out.getName());
-        assertEquals("New description", out.getDescription());
-
-        // assert permissions updated — adapt assertion depending on Role/RolePermission model
-        assertNotNull(out.getRolePermissions());
-        assertFalse(out.getRolePermissions().isEmpty());
-
-        // partial update: blank and null ignored
-        Role partial = new Role();
-        partial.setName("PARTIAL_NAME");
-        Role outPartial = dao.updateById(partial, id);
-        assertEquals("PARTIAL_NAME", outPartial.getName());
-        assertEquals(
-                out.getDescription(),
-                outPartial.getDescription(),
-                "description must remain unchanged");
-        assertEquals(
-                out.getRolePermissions(),
-                outPartial.getRolePermissions(),
-                "permissions must remain unchanged");
-
-        UUID idd = UUID.randomUUID();
-        // non-existing id -> NotFoundException
-        assertThrows(NotFoundException.class, () -> dao.updateById(request, idd));
     }
 
     @Test

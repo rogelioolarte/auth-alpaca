@@ -31,15 +31,6 @@ public interface IGenericDAO<T, I> {
     List<T> findAllByIds(Collection<I> is);
 
     /**
-     * Updates an entity by its identifier.
-     *
-     * @param t The updated entity data - must not be null.
-     * @param i The identifier of the entity to update - must not be null.
-     * @return The updated entity.
-     */
-    T updateById(T t, I i);
-
-    /**
      * Saves a new entity.
      *
      * @param t The entity to save - must not be null.

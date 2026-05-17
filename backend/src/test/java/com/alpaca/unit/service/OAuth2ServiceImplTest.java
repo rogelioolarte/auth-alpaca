@@ -11,7 +11,6 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.ProfileProvider;
 import com.alpaca.resources.UserProvider;
-import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
@@ -38,7 +37,6 @@ class OAuth2ServiceImplTest {
     @Mock private IRoleService roleService;
     @Mock private IUserService userService;
     @Mock private IProfileService profileService;
-    @Mock private PasswordManager passwordManager;
 
     @InjectMocks private OAuth2ServiceImpl service;
 
@@ -94,9 +92,8 @@ class OAuth2ServiceImplTest {
 
         // Stubs for register flow
         when(userService.existsByEmail("new@example.com")).thenReturn(false);
-        when(passwordManager.encodePassword(anyString())).thenReturn("encoded");
         when(roleService.getUserRoles()).thenReturn(Set.of()); // empty set ok
-        User registered = new User("new@example.com", "encoded", true, true, Set.of());
+        User registered = new User("new@example.com", null, true, true, Set.of());
         registered.setId(UUID.randomUUID());
         when(userService.save(any(User.class))).thenReturn(registered);
         // profile created inside registerProfile -> simulate profileService.save
@@ -119,7 +116,7 @@ class OAuth2ServiceImplTest {
         verify(userService).save(userCaptor.capture());
         User passed = userCaptor.getValue();
         assertEquals("new@example.com", passed.getEmail());
-        assertEquals("encoded", passed.getPassword());
+        assertEquals(null, passed.getPassword());
         // profile saved with given names and image
         ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
         verify(profileService).save(profileCaptor.capture());
@@ -202,7 +199,6 @@ class OAuth2ServiceImplTest {
         Map<String, Object> attributes = Map.of("a", "b");
         String email = "brandnew@example.com";
         when(userService.existsByEmail(email)).thenReturn(false);
-        when(passwordManager.encodePassword(anyString())).thenReturn("encoded-secret");
         when(roleService.getUserRoles()).thenReturn(Set.of());
         User registered = new User(email, "encoded-secret", true, true, Set.of());
         registered.setId(UUID.randomUUID());
@@ -216,7 +212,6 @@ class OAuth2ServiceImplTest {
         // Assert
         assertNotNull(principal);
         assertEquals(email, principal.getUsername());
-        verify(passwordManager).encodePassword(anyString());
         verify(userService).save(any(User.class));
         verify(profileService).save(any(Profile.class));
     }

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { User, UserRequest } from '../models/user';
+import { ChangePassword, User, UserRequest } from '../models/user';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { getParams, Page, Pageable } from '../models/pageable';
@@ -35,5 +35,9 @@ export class UserService {
     return this.http.get<Page<User>>(
       `${environment.API_URL}/api/users/page?${getParams(pageable)}`,
     );
+  }
+
+  changePassword(request: ChangePassword): Observable<void> {
+    return this.http.put<void>(`${environment.API_URL}/api/users/change-password`, request);
   }
 }

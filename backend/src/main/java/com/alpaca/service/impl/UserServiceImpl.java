@@ -1,8 +1,10 @@
 package com.alpaca.service.impl;
 
+import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.security.manager.PasswordManager;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic
@@ -71,11 +74,68 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         return dao.save(user);
     }
 
+    /**
+     * Updates an existing {@link User} identified by the given ID with the non-null and non-blank
+     * properties provided in the supplied {@code user} object. Only fields that are different,
+     * non-null, and non-blank are updated. Throws a {@link NotFoundException} if no user with the
+     * specified ID exists.
+     *
+     * @param user user object containing updated values
+     * @param id the unique identifier of the user to update
+     * @return the updated and saved {@link User} instance
+     * @throws NotFoundException if no existing user is found with the given ID
+     */
+    @Transactional
     @Override
-    public User updateById(User user, UUID uuid) {
-        if (user == null || uuid == null)
+    public User updateById(User user, UUID id) {
+        if (user == null || id == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
-        return dao.updateById(user, uuid);
+
+        User existingUser =
+                dao.findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with ID %s not found",
+                                                        getEntityName(), id)));
+
+        if (existingUser.getPassword() != null
+                && StringUtils.hasText(user.getPassword())
+                && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
+            existingUser.setPassword(user.getPassword());
+        }
+
+        if (user.getRoles() != null && !user.getRoles().equals(existingUser.getRoles())) {
+            existingUser.setRoles(user.getRoles());
+        }
+
+        existingUser.updateProfile(user);
+        existingUser.updateAdvertiser(user);
+
+        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
+        updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
+        updateIfDifferent(
+                existingUser.isAccountNonLocked(),
+                user.isAccountNonLocked(),
+                existingUser::setAccountNonLocked);
+        updateIfDifferent(
+                existingUser.isAccountNonExpired(),
+                user.isAccountNonExpired(),
+                existingUser::setAccountNonExpired);
+        updateIfDifferent(
+                existingUser.isCredentialNonExpired(),
+                user.isCredentialNonExpired(),
+                existingUser::setCredentialNonExpired);
+        updateIfDifferent(
+                existingUser.isEmailVerified(),
+                user.isEmailVerified(),
+                existingUser::setEmailVerified);
+        updateIfDifferent(
+                existingUser.isGoogleConnected(),
+                user.isGoogleConnected(),
+                existingUser::setGoogleConnected);
+        return dao.save(existingUser);
     }
 
     /**
@@ -109,5 +169,40 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
                         () ->
                                 new UsernameNotFoundException(
                                         "The email does not match any account"));
+    }
+
+    @Transactional
+    @Override
+    public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
+        if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {
+            throw new BadRequestException("New password mismatch the ReType password");
+        }
+
+        User user =
+                dao.findById(principal.getUserId())
+                        .orElseThrow(
+                                () -> new UsernameNotFoundException("The User does not exist."));
+
+        if (user.getPassword() == null) {
+            if (!user.isGoogleConnected()) {
+                throw new BadRequestException(
+                        "Cannot change the password. Contact the Administrator");
+            }
+            user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
+            dao.save(user);
+            return;
+        }
+
+        if (!StringUtils.hasText(requestDTO.getCurrentPassword())
+                || !passwordManager.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password does not match");
+        }
+
+        if (passwordManager.matches(requestDTO.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("Choose a password you haven't used before.");
+        }
+
+        user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
+        dao.save(user);
     }
 }

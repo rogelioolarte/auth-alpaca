@@ -58,8 +58,8 @@ public class User extends Auditable {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    /** The User's encrypted password. This field cannot be null. */
-    @Column(name = "password", nullable = false)
+    /** The User's encrypted password. This field can be null. */
+    @Column(name = "password")
     private String password;
 
     /** Indicates whether the User's entity is enabled. Defaults to {@code true}. */

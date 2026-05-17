@@ -86,15 +86,14 @@ export class Login implements OnInit {
   }
 
   async loginWithProvider(provider: AuthProvider) {
-    const codeV = this.pkceService.generateCodeVerifier();
-    const codeC = await this.pkceService.generateCodeChallenge(codeV);
+    const codeChallenge = await this.pkceService.generateCodeChallenge();
     this.authProvider = provider;
     switch (provider) {
       case AuthProvider.google:
-        window.location.href = addCodeChallenge(GOOGLE_AUTH_URL, codeC);
+        window.location.href = addCodeChallenge(GOOGLE_AUTH_URL, codeChallenge);
         break;
       case AuthProvider.github:
-        window.location.href = addCodeChallenge(GITHUB_AUTH_URL, codeC);
+        window.location.href = addCodeChallenge(GITHUB_AUTH_URL, codeChallenge);
         break;
       default:
         this.toastService.error('UnKnown Provider');

@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.persistence.impl.AdvertiserDAOImpl;
 import com.alpaca.repository.AdvertiserRepo;
@@ -39,110 +38,6 @@ class AdvertiserDAOImplIT {
     @BeforeEach
     void setup() {
         now = Instant.now();
-    }
-
-    @Test
-    @DisplayName("updateById: performs full update on all scalar fields and flags")
-    @Transactional
-    void updateById_ShouldPerformFullUpdate() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
-        User persistedUser = userRepo.save(user);
-
-        Advertiser initial = AdvertiserProvider.singleTemplate();
-        initial.setUser(persistedUser);
-        initial.setCreatedAt(now);
-        initial.setIndexed(false);
-        Advertiser persisted = repo.save(initial);
-
-        Advertiser updateData = new Advertiser();
-        updateData.setTitle("Updated Title");
-        updateData.setDescription("Updated Description");
-        updateData.setAvatarUrl("https://new-avatar.com");
-        updateData.setBannerUrl("https://new-banner.com");
-        updateData.setPublicLocation("New York, USA");
-        updateData.setPublicUrlLocation("https://maps.new-url.com");
-        updateData.setIndexed(true);
-
-        // Act
-        Advertiser result = dao.updateById(updateData, persisted.getId());
-
-        // Assert
-        assertAll(
-                () -> assertEquals("Updated Title", result.getTitle()),
-                () -> assertEquals("Updated Description", result.getDescription()),
-                () -> assertEquals("https://new-avatar.com", result.getAvatarUrl()),
-                () -> assertEquals("https://new-banner.com", result.getBannerUrl()),
-                () -> assertEquals("New York, USA", result.getPublicLocation()),
-                () -> assertEquals("https://maps.new-url.com", result.getPublicUrlLocation()),
-                () -> assertTrue(result.isIndexed()),
-                () -> assertEquals(persistedUser.getId(), result.getUser().getId()));
-    }
-
-    @Test
-    @DisplayName("updateById: ignores null or blank fields and handles identical user ID")
-    @Transactional
-    void updateById_ShouldIgnoreNullsAndHandleSameUser() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
-        User persistedUser = userRepo.save(user);
-
-        Advertiser initial = AdvertiserProvider.singleTemplate();
-        initial.setUser(persistedUser);
-        initial.setCreatedAt(now);
-        Advertiser persisted = repo.save(initial);
-
-        // Partial update: Only title changed, and same user ID provided
-        Advertiser updateData = new Advertiser();
-        updateData.setTitle("Partial Title");
-        updateData.setUser(persistedUser); // Same user
-
-        // Act
-        Advertiser result = dao.updateById(updateData, persisted.getId());
-
-        // Assert
-        assertEquals("Partial Title", result.getTitle());
-        assertEquals(initial.getDescription(), result.getDescription()); // Maintained
-        assertEquals(persistedUser.getId(), result.getUser().getId());
-    }
-
-    @Test
-    @DisplayName("updateById: updates user when a different user is provided")
-    @Transactional
-    void updateById_ShouldChangeUser() {
-        // Arrange
-        User user1 = UserProvider.singleTemplate();
-        user1.setCreatedAt(now);
-        User userRepo1 = userRepo.save(user1);
-
-        User user2 = UserProvider.alternativeTemplate();
-        user2.setCreatedAt(now);
-        User userRepo2 = userRepo.save(user2);
-
-        Advertiser initial = AdvertiserProvider.singleTemplate();
-        initial.setUser(userRepo1);
-        initial.setCreatedAt(now);
-        Advertiser persisted = repo.save(initial);
-
-        Advertiser updateData = new Advertiser();
-        updateData.setUser(userRepo2);
-
-        // Act
-        Advertiser result = dao.updateById(updateData, persisted.getId());
-
-        // Assert
-        assertEquals(userRepo2.getId(), result.getUser().getId());
-    }
-
-    @Test
-    @DisplayName("updateById: throws NotFoundException for invalid ID")
-    @Transactional
-    void updateById_ShouldThrowNotFound() {
-        Advertiser data = new Advertiser();
-        UUID randomId = UUID.randomUUID();
-        assertThrows(NotFoundException.class, () -> dao.updateById(data, randomId));
     }
 
     @Test

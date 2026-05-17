@@ -1,18 +1,15 @@
 package com.alpaca.unit.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Permission;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
 import com.alpaca.resources.PermissionProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -92,48 +89,6 @@ class PermissionDAOImplTest {
         }
 
         @Test
-        @DisplayName("updateIfNotNull: Should handle all scenarios for generic updates")
-        void updateIfNotNull_Coverage() {
-            AtomicReference<String> target = new AtomicReference<>("Initial");
-
-            dao.updateIfNotNull("Initial", null, target::set);
-            assertThat(target.get()).isEqualTo("Initial");
-
-            dao.updateIfNotNull("Initial", "Initial", target::set);
-            assertThat(target.get()).isEqualTo("Initial");
-
-            dao.updateIfNotNull("Initial", "New", target::set);
-            assertThat(target.get()).isEqualTo("New");
-        }
-
-        @Test
-        @DisplayName("updateTextIfExists: Should handle text-specific update logic")
-        void updateTextIfExists_Coverage() {
-            AtomicReference<String> target = new AtomicReference<>("Old");
-
-            dao.updateTextIfExists("Old", "", target::set);
-            assertThat(target.get()).isEqualTo("Old");
-
-            dao.updateTextIfExists("Old", "Old", target::set);
-            assertThat(target.get()).isEqualTo("Old");
-
-            dao.updateTextIfExists("Old", "Updated", target::set);
-            assertThat(target.get()).isEqualTo("Updated");
-        }
-
-        @Test
-        @DisplayName("updateIfDifferent: Should handle all Boolean cases")
-        void updateIfDifferent_Coverage() {
-            AtomicReference<Boolean> target = new AtomicReference<>(true);
-
-            dao.updateIfDifferent(true, true, target::set);
-            assertThat(target.get()).isTrue();
-
-            dao.updateIfDifferent(true, false, target::set);
-            assertThat(target.get()).isFalse();
-        }
-
-        @Test
         @DisplayName("deleteById: Should call repository delete method")
         void deleteById_FullCoverage() {
             dao.deleteById(firstEntity.getId());
@@ -158,36 +113,6 @@ class PermissionDAOImplTest {
     @Nested
     @DisplayName("Tests for PermissionDAOImpl Specific Logic")
     class PermissionDAOFullCoverage {
-
-        @Nested
-        @DisplayName("updateById Logic")
-        class UpdateByIdTests {
-
-            @Test
-            @DisplayName("Should throw NotFoundException when ID doesn't exist")
-            void updateById_ThrowsException() {
-                when(repo.findById(firstEntity.getId())).thenReturn(Optional.empty());
-                UUID id = firstEntity.getId();
-                assertThrows(NotFoundException.class, () -> dao.updateById(firstEntity, id));
-                verify(repo, never()).save(any());
-            }
-
-            @Test
-            @DisplayName("Should update name when it is valid and different")
-            void updateById_SuccessfulUpdate() {
-                Permission existing = new Permission();
-                existing.setId(firstEntity.getId());
-                existing.setName("OLD_NAME");
-
-                when(repo.findById(firstEntity.getId())).thenReturn(Optional.of(existing));
-                when(repo.save(existing)).thenReturn(existing);
-
-                Permission result = dao.updateById(firstEntity, firstEntity.getId());
-
-                assertThat(result.getName()).isEqualTo(firstEntity.getName());
-                verify(repo).save(existing);
-            }
-        }
 
         @Nested
         @DisplayName("existsByUniqueProperties Logic")

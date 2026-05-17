@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.repository.SessionRepo;
@@ -33,13 +32,11 @@ class SessionDAOImplIT {
     @Autowired private SessionRepo repo;
     @Autowired private UserRepo userRepo;
 
-    private User user;
     private Instant now;
 
     @BeforeEach
     void setup() {
         now = Instant.now();
-        user = UserProvider.singleTemplate();
     }
 
     private Session newSession(User user) {
@@ -89,88 +86,6 @@ class SessionDAOImplIT {
         Optional<Session> result = dao.findById(UUID.randomUUID());
 
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("updateById updates all fields")
-    void updateById() {
-
-        Session existing = dao.save(newSession(null));
-
-        Session update = new Session();
-        update.setFamilyId(UUID.randomUUID());
-        update.setIpAddress("127.0.0.1");
-        update.setUserAgent("Chrome");
-        update.setClientId("mobile");
-        update.setRevoked(true);
-        update.setRevokedAt(now);
-        update.setRevokeReason("logout");
-
-        Session updated = dao.updateById(update, existing.getId());
-
-        assertAll(
-                () -> assertEquals("127.0.0.1", updated.getIpAddress()),
-                () -> assertEquals("Chrome", updated.getUserAgent()),
-                () -> assertEquals("mobile", updated.getClientId()),
-                () -> assertTrue(updated.isRevoked()),
-                () -> assertEquals("logout", updated.getRevokeReason()));
-    }
-
-    @Test
-    @DisplayName("updateById ignores null fields")
-    void updatePartial() {
-
-        Session existing = dao.save(newSession(null));
-
-        Session update = new Session();
-        update.setIpAddress("8.8.8.8");
-
-        Session updated = dao.updateById(update, existing.getId());
-
-        assertEquals("8.8.8.8", updated.getIpAddress());
-        assertEquals(existing.getUserAgent(), updated.getUserAgent());
-    }
-
-    @Test
-    @DisplayName("updateById changes user when different")
-    void updateUser() {
-
-        Session existing = dao.save(newSession(null));
-
-        User newUser = userRepo.save(UserProvider.alternativeTemplate());
-
-        Session update = new Session();
-        update.setUser(newUser);
-
-        Session updated = dao.updateById(update, existing.getId());
-
-        assertEquals(newUser.getId(), updated.getUser().getId());
-    }
-
-    @Test
-    @DisplayName("updateById ignores user when same")
-    void updateUserSameIgnored() {
-        Session existing = dao.save(newSession(null));
-
-        Session update = new Session();
-        update.setId(UUID.randomUUID());
-        User unsaved = UserProvider.singleTemplate();
-        unsaved.setCreatedBy(UUID.randomUUID().toString());
-        unsaved.setCreatedAt(Instant.now());
-        user = userRepo.save(unsaved);
-        update.setUser(user);
-
-        Session updated = dao.updateById(update, existing.getId());
-
-        assertEquals(user.getId(), updated.getUser().getId());
-    }
-
-    @Test
-    @DisplayName("updateById throws when session not found")
-    void updateNotFound() {
-        Session session = new Session();
-        UUID id = UUID.randomUUID();
-        assertThrows(NotFoundException.class, () -> dao.updateById(session, id));
     }
 
     @Test
