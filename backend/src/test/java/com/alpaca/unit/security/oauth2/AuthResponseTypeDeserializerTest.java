@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.alpaca.security.oauth2.AuthResponseTypeDeserializer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -14,7 +15,9 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 
+/** Unit tests for {@link AuthResponseTypeDeserializer} */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("AuthResponseTypeDeserializer Unit Tests")
 class AuthResponseTypeDeserializerTest {
 
     @Mock private JsonParser parser;

@@ -9,11 +9,14 @@ import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 
 /** Unit tests for {@link AccessTokenResConverter} */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AccessTokenResConverter Unit Tests")
 class AccessTokenResConverterTest {
 

@@ -13,33 +13,40 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.RedirectStrategy;
 
 /** Unit tests for {@link AuthFailureHandler} */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthFailureHandler Unit Tests")
 class AuthFailureHandlerTest {
 
     private static final String FRONTEND_URI = "http://test.test/";
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
-    private AuthFailureHandler handler;
+
+    @Mock
     private CookieAuthReqRepo repository;
+    @Mock
+    private RedirectStrategy redirectStrategy;
+
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
-    private RedirectStrategy redirectStrategy;
+    private AuthFailureHandler handler;
     private AuthenticationException exception;
 
     @BeforeEach
     void setUp() {
-        repository = mock(CookieAuthReqRepo.class);
-        handler = new AuthFailureHandler(repository, FRONTEND_URI);
-        redirectStrategy = mock(RedirectStrategy.class);
-        handler.setRedirectStrategy(redirectStrategy);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
+
+        handler = new AuthFailureHandler(repository, FRONTEND_URI);
+        handler.setRedirectStrategy(redirectStrategy);
         exception = new AuthenticationException("orig|error[]{}") {};
     }
 

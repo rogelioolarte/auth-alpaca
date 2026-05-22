@@ -1,11 +1,11 @@
 package com.alpaca.unit.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Session;
+import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.repository.SessionRepo;
 import com.alpaca.resources.SessionProvider;
@@ -31,90 +31,228 @@ class SessionDAOImplTest {
 
     @InjectMocks private SessionDAOImpl dao;
 
-    private Session existingSession;
-    private final UUID sessionId = UUID.randomUUID();
+    private Session session;
 
     @BeforeEach
     void setUp() {
-        existingSession = SessionProvider.singleEntity();
-        existingSession.setId(sessionId);
+        session = SessionProvider.singleEntity();
+        session.setId(UUID.randomUUID());
     }
 
-    // --- existsByUniqueProperties ---
-
     @Test
-    @DisplayName("Should check existence by ID")
-    void existsByUniqueProperties_ChecksRepoById() {
-        when(repo.countByUniqueProperties(any(), any(), any(), any())).thenReturn(1L);
-        assertTrue(dao.existsByUniqueProperties(existingSession));
-        verify(repo).countByUniqueProperties(any(), any(), any(), any());
+    @DisplayName("existsByUniqueProperties should return false when user is null")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenUserIsNull() {
+        session.setUser(null);
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+        verifyNoInteractions(repo);
     }
 
-    // --- Repository Delegation Tests ---
+    @Test
+    @DisplayName("existsByUniqueProperties should return false when user id is null")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenUserIdIsNull() {
+        User user = session.getUser();
+        user.setId(null);
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+        verifyNoInteractions(repo);
+    }
 
     @Test
-    @DisplayName("Should delegate revokeSessionByFamilyId to repo")
-    void revokeSessionByFamilyId_DelegatesToRepo() {
+    @DisplayName("existsByUniqueProperties should return false when user agent is blank")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenUserAgentIsBlank() {
+        session.setUserAgent(" ");
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    @DisplayName("existsByUniqueProperties should return false when client id is blank")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenClientIdIsBlank() {
+        session.setClientId("");
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    @DisplayName("existsByUniqueProperties should return false when ip address is blank")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenIpAddressIsBlank() {
+        session.setIpAddress(" ");
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    @DisplayName(
+            "existsByUniqueProperties should return true when repository count is greater than"
+                    + " zero")
+    void existsByUniqueProperties_ShouldReturnTrue_WhenRepositoryCountIsGreaterThanZero() {
+        UUID userId = session.getUser().getId();
+        String userAgent = session.getUserAgent();
+        String clientId = session.getClientId();
+        String ipAddress = session.getIpAddress();
+
+        when(repo.countByUniqueProperties(userId, userAgent, clientId, ipAddress)).thenReturn(1L);
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertTrue(result);
+
+        verify(repo).countByUniqueProperties(userId, userAgent, clientId, ipAddress);
+    }
+
+    @Test
+    @DisplayName("existsByUniqueProperties should return false when repository count is zero")
+    void existsByUniqueProperties_ShouldReturnFalse_WhenRepositoryCountIsZero() {
+        UUID userId = session.getUser().getId();
+        String userAgent = session.getUserAgent();
+        String clientId = session.getClientId();
+        String ipAddress = session.getIpAddress();
+
+        when(repo.countByUniqueProperties(userId, userAgent, clientId, ipAddress)).thenReturn(0L);
+
+        boolean result = dao.existsByUniqueProperties(session);
+
+        assertFalse(result);
+
+        verify(repo).countByUniqueProperties(userId, userAgent, clientId, ipAddress);
+    }
+
+    @Test
+    @DisplayName("revokeSessionByFamilyId should delegate to repository")
+    void revokeSessionByFamilyId_ShouldDelegateToRepository() {
         UUID familyId = UUID.randomUUID();
-        Instant now = Instant.now();
-        String reason = "Security Breach";
+        Instant revokedAt = Instant.now();
+        String reason = "security-incident";
 
-        dao.revokeSessionByFamilyId(familyId, now, reason);
+        dao.revokeSessionByFamilyId(familyId, revokedAt, reason);
 
-        verify(repo).revokeSessionByFamilyId(familyId, now, reason);
+        verify(repo).revokeSessionByFamilyId(familyId, revokedAt, reason);
     }
 
     @Test
-    @DisplayName("Should delegate findSessionByFamilyId to repo")
-    void findSessionByFamilyId_DelegatesToRepo() {
+    @DisplayName("findSessionByFamilyId should return repository result")
+    void findSessionByFamilyId_ShouldReturnRepositoryResult() {
         UUID familyId = UUID.randomUUID();
-        when(repo.findSessionByFamilyId(familyId)).thenReturn(Optional.of(existingSession));
+
+        when(repo.findSessionByFamilyId(familyId)).thenReturn(Optional.of(session));
 
         Optional<Session> result = dao.findSessionByFamilyId(familyId);
 
         assertTrue(result.isPresent());
+        assertEquals(session, result.get());
+
         verify(repo).findSessionByFamilyId(familyId);
     }
 
     @Test
-    @DisplayName("Should delegate findByUniqueProperties to repo")
-    void findByUniqueProperties_DelegatesToRepo() {
-        UUID userId = UUID.randomUUID();
-        String ua = "Chrome";
-        String cid = "client-123";
-        String cip = "127.0.0.1";
-        when(repo.findByUniqueProperties(userId, ua, cid, cip))
-                .thenReturn(Optional.of(existingSession));
+    @DisplayName("findSessionByFamilyId should return empty optional")
+    void findSessionByFamilyId_ShouldReturnEmptyOptional() {
+        UUID familyId = UUID.randomUUID();
 
-        Optional<Session> result = dao.findByUniqueProperties(userId, ua, cid, cip);
+        when(repo.findSessionByFamilyId(familyId)).thenReturn(Optional.empty());
 
-        assertTrue(result.isPresent());
-        verify(repo).findByUniqueProperties(userId, ua, cid, cip);
+        Optional<Session> result = dao.findSessionByFamilyId(familyId);
+
+        assertTrue(result.isEmpty());
+
+        verify(repo).findSessionByFamilyId(familyId);
     }
 
     @Test
-    @DisplayName("Should delegate findActiveSessionsByUserOrderByLastSeen to repo")
-    void findActiveSessionsByUserOrderByLastSeen_DelegatesToRepo() {
-        UUID userId = UUID.randomUUID();
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Session> sessions = List.of(existingSession);
+    @DisplayName("findByUniqueProperties should return repository result")
+    void findByUniqueProperties_ShouldReturnRepositoryResult() {
+        UUID userId = session.getUser().getId();
+        String userAgent = session.getUserAgent();
+        String clientId = session.getClientId();
+        String ipAddress = session.getIpAddress();
 
-        when(repo.findActiveSessionsByUserOrderByLastSeen(userId, pageable)).thenReturn(sessions);
+        when(repo.findByUniqueProperties(userId, userAgent, clientId, ipAddress))
+                .thenReturn(Optional.of(session));
+
+        Optional<Session> result =
+                dao.findByUniqueProperties(userId, userAgent, clientId, ipAddress);
+
+        assertTrue(result.isPresent());
+        assertEquals(session, result.get());
+
+        verify(repo).findByUniqueProperties(userId, userAgent, clientId, ipAddress);
+    }
+
+    @Test
+    @DisplayName("findByUniqueProperties should return empty optional")
+    void findByUniqueProperties_ShouldReturnEmptyOptional() {
+        UUID userId = session.getUser().getId();
+        String userAgent = session.getUserAgent();
+        String clientId = session.getClientId();
+        String ipAddress = session.getIpAddress();
+
+        when(repo.findByUniqueProperties(userId, userAgent, clientId, ipAddress))
+                .thenReturn(Optional.empty());
+
+        Optional<Session> result =
+                dao.findByUniqueProperties(userId, userAgent, clientId, ipAddress);
+
+        assertTrue(result.isEmpty());
+
+        verify(repo).findByUniqueProperties(userId, userAgent, clientId, ipAddress);
+    }
+
+    @Test
+    @DisplayName("findActiveSessionsByUserOrderByLastSeen should return repository result")
+    void findActiveSessionsByUserOrderByLastSeen_ShouldReturnRepositoryResult() {
+        UUID userId = session.getUser().getId();
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Session> expectedSessions = List.of(session);
+
+        when(repo.findActiveSessionsByUserOrderByLastSeen(userId, pageable))
+                .thenReturn(expectedSessions);
 
         List<Session> result = dao.findActiveSessionsByUserOrderByLastSeen(userId, pageable);
 
-        assertEquals(1, result.size());
+        assertThat(result).hasSize(1).containsExactly(session);
+
         verify(repo).findActiveSessionsByUserOrderByLastSeen(userId, pageable);
     }
 
     @Test
-    @DisplayName("existsAllByIds: Should compare input size with repository count")
-    void existsAllByIds_Coverage() {
+    @DisplayName("existsAllByIds should return true when all ids exist")
+    void existsAllByIds_ShouldReturnTrue_WhenAllIdsExist() {
         List<UUID> ids = SessionProvider.listEntities().stream().map(Session::getId).toList();
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
-        assertThat(dao.existsAllByIds(ids)).isTrue();
 
-        when(repo.countByIds(ids)).thenReturn(0L);
-        assertThat(dao.existsAllByIds(ids)).isFalse();
+        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+
+        boolean result = dao.existsAllByIds(ids);
+
+        assertTrue(result);
+
+        verify(repo).countByIds(ids);
+    }
+
+    @Test
+    @DisplayName("existsAllByIds should return false when not all ids exist")
+    void existsAllByIds_ShouldReturnFalse_WhenNotAllIdsExist() {
+        List<UUID> ids = SessionProvider.listEntities().stream().map(Session::getId).toList();
+
+        when(repo.countByIds(ids)).thenReturn((long) ids.size() - 1L);
+
+        boolean result = dao.existsAllByIds(ids);
+
+        assertFalse(result);
+
+        verify(repo).countByIds(ids);
     }
 }
