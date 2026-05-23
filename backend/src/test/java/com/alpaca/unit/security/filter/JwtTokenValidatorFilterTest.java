@@ -25,17 +25,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @DisplayName("JwtTokenValidatorFilter Unit Tests")
 class JwtTokenValidatorFilterTest {
 
-    private static final class TestableJwtTokenValidatorFilter
-            extends JwtTokenValidatorFilter {
+    private static final class TestableJwtTokenValidatorFilter extends JwtTokenValidatorFilter {
 
         private TestableJwtTokenValidatorFilter(JJwtManager jwtManager) {
             super(jwtManager);
         }
 
         private void executeFilter(
-                HttpServletRequest request,
-                HttpServletResponse response,
-                FilterChain filterChain)
+                HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
                 throws ServletException, IOException {
             super.doFilterInternal(request, response, filterChain);
         }
@@ -114,14 +111,11 @@ class JwtTokenValidatorFilterTest {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken("user", null);
 
-        when(jwtManager.manageAuthentication(rawToken))
-                .thenReturn(authenticationToken);
+        when(jwtManager.manageAuthentication(rawToken)).thenReturn(authenticationToken);
 
         filter.executeFilter(request, response, filterChain);
 
-        assertSame(
-                authenticationToken,
-                SecurityContextHolder.getContext().getAuthentication());
+        assertSame(authenticationToken, SecurityContextHolder.getContext().getAuthentication());
 
         assertNotNull(authenticationToken.getDetails());
 
@@ -139,8 +133,7 @@ class JwtTokenValidatorFilterTest {
 
         request.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
 
-        when(jwtManager.manageAuthentication(rawToken))
-                .thenReturn(null);
+        when(jwtManager.manageAuthentication(rawToken)).thenReturn(null);
 
         UnauthorizedException exception =
                 assertThrows(
@@ -156,7 +149,8 @@ class JwtTokenValidatorFilterTest {
     }
 
     @Test
-    @DisplayName("doFilterInternal should continue filter chain when authorization header is missing")
+    @DisplayName(
+            "doFilterInternal should continue filter chain when authorization header is missing")
     void doFilterInternal_ShouldContinueFilterChain_WhenAuthorizationHeaderIsMissing()
             throws ServletException, IOException {
 
@@ -169,7 +163,8 @@ class JwtTokenValidatorFilterTest {
     }
 
     @Test
-    @DisplayName("doFilterInternal should continue filter chain when authorization header is invalid")
+    @DisplayName(
+            "doFilterInternal should continue filter chain when authorization header is invalid")
     void doFilterInternal_ShouldContinueFilterChain_WhenAuthorizationHeaderIsInvalid()
             throws ServletException, IOException {
 

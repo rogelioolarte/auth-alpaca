@@ -56,7 +56,7 @@ public class UserProvider {
         return User.builder()
                 .id(UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"))
                 .email("admin@admin.com")
-                .password("123456789")
+                .password("1234567890")
                 .enabled(true)
                 .accountNonExpired(true)
                 .accountNonLocked(true)

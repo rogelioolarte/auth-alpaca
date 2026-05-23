@@ -11,13 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
@@ -29,6 +30,9 @@ import tools.jackson.databind.JavaType;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 
+/** Unit tests for {@link AuthRequestDeserializer} */
+@ExtendWith(MockitoExtension.class)
+@DisplayName("AuthRequestDeserializer Unit Tests")
 class AuthRequestDeserializerTest {
 
     private JsonMapper mapper;
@@ -36,13 +40,9 @@ class AuthRequestDeserializerTest {
     @BeforeEach
     void setUp() {
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(
-                OAuth2AuthorizationRequest.class,
-                new AuthRequestDeserializer());
+        module.addDeserializer(OAuth2AuthorizationRequest.class, new AuthRequestDeserializer());
 
-        mapper = JsonMapper.builder()
-                .addModule(module)
-                .build();
+        mapper = JsonMapper.builder().addModule(module).build();
     }
 
     @Test
@@ -67,22 +67,14 @@ class AuthRequestDeserializerTest {
 
         assertAll(
                 () -> assertEquals("client-id", request.getClientId()),
-                () -> assertEquals(
-                        "https://auth.alpaca.com",
-                        request.getAuthorizationUri()),
-                () -> assertEquals(
-                        "https://alpaca.com/callback",
-                        request.getRedirectUri()),
+                () -> assertEquals("https://auth.alpaca.com", request.getAuthorizationUri()),
+                () -> assertEquals("https://alpaca.com/callback", request.getRedirectUri()),
                 () -> assertEquals("oauth-state", request.getState()),
-                () -> assertEquals(
-                        Set.of("read", "write"),
-                        request.getScopes()),
-                () -> assertEquals(
-                        Map.of("roles", List.of("admin", "user")),
-                        request.getAttributes()),
-                () -> assertEquals(
-                        Map.of("tenant", "alpaca"),
-                        request.getAdditionalParameters()));
+                () -> assertEquals(Set.of("read", "write"), request.getScopes()),
+                () ->
+                        assertEquals(
+                                Map.of("roles", List.of("admin", "user")), request.getAttributes()),
+                () -> assertEquals(Map.of("tenant", "alpaca"), request.getAdditionalParameters()));
     }
 
     @Test
@@ -188,29 +180,22 @@ class AuthRequestDeserializerTest {
         OAuth2AuthorizationRequest request =
                 mapper.readValue(json, OAuth2AuthorizationRequest.class);
 
-        assertEquals(
-                Set.of("openid", "profile"),
-                request.getScopes());
+        assertEquals(Set.of("openid", "profile"), request.getScopes());
     }
 
     @ParameterizedTest
     @MethodSource("missingRequiredFieldProvider")
     @DisplayName("deserialize should throw exception when required field is missing")
     void deserialize_ShouldThrowException_WhenRequiredFieldIsMissing(
-            String json,
-            String missingField) {
+            String json, String missingField) {
 
         JacksonException exception =
                 assertThrows(
                         JacksonException.class,
-                        () ->
-                                mapper.readValue(
-                                        json,
-                                        OAuth2AuthorizationRequest.class));
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
 
         assertTrue(
-                exception.getOriginalMessage()
-                        .contains("Missing required field " + missingField));
+                exception.getOriginalMessage().contains("Missing required field " + missingField));
     }
 
     private static Stream<Arguments> missingRequiredFieldProvider() {
@@ -269,14 +254,9 @@ class AuthRequestDeserializerTest {
         JacksonException exception =
                 assertThrows(
                         JacksonException.class,
-                        () ->
-                                mapper.readValue(
-                                        json,
-                                        OAuth2AuthorizationRequest.class));
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
 
-        assertTrue(
-                exception.getOriginalMessage()
-                        .contains("Missing required field redirectUri"));
+        assertTrue(exception.getOriginalMessage().contains("Missing required field redirectUri"));
     }
 
     @Test
@@ -300,11 +280,9 @@ class AuthRequestDeserializerTest {
 
             assertNull(parser.currentToken());
 
-            AuthRequestDeserializer deserializer =
-                    new AuthRequestDeserializer();
+            AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
 
-            OAuth2AuthorizationRequest request =
-                    deserializer.deserialize(parser, null);
+            OAuth2AuthorizationRequest request = deserializer.deserialize(parser, null);
 
             assertEquals("client-id", request.getClientId());
         }
@@ -322,15 +300,12 @@ class AuthRequestDeserializerTest {
         JacksonException exception =
                 assertThrows(
                         JacksonException.class,
-                        () ->
-                                mapper.readValue(
-                                        json,
-                                        OAuth2AuthorizationRequest.class));
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
 
         assertTrue(
-                exception.getOriginalMessage()
-                        .contains(
-                                "Expected JSON object for OAuth2AuthorizationRequest"));
+                exception
+                        .getOriginalMessage()
+                        .contains("Expected JSON object for OAuth2AuthorizationRequest"));
     }
 
     @Test
@@ -344,11 +319,9 @@ class AuthRequestDeserializerTest {
 
             parser.nextToken();
 
-            AuthRequestDeserializer deserializer =
-                    new AuthRequestDeserializer();
+            AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
 
-            DeserializationContext deserializationContext =
-                    mock(DeserializationContext.class);
+            DeserializationContext deserializationContext = mock(DeserializationContext.class);
 
             OAuth2AuthorizationRequest expected =
                     OAuth2AuthorizationRequest.authorizationCode()
@@ -359,22 +332,14 @@ class AuthRequestDeserializerTest {
                             .build();
 
             JavaType javaType =
-                    mapper.getTypeFactory()
-                            .constructType(
-                                    OAuth2AuthorizationRequest.class);
+                    mapper.getTypeFactory().constructType(OAuth2AuthorizationRequest.class);
 
-            when(
-                    deserializationContext.handleUnexpectedToken(
-                            eq(javaType),
-                            eq(JsonToken.START_OBJECT),
-                            eq(parser),
-                            anyString()))
+            when(deserializationContext.handleUnexpectedToken(
+                            eq(javaType), eq(JsonToken.START_OBJECT), eq(parser), anyString()))
                     .thenReturn(expected);
 
             OAuth2AuthorizationRequest result =
-                    deserializer.deserialize(
-                            parser,
-                            deserializationContext);
+                    deserializer.deserialize(parser, deserializationContext);
 
             assertSame(expected, result);
         }
@@ -384,14 +349,10 @@ class AuthRequestDeserializerTest {
     @DisplayName("handledType should return OAuth2AuthorizationRequest class")
     void handledType_ShouldReturnOAuth2AuthorizationRequestClass() {
 
-        AuthRequestDeserializer deserializer =
-                new AuthRequestDeserializer();
+        AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
 
-        Class<OAuth2AuthorizationRequest> result =
-                deserializer.handledType();
+        Class<OAuth2AuthorizationRequest> result = deserializer.handledType();
 
-        assertEquals(
-                OAuth2AuthorizationRequest.class,
-                result);
+        assertEquals(OAuth2AuthorizationRequest.class, result);
     }
 }

@@ -41,29 +41,21 @@ import org.springframework.security.web.RedirectStrategy;
 @DisplayName("AuthSuccessHandler Unit Tests")
 class AuthSuccessHandlerTest {
 
-    @Mock
-    private CookieAuthReqRepo repository;
+    @Mock private CookieAuthReqRepo repository;
 
-    @Mock
-    private TokenExchangeManager exchangeManager;
+    @Mock private TokenExchangeManager exchangeManager;
 
-    @Mock
-    private UUIDv7Generator uuidGenerator;
+    @Mock private UUIDv7Generator uuidGenerator;
 
-    @Mock
-    private HttpServletRequest request;
+    @Mock private HttpServletRequest request;
 
-    @Mock
-    private HttpServletResponse response;
+    @Mock private HttpServletResponse response;
 
-    @Mock
-    private Authentication authentication;
+    @Mock private Authentication authentication;
 
-    @Mock
-    private UserPrincipal principal;
+    @Mock private UserPrincipal principal;
 
-    @Mock
-    private RedirectStrategy redirectStrategy;
+    @Mock private RedirectStrategy redirectStrategy;
 
     private AuthSuccessHandler handler;
 
@@ -76,10 +68,7 @@ class AuthSuccessHandlerTest {
 
         handler =
                 new AuthSuccessHandler(
-                        repository,
-                        List.of(authorizedRedirectUri),
-                        exchangeManager,
-                        uuidGenerator);
+                        repository, List.of(authorizedRedirectUri), exchangeManager, uuidGenerator);
 
         handler.setRedirectStrategy(redirectStrategy);
         handler.setDefaultTargetUrl("https://alpaca.com/default");
@@ -91,8 +80,7 @@ class AuthSuccessHandlerTest {
         UUID generatedCode = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        OAuth2AuthorizationRequest authorizationRequest =
-                mock(OAuth2AuthorizationRequest.class);
+        OAuth2AuthorizationRequest authorizationRequest = mock(OAuth2AuthorizationRequest.class);
         when(authentication.getPrincipal()).thenReturn(principal);
         when(response.isCommitted()).thenReturn(false);
         when(uuidGenerator.generate()).thenReturn(generatedCode);
@@ -101,43 +89,33 @@ class AuthSuccessHandlerTest {
         when(request.getHeader("X-Client-Id")).thenReturn("web-client");
         when(request.getHeader("User-Agent")).thenReturn("mozilla");
 
-        when(repository.loadAuthorizationRequest(request))
-                .thenReturn(authorizationRequest);
+        when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
 
         when(authorizationRequest.getAttributes())
-                .thenReturn(
-                        Map.of(
-                                AuthSuccessHandler.CLIENT_CODE_CHALLENGE,
-                                "challenge-value"));
+                .thenReturn(Map.of(AuthSuccessHandler.CLIENT_CODE_CHALLENGE, "challenge-value"));
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class);
-             MockedStatic<Utils> utils = mockStatic(Utils.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class);
+                MockedStatic<Utils> utils = mockStatic(Utils.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
                                             AuthSuccessHandler.REDIRECT_PARAM_NAME,
                                             authorizedRedirectUri.toString())));
 
-            utils.when(() -> Utils.extractClientIP(request))
-                    .thenReturn("127.0.0.1");
+            utils.when(() -> Utils.extractClientIP(request)).thenReturn("127.0.0.1");
 
             handler.onAuthenticationSuccess(request, response, authentication);
 
-            ArgumentCaptor<AuthCode> authCodeCaptor =
-                    ArgumentCaptor.forClass(AuthCode.class);
+            ArgumentCaptor<AuthCode> authCodeCaptor = ArgumentCaptor.forClass(AuthCode.class);
 
             verify(exchangeManager)
-                    .createExchangeCode(
-                            eq(generatedCode.toString()),
-                            authCodeCaptor.capture());
+                    .createExchangeCode(eq(generatedCode.toString()), authCodeCaptor.capture());
 
             AuthCode authCode = authCodeCaptor.getValue();
 
@@ -149,14 +127,10 @@ class AuthSuccessHandlerTest {
             assertEquals(userId, authCode.getUserId());
             assertEquals(authorizedRedirectUri.toString(), authCode.getRedirectUri());
 
-            verify(repository)
-                    .removeAuthorizationRequestCookies(request, response);
+            verify(repository).removeAuthorizationRequestCookies(request, response);
 
             verify(redirectStrategy)
-                    .sendRedirect(
-                            eq(request),
-                            eq(response),
-                            contains("code=" + generatedCode));
+                    .sendRedirect(eq(request), eq(response), contains("code=" + generatedCode));
         }
     }
 
@@ -179,33 +153,28 @@ class AuthSuccessHandlerTest {
     void onAuthenticationSuccess_ShouldThrowBadRequestException_WhenCodeChallengeIsBlank()
             throws IOException {
 
-        OAuth2AuthorizationRequest authorizationRequest =
-                mock(OAuth2AuthorizationRequest.class);
+        OAuth2AuthorizationRequest authorizationRequest = mock(OAuth2AuthorizationRequest.class);
 
         when(response.isCommitted()).thenReturn(false);
 
-        when(repository.loadAuthorizationRequest(request))
-                .thenReturn(authorizationRequest);
+        when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
 
         when(authorizationRequest.getAttributes()).thenReturn(Map.of());
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
+                                            request, AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
                     .thenReturn(Optional.of(new Cookie("cookie", " ")));
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
@@ -217,49 +186,41 @@ class AuthSuccessHandlerTest {
                             BadRequestException.class,
                             () ->
                                     handler.onAuthenticationSuccess(
-                                            request,
-                                            response,
-                                            authentication));
+                                            request, response, authentication));
 
             assertEquals("Invalid Code Challenge", exception.getReason());
 
             verifyNoInteractions(exchangeManager);
-            verify(redirectStrategy, never())
-                    .sendRedirect(any(), any(), anyString());
+            verify(redirectStrategy, never()).sendRedirect(any(), any(), anyString());
         }
     }
 
     @Test
     @DisplayName("Should use code challenge from cookie when attribute is missing")
-    void onAuthenticationSuccess_ShouldUseCodeChallengeFromCookie()
-            throws IOException {
+    void onAuthenticationSuccess_ShouldUseCodeChallengeFromCookie() throws IOException {
 
         UUID generatedCode = UUID.randomUUID();
 
-        OAuth2AuthorizationRequest authorizationRequest =
-                mock(OAuth2AuthorizationRequest.class);
+        OAuth2AuthorizationRequest authorizationRequest = mock(OAuth2AuthorizationRequest.class);
 
         when(authentication.getPrincipal()).thenReturn(principal);
         when(response.isCommitted()).thenReturn(false);
         when(uuidGenerator.generate()).thenReturn(generatedCode);
 
-        when(repository.loadAuthorizationRequest(request))
-                .thenReturn(authorizationRequest);
+        when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
 
         when(authorizationRequest.getAttributes()).thenReturn(Map.of());
 
         when(principal.getUserId()).thenReturn(UUID.randomUUID());
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class);
-             MockedStatic<Utils> utils = mockStatic(Utils.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class);
+                MockedStatic<Utils> utils = mockStatic(Utils.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
+                                            request, AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
@@ -270,16 +231,14 @@ class AuthSuccessHandlerTest {
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
                                             AuthSuccessHandler.REDIRECT_PARAM_NAME,
                                             authorizedRedirectUri.toString())));
 
-            utils.when(() -> Utils.extractClientIP(request))
-                    .thenReturn(null);
+            utils.when(() -> Utils.extractClientIP(request)).thenReturn(null);
 
             handler.onAuthenticationSuccess(request, response, authentication);
 
@@ -297,31 +256,24 @@ class AuthSuccessHandlerTest {
     @DisplayName("Should throw unauthorized exception when principal is null")
     void onAuthenticationSuccess_ShouldThrowUnauthorizedException_WhenPrincipalIsNull() {
 
-        OAuth2AuthorizationRequest authorizationRequest =
-                mock(OAuth2AuthorizationRequest.class);
+        OAuth2AuthorizationRequest authorizationRequest = mock(OAuth2AuthorizationRequest.class);
 
         when(response.isCommitted()).thenReturn(false);
 
         when(authentication.getPrincipal()).thenReturn(null);
 
-        when(repository.loadAuthorizationRequest(request))
-                .thenReturn(authorizationRequest);
+        when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
 
         when(authorizationRequest.getAttributes())
-                .thenReturn(
-                        Map.of(
-                                AuthSuccessHandler.CLIENT_CODE_CHALLENGE,
-                                "challenge"));
+                .thenReturn(Map.of(AuthSuccessHandler.CLIENT_CODE_CHALLENGE, "challenge"));
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
@@ -333,9 +285,7 @@ class AuthSuccessHandlerTest {
                             UnauthorizedException.class,
                             () ->
                                     handler.onAuthenticationSuccess(
-                                            request,
-                                            response,
-                                            authentication));
+                                            request, response, authentication));
 
             assertEquals("Invalid Credentials", exception.getReason());
 
@@ -349,15 +299,13 @@ class AuthSuccessHandlerTest {
 
         when(response.isCommitted()).thenReturn(false);
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(
                             Optional.of(
                                     new Cookie(
@@ -369,13 +317,9 @@ class AuthSuccessHandlerTest {
                             UnauthorizedException.class,
                             () ->
                                     handler.onAuthenticationSuccess(
-                                            request,
-                                            response,
-                                            authentication));
+                                            request, response, authentication));
 
-            assertEquals(
-                    "Unauthorized redirect URI",
-                    exception.getReason());
+            assertEquals("Unauthorized redirect URI", exception.getReason());
         }
     }
 
@@ -384,11 +328,7 @@ class AuthSuccessHandlerTest {
     void onAuthenticationSuccess_ShouldThrowInternalErrorException_WhenAuthorizedUrisAreEmpty() {
 
         AuthSuccessHandler invalidHandler =
-                new AuthSuccessHandler(
-                        repository,
-                        List.of(),
-                        exchangeManager,
-                        uuidGenerator);
+                new AuthSuccessHandler(repository, List.of(), exchangeManager, uuidGenerator);
 
         when(response.isCommitted()).thenReturn(false);
 
@@ -397,13 +337,9 @@ class AuthSuccessHandlerTest {
                         InternalErrorException.class,
                         () ->
                                 invalidHandler.onAuthenticationSuccess(
-                                        request,
-                                        response,
-                                        authentication));
+                                        request, response, authentication));
 
-        assertEquals(
-                "Bad configuration of Authorized Redirect URIs",
-                exception.getReason());
+        assertEquals("Bad configuration of Authorized Redirect URIs", exception.getReason());
     }
 
     @Test
@@ -413,48 +349,39 @@ class AuthSuccessHandlerTest {
 
         UUID generatedCode = UUID.randomUUID();
 
-        OAuth2AuthorizationRequest authorizationRequest =
-                mock(OAuth2AuthorizationRequest.class);
+        OAuth2AuthorizationRequest authorizationRequest = mock(OAuth2AuthorizationRequest.class);
 
         when(authentication.getPrincipal()).thenReturn(principal);
         when(response.isCommitted()).thenReturn(false);
         when(uuidGenerator.generate()).thenReturn(generatedCode);
 
-        when(repository.loadAuthorizationRequest(request))
-                .thenReturn(authorizationRequest);
+        when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
 
         when(authorizationRequest.getAttributes())
-                .thenReturn(
-                        Map.of(
-                                AuthSuccessHandler.CLIENT_CODE_CHALLENGE,
-                                "challenge"));
+                .thenReturn(Map.of(AuthSuccessHandler.CLIENT_CODE_CHALLENGE, "challenge"));
 
         when(principal.getUserId()).thenReturn(UUID.randomUUID());
 
         handler.setDefaultTargetUrl(authorizedRedirectUri.toString());
 
-        try (MockedStatic<CookieManager> cookieManager =
-                     mockStatic(CookieManager.class);
-             MockedStatic<Utils> utils = mockStatic(Utils.class)) {
+        try (MockedStatic<CookieManager> cookieManager = mockStatic(CookieManager.class);
+                MockedStatic<Utils> utils = mockStatic(Utils.class)) {
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.REDIRECT_PARAM_NAME))
+                                            request, AuthSuccessHandler.REDIRECT_PARAM_NAME))
                     .thenReturn(Optional.empty());
 
             cookieManager
                     .when(
                             () ->
                                     CookieManager.getCookie(
-                                            request,
-                                            AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
+                                            request, AuthSuccessHandler.CLIENT_CODE_CHALLENGE))
                     .thenReturn(Optional.empty());
 
-            utils.when(() -> Utils.extractClientIP(request))
-                    .thenReturn("");
+            utils.when(() -> Utils.extractClientIP(request)).thenReturn("");
 
             handler.onAuthenticationSuccess(request, response, authentication);
 
@@ -464,15 +391,10 @@ class AuthSuccessHandlerTest {
                             argThat(
                                     authCode ->
                                             authCode.getRedirectUri()
-                                                    .equals(
-                                                            authorizedRedirectUri
-                                                                    .toString())));
+                                                    .equals(authorizedRedirectUri.toString())));
 
             verify(redirectStrategy)
-                    .sendRedirect(
-                            eq(request),
-                            eq(response),
-                            contains("code=" + generatedCode));
+                    .sendRedirect(eq(request), eq(response), contains("code=" + generatedCode));
         }
     }
 }

@@ -9,6 +9,7 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of the {@link IProfileDAO} interface for managing {@link Profile} entities.
@@ -34,17 +35,17 @@ public class ProfileDAOImpl extends GenericDAOImpl<Profile, UUID> implements IPr
 
     /**
      * Determines whether a profile already exists based on its unique property: the associated user
-     * ID.
+     * email.
      *
-     * @param profile the profile to check; must include a user with a non-null ID
+     * @param profile the profile to check; must include a user with a non-null email
      * @return {@code true} if a profile exists for the given user ID; {@code false} otherwise
      */
     @Override
     public boolean existsByUniqueProperties(Profile profile) {
-        if (profile.getUser() == null || profile.getUser().getId() == null) {
+        if (profile.getUser() == null || !StringUtils.hasText(profile.getUser().getEmail())) {
             return false;
         }
-        return repo.countByUserId(profile.getUser().getId()) > 0L;
+        return repo.countByUserEmail(profile.getUser().getEmail()) > 0L;
     }
 
     /**

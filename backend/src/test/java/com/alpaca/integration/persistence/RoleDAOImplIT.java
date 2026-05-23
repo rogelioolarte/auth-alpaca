@@ -6,7 +6,6 @@ import com.alpaca.entity.Role;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.persistence.impl.RoleDAOImpl;
-import com.alpaca.repository.PermissionRepo;
 import com.alpaca.repository.RoleRepo;
 import com.alpaca.resources.RoleProvider;
 import java.time.Instant;
@@ -28,7 +27,6 @@ class RoleDAOImplIT {
 
     @Autowired private IRoleDAO dao;
     @Autowired private RoleRepo repo;
-    @Autowired private PermissionRepo permissionRepo;
 
     private Role saved;
 

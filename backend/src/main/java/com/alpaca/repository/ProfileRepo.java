@@ -21,11 +21,11 @@ public interface ProfileRepo extends GenericRepo<Profile, UUID> {
     /**
      * Counts the number of profiles associated with a specific user ID.
      *
-     * @param userId The ID of the user - must not be null.
+     * @param email The email of the user - must not be null.
      * @return The number of profiles linked to the given user.
      */
-    @Query("SELECT COUNT(p) FROM Profile p WHERE p.user.id = :userId")
-    long countByUserId(@Param("userId") UUID userId);
+    @Query("SELECT COUNT(p) FROM Profile p WHERE p.user.email = :email")
+    long countByUserEmail(@Param("email") String email);
 
     /**
      * Counts the number of entities with the given IDs.

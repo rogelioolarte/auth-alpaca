@@ -221,7 +221,7 @@ public class JJwtManager {
         }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return BASE64_URL.encodeToString(md.digest(value.getBytes(StandardCharsets.UTF_8)));
+            return BASE64_URL.encodeToString(md.digest(value.getBytes(StandardCharsets.US_ASCII)));
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }

@@ -117,7 +117,8 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     @Override
     public List<T> saveAll(Collection<T> t) {
         if (invalidCollection(t)) {
-            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
+            throw new BadRequestException(
+                    String.format("%s(s) cannot be created", getEntityName()));
         }
         return getDAO().saveAll(t);
     }

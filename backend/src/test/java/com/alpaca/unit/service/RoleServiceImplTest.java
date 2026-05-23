@@ -1,9 +1,7 @@
 package com.alpaca.unit.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
@@ -14,14 +12,16 @@ import com.alpaca.service.impl.RoleServiceImpl;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link RoleServiceImpl} */
+/** Unit tests for {@link RoleServiceImpl}. */
 @ExtendWith(MockitoExtension.class)
 class RoleServiceImplTest {
 
@@ -36,48 +36,241 @@ class RoleServiceImplTest {
     void setup() {
         firstEntity = RoleProvider.singleEntity();
         secondEntity = RoleProvider.alternativeEntity();
+
+        secondEntity.setName("USER");
     }
 
     // --- getUserRoles ---
+
     @Test
-    void getUserRolesCaseOne() {
+    void getUserRolesShouldThrowNotFoundExceptionWhenDefaultRoleDoesNotExist() {
         when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
+
         assertThrows(NotFoundException.class, () -> service.getUserRoles());
+
         verify(dao).findByRoleName(secondEntity.getName());
+        verify(dao, never()).save(any(Role.class));
     }
 
     @Test
-    void getUserRolesCaseTwo() {
+    void getUserRolesShouldReturnDefaultRoleSuccessfully() {
         when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.of(secondEntity));
-        Set<Role> entitiesFound = service.getUserRoles();
-        assertEquals(new HashSet<>(Set.of(secondEntity)), entitiesFound);
+
+        Set<Role> result = service.getUserRoles();
+
+        assertNotNull(result);
+        assertEquals(new HashSet<>(Set.of(secondEntity)), result);
+
         verify(dao).findByRoleName(secondEntity.getName());
     }
 
     // --- findByRoleName ---
+
     @Test
-    void findByRoleNameCaseOne() {
+    void findByRoleNameShouldThrowBadRequestExceptionWhenRoleNameIsNull() {
         assertThrows(BadRequestException.class, () -> service.findByRoleName(null));
+
+        verifyNoInteractions(dao);
     }
 
     @Test
-    void findByRoleNameCaseTwo() {
+    void findByRoleNameShouldThrowBadRequestExceptionWhenRoleNameIsBlank() {
         assertThrows(BadRequestException.class, () -> service.findByRoleName("  "));
+
+        verifyNoInteractions(dao);
     }
 
     @Test
-    void findByRoleNameCaseThree() {
-        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
-        String name = secondEntity.getName();
-        assertThrows(NotFoundException.class, () -> service.findByRoleName(name));
-        verify(dao).findByRoleName(secondEntity.getName());
+    void findByRoleNameShouldThrowNotFoundExceptionWhenRoleDoesNotExist() {
+        String roleName = secondEntity.getName();
+
+        when(dao.findByRoleName(roleName)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.findByRoleName(roleName));
+
+        verify(dao).findByRoleName(roleName);
     }
 
     @Test
-    void findByRoleNameCaseFour() {
-        when(dao.findByRoleName(firstEntity.getName())).thenReturn(Optional.of(firstEntity));
-        Role entityFound = service.findByRoleName(firstEntity.getName());
-        assertEquals(firstEntity, entityFound);
-        verify(dao).findByRoleName(firstEntity.getName());
+    void findByRoleNameShouldReturnRoleSuccessfully() {
+        String roleName = firstEntity.getName();
+
+        when(dao.findByRoleName(roleName)).thenReturn(Optional.of(firstEntity));
+
+        Role result = service.findByRoleName(roleName);
+
+        assertNotNull(result);
+        assertEquals(firstEntity, result);
+
+        verify(dao).findByRoleName(roleName);
+    }
+
+    // --- updateById ---
+
+    @Test
+    void updateByIdShouldThrowBadRequestExceptionWhenRoleIsNull() {
+        UUID roleId = firstEntity.getId();
+
+        assertThrows(BadRequestException.class, () -> service.updateById(null, roleId));
+
+        verifyNoInteractions(dao);
+    }
+
+    @Test
+    void updateByIdShouldThrowBadRequestExceptionWhenIdIsNull() {
+        assertThrows(BadRequestException.class, () -> service.updateById(firstEntity, null));
+
+        verifyNoInteractions(dao);
+    }
+
+    @Test
+    void updateByIdShouldThrowNotFoundExceptionWhenRoleDoesNotExist() {
+        UUID roleId = firstEntity.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.updateById(firstEntity, roleId));
+
+        verify(dao).findById(roleId);
+        verify(dao, never()).save(any(Role.class));
+    }
+
+    @Test
+    void updateByIdShouldUpdateNameAndDescriptionSuccessfully() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+        incomingRole.setRolePermissions(existingRole.getPermissions());
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(incomingRole.getName(), result.getName());
+        assertEquals(incomingRole.getDescription(), result.getDescription());
+
+        ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+
+        verify(dao).findById(roleId);
+        verify(dao).save(roleCaptor.capture());
+
+        assertEquals(incomingRole.getName(), roleCaptor.getValue().getName());
+        assertEquals(incomingRole.getDescription(), roleCaptor.getValue().getDescription());
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateNameWhenIncomingNameIsBlank() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+        incomingRole.setName(" ");
+        incomingRole.setDescription(existingRole.getDescription());
+        incomingRole.setRolePermissions(existingRole.getPermissions());
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(firstEntity.getName(), result.getName());
+
+        verify(dao).findById(roleId);
+        verify(dao).save(existingRole);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateDescriptionWhenIncomingDescriptionIsBlank() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+        incomingRole.setName(existingRole.getName());
+        incomingRole.setDescription(" ");
+        incomingRole.setRolePermissions(existingRole.getPermissions());
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(firstEntity.getDescription(), result.getDescription());
+
+        verify(dao).findById(roleId);
+        verify(dao).save(existingRole);
+    }
+
+    @Test
+    void updateByIdShouldUpdatePermissionsWhenPermissionsAreDifferent() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(incomingRole.getPermissions(), result.getPermissions());
+
+        ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+
+        verify(dao).findById(roleId);
+        verify(dao).save(roleCaptor.capture());
+
+        assertEquals(incomingRole.getPermissions(), roleCaptor.getValue().getPermissions());
+    }
+
+    @Test
+    void updateByIdShouldNotUpdatePermissionsWhenPermissionsAreEqual() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+        incomingRole.setRolePermissions(existingRole.getPermissions());
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(existingRole.getRolePermissions(), result.getRolePermissions());
+
+        verify(dao).findById(roleId);
+        verify(dao).save(existingRole);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdatePermissionsWhenIncomingPermissionsAreNull() {
+        Role existingRole = RoleProvider.singleEntity();
+
+        Role incomingRole = RoleProvider.alternativeEntity();
+        incomingRole.setRolePermissions(null);
+
+        UUID roleId = existingRole.getId();
+
+        when(dao.findById(roleId)).thenReturn(Optional.of(existingRole));
+        when(dao.save(existingRole)).thenReturn(existingRole);
+
+        Role result = service.updateById(incomingRole, roleId);
+
+        assertNotNull(result);
+        assertEquals(existingRole.getRolePermissions(), result.getRolePermissions());
+
+        verify(dao).findById(roleId);
+        verify(dao).save(existingRole);
     }
 }

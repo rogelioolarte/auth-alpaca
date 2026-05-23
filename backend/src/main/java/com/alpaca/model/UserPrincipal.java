@@ -113,7 +113,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.userId = getUUIDFromClaim(claims, "userId");
         this.profileId = getUUIDFromClaim(claims, "profileId");
         this.advertiserId = getUUIDFromClaim(claims, "advertiserId");
-        this.username = claims.getSubject();
+        this.username = claims.getSubject() != null ? claims.getSubject() : "";
         this.password = null;
         this.authorities =
                 AuthorityUtils.commaSeparatedStringToAuthorityList(

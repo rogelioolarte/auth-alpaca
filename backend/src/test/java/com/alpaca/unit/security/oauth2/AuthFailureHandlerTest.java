@@ -30,10 +30,8 @@ class AuthFailureHandlerTest {
     private static final String FRONTEND_URI = "http://test.test/";
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
-    @Mock
-    private CookieAuthReqRepo repository;
-    @Mock
-    private RedirectStrategy redirectStrategy;
+    @Mock private CookieAuthReqRepo repository;
+    @Mock private RedirectStrategy redirectStrategy;
 
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;

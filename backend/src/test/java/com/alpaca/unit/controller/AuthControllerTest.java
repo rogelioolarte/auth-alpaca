@@ -3,6 +3,7 @@ package com.alpaca.unit.controller;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -59,7 +60,9 @@ class AuthControllerTest {
     private MockedStatic<Utils> utilsMock;
 
     private static final String CLIENT_ID = "client-id";
+
     private static final String USER_AGENT = "Mozilla/5.0";
+
     private static final String CLIENT_IP = "192.168.1.10";
 
     private static final AuthRequestDTO REQUEST =
@@ -77,6 +80,7 @@ class AuthControllerTest {
 
     private void mockClientIp() {
         utilsMock = mockStatic(Utils.class);
+
         utilsMock
                 .when(() -> Utils.extractClientIP(any(HttpServletRequest.class)))
                 .thenReturn(CLIENT_IP);
@@ -85,6 +89,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("login returns 200 OK and authentication response")
     void loginReturnsAuthenticationResponse() throws Exception {
+
         mockClientIp();
 
         UsernamePasswordAuthenticationToken expectedToken =
@@ -153,6 +158,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("register returns 200 OK and authentication response")
     void registerReturnsAuthenticationResponse() throws Exception {
+
         mockClientIp();
 
         when(authService.register(
@@ -191,6 +197,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("logout returns 200 OK and success message")
     void logoutReturnsSuccessMessage() throws Exception {
+
         mockClientIp();
 
         mockMvc.perform(
@@ -208,6 +215,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("exchangeToken returns 200 OK and authentication response")
     void exchangeTokenReturnsAuthenticationResponse() throws Exception {
+
         mockClientIp();
 
         Map<String, String> body = new HashMap<>();
@@ -260,6 +268,7 @@ class AuthControllerTest {
     @WithMockCustomUser
     @DisplayName("getCurrentUser returns 200 OK and authenticated user")
     void getCurrentUserReturnsAuthenticatedUser() throws Exception {
+
         when(userPrincipal.getUsername()).thenReturn(REQUEST.getEmail());
 
         mockMvc.perform(get("/api/auth/me")).andExpect(status().isOk());
@@ -269,8 +278,18 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("getCurrentUser returns unauthorized when user is not authenticated")
+    void getCurrentUserReturnsUnauthorizedWhenUserIsNull() {
+
+        AuthController controller = new AuthController(authService, manager);
+
+        assertEquals(401, controller.getCurrentUser(null).getStatusCode().value());
+    }
+
+    @Test
     @DisplayName("health returns 200 OK and api online message")
     void healthReturnsApiOnlineMessage() throws Exception {
+
         mockMvc.perform(get("/api/auth"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("API Online"));

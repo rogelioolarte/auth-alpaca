@@ -42,33 +42,38 @@ class ProfileDAOImplTest {
     }
 
     @Test
-    @DisplayName("Should return true when repository counts at least one profile for the user ID")
+    @DisplayName(
+            "Should return true when repository counts at least one profile for the user Email")
     void existsByUniqueProperties_WhenUserExists_ReturnsTrue() {
         UUID userId = UUID.randomUUID();
+        String email = "test@test.com";
         User user = new User();
         user.setId(userId);
+        user.setEmail(email);
         Profile profile = new Profile();
         profile.setUser(user);
 
-        when(repo.countByUserId(userId)).thenReturn(1L);
+        when(repo.countByUserEmail(email)).thenReturn(1L);
 
         assertTrue(dao.existsByUniqueProperties(profile));
-        verify(repo).countByUserId(userId);
+        verify(repo).countByUserEmail(email);
     }
 
     @Test
     @DisplayName("Should return false when repository counts zero profiles for the user ID")
     void existsByUniqueProperties_WhenUserDoesNotExist_ReturnsFalse() {
         UUID userId = UUID.randomUUID();
+        String email = "test@test.com";
         User user = new User();
+        user.setEmail(email);
         user.setId(userId);
         Profile profile = new Profile();
         profile.setUser(user);
 
-        when(repo.countByUserId(userId)).thenReturn(0L);
+        when(repo.countByUserEmail(email)).thenReturn(0L);
 
         assertFalse(dao.existsByUniqueProperties(profile));
-        verify(repo).countByUserId(userId);
+        verify(repo).countByUserEmail(email);
     }
 
     @Test
