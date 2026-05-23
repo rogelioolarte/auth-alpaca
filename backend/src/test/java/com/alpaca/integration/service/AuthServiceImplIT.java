@@ -344,6 +344,152 @@ class AuthServiceImplIT {
         verify(refreshTokenService).generateJWTTokens(savedCode);
     }
 
+    @Test
+    @DisplayName("login(AuthCode): should throw when client id mismatches")
+    void loginAuthCode_shouldThrowWhenClientIdMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("expected-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("another-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("127.0.0.1");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when user agent mismatches")
+    void loginAuthCode_shouldThrowWhenUserAgentMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("Expected-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("Another-Agent");
+        request.setClientIp("127.0.0.1");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when client ip mismatches")
+    void loginAuthCode_shouldThrowWhenClientIpMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("10.10.10.10");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName(
+            "login(AuthCode): should consume auth code and generate jwt tokens when all validations"
+                    + " succeed")
+    void loginAuthCode_shouldConsumeCodeAndGenerateTokens_WhenAllValidationsSucceed() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("127.0.0.1");
+
+        AuthResponseDTO expected =
+                new AuthResponseDTO("generated-access-token", "generated-refresh-token");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        when(refreshTokenService.generateJWTTokens(savedCode)).thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo(expected.accessToken());
+        assertThat(response.refreshToken()).isEqualTo(expected.refreshToken());
+
+        verify(exchangeManager).consumeCode("valid-code");
+        verify(refreshTokenService).generateJWTTokens(savedCode);
+    }
+
     // -------------------------------------------------------------------------
     // logout
     // -------------------------------------------------------------------------

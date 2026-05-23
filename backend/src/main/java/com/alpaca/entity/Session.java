@@ -109,20 +109,11 @@ public class Session extends Auditable {
                 && Objects.equals(ipAddress, that.ipAddress)
                 && Objects.equals(userAgent, that.userAgent)
                 && Objects.equals(clientId, that.clientId)
-                && Objects.equals(revokeReason, that.revokeReason)
-                && Objects.equals(user.getId(), that.user.getId());
+                && Objects.equals(revokeReason, that.revokeReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                id,
-                familyId,
-                ipAddress,
-                userAgent,
-                clientId,
-                revoked,
-                revokeReason,
-                user != null ? user.getId() : null);
+        return Objects.hash(familyId, ipAddress, userAgent, clientId, revoked, revokeReason);
     }
 }

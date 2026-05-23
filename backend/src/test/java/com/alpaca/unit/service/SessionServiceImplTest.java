@@ -3,11 +3,11 @@ package com.alpaca.unit.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
+import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.ExceededSessionsException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRefreshTokenDAO;
@@ -188,5 +188,179 @@ class SessionServiceImplTest {
         when(dao.existsByUniqueProperties(session)).thenReturn(true);
         boolean exists = service.existsByUniqueProperties(session);
         assertTrue(exists);
+    }
+
+    @Test
+    void updateByIdShouldThrowBadRequestExceptionWhenSessionIsNull() {
+        UUID sessionId = session.getId();
+
+        assertThrows(BadRequestException.class, () -> service.updateById(null, sessionId));
+
+        verify(dao, never()).findById(any(UUID.class));
+        verify(dao, never()).save(any(Session.class));
+    }
+
+    @Test
+    void updateByIdShouldThrowBadRequestExceptionWhenIdIsNull() {
+        assertThrows(BadRequestException.class, () -> service.updateById(session, null));
+
+        verify(dao, never()).findById(any(UUID.class));
+        verify(dao, never()).save(any(Session.class));
+    }
+
+    @Test
+    void updateByIdShouldThrowNotFoundExceptionWhenSessionDoesNotExist() {
+        UUID sessionId = session.getId();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.empty());
+
+        assertThrowsExactly(
+                NotFoundException.class,
+                () -> service.updateById(SessionProvider.singleEntity(), sessionId));
+
+        verify(dao).findById(sessionId);
+        verify(dao, never()).save(any(Session.class));
+    }
+
+    @Test
+    void updateByIdShouldUpdateUserWhenUserIsDifferent() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.alternativeEntity();
+
+        UUID sessionId = existingSession.getId();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertNotNull(result);
+        assertEquals(incomingSession.getUser(), result.getUser());
+
+        verify(dao).findById(sessionId);
+        verify(dao).save(existingSession);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateUserWhenUserIsNull() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.alternativeEntity();
+        incomingSession.setUser(null);
+
+        UUID sessionId = existingSession.getId();
+        User originalUser = existingSession.getUser();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertNotNull(result);
+        assertEquals(originalUser, result.getUser());
+
+        verify(dao).save(existingSession);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateUserWhenUserIdIsNull() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.alternativeEntity();
+        incomingSession.setUser(new User());
+
+        UUID sessionId = existingSession.getId();
+        User originalUser = existingSession.getUser();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertNotNull(result);
+        assertEquals(originalUser, result.getUser());
+
+        verify(dao).save(existingSession);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateUserWhenUserIsEqual() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.alternativeEntity();
+        incomingSession.setUser(existingSession.getUser());
+
+        UUID sessionId = existingSession.getId();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertNotNull(result);
+        assertEquals(existingSession.getUser(), result.getUser());
+
+        verify(dao).save(existingSession);
+    }
+
+    @Test
+    void updateByIdShouldUpdateFieldsSuccessfully() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.alternativeEntity();
+
+        UUID sessionId = existingSession.getId();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(incomingSession.getFamilyId(), result.getFamilyId()),
+                () -> assertEquals(incomingSession.getIpAddress(), result.getIpAddress()),
+                () -> assertEquals(incomingSession.getUserAgent(), result.getUserAgent()),
+                () -> assertEquals(incomingSession.getClientId(), result.getClientId()),
+                () -> assertEquals(incomingSession.isRevoked(), result.isRevoked()),
+                () -> assertEquals(incomingSession.getRevokedAt(), result.getRevokedAt()),
+                () -> assertEquals(incomingSession.getRevokeReason(), result.getRevokeReason()));
+
+        verify(dao).save(existingSession);
+    }
+
+    @Test
+    void updateByIdShouldNotUpdateFieldsWhenValuesAreEqualOrNull() {
+        Session existingSession = SessionProvider.singleEntity();
+
+        Session incomingSession = SessionProvider.singleEntity();
+
+        incomingSession.setFamilyId(existingSession.getFamilyId());
+        incomingSession.setIpAddress(existingSession.getIpAddress());
+        incomingSession.setUserAgent(existingSession.getUserAgent());
+        incomingSession.setClientId(existingSession.getClientId());
+        incomingSession.setRevoked(existingSession.isRevoked());
+        incomingSession.setRevokedAt(existingSession.getRevokedAt());
+        incomingSession.setRevokeReason(existingSession.getRevokeReason());
+
+        UUID sessionId = existingSession.getId();
+
+        when(dao.findById(sessionId)).thenReturn(Optional.of(existingSession));
+        when(dao.save(existingSession)).thenReturn(existingSession);
+
+        Session result = service.updateById(incomingSession, sessionId);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(existingSession.getFamilyId(), result.getFamilyId()),
+                () -> assertEquals(existingSession.getIpAddress(), result.getIpAddress()),
+                () -> assertEquals(existingSession.getUserAgent(), result.getUserAgent()),
+                () -> assertEquals(existingSession.getClientId(), result.getClientId()),
+                () -> assertEquals(existingSession.isRevoked(), result.isRevoked()),
+                () -> assertEquals(existingSession.getRevokedAt(), result.getRevokedAt()),
+                () -> assertEquals(existingSession.getRevokeReason(), result.getRevokeReason()));
+
+        verify(dao).save(existingSession);
     }
 }

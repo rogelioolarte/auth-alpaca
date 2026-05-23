@@ -173,15 +173,12 @@ public class RefreshToken extends Auditable {
                 && Objects.equals(clientId, that.clientId)
                 && Objects.equals(ipAddress, that.ipAddress)
                 && Objects.equals(userAgent, that.userAgent)
-                && Objects.equals(revokeReason, that.revokeReason)
-                && Objects.equals(user.getId(), that.user.getId());
+                && Objects.equals(revokeReason, that.revokeReason);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                id,
-                user.getId(),
                 tokenHash,
                 tokenJti,
                 familyId,

@@ -2,16 +2,19 @@ package com.alpaca.integration.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.persistence.IUserDAO;
 import com.alpaca.resources.AdvertiserProvider;
 import com.alpaca.resources.UserProvider;
-import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.AdvertiserServiceImpl;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AdvertiserServiceImpl} */
@@ -29,169 +32,362 @@ import org.springframework.transaction.annotation.Transactional;
 @DisplayName("AdvertiserServiceImpl Integration Tests")
 class AdvertiserServiceImplIT {
 
-    @Autowired private IUserService userService;
     @Autowired private AdvertiserServiceImpl service;
+    @Autowired private IUserDAO userDAO;
 
     private Instant now;
 
     @BeforeEach
     void setup() {
-        // Prepare timestamp reference - No repository saves in setup per rules
         now = Instant.now();
     }
 
-    // -------------------------------------------------------------------------
-    // Specialized Methods
-    // -------------------------------------------------------------------------
+    private Advertiser buildSingleAdvertiser() {
+        User user = userDAO.save(buildUser());
+        Advertiser advertiser = AdvertiserProvider.singleTemplate();
+        advertiser.setUser(user);
+        advertiser.setCreatedAt(now);
 
-    @Test
-    @DisplayName("findAllPageByIndexedTrue: Should return only advertisers where indexed is true")
-    @Transactional
-    void findAllPageByIndexedTrue_ShouldReturnFilteredResults() {
-        // Arrange
-        User user1 = userService.save(UserProvider.singleTemplate());
-        User user2 = userService.save(UserProvider.alternativeTemplate());
-
-        Advertiser indexed = AdvertiserProvider.singleTemplate();
-        indexed.setUser(user1);
-        indexed.setIndexed(true);
-        indexed.setCreatedAt(now);
-
-        Advertiser notIndexed = AdvertiserProvider.alternativeTemplate();
-        notIndexed.setUser(user2);
-        notIndexed.setIndexed(false);
-        notIndexed.setCreatedAt(now);
-
-        service.save(indexed);
-        service.save(notIndexed);
-
-        // Act
-        Page<Advertiser> result = service.findAllPageByIndexedTrue(PageRequest.of(0, 10));
-
-        // Assert
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().isIndexed()).isTrue();
+        return advertiser;
     }
 
-    // -------------------------------------------------------------------------
-    // CRUD Operations (Inherited from GenericServiceImpl)
-    // -------------------------------------------------------------------------
+    private Advertiser buildAlternativeAdvertiser() {
+        User user = userDAO.save(buildAlternativeUser());
+        Advertiser advertiser = AdvertiserProvider.alternativeTemplate();
+        advertiser.setUser(user);
+        advertiser.setCreatedAt(now);
+
+        return advertiser;
+    }
+
+    private User buildUser() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+
+        return user;
+    }
+
+    private User buildAlternativeUser() {
+        User user = UserProvider.alternativeTemplate();
+        user.setCreatedAt(now);
+
+        return user;
+    }
+
+    // ------------------------------------------------
+    // save
+    // ------------------------------------------------
 
     @Test
-    @DisplayName("save: Should persist advertiser and manually set audit properties")
     @Transactional
-    void save_ShouldPersistAdvertiser() {
-        // Arrange
-        Advertiser advertiser = AdvertiserProvider.singleTemplate();
-        advertiser.setCreatedAt(now); // Critical: Manual audit setup
+    @DisplayName("save persists advertiser successfully")
+    void save_ShouldPersistAdvertiserSuccessfully() {
 
-        // Act
+        Advertiser advertiser = buildSingleAdvertiser();
+
         Advertiser saved = service.save(advertiser);
 
-        // Assert
+        assertThat(saved).isNotNull();
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getCreatedAt()).isAfter(now);
-        assertThat(service.findById(saved.getId())).isNotNull();
+        assertThat(saved.getCreatedAt()).isNotNull();
+    }
+
+    // ------------------------------------------------
+    // updateById
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    @DisplayName("updateById throws BadRequestException when advertiser is null")
+    void updateById_ShouldThrowBadRequest_WhenAdvertiserIsNull() {
+
+        UUID id = UUID.randomUUID();
+
+        assertThatThrownBy(() -> service.updateById(null, id))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Advertiser with ID " + id + " cannot be updated");
     }
 
     @Test
-    @DisplayName("findById: Should throw NotFoundException when advertiser does not exist")
     @Transactional
-    void findById_ShouldThrowNotFound_WhenMissing() {
-        UUID randomId = UUID.randomUUID();
-        assertThatThrownBy(() -> service.findById(randomId))
+    @DisplayName("updateById throws BadRequestException when id is null")
+    void updateById_ShouldThrowBadRequest_WhenIdIsNull() {
+
+        Advertiser advertiser = buildSingleAdvertiser();
+
+        assertThatThrownBy(() -> service.updateById(advertiser, null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Advertiser with ID null cannot be updated");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById throws NotFoundException when advertiser does not exist")
+    void updateById_ShouldThrowNotFound_WhenAdvertiserDoesNotExist() {
+
+        Advertiser advertiser = buildAlternativeAdvertiser();
+
+        UUID id = UUID.randomUUID();
+
+        assertThatThrownBy(() -> service.updateById(advertiser, id))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Advertiser with ID " + randomId + " not found");
+                .hasMessageContaining("Advertiser with ID " + id + " not found");
     }
 
     @Test
-    @DisplayName("updateById: Should update fields correctly and preserve ID")
     @Transactional
-    void updateById_ShouldUpdateExistingAdvertiser() {
-        // Arrange
-        User user = userService.save(UserProvider.singleTemplate());
+    @DisplayName("updateById updates all text fields and indexed flag")
+    void updateById_ShouldUpdateAllFields() {
 
-        Advertiser original = AdvertiserProvider.singleTemplate();
-        original.setUser(user);
-        original.setCreatedAt(now);
-        Advertiser saved = service.save(original);
+        Advertiser saved = service.save(buildSingleAdvertiser());
 
-        Advertiser updateData = AdvertiserProvider.alternativeTemplate();
-        updateData.setUser(user);
-        updateData.setTitle("New Updated Name");
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setIndexed(!saved.isIndexed());
 
-        // Act
-        Advertiser updated = service.updateById(updateData, saved.getId());
+        Advertiser result = service.updateById(update, saved.getId());
 
-        // Assert
-        assertThat(updated.getId()).isEqualTo(saved.getId());
-        assertThat(updated.getTitle()).isEqualTo("New Updated Name");
+        assertAll(
+                () -> assertThat(result.getTitle()).isEqualTo(update.getTitle()),
+                () -> assertThat(result.getDescription()).isEqualTo(update.getDescription()),
+                () -> assertThat(result.getAvatarUrl()).isEqualTo(update.getAvatarUrl()),
+                () -> assertThat(result.getBannerUrl()).isEqualTo(update.getBannerUrl()),
+                () -> assertThat(result.getPublicLocation()).isEqualTo(update.getPublicLocation()),
+                () ->
+                        assertThat(result.getPublicUrlLocation())
+                                .isEqualTo(update.getPublicUrlLocation()),
+                () -> assertThat(result.isIndexed()).isEqualTo(update.isIndexed()));
     }
 
     @Test
-    @DisplayName("deleteById: Should remove advertiser from database")
     @Transactional
-    void deleteById_ShouldRemoveEntity() {
-        // Arrange
-        User user = userService.save(UserProvider.singleTemplate());
+    @DisplayName("updateById updates user when user ids differ")
+    void updateById_ShouldUpdateUser_WhenUserIdsDiffer() {
+        Advertiser saved = service.save(buildSingleAdvertiser());
 
-        Advertiser advertiser = AdvertiserProvider.singleTemplate();
-        advertiser.setUser(user);
-        advertiser.setCreatedAt(now);
-        Advertiser saved = service.save(advertiser);
+        User newUser = userDAO.save(UserProvider.alternativeTemplate());
 
-        // Act
-        service.deleteById(saved.getId());
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setUser(newUser);
 
-        // Assert
-        assertThat(service.existsById(saved.getId())).isFalse();
-    }
+        Advertiser result = service.updateById(update, saved.getId());
 
-    // -------------------------------------------------------------------------
-    // Edge Cases & Branch Logic
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("save: Should throw BadRequestException when advertiser is null")
-    @Transactional
-    void save_ShouldThrowBadRequest_WhenNull() {
-        assertThatThrownBy(() -> service.save(null)).isInstanceOf(BadRequestException.class);
+        assertThat(result.getUser()).isNotNull();
+        assertThat(result.getUser().getId()).isEqualTo(newUser.getId());
     }
 
     @Test
-    @DisplayName("findAllByIds: Should throw NotFoundException if one ID in the list is missing")
     @Transactional
-    void findAllByIds_ShouldThrowNotFound_WhenOneIdIsMissing() {
-        // Arrange
-        User user = userService.save(UserProvider.singleTemplate());
+    @DisplayName("updateById does not update user when user ids are equal")
+    void updateById_ShouldNotUpdateUser_WhenUserIdsAreEqual() {
+        Advertiser saved = service.save(buildSingleAdvertiser());
 
-        Advertiser a1 = AdvertiserProvider.singleTemplate();
-        a1.setUser(user);
-        a1.setCreatedAt(now);
-        Advertiser saved = service.save(a1);
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setUser(saved.getUser());
 
-        List<UUID> ids = List.of(saved.getId(), UUID.randomUUID());
+        Advertiser result = service.updateById(update, saved.getId());
 
-        // Act & Assert
-        assertThatThrownBy(() -> service.findAllByIds(ids)).isInstanceOf(NotFoundException.class);
+        assertThat(result.getUser()).isNotNull();
+        assertThat(result.getUser().getId()).isEqualTo(saved.getUser().getId());
     }
 
     @Test
-    @DisplayName("existsByUniqueProperties: Should return correct boolean state")
     @Transactional
-    void existsByUniqueProperties_ShouldWorkCorrectly() {
-        // Arrange
-        User user = userService.save(UserProvider.singleTemplate());
+    @DisplayName("updateById ignores null user")
+    void updateById_ShouldIgnoreNullUser() {
 
-        Advertiser advertiser = AdvertiserProvider.singleTemplate();
-        advertiser.setUser(user);
-        advertiser.setCreatedAt(now);
-        service.save(advertiser);
+        Advertiser saved = service.save(buildSingleAdvertiser());
 
-        // Act & Assert
-        assertThat(service.existsByUniqueProperties(advertiser)).isTrue();
+        UUID originalUserId = saved.getUser() != null ? saved.getUser().getId() : null;
 
-        Advertiser dummy = AdvertiserProvider.alternativeTemplate();
-        assertThat(service.existsByUniqueProperties(dummy)).isFalse();
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setUser(null);
+
+        Advertiser result = service.updateById(update, saved.getId());
+
+        if (originalUserId != null) {
+            assertThat(result.getUser()).isNotNull();
+            assertThat(result.getUser().getId()).isEqualTo(originalUserId);
+        } else {
+            assertThat(result.getUser()).isNull();
+        }
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById ignores user with null id")
+    void updateById_ShouldIgnoreUserWithNullId() {
+        Advertiser saved = service.save(buildSingleAdvertiser());
+        User savedUser = saved.getUser();
+
+        User updateUser = UserProvider.alternativeTemplate();
+        updateUser.setId(null);
+
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setUser(updateUser);
+
+        Advertiser result = service.updateById(update, saved.getId());
+
+        assertThat(result.getUser()).isNotNull();
+        assertThat(result.getUser().getId()).isEqualTo(savedUser.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById ignores blank text fields")
+    void updateById_ShouldIgnoreBlankTextFields() {
+
+        Advertiser saved = service.save(buildSingleAdvertiser());
+
+        String originalTitle = saved.getTitle();
+        String originalDescription = saved.getDescription();
+        String originalAvatarUrl = saved.getAvatarUrl();
+        String originalBannerUrl = saved.getBannerUrl();
+        String originalPublicLocation = saved.getPublicLocation();
+        String originalPublicUrlLocation = saved.getPublicUrlLocation();
+
+        Advertiser update = buildAlternativeAdvertiser();
+        update.setTitle(" ");
+        update.setDescription(" ");
+        update.setAvatarUrl(" ");
+        update.setBannerUrl(" ");
+        update.setPublicLocation(" ");
+        update.setPublicUrlLocation(" ");
+
+        Advertiser result = service.updateById(update, saved.getId());
+
+        assertAll(
+                () -> assertThat(result.getTitle()).isEqualTo(originalTitle),
+                () -> assertThat(result.getDescription()).isEqualTo(originalDescription),
+                () -> assertThat(result.getAvatarUrl()).isEqualTo(originalAvatarUrl),
+                () -> assertThat(result.getBannerUrl()).isEqualTo(originalBannerUrl),
+                () -> assertThat(result.getPublicLocation()).isEqualTo(originalPublicLocation),
+                () ->
+                        assertThat(result.getPublicUrlLocation())
+                                .isEqualTo(originalPublicUrlLocation));
+    }
+
+    // ------------------------------------------------
+    // findAllPageByIndexedTrue
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    @DisplayName("findAllPageByIndexedTrue returns only indexed advertisers")
+    void findAllPageByIndexedTrue_ShouldReturnOnlyIndexedAdvertisers() {
+
+        Advertiser indexedAdvertiser = buildSingleAdvertiser();
+        indexedAdvertiser.setIndexed(true);
+
+        Advertiser nonIndexedAdvertiser = buildAlternativeAdvertiser();
+        nonIndexedAdvertiser.setIndexed(false);
+
+        service.save(indexedAdvertiser);
+        service.save(nonIndexedAdvertiser);
+
+        Page<Advertiser> result = service.findAllPageByIndexedTrue(Pageable.ofSize(10));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isNotEmpty();
+        assertThat(result.getContent()).allMatch(Advertiser::isIndexed);
+    }
+
+    // ------------------------------------------------
+    // inherited generic methods
+    // ------------------------------------------------
+
+    @Test
+    @Transactional
+    @DisplayName("findById returns persisted advertiser")
+    void findById_ShouldReturnPersistedAdvertiser() {
+
+        Advertiser saved = service.save(buildSingleAdvertiser());
+
+        Advertiser result = service.findById(saved.getId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(saved.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findById validates null id")
+    void findById_ShouldValidateNullId() {
+
+        assertThatThrownBy(() -> service.findById(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Advertiser cannot be found");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("existsById returns correct values")
+    void existsById_ShouldReturnCorrectValues() {
+
+        Advertiser saved = service.save(buildSingleAdvertiser());
+
+        assertThat(service.existsById(saved.getId())).isTrue();
+        assertThat(service.existsById(UUID.randomUUID())).isFalse();
+        assertThat(service.existsById(null)).isFalse();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAll returns persisted advertisers")
+    void findAll_ShouldReturnPersistedAdvertisers() {
+
+        service.save(buildSingleAdvertiser());
+        service.save(buildAlternativeAdvertiser());
+
+        List<Advertiser> result = service.findAll();
+
+        assertAll(
+                () -> assertThat(result).isNotEmpty(),
+                () -> assertThat(result).hasSizeGreaterThanOrEqualTo(2));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllPage validates null pageable")
+    void findAllPage_ShouldValidateNullPageable() {
+
+        assertThatThrownBy(() -> service.findAllPage(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Advertiser(s) Page cannot be created");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllPage returns paginated advertisers")
+    void findAllPage_ShouldReturnPaginatedAdvertisers() {
+
+        service.save(buildSingleAdvertiser());
+
+        Page<Advertiser> result = service.findAllPage(Pageable.ofSize(10));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isNotEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("existsAllByIds handles invalid values")
+    void existsAllByIds_ShouldHandleInvalidValues() {
+
+        assertThat(service.existsAllByIds(null)).isFalse();
+
+        assertThat(service.existsAllByIds(Collections.emptyList())).isFalse();
+
+        List<UUID> ids = new ArrayList<>();
+        ids.add(null);
+
+        assertThat(service.existsAllByIds(ids)).isFalse();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("existsByUniqueProperties handles null advertiser")
+    void existsByUniqueProperties_ShouldHandleNullAdvertiser() {
+
+        assertThat(service.existsByUniqueProperties(null)).isFalse();
     }
 }

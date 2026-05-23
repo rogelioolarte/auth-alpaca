@@ -242,6 +242,43 @@ class UserServiceImplIT {
         assertThat(result.getEmail()).isEqualTo(originalEmail);
     }
 
+    @Test
+    @Transactional
+    @DisplayName("updateById updates roles when incoming roles differ from existing roles")
+    void updateById_ShouldUpdateRoles_WhenIncomingRolesAreDifferent() {
+        User user = buildSingleUser();
+
+        Role originalRole = RoleProvider.singleTemplate();
+        originalRole.setName("USER");
+        originalRole.setCreatedAt(now);
+
+        Role persistedOriginalRole = roleDAO.save(originalRole);
+
+        user.setRoles(Set.of(persistedOriginalRole));
+
+        User savedUser = service.save(user);
+
+        Role updatedRole = RoleProvider.alternativeTemplate();
+        updatedRole.setName("ADMIN");
+        updatedRole.setCreatedAt(now);
+
+        Role persistedUpdatedRole = roleDAO.save(updatedRole);
+
+        User updateRequest = buildAlternativeUser();
+        updateRequest.setRoles(Set.of(persistedUpdatedRole));
+
+        User updatedUser = service.updateById(updateRequest, savedUser.getId());
+
+        assertThat(updatedUser.getRoles()).isNotNull();
+        assertThat(updatedUser.getRoles()).hasSize(1);
+
+        Role resultRole = updatedUser.getRoles().getFirst();
+
+        assertThat(resultRole.getId()).isEqualTo(persistedUpdatedRole.getId());
+        assertThat(resultRole.getName()).isEqualTo(persistedUpdatedRole.getName());
+        assertThat(resultRole.getName()).isEqualTo("ADMIN");
+    }
+
     // ------------------------------------------------
     // existsByEmail
     // ------------------------------------------------

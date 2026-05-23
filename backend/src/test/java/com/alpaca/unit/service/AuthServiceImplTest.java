@@ -235,6 +235,78 @@ class AuthServiceImplTest {
     }
 
     @Test
+    void login_WithAuthCode_WhenClientIdDoesNotMatch_ThrowsUnauthorizedException() {
+        AuthCode savedAuthCode = new AuthCode();
+        savedAuthCode.setCodeChallenge("expected-challenge");
+        savedAuthCode.setClientId("different-client-id");
+        savedAuthCode.setClientIp(ipAddress);
+        savedAuthCode.setUserAgent(userAgent);
+        savedAuthCode.setExpiresAt(Instant.now().plusSeconds(60));
+        savedAuthCode.setRedirectUri(authCode.getRedirectUri());
+
+        when(exchangeManager.consumeCode(authCode.getCode()))
+                .thenReturn(Optional.of(savedAuthCode));
+
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedAuthCode.getCodeChallenge());
+
+        UnauthorizedException exception =
+                assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+
+        assertEquals("Code Invalid or Expired", exception.getReason());
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    void login_WithAuthCode_WhenUserAgentDoesNotMatch_ThrowsUnauthorizedException() {
+        AuthCode savedAuthCode = new AuthCode();
+        savedAuthCode.setCodeChallenge("expected-challenge");
+        savedAuthCode.setClientId(clientId);
+        savedAuthCode.setClientIp(ipAddress);
+        savedAuthCode.setUserAgent("different-user-agent");
+        savedAuthCode.setExpiresAt(Instant.now().plusSeconds(60));
+        savedAuthCode.setRedirectUri(authCode.getRedirectUri());
+
+        when(exchangeManager.consumeCode(authCode.getCode()))
+                .thenReturn(Optional.of(savedAuthCode));
+
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedAuthCode.getCodeChallenge());
+
+        UnauthorizedException exception =
+                assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+
+        assertEquals("Code Invalid or Expired", exception.getReason());
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    void login_WithAuthCode_WhenClientIpDoesNotMatch_ThrowsUnauthorizedException() {
+        AuthCode savedAuthCode = new AuthCode();
+        savedAuthCode.setCodeChallenge("expected-challenge");
+        savedAuthCode.setClientId(clientId);
+        savedAuthCode.setClientIp("different-ip-address");
+        savedAuthCode.setUserAgent(userAgent);
+        savedAuthCode.setExpiresAt(Instant.now().plusSeconds(60));
+        savedAuthCode.setRedirectUri(authCode.getRedirectUri());
+
+        when(exchangeManager.consumeCode(authCode.getCode()))
+                .thenReturn(Optional.of(savedAuthCode));
+
+        when(jJwtManager.createTokenHash(authCode.getCodeVerifier()))
+                .thenReturn(savedAuthCode.getCodeChallenge());
+
+        UnauthorizedException exception =
+                assertThrows(UnauthorizedException.class, () -> service.login(authCode));
+
+        assertEquals("Code Invalid or Expired", exception.getReason());
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
     void login_WithAuthCode_ReturnsTokens() {
         AuthCode savedAuthCode = new AuthCode();
         savedAuthCode.setCodeChallenge("expected-challenge");

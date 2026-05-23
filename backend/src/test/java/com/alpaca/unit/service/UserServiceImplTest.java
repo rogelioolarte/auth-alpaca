@@ -1,17 +1,22 @@
 package com.alpaca.unit.service;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
+import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IUserDAO;
+import com.alpaca.resources.RoleProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.impl.UserServiceImpl;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -289,6 +294,32 @@ class UserServiceImplTest {
         verify(dao).save(userCaptor.capture());
 
         assertEquals(incomingUser.getEmail(), userCaptor.getValue().getEmail());
+    }
+
+    @Test
+    void updateByIdShouldUpdateRolesWhenIncomingRolesAreDifferentAndExistingRolesAreNull() {
+        User existingUser = UserProvider.singleEntity();
+        existingUser.setRoles(null);
+
+        User incomingUser = UserProvider.alternativeEntity();
+        List<Role> roles = RoleProvider.listEntities();
+        incomingUser.setRoles(new HashSet<>(roles));
+
+        UUID userId = existingUser.getId();
+
+        when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
+                .thenReturn(true);
+        when(dao.save(existingUser)).thenReturn(existingUser);
+
+        User result = service.updateById(incomingUser, userId);
+
+        assertNotNull(result);
+        assertThat(result.getRoles()).containsExactlyInAnyOrderElementsOf(incomingUser.getRoles());
+
+        verify(dao).findById(userId);
+        verify(passwordManager).matches(incomingUser.getPassword(), existingUser.getPassword());
+        verify(dao).save(existingUser);
     }
 
     // --- existsByEmail ---

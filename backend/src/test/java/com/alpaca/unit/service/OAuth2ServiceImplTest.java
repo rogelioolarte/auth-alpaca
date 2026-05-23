@@ -19,9 +19,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -116,7 +120,7 @@ class OAuth2ServiceImplTest {
         verify(userService).save(userCaptor.capture());
         User passed = userCaptor.getValue();
         assertEquals("new@example.com", passed.getEmail());
-        assertEquals(null, passed.getPassword());
+        assertNull(passed.getPassword());
         // profile saved with given names and image
         ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
         verify(profileService).save(profileCaptor.capture());
@@ -166,6 +170,45 @@ class OAuth2ServiceImplTest {
                                 service.registerOrLoginOAuth2(
                                         emailA, firstA, lastA, null, true, attr));
         assertTrue(ex.getMessage().contains("The account does not have enough information"));
+    }
+
+    @ParameterizedTest(name = "Stage {index}: email={0}, firstName={1}, lastName={2}, imageURL={3}")
+    @MethodSource("provideInvalidUserInputs")
+    void registerOrLoginOAuth2_ShouldThrowBadRequestException_WhenInputsAreInvalid(
+            String email, String firstName, String lastName, String imageURL) {
+
+        // Act & Assert
+        BadRequestException ex =
+                assertThrowsExactly(
+                        BadRequestException.class,
+                        () ->
+                                service.registerOrLoginOAuth2(
+                                        email, firstName, lastName, imageURL, true, Map.of()));
+        assertTrue(ex.getMessage().contains("The account does not have enough information"));
+    }
+
+    // Proveedor de datos para el test parametrizado
+    private static Stream<Arguments> provideInvalidUserInputs() {
+        return Stream.of(
+                // Casos para email (null, vacío, espacios)
+                Arguments.of(null, "John", "Doe", "http://image.url"),
+                Arguments.of("", "John", "Doe", "http://image.url"),
+                Arguments.of("   ", "John", "Doe", "http://image.url"),
+
+                // Casos para firstName
+                Arguments.of("john@example.com", null, "Doe", "http://image.url"),
+                Arguments.of("john@example.com", "", "Doe", "http://image.url"),
+                Arguments.of("john@example.com", "   ", "Doe", "http://image.url"),
+
+                // Casos para lastName
+                Arguments.of("john@example.com", "John", null, "http://image.url"),
+                Arguments.of("john@example.com", "John", "", "http://image.url"),
+                Arguments.of("john@example.com", "John", "   ", "http://image.url"),
+
+                // Casos para imageURL
+                Arguments.of("john@example.com", "John", "Doe", null),
+                Arguments.of("john@example.com", "John", "Doe", ""),
+                Arguments.of("john@example.com", "John", "Doe", "   "));
     }
 
     @Test

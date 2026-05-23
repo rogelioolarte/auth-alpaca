@@ -52,12 +52,11 @@ public class Permission extends Auditable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Permission that)) return false;
-        return Objects.equals(name, that.name)
-                && Objects.equals(rolePermissions, that.rolePermissions);
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, rolePermissions);
+        return Objects.hash(name);
     }
 }

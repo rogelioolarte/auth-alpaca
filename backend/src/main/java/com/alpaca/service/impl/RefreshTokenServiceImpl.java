@@ -87,12 +87,9 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         Instant now = Instant.now();
 
         String oldRefreshTokenHash = manager.createTokenHash(oldRefreshToken);
-        Optional<RefreshToken> optToken = dao.findByTokenHashSecure(oldRefreshTokenHash);
-        if (optToken.isEmpty()) {
-            throw new UnauthorizedException("Invalid Refresh Token");
-        }
-
-        RefreshToken actualRefreshToken = optToken.get();
+        RefreshToken actualRefreshToken =
+                dao.findByTokenHashSecure(oldRefreshTokenHash)
+                        .orElseThrow(() -> new UnauthorizedException("Invalid Refresh Token"));
 
         validateRefreshToken(actualRefreshToken, clientId, now, clientIp, userAgent);
 
@@ -278,7 +275,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                                         new NotFoundException(
                                                 String.format(
                                                         "%s with ID %s not found",
-                                                        getEntityName(), id.toString())));
+                                                        getEntityName(), id)));
 
         if (refreshToken.getUser() != null && refreshToken.getUser().getId() != null) {
             UUID currentUserId =

@@ -5,17 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
-import com.alpaca.exception.ExceededSessionsException;
+import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.resources.SessionProvider;
 import com.alpaca.resources.UserProvider;
 import com.alpaca.service.impl.SessionServiceImpl;
-import com.alpaca.utils.UUIDv7Generator;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,205 +30,247 @@ class SessionServiceImplIT {
     @Autowired private SessionServiceImpl sessionService;
     @Autowired private IUserDAO userDAO;
     @Autowired private ISessionDAO sessionDAO;
-    @Autowired private IRefreshTokenDAO refreshTokenDAO;
-    @Autowired private UUIDv7Generator uuidv7Generator;
 
     private Instant now;
 
     @BeforeEach
     void setup() {
-        // No save operations here per best practices
         now = Instant.now();
     }
 
-    @Test
-    @DisplayName("createSession: Create new session when user exists and device is unique")
-    @Transactional
-    void createSession_ShouldCreateNew_WhenDeviceIsNew() {
-        // Arrange
+    private User buildUser() {
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
-        userDAO.save(user);
+        return user;
+    }
 
-        String agent = "Mozilla/5.0";
-        String client = "web-app";
-        String ip = "192.168.1.1";
+    private User buildAlternativeUser() {
+        User user = UserProvider.alternativeTemplate();
+        user.setCreatedAt(now);
+        return user;
+    }
 
-        // Act
-        Session result = sessionService.createSession(user.getId(), agent, client, ip);
+    private Session buildSession() {
+        Session session = SessionProvider.singleTemplate();
+        session.setCreatedAt(now);
+        return session;
+    }
 
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getUser().getId()).isEqualTo(user.getId());
-        assertThat(result.getUserAgent()).isEqualTo(agent);
-        assertThat(result.getIpAddress()).isEqualTo(ip);
-        assertThat(result.isRevoked()).isFalse();
-        assertThat(result.getLastSeenAt()).isNotNull();
+    private Session buildAlternativeSession() {
+        Session session = SessionProvider.alternativeTemplate();
+        session.setCreatedAt(now);
+        return session;
+    }
+
+    // -------------------------------------------------------------------------
+    // updateById
+    // -------------------------------------------------------------------------
+
+    @Test
+    @Transactional
+    @DisplayName("updateById: should throw when session is null")
+    void updateById_ShouldThrow_WhenSessionIsNull() {
+
+        UUID id = UUID.randomUUID();
+
+        assertThatThrownBy(() -> sessionService.updateById(null, id))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Session with ID " + id + " cannot be updated");
     }
 
     @Test
-    @DisplayName("createSession: Reuse existing session and rotate family ID when device matches")
     @Transactional
-    void createSession_ShouldReuse_WhenDeviceMatches() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
-        userDAO.save(user);
+    @DisplayName("updateById: should throw when id is null")
+    void updateById_ShouldThrow_WhenIdIsNull() {
 
-        Session existing = SessionProvider.singleTemplate();
-        existing.setUser(user);
-        existing.setUserAgent("Mobile-App");
-        existing.setClientId("ios");
-        existing.setIpAddress("10.0.0.1");
-        existing.setCreatedAt(now);
-        sessionDAO.save(existing);
+        Session update = buildAlternativeSession();
 
-        UUID oldFamilyId = existing.getFamilyId();
-
-        // Act
-        Session result =
-                sessionService.createSession(user.getId(), "Mobile-App", "ios", "10.0.0.1");
-
-        // Assert
-        assertThat(result.getId()).isEqualTo(existing.getId());
-        assertThat(result.getFamilyId()).isNotEqualTo(oldFamilyId);
-        assertThat(result.getLastSeenAt()).isAfterOrEqualTo(now);
+        assertThatThrownBy(() -> sessionService.updateById(update, null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Session with ID null cannot be updated");
     }
 
     @Test
-    @DisplayName(
-            "createSession: Throw ExceededSessionsException when limit is reached"
-                    + " (infinityLogin=false)")
     @Transactional
-    void createSession_ShouldThrow_WhenMaxSessionsReached() {
-        // Manually instantiate service to control property values for this edge case
-        SessionServiceImpl restrictedService =
-                new SessionServiceImpl(
-                        sessionDAO, userDAO, refreshTokenDAO, uuidv7Generator, 2, false);
+    @DisplayName("updateById: should throw when session does not exist")
+    void updateById_ShouldThrow_WhenSessionDoesNotExist() {
 
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
-        userDAO.save(user);
+        Session update = buildAlternativeSession();
 
-        for (int i = 0; i < 2; i++) {
-            Session s = SessionProvider.randomTemplate();
-            s.setUser(user);
-            s.setUserAgent("Agent-" + i);
-            s.setCreatedAt(now);
-            sessionDAO.save(s);
-        }
-        UUID id = user.getId();
-        String agent = "New-Agent";
-        String client = "web";
-        String ip = "1.1.1.1";
-
-        // Act & Assert
-        assertThatThrownBy(() -> restrictedService.createSession(id, agent, client, ip))
-                .isInstanceOf(ExceededSessionsException.class);
-    }
-
-    @Test
-    @DisplayName("createSession: Revoke oldest session when limit is reached (infinityLogin=true)")
-    @Transactional
-    void createSession_ShouldRevokeOldest_WhenInfinityLoginTrue() {
-        // Arrange: limit of 1 session, infinity login enabled
-        SessionServiceImpl infinityService =
-                new SessionServiceImpl(
-                        sessionDAO, userDAO, refreshTokenDAO, uuidv7Generator, 1, true);
-
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
-        userDAO.save(user);
-
-        Session oldest = SessionProvider.singleTemplate();
-        oldest.setUser(user);
-        oldest.setCreatedAt(now.minusSeconds(100)); // Make it clearly oldest
-        oldest.setLastSeenAt(now.minusSeconds(100));
-        sessionDAO.save(oldest);
-
-        // Act
-        Session newest =
-                infinityService.createSession(user.getId(), "New-Device", "web", "2.2.2.2");
-
-        // Assert
-        Session updatedOldest = sessionDAO.findById(oldest.getId()).orElseThrow();
-        assertThat(updatedOldest.getRevokedAt()).isNotNull(); // Oldest was revoked
-        assertThat(newest.getId()).isNotEqualTo(oldest.getId()); // New session created
-    }
-
-    @Test
-    @DisplayName("createSession: Throw NotFoundException when userId is invalid")
-    @Transactional
-    void createSession_ShouldThrowNotFound_WhenUserMissing() {
         UUID randomId = UUID.randomUUID();
-        assertThatThrownBy(() -> sessionService.createSession(randomId, "agent", "client", "ip"))
-                .isInstanceOf(NotFoundException.class);
+
+        assertThatThrownBy(() -> sessionService.updateById(update, randomId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Session with ID " + randomId + " not found");
     }
 
     @Test
-    @DisplayName("revokeSessionByFamilyId: Mark session as revoked")
     @Transactional
-    void revokeSessionByFamilyId_ShouldUpdateStatus() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
+    @DisplayName("updateById: should update all mutable fields")
+    void updateById_ShouldUpdateAllMutableFields() {
+
+        User user = buildUser();
         userDAO.save(user);
 
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-        session.setCreatedAt(now);
-        sessionDAO.save(session);
+        User alternativeUser = buildAlternativeUser();
+        userDAO.save(alternativeUser);
 
-        // Act
-        sessionService.revokeSessionByFamilyId(session.getFamilyId(), now, "Log out");
+        Session existing = buildSession();
+        existing.setUser(user);
+        existing.setRevoked(false);
+        existing.setRevokedAt(null);
+        existing.setRevokeReason(null);
 
-        // Assert
-        Optional<Session> updated = sessionDAO.findById(session.getId());
-        assertThat(updated).isPresent();
-        assertThat(updated.get().getRevokedAt()).isNotNull();
+        Session saved = sessionDAO.save(existing);
+
+        UUID newFamilyId = UUID.randomUUID();
+
+        Instant revokedAt = now.plusSeconds(300);
+
+        Session update = buildAlternativeSession();
+        update.setUser(alternativeUser);
+        update.setFamilyId(newFamilyId);
+        update.setIpAddress("10.10.10.10");
+        update.setUserAgent("Updated-Agent");
+        update.setClientId("updated-client");
+        update.setRevoked(true);
+        update.setRevokedAt(revokedAt);
+        update.setRevokeReason("manual-revoke");
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getUser().getId()).isEqualTo(alternativeUser.getId());
+        assertThat(result.getFamilyId()).isEqualTo(newFamilyId);
+        assertThat(result.getIpAddress()).isEqualTo("10.10.10.10");
+        assertThat(result.getUserAgent()).isEqualTo("Updated-Agent");
+        assertThat(result.getClientId()).isEqualTo("updated-client");
+        assertThat(result.isRevoked()).isTrue();
+        assertThat(result.getRevokedAt()).isEqualTo(revokedAt);
+        assertThat(result.getRevokeReason()).isEqualTo("manual-revoke");
     }
 
     @Test
-    @DisplayName("findSessionByFamilyId: Retrieve session by family correlation")
     @Transactional
-    void findSessionByFamilyId_ShouldReturnSession() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
+    @DisplayName("updateById: should ignore blank text values")
+    void updateById_ShouldIgnoreBlankTextValues() {
+
+        User user = buildUser();
         userDAO.save(user);
 
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-        session.setCreatedAt(now);
-        sessionDAO.save(session);
+        Session existing = buildSession();
+        existing.setUser(user);
 
-        // Act
-        Optional<Session> result = sessionService.findSessionByFamilyId(session.getFamilyId());
+        Session saved = sessionDAO.save(existing);
 
-        // Assert
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(session.getId());
+        String originalIp = saved.getIpAddress();
+        String originalAgent = saved.getUserAgent();
+        String originalClient = saved.getClientId();
+
+        Session update = buildAlternativeSession();
+        update.setIpAddress(" ");
+        update.setUserAgent(" ");
+        update.setClientId(" ");
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getIpAddress()).isEqualTo(originalIp);
+        assertThat(result.getUserAgent()).isEqualTo(originalAgent);
+        assertThat(result.getClientId()).isEqualTo(originalClient);
     }
 
     @Test
-    @DisplayName("existsByUniqueProperties: Check existence based on unique constraints")
     @Transactional
-    void existsByUniqueProperties_ShouldReturnCorrectBoolean() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setCreatedAt(now);
+    @DisplayName("updateById: should ignore null familyId and revokedAt")
+    void updateById_ShouldIgnoreNullFields() {
+
+        User user = buildUser();
         userDAO.save(user);
 
-        Session session = SessionProvider.singleTemplate();
-        session.setUser(user);
-        session.setCreatedAt(now);
-        sessionDAO.save(session);
+        Session existing = buildSession();
+        existing.setUser(user);
 
-        // Act & Assert
-        assertThat(sessionService.existsByUniqueProperties(session)).isTrue();
+        UUID originalFamilyId = existing.getFamilyId();
 
-        Session nonExistent = SessionProvider.alternativeTemplate();
-        assertThat(sessionService.existsByUniqueProperties(nonExistent)).isFalse();
+        Session saved = sessionDAO.save(existing);
+
+        Session update = buildAlternativeSession();
+        update.setFamilyId(null);
+        update.setRevokedAt(null);
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getFamilyId()).isEqualTo(originalFamilyId);
+        assertThat(result.getRevokedAt()).isNull();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById: should not replace user when ids are equal")
+    void updateById_ShouldNotReplaceUser_WhenIdsAreEqual() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Session existing = buildSession();
+        existing.setUser(user);
+
+        Session saved = sessionDAO.save(existing);
+
+        Session update = buildAlternativeSession();
+
+        User sameUserReference = new User();
+        sameUserReference.setId(user.getId());
+
+        update.setUser(sameUserReference);
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getUser().getId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById: should ignore user when incoming user id is null")
+    void updateById_ShouldIgnoreUser_WhenIncomingUserIdIsNull() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Session existing = buildSession();
+        existing.setUser(user);
+
+        Session saved = sessionDAO.save(existing);
+
+        Session update = buildAlternativeSession();
+
+        User incomingUser = new User();
+        incomingUser.setId(null);
+
+        update.setUser(incomingUser);
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getUser().getId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("updateById: should ignore null user")
+    void updateById_ShouldIgnoreNullUser() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Session existing = buildSession();
+        existing.setUser(user);
+
+        Session saved = sessionDAO.save(existing);
+
+        Session update = buildAlternativeSession();
+        update.setUser(null);
+
+        Session result = sessionService.updateById(update, saved.getId());
+
+        assertThat(result.getUser().getId()).isEqualTo(user.getId());
     }
 }

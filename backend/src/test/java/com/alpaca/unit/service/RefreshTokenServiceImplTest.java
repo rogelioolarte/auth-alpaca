@@ -488,4 +488,262 @@ class RefreshTokenServiceImplTest {
 
         verify(dao).findByTokenHashSecure(hash);
     }
+
+    @Test
+    void validateRefreshToken_WhenTokenRevoked_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        refreshToken.setRevoked(true);
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, clientId, now, ipAddress, userAgent));
+
+        assertEquals("Refresh Token already revoked", exception.getReason());
+
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "reuse-detected");
+
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "reuse-detected");
+    }
+
+    @Test
+    void
+            validateRefreshToken_WhenTokenReplacedByExists_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        RefreshToken replacedBy = new RefreshToken();
+        replacedBy.setId(UUID.randomUUID());
+
+        refreshToken.setReplacedBy(replacedBy);
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, clientId, now, ipAddress, userAgent));
+
+        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "reuse-detected");
+
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "reuse-detected");
+    }
+
+    @Test
+    void validateRefreshToken_WhenTokenExpired_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        refreshToken.setExpiresAt(now.minusSeconds(1));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, clientId, now, ipAddress, userAgent));
+
+        assertEquals("Reuse Detected Refresh Token", exception.getReason());
+
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "reuse-detected");
+
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "reuse-detected");
+    }
+
+    @Test
+    void
+            validateRefreshToken_WhenTokenIssuedBeforeTokensInvalidBefore_ThenThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        user.setTokensInvalidBefore(now.plusSeconds(60));
+        refreshToken.setCreatedAt(now.minusSeconds(60));
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, clientId, now, ipAddress, userAgent));
+
+        assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
+
+        verify(dao, never()).revokeFamilyWithReason(any(), any(), any());
+    }
+
+    @Test
+    void validateRefreshToken_WhenClientIdMismatch_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        String invalidClientId = "invalid-client-id";
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, invalidClientId, now, ipAddress, userAgent));
+
+        assertEquals("Client mismatch", exception.getReason());
+
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "client-mismatch");
+
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "client-mismatch");
+    }
+
+    @Test
+    void
+            validateRefreshToken_WhenUserAgentMismatch_ThenRevokeFamilyAndThrowUnauthorizedException() {
+        Instant now = Instant.now();
+
+        String invalidUserAgent = "invalid-user-agent";
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () ->
+                                service.validateRefreshToken(
+                                        refreshToken, clientId, now, ipAddress, invalidUserAgent));
+
+        assertEquals("User-Agent mismatch", exception.getReason());
+
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "ua-mismatch");
+
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "ua-mismatch");
+    }
+
+    @Test
+    void validateRefreshToken_WhenTokenIsValid_ThenDoNotThrowException() {
+        Instant now = Instant.now();
+
+        assertDoesNotThrow(
+                () ->
+                        service.validateRefreshToken(
+                                refreshToken, clientId, now, ipAddress, userAgent));
+
+        verify(dao, never()).revokeFamilyWithReason(any(), any(), any());
+        verify(sessionService, never()).revokeSessionByFamilyId(any(), any(), any());
+    }
+
+    @Test
+    void updateById_WhenRefreshTokenIsNull_ThenThrowBadRequestException() {
+        UUID refreshTokenId = UUID.randomUUID();
+
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class, () -> service.updateById(null, refreshTokenId));
+
+        assertEquals(
+                String.format("RefreshToken with ID %s cannot be updated", refreshTokenId),
+                exception.getReason());
+
+        verify(dao, never()).findById(any(UUID.class));
+    }
+
+    @Test
+    void updateById_WhenIdIsNull_ThenThrowBadRequestException() {
+        RefreshToken updatedRefreshToken = new RefreshToken();
+
+        BadRequestException exception =
+                assertThrows(
+                        BadRequestException.class,
+                        () -> service.updateById(updatedRefreshToken, null));
+
+        assertEquals("RefreshToken with ID null cannot be updated", exception.getReason());
+
+        verify(dao, never()).findById(any(UUID.class));
+    }
+
+    @Test
+    void updateById_WhenRefreshTokenDoesNotExist_ThenThrowNotFoundException() {
+        UUID refreshTokenId = UUID.randomUUID();
+
+        RefreshToken updatedRefreshToken = new RefreshToken();
+
+        when(dao.findById(refreshTokenId)).thenReturn(Optional.empty());
+
+        assertThrows(
+                com.alpaca.exception.NotFoundException.class,
+                () -> service.updateById(updatedRefreshToken, refreshTokenId));
+
+        verify(dao).findById(refreshTokenId);
+        verify(dao, never()).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void updateById_WhenRefreshTokenExists_ThenUpdateSuccessfully() {
+        UUID refreshTokenId = UUID.randomUUID();
+
+        RefreshToken existingRefreshToken = new RefreshToken();
+        existingRefreshToken.setId(refreshTokenId);
+        existingRefreshToken.setUser(user);
+        existingRefreshToken.setTokenJti(UUID.randomUUID());
+        existingRefreshToken.setFamilyId(UUID.randomUUID());
+        existingRefreshToken.setRevoked(false);
+        existingRefreshToken.setTokenHash("old-token-hash");
+        existingRefreshToken.setClientId("old-client-id");
+        existingRefreshToken.setIpAddress("old-ip");
+        existingRefreshToken.setUserAgent("old-user-agent");
+        existingRefreshToken.setRevokeReason("old-reason");
+
+        RefreshToken replacedBy = new RefreshToken();
+        replacedBy.setId(UUID.randomUUID());
+
+        RefreshToken updatedRefreshToken = new RefreshToken();
+
+        User updatedUser = new User();
+        updatedUser.setId(UUID.randomUUID());
+
+        UUID updatedTokenJti = UUID.randomUUID();
+        UUID updatedFamilyId = UUID.randomUUID();
+        Instant revokedAt = Instant.now();
+        Instant expiresAt = Instant.now().plusSeconds(300);
+        Instant lastUsedAt = Instant.now().plusSeconds(60);
+
+        updatedRefreshToken.setUser(updatedUser);
+        updatedRefreshToken.setReplacedBy(replacedBy);
+        updatedRefreshToken.setTokenJti(updatedTokenJti);
+        updatedRefreshToken.setFamilyId(updatedFamilyId);
+        updatedRefreshToken.setRevoked(true);
+        updatedRefreshToken.setRevokedAt(revokedAt);
+        updatedRefreshToken.setExpiresAt(expiresAt);
+        updatedRefreshToken.setLastUsedAt(lastUsedAt);
+        updatedRefreshToken.setTokenHash("new-token-hash");
+        updatedRefreshToken.setClientId("new-client-id");
+        updatedRefreshToken.setIpAddress("new-ip");
+        updatedRefreshToken.setUserAgent("new-user-agent");
+        updatedRefreshToken.setRevokeReason("new-reason");
+
+        when(dao.findById(refreshTokenId)).thenReturn(Optional.of(existingRefreshToken));
+
+        when(dao.save(existingRefreshToken)).thenReturn(existingRefreshToken);
+
+        RefreshToken result = service.updateById(updatedRefreshToken, refreshTokenId);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(updatedUser, result.getUser()),
+                () -> assertEquals(replacedBy, result.getReplacedBy()),
+                () -> assertEquals(updatedTokenJti, result.getTokenJti()),
+                () -> assertEquals(updatedFamilyId, result.getFamilyId()),
+                () -> assertTrue(result.isRevoked()),
+                () -> assertEquals(revokedAt, result.getRevokedAt()),
+                () -> assertEquals(expiresAt, result.getExpiresAt()),
+                () -> assertEquals(lastUsedAt, result.getLastUsedAt()),
+                () -> assertEquals("new-token-hash", result.getTokenHash()),
+                () -> assertEquals("new-client-id", result.getClientId()),
+                () -> assertEquals("new-ip", result.getIpAddress()),
+                () -> assertEquals("new-user-agent", result.getUserAgent()),
+                () -> assertEquals("new-reason", result.getRevokeReason()));
+
+        verify(dao).findById(refreshTokenId);
+        verify(dao).save(existingRefreshToken);
+    }
 }
