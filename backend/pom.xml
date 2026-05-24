@@ -224,7 +224,7 @@
 								</goals>
 								<configuration>
 									<excludes>
-										<exclude>**/DemoApplication.class</exclude>
+										<exclude>**/Application.class</exclude>
 										<exclude>**/DataServiceImpl.class</exclude>
 										<exclude>**/entity/**</exclude>
 										<exclude>**/model/**</exclude>
@@ -408,7 +408,7 @@
 						</goals>
 						<configuration>
 							<excludes>
-								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/Application.class</exclude>
 								<exclude>**/DataServiceImpl.class</exclude>
 								<exclude>**/entity/**</exclude>
 								<exclude>**/model/**</exclude>
