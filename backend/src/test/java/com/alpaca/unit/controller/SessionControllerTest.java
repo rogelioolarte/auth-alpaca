@@ -2,8 +2,7 @@ package com.alpaca.unit.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,7 +89,7 @@ class SessionControllerTest {
         doNothing().when(service).revokeSessionByUserIdAndId(session.getUser().getId(), sessionId);
 
         mockMvc.perform(
-                        post("/api/sessions/{id}", sessionId)
+                        delete("/api/sessions/{id}", sessionId)
                                 .principal(() -> userPrincipal.getUserId().toString()))
                 .andExpect(status().isNoContent());
 
@@ -101,7 +100,7 @@ class SessionControllerTest {
     @DisplayName("revokeSessionByUser returns 401 Unauthorized when user is null")
     void revokeSessionByUserReturnsUnauthorizedWhenUserIsNull() throws Exception {
 
-        mockMvc.perform(post("/api/sessions/{id}", UUID.randomUUID()))
+        mockMvc.perform(delete("/api/sessions/{id}", UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(service);
@@ -117,7 +116,7 @@ class SessionControllerTest {
         doNothing().when(service).revokeAllSessionsByUserId(session.getUser().getId());
 
         mockMvc.perform(
-                        post("/api/sessions/all")
+                        delete("/api/sessions/all")
                                 .principal(() -> userPrincipal.getUserId().toString()))
                 .andExpect(status().isNoContent());
 
@@ -128,7 +127,7 @@ class SessionControllerTest {
     @DisplayName("revokeAllSessionsByUser returns 401 Unauthorized when user is null")
     void revokeAllSessionsByUserReturnsUnauthorizedWhenUserIsNull() throws Exception {
 
-        mockMvc.perform(post("/api/sessions/all")).andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/api/sessions/all")).andExpect(status().isUnauthorized());
 
         verifyNoInteractions(service);
     }

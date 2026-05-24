@@ -1,7 +1,6 @@
 package com.alpaca.unit.security.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.exception.BadRequestException;
