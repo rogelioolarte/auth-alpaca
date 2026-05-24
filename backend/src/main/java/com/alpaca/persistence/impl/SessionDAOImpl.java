@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -100,6 +102,11 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     @Override
     public void revokeSessionsByUserId(UUID userId, Instant revokedAt, String reason) {
         repo.revokeSessionsByUserId(userId, revokedAt, reason);
+    }
+
+    @Override
+    public Page<Session> findAllByUserId(UUID userId, Pageable pageable) {
+        return repo.findAllByUserId(userId, pageable);
     }
 
     /**

@@ -4,6 +4,8 @@ import com.alpaca.entity.Session;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Data Access Object (DAO) interface for managing {@link Session} entities.
@@ -29,4 +31,6 @@ public interface ISessionDAO extends IGenericDAO<Session, UUID> {
     long countByUserIdAndRevokedFalse(UUID userId);
 
     void revokeSessionsByUserId(UUID userId, Instant revokedAt, String reason);
+
+    Page<Session> findAllByUserId(UUID userId, Pageable pageable);
 }

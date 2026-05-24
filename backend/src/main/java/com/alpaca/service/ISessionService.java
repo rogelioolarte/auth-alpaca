@@ -4,6 +4,8 @@ import com.alpaca.entity.Session;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service interface for managing {@link Session} entities. Extends {@link IGenericService} to
@@ -22,4 +24,6 @@ public interface ISessionService extends IGenericService<Session, UUID> {
     void revokeSessionByUserIdAndId(UUID userId, UUID id);
 
     void revokeAllSessionsByUserId(UUID userId);
+
+    Page<Session> findAllByUserId(UUID userId, Pageable pageable);
 }

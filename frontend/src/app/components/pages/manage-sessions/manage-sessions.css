@@ -1,0 +1,48 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 24px / 16 */
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--mat-sys-surface);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sessions-table {
+  width: 100%;
+}
+
+.info-icon {
+  font-size: 1rem; /* 16px / 16 */
+  height: 1rem;    /* 16px / 16 */
+  width: 1rem;     /* 16px / 16 */
+  margin-left: 0.25rem; /* 4px / 16 */
+  cursor: help;
+  vertical-align: middle;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem; /* 40px / 16 */
+  color: #666;
+  gap: 0.75rem; /* 12px / 16 */
+}
+
+.empty-state mat-icon {
+  font-size: 3rem; /* 48px / 16 */
+  width: 3rem;     /* 48px / 16 */
+  height: 3rem;    /* 48px / 16 */
+}

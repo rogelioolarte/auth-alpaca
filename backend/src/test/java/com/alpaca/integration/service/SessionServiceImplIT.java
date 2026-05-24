@@ -24,6 +24,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link SessionServiceImpl} */
@@ -519,5 +521,114 @@ class SessionServiceImplIT {
         Session result = sessionService.updateById(update, saved.getId());
 
         assertThat(result.getUser().getId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should return paginated sessions for specific user only")
+    void findAllByUserId_ShouldReturnPaginatedSessions_ForSpecificUserOnly() {
+
+        User user = buildUser();
+        User savedUser = userDAO.save(user);
+
+        User anotherUser = buildAlternativeUser();
+        User savedAnotherUser = userDAO.save(anotherUser);
+
+        Session first = buildSession();
+        first.setUser(savedUser);
+
+        Session second = buildAlternativeSession();
+        second.setCreatedAt(now.plusSeconds(1));
+        second.setUser(savedUser);
+
+        Session third = buildSession();
+        third.setCreatedAt(now.plusSeconds(2));
+        third.setFamilyId(UUID.randomUUID());
+        third.setUser(savedAnotherUser);
+
+        sessionDAO.save(first);
+        sessionDAO.save(second);
+        sessionDAO.save(third);
+
+        Page<Session> result =
+                sessionService.findAllByUserId(savedUser.getId(), Pageable.ofSize(10));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2L);
+        assertThat(result.getContent())
+                .allMatch(session -> session.getUser().getId().equals(savedUser.getId()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should return empty page when user has no sessions")
+    void findAllByUserId_ShouldReturnEmptyPage_WhenUserHasNoSessions() {
+
+        User user = buildUser();
+        User savedUser = userDAO.save(user);
+
+        Page<Session> result =
+                sessionService.findAllByUserId(savedUser.getId(), Pageable.ofSize(10));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getTotalPages()).isZero();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should respect pagination boundaries")
+    void findAllByUserId_ShouldRespectPaginationBoundaries() {
+
+        User user = buildUser();
+        User savedUser = userDAO.save(user);
+
+        Session first = buildSession();
+        first.setUser(savedUser);
+
+        Session second = buildAlternativeSession();
+        second.setCreatedAt(now.plusSeconds(1));
+        second.setUser(savedUser);
+
+        sessionDAO.save(first);
+        sessionDAO.save(second);
+
+        Pageable pageable = Pageable.ofSize(1).withPage(1);
+
+        Page<Session> result = sessionService.findAllByUserId(savedUser.getId(), pageable);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(2L);
+        assertThat(result.getTotalPages()).isEqualTo(2);
+        assertThat(result.getNumber()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should return all sessions when pageable is unpaged")
+    void findAllByUserId_ShouldReturnAllSessions_WhenPageableIsUnpaged() {
+
+        User user = buildUser();
+        User savedUser = userDAO.save(user);
+
+        Session first = buildSession();
+        first.setUser(savedUser);
+
+        Session second = buildAlternativeSession();
+        second.setCreatedAt(now.plusSeconds(1));
+        second.setUser(savedUser);
+
+        sessionDAO.save(first);
+        sessionDAO.save(second);
+
+        Page<Session> result =
+                sessionService.findAllByUserId(savedUser.getId(), Pageable.unpaged());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2L);
     }
 }

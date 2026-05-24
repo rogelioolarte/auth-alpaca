@@ -1,60 +1,64 @@
 <mat-sidenav-container class="dashboard-container">
   @if (isInDashboard()) {
-    <mat-sidenav mode="side" [opened]="sidenavOpened()" class="dashboard-sidenav">
-      <div class="sidenav-container">
-        <div class="sidenav-header">
-          <h2>Dashboard</h2>
-        </div>
-        
-        <mat-nav-list class="sidenav-nav">
-          <a mat-list-item routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Dashboard</span>
-          </a>
-          <a mat-list-item routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item">
-            <mat-icon matListItemIcon>person</mat-icon>
-            <span matListItemTitle>My Profile</span>
-          </a>
-           <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active" class="nav-item">
-             <mat-icon matListItemIcon>campaign</mat-icon>
-             <span matListItemTitle>My Advertiser</span>
-           </a>
-           <a mat-list-item routerLink="/dashboard/change-password" routerLinkActive="active" class="nav-item">
-             <mat-icon matListItemIcon>vpn_key</mat-icon>
-             <span matListItemTitle>Change Password</span>
-           </a>
-           <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank" class="nav-item">
-            <mat-icon matListItemIcon>public</mat-icon>
-            <span matListItemTitle>Public Site</span>
-          </a>
-
-          @if (isAdmin()) {
-            <div class="nav-divider"></div>
-            <span class="nav-section-label">Administration</span>
-            
-            <a mat-list-item routerLink="/dashboard/permissions" routerLinkActive="active" class="nav-item">
-              <mat-icon matListItemIcon>lock</mat-icon>
-              <span matListItemTitle>Permissions</span>
-            </a>
-            <a mat-list-item routerLink="/dashboard/roles" routerLinkActive="active" class="nav-item">
-              <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-              <span matListItemTitle>Roles</span>
-            </a>
-            <a mat-list-item routerLink="/dashboard/users" routerLinkActive="active" class="nav-item">
-              <mat-icon matListItemIcon>people</mat-icon>
-              <span matListItemTitle>Users</span>
-            </a>
-          }
-          
-          <div class="nav-divider"></div>
-          
-          <button mat-list-item (click)="logout()" class="nav-item logout">
-            <mat-icon matListItemIcon>logout</mat-icon>
-            <span matListItemTitle>Sign Out</span>
-          </button>
-        </mat-nav-list>
+  <mat-sidenav mode="side" [opened]="sidenavOpened()" class="dashboard-sidenav">
+    <div class="sidenav-container">
+      <div class="sidenav-header">
+        <h2>Dashboard</h2>
       </div>
-    </mat-sidenav>
+
+      <mat-nav-list class="sidenav-nav">
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/profile" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>person</mat-icon>
+          <span matListItemTitle>My Profile</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/advertiser" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>campaign</mat-icon>
+          <span matListItemTitle>My Advertiser</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/sessions" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>key</mat-icon>
+          <span matListItemTitle>My Sessions</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/change-password" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>vpn_key</mat-icon>
+          <span matListItemTitle>Change Password</span>
+        </a>
+        <a mat-list-item [routerLink]="['/advertisers/', myPublicAdvertiserId()]" target="_blank" class="nav-item">
+          <mat-icon matListItemIcon>public</mat-icon>
+          <span matListItemTitle>Public Site</span>
+        </a>
+
+        @if (isAdmin()) {
+        <div class="nav-divider"></div>
+        <span class="nav-section-label">Administration</span>
+
+        <a mat-list-item routerLink="/dashboard/permissions" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>lock</mat-icon>
+          <span matListItemTitle>Permissions</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/roles" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+          <span matListItemTitle>Roles</span>
+        </a>
+        <a mat-list-item routerLink="/dashboard/users" routerLinkActive="active" class="nav-item">
+          <mat-icon matListItemIcon>people</mat-icon>
+          <span matListItemTitle>Users</span>
+        </a>
+        }
+
+        <div class="nav-divider"></div>
+
+        <button mat-list-item (click)="logout()" class="nav-item logout">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Sign Out</span>
+        </button>
+      </mat-nav-list>
+    </div>
+  </mat-sidenav>
   }
 
   <mat-sidenav-content class="main-content">

@@ -283,4 +283,27 @@ class SessionDAOImplTest {
 
         verify(repo).countByIds(ids);
     }
+
+    @Test
+    void findAllByUserId_ReturnsPagedSessions() {
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 10);
+
+        org.springframework.data.domain.Page<Session> expectedPage =
+                new org.springframework.data.domain.PageImpl<>(
+                        SessionProvider.listEntities(),
+                        pageable,
+                        SessionProvider.listEntities().size());
+
+        when(repo.findAllByUserId(userId, pageable)).thenReturn(expectedPage);
+
+        org.springframework.data.domain.Page<Session> result =
+                dao.findAllByUserId(userId, pageable);
+
+        assertNotNull(result);
+        assertEquals(expectedPage, result);
+        assertEquals(SessionProvider.listEntities().size(), result.getContent().size());
+
+        verify(repo).findAllByUserId(userId, pageable);
+    }
 }

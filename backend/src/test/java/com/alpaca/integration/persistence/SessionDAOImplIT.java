@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link SessionDAOImpl}. */
@@ -510,5 +512,154 @@ class SessionDAOImplIT {
         boolean result = sessionDAO.existsAllByIds(List.of(saved.getId(), UUID.randomUUID()));
 
         assertThat(result).isFalse();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName(
+            "revokeSessionByFamilyId: should not update sessions when family id does not exist")
+    void revokeSessionByFamilyId_ShouldNotUpdateSessions_WhenFamilyIdDoesNotExist() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Session session = buildSession();
+        session.setUser(user);
+
+        Session saved = sessionDAO.save(session);
+
+        sessionDAO.revokeSessionByFamilyId(UUID.randomUUID(), now.plusSeconds(30), "not-applied");
+
+        Session persisted = sessionDAO.findById(saved.getId()).orElseThrow();
+
+        assertThat(persisted.isRevoked()).isFalse();
+        assertThat(persisted.getRevokedAt()).isNull();
+        assertThat(persisted.getRevokeReason()).isNull();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findByIdAndUserId: should return empty when session id does not exist")
+    void findByIdAndUserId_ShouldReturnEmpty_WhenSessionIdDoesNotExist() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Optional<Session> result = sessionDAO.findByIdAndUserId(UUID.randomUUID(), user.getId());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findFirstActiveSessionForUpdate: should return empty when user has no sessions")
+    void findFirstActiveSessionForUpdate_ShouldReturnEmpty_WhenUserHasNoSessions() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Optional<Session> result = sessionDAO.findFirstActiveSessionForUpdate(user.getId());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName(
+            "countByUserIdAndRevokedFalse: should return zero when user has no active sessions")
+    void countByUserIdAndRevokedFalse_ShouldReturnZero_WhenUserHasNoActiveSessions() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        long result = sessionDAO.countByUserIdAndRevokedFalse(user.getId());
+
+        assertThat(result).isZero();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("revokeSessionsByUserId: should not revoke sessions from other users")
+    void revokeSessionsByUserId_ShouldNotRevokeSessionsFromOtherUsers() {
+
+        User targetUser = buildUser();
+        userDAO.save(targetUser);
+
+        User anotherUser = buildAlternativeUser();
+        userDAO.save(anotherUser);
+
+        Session targetSession = buildSession();
+        targetSession.setUser(targetUser);
+
+        Session anotherSession = buildAlternativeSession();
+        anotherSession.setUser(anotherUser);
+
+        Session savedTarget = sessionDAO.save(targetSession);
+        Session savedAnother = sessionDAO.save(anotherSession);
+
+        Instant revokedAt = now.plusSeconds(90);
+
+        sessionDAO.revokeSessionsByUserId(targetUser.getId(), revokedAt, "target-only");
+
+        Session updatedTarget = sessionDAO.findById(savedTarget.getId()).orElseThrow();
+        Session updatedAnother = sessionDAO.findById(savedAnother.getId()).orElseThrow();
+
+        assertThat(updatedTarget.isRevoked()).isTrue();
+        assertThat(updatedTarget.getRevokedAt())
+                .isCloseTo(revokedAt, within(1, ChronoUnit.SECONDS));
+        assertThat(updatedTarget.getRevokeReason()).isEqualTo("target-only");
+
+        assertThat(updatedAnother.isRevoked()).isFalse();
+        assertThat(updatedAnother.getRevokedAt()).isNull();
+        assertThat(updatedAnother.getRevokeReason()).isNull();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should return paginated sessions for user")
+    void findAllByUserId_ShouldReturnPaginatedSessions() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Session first = buildSession();
+        first.setUser(user);
+
+        Session second = buildAlternativeSession();
+        second.setUser(user);
+
+        sessionDAO.save(first);
+        sessionDAO.save(second);
+
+        Page<Session> result = sessionDAO.findAllByUserId(user.getId(), Pageable.ofSize(1));
+
+        assertThat(result).isNotNull();
+        assertEquals(1, result.getContent().size());
+        assertThat(result.getTotalElements()).isEqualTo(2L);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("findAllByUserId: should return empty page when user has no sessions")
+    void findAllByUserId_ShouldReturnEmptyPage_WhenUserHasNoSessions() {
+
+        User user = buildUser();
+        userDAO.save(user);
+
+        Page<Session> result = sessionDAO.findAllByUserId(user.getId(), Pageable.ofSize(10));
+
+        assertThat(result).isNotNull();
+        assertTrue(result.getContent().isEmpty());
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("existsAllByIds: should return true when ids collection is empty")
+    void existsAllByIds_ShouldReturnTrue_WhenIdsCollectionIsEmpty() {
+
+        boolean result = sessionDAO.existsAllByIds(List.of());
+
+        assertThat(result).isTrue();
     }
 }

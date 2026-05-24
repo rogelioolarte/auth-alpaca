@@ -178,7 +178,7 @@ export class AuthenticationService {
     }
   }
 
-  private cleanStates(): void {
+  public cleanStates(): void {
     this.jwtState.next(null);
     this.decodeState.next(null);
     this.currentUser.next(null);
@@ -196,7 +196,11 @@ export class AuthenticationService {
       switchMap((v) => this.authService.logout(v[0]?.refresh || '', v[1] || '')),
       tap({
         next: () => this.cleanStates(),
-        error: (error: HttpErrorResponse) => error.status === 400 && this.cleanStates(),
+        error: (error: HttpErrorResponse) => {
+          if(error.status === 400 || error.status == 401) {
+            this.cleanStates()
+          }
+        }
       }),
     );
   }

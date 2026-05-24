@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,7 +148,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         return dao.save(newSession);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void revokeSessionByUserIdAndId(UUID userId, UUID id) {
         Session session =
@@ -155,15 +157,22 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         if (!userId.equals(session.getUser().getId())) {
             throw new ForbiddenException("Invalid Session to revoke");
         }
-        revokeSessionByFamilyId(session.getFamilyId(), Instant.now(), USER_SELF_REVOCATION);
+        dao.revokeSessionByFamilyId(session.getFamilyId(), Instant.now(), USER_SELF_REVOCATION);
+        refreshTokenDAO.revokeFamilyWithReason(
+                session.getFamilyId(), Instant.now(), USER_SELF_REVOCATION);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void revokeAllSessionsByUserId(UUID userId) {
         Instant now = Instant.now();
         dao.revokeSessionsByUserId(userId, now, USER_SELF_REVOCATION);
         refreshTokenDAO.revokeTokensByUserId(userId, now, USER_SELF_REVOCATION);
+    }
+
+    @Override
+    public Page<Session> findAllByUserId(UUID userId, Pageable pageable) {
+        return dao.findAllByUserId(userId, pageable);
     }
 
     @Override

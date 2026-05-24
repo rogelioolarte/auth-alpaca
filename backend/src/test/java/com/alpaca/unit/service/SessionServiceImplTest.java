@@ -494,4 +494,72 @@ class SessionServiceImplTest {
 
         verify(dao).save(existingSession);
     }
+
+    @Test
+    void findAllByUserIdShouldDelegateToDao() {
+        UUID userId = user.getId();
+
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(0, 5);
+
+        org.springframework.data.domain.Page<Session> expectedPage =
+                new org.springframework.data.domain.PageImpl<>(
+                        java.util.List.of(session), pageable, 1);
+
+        when(dao.findAllByUserId(userId, pageable)).thenReturn(expectedPage);
+
+        org.springframework.data.domain.Page<Session> result =
+                service.findAllByUserId(userId, pageable);
+
+        assertNotNull(result);
+        assertEquals(expectedPage, result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(session, result.getContent().getFirst());
+
+        verify(dao).findAllByUserId(userId, pageable);
+    }
+
+    @Test
+    void
+            createSessionShouldCreateSessionWithoutRevokingWhenInfinityLoginEnabledAndNoOldestSession() {
+        SessionServiceImpl infinityLoginService =
+                new SessionServiceImpl(dao, userDAO, refreshTokenDAO, uuidv7Generator, 2, true);
+
+        UUID userId = user.getId();
+        UUID newFamilyId = UUID.randomUUID();
+
+        String userAgent = "Safari";
+        String clientId = "desktop";
+        String ipAddress = "10.0.0.1";
+
+        when(userDAO.lockFindUserById(userId)).thenReturn(Optional.of(user));
+        when(dao.findByUniqueProperties(userId, userAgent, clientId, ipAddress))
+                .thenReturn(Optional.empty());
+        when(dao.countByUserIdAndRevokedFalse(userId)).thenReturn(2L);
+        when(dao.findFirstActiveSessionForUpdate(userId)).thenReturn(Optional.empty());
+        when(uuidv7Generator.generate()).thenReturn(newFamilyId);
+
+        when(dao.save(any(Session.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Session result = infinityLoginService.createSession(userId, userAgent, clientId, ipAddress);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(user, result.getUser()),
+                () -> assertEquals(userAgent, result.getUserAgent()),
+                () -> assertEquals(clientId, result.getClientId()),
+                () -> assertEquals(ipAddress, result.getIpAddress()),
+                () -> assertEquals(newFamilyId, result.getFamilyId()),
+                () -> assertFalse(result.isRevoked()));
+
+        verify(dao).countByUserIdAndRevokedFalse(userId);
+        verify(dao).findFirstActiveSessionForUpdate(userId);
+        verify(dao).save(any(Session.class));
+
+        verify(refreshTokenDAO, never())
+                .revokeFamilyWithReason(any(UUID.class), any(Instant.class), anyString());
+
+        verify(dao, never())
+                .revokeSessionByFamilyId(any(UUID.class), any(Instant.class), anyString());
+    }
 }

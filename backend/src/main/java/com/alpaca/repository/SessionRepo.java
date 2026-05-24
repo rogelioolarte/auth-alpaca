@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -126,4 +128,21 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
      */
     @Query("SELECT COUNT(e) FROM Session e WHERE e.id IN :ids")
     long countByIds(@Param("ids") Collection<UUID> ids);
+
+    @Query(
+            value =
+                    """
+                    SELECT s
+                      FROM Session s
+                     WHERE s.user.id = :userId
+                       AND s.revoked = false
+                    """,
+            countQuery =
+                    """
+                    SELECT COUNT(s)
+                      FROM Session s
+                     WHERE s.user.id = :userId
+                       AND s.revoked = false
+                    """)
+    Page<Session> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 }

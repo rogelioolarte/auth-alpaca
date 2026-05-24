@@ -1,5 +1,6 @@
 package com.alpaca.resources;
 
+import com.alpaca.dto.response.SessionResponseDTO;
 import com.alpaca.entity.Session;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -82,6 +83,15 @@ public class SessionProvider {
         session.setRevokedAt(null);
         session.setRevokeReason(null);
         return session;
+    }
+
+    public static SessionResponseDTO singleResponse() {
+        return new SessionResponseDTO(
+                UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"),
+                Instant.parse("2024-01-02T11:15:00Z"),
+                "127.0.0.1",
+                "Mozilla",
+                "we-client");
     }
 
     public static List<Session> listEntities() {
