@@ -23,4 +23,6 @@ public interface IRefreshTokenDAO extends IGenericDAO<RefreshToken, UUID> {
     void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason);
 
     List<RefreshToken> findAllByFamilyId(UUID familyId);
+
+    void revokeTokensByUserId(UUID userId, Instant revokedAt, String reason);
 }

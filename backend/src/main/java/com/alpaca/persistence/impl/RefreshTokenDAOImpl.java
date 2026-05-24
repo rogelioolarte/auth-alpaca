@@ -75,6 +75,11 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
         return repo.findAllByFamilyId(familyId);
     }
 
+    @Override
+    public void revokeTokensByUserId(UUID userId, Instant revokedAt, String reason) {
+        repo.revokeTokensByUserId(userId, revokedAt, reason);
+    }
+
     /**
      * Verifies whether all entities corresponding to the provided identifiers exist.
      *

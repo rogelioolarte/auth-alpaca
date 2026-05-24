@@ -5,10 +5,8 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -55,7 +53,24 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+            """
+            UPDATE Session s
+               SET s.revoked = true,
+                   s.revokedAt = :revokedAt,
+                   s.revokeReason = :reason
+             WHERE s.user.id = :userId
+               AND s.revoked = false
+            """)
+    void revokeSessionsByUserId(
+            @Param("userId") UUID userId,
+            @Param("revokedAt") Instant revokedAt,
+            @Param("reason") String reason);
+
     Optional<Session> findSessionByFamilyId(UUID familyId);
+
+    Optional<Session> findByIdAndUserId(UUID id, UUID userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
@@ -95,14 +110,13 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(
             """
-              SELECT s
-                FROM Session s
-               WHERE s.user.id = :userId
-                 AND s.revoked = false
-               ORDER BY CASE WHEN s.lastSeenAt IS NULL THEN 0 ELSE 1 END ASC, s.lastSeenAt ASC
+                SELECT s FROM Session s
+                WHERE s.user.id = :userId AND s.revoked = false
+                ORDER BY s.lastSeenAt ASC NULLS FIRST
             """)
-    List<Session> findActiveSessionsByUserOrderByLastSeen(
-            @Param("userId") UUID userId, Pageable pageable);
+    Optional<Session> findFirstActiveSessionForUpdate(@Param("userId") UUID userId);
+
+    long countByUserIdAndRevokedFalse(UUID userId);
 
     /**
      * Counts the number of entities with the given IDs.

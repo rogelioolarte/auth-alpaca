@@ -54,6 +54,7 @@ public class RefreshTokenProvider {
                 .lastUsedAt(Instant.parse("2024-01-01T10:30:00Z"))
                 .revoked(false)
                 .revokedAt(null)
+                .replacedBy(null)
                 .build();
     }
 
@@ -69,6 +70,7 @@ public class RefreshTokenProvider {
                 .lastUsedAt(Instant.parse("2024-01-01T10:30:00Z"))
                 .revoked(false)
                 .revokedAt(null)
+                .replacedBy(null)
                 .build();
     }
 

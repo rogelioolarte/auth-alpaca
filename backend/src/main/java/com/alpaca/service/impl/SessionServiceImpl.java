@@ -4,6 +4,7 @@ import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.ExceededSessionsException;
+import com.alpaca.exception.ForbiddenException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IRefreshTokenDAO;
@@ -15,14 +16,11 @@ import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +45,8 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     private final UUIDv7Generator uuidv7Generator;
 
     private final int maxSessionsPerUser;
-    private final Pageable pageableForMaxSessions;
     private final boolean infinityLogin;
+    private static final String USER_SELF_REVOCATION = "user-self-revocation";
 
     public SessionServiceImpl(
             ISessionDAO dao,
@@ -65,8 +63,6 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         this.refreshTokenDAO = refreshTokenDAO;
         this.uuidv7Generator = uuidv7Generator;
         this.maxSessionsPerUser = maxSessionsPerUser;
-        // Fetch maxSessionsPerUser + 1 to detect limit overflow without COUNT(*)
-        this.pageableForMaxSessions = PageRequest.of(0, maxSessionsPerUser + 1);
         this.infinityLogin = infinityLogin;
     }
 
@@ -122,39 +118,52 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
             refreshTokenDAO.revokeFamilyWithReason(
                     newSession.getFamilyId(), now, newSessionCreatedReason);
         } else {
-            List<Session> activeSessions =
-                    dao.findActiveSessionsByUserOrderByLastSeen(userId, pageableForMaxSessions);
-            if (activeSessions.size() >= maxSessionsPerUser) {
-                if (this.infinityLogin) {
-                    UUID oldestSessionFamilyId = activeSessions.getFirst().getFamilyId();
+            long activeSession = dao.countByUserIdAndRevokedFalse(userId);
+            Optional<Session> lastSession = dao.findFirstActiveSessionForUpdate(userId);
+
+            if (activeSession >= maxSessionsPerUser) {
+                if (this.infinityLogin && lastSession.isPresent()) {
+                    UUID oldestSessionFamilyId = lastSession.get().getFamilyId();
                     refreshTokenDAO.revokeFamilyWithReason(
                             oldestSessionFamilyId, now, newSessionCreatedReason);
                     dao.revokeSessionByFamilyId(
                             oldestSessionFamilyId, now, newSessionCreatedReason);
-                } else {
+                } else if (!this.infinityLogin) {
                     throw new ExceededSessionsException(maxSessionsPerUser);
                 }
             }
             newSession = new Session();
             newSession.setUser(user);
-            if (!Objects.equals(newSession.getUserAgent(), userAgent)) {
-                newSession.setUserAgent(userAgent);
-            }
-            if (!Objects.equals(newSession.getClientId(), clientId)) {
-                newSession.setClientId(clientId);
-            }
+
+            updateTextIfExists(newSession.getUserAgent(), userAgent, newSession::setUserAgent);
+            updateIfNotNull(newSession.getClientId(), clientId, newSession::setClientId);
         }
         newSession.setRevoked(false);
-        if (!Objects.equals(newSession.getIpAddress(), clientIp)) {
-            newSession.setIpAddress(clientIp);
-        }
-        if (!Objects.equals(newSession.getFamilyId(), newFamilyId)) {
-            newSession.setFamilyId(newFamilyId);
-        }
-        if (!Objects.equals(newSession.getLastSeenAt(), now)) {
-            newSession.setLastSeenAt(now);
-        }
+        updateTextIfExists(newSession.getIpAddress(), clientIp, newSession::setIpAddress);
+        updateIfNotNull(newSession.getFamilyId(), newFamilyId, newSession::setFamilyId);
+        updateIfNotNull(newSession.getLastSeenAt(), now, newSession::setLastSeenAt);
+
         return dao.save(newSession);
+    }
+
+    @Transactional
+    @Override
+    public void revokeSessionByUserIdAndId(UUID userId, UUID id) {
+        Session session =
+                dao.findByIdAndUserId(id, userId)
+                        .orElseThrow(() -> new ForbiddenException("Invalid Session to revoke"));
+        if (!userId.equals(session.getUser().getId())) {
+            throw new ForbiddenException("Invalid Session to revoke");
+        }
+        revokeSessionByFamilyId(session.getFamilyId(), Instant.now(), USER_SELF_REVOCATION);
+    }
+
+    @Transactional
+    @Override
+    public void revokeAllSessionsByUserId(UUID userId) {
+        Instant now = Instant.now();
+        dao.revokeSessionsByUserId(userId, now, USER_SELF_REVOCATION);
+        refreshTokenDAO.revokeTokensByUserId(userId, now, USER_SELF_REVOCATION);
     }
 
     @Override

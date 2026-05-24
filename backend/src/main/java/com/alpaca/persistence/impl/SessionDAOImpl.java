@@ -6,12 +6,10 @@ import com.alpaca.repository.GenericRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -74,6 +72,11 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     }
 
     @Override
+    public Optional<Session> findByIdAndUserId(UUID id, UUID userId) {
+        return repo.findByIdAndUserId(id, userId);
+    }
+
+    @Override
     public Optional<Session> findSessionByFamilyId(UUID familyId) {
         return repo.findSessionByFamilyId(familyId);
     }
@@ -85,8 +88,18 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     }
 
     @Override
-    public List<Session> findActiveSessionsByUserOrderByLastSeen(UUID userId, Pageable pageable) {
-        return repo.findActiveSessionsByUserOrderByLastSeen(userId, pageable);
+    public Optional<Session> findFirstActiveSessionForUpdate(UUID userId) {
+        return repo.findFirstActiveSessionForUpdate(userId);
+    }
+
+    @Override
+    public long countByUserIdAndRevokedFalse(UUID userId) {
+        return repo.countByUserIdAndRevokedFalse(userId);
+    }
+
+    @Override
+    public void revokeSessionsByUserId(UUID userId, Instant revokedAt, String reason) {
+        repo.revokeSessionsByUserId(userId, revokedAt, reason);
     }
 
     /**

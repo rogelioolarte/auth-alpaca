@@ -18,4 +18,8 @@ public interface ISessionService extends IGenericService<Session, UUID> {
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
     Session createSession(UUID userId, String userAgent, String clientId, String clientIp);
+
+    void revokeSessionByUserIdAndId(UUID userId, UUID id);
+
+    void revokeAllSessionsByUserId(UUID userId);
 }
