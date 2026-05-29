@@ -1,0 +1,116 @@
+import uuid
+import csv
+import time
+
+# Constants
+USER_COUNT = 2000
+PASSWORD = "123456789"
+PASSWORD_HASH = "$argon2id$v=19$m=19456,t=2,p=1$gzeo+RM0QgogLL0XHjGdRw$cDh5ZGRBkn5lpkP4GzVHMYEz6OjB3AozWgkZ/GTtVYw"
+IMAGE_URL = "https://res.cloudinary.com/auth-alpaca/image/upload/v1749616715/cld-sample-2.jpg"
+ROLE_NAME = "USER"
+ROLE_DESC = "Standard user role with basic access"
+
+def generate_uuid_v7():
+    """
+    Simplified UUID v7 implementation.
+    UUID v7: 48-bit timestamp (ms) | 4-bit version (7) | 12-bit random | 2-bit variant (10) | 62-bit random
+    """
+    # Timestamp in milliseconds
+    ms = int(time.time() * 1000)
+    
+    # 48 bits of timestamp
+    timestamp_bits = ms & 0xFFFFFFFFFFFF
+    
+    # Random bits
+    rand_bits = uuid.uuid4().int
+    
+    # Construct UUID v7
+    # bits 0-47: timestamp
+    # bits 48-51: version (0111 = 7)
+    # bits 52-63: random
+    # bits 64-65: variant (10)
+    # bits 66-127: random
+    
+    v7_int = (timestamp_bits << 80) | \
+             (7 << 76) | \
+             ((rand_bits >> 64) & 0xFFF) << 64 | \
+             (2 << 62) | \
+             (rand_bits & 0x3FFFFFFFFFFFFFFF)
+             
+    return str(uuid.UUID(int=v7_int))
+
+def generate_data():
+    # Generate CLIENT_ID (UUID v7)
+    client_id = generate_uuid_v7()
+    
+    # Update .env and lib/config.ts
+    with open("performance-tests/.env", "w") as f:
+        f.write(f"BASE_URL=http://localhost:8080\nCLIENT_ID={client_id}\n")
+    
+    with open("performance-tests/lib/config.ts", "w") as f:
+        f.write(f"export const CONFIG = {{\n  baseURL: 'http://localhost:8080',\n  clientId: '{client_id}',\n}};")
+
+    sql_lines = []
+    csv_data = []
+
+    # 1. Create Role
+    role_id = str(uuid.uuid4())
+    sql_lines.append(f"INSERT INTO roles (id, name, description) VALUES ('{role_id}', '{ROLE_NAME}', '{ROLE_DESC}');")
+
+    # 2. Create Permissions
+    permission_ids = []
+    for i in range(1, 11):
+        p_id = str(uuid.uuid4())
+        p_name = f"PERMISSION_READ_{i}"
+        sql_lines.append(f"INSERT INTO permissions (id, name) VALUES ('{p_id}', '{p_name}');")
+        permission_ids.append(p_id)
+
+    # 3. Assign Permissions to Role
+    for p_id in permission_ids:
+        sql_lines.append(f"INSERT INTO role_permissions (role_id, permission_id) VALUES ('{role_id}', '{p_id}');")
+
+    # 4. Create Users, Profiles, and Advertisers
+    for i in range(1, USER_COUNT + 1):
+        u_id = str(uuid.uuid4())
+        email = f"perf_user_{i}@example.com"
+        
+        # User record
+        sql_lines.append(
+            f"INSERT INTO users (id, email, password, enable, account_non_expired, account_non_locked, credential_non_expired, email_verified, google_connected) "
+            f"VALUES ('{u_id}', '{email}', '{PASSWORD_HASH}', true, true, true, true, true, false);"
+        )
+        
+        # User Role record
+        sql_lines.append(f"INSERT INTO user_roles (user_id, role_id) VALUES ('{u_id}', '{role_id}');")
+        
+        # Profile record
+        profile_id = str(uuid.uuid4())
+        sql_lines.append(
+            f"INSERT INTO profiles (id, first_name, last_name, address, avatar_url, user_id) "
+            f"VALUES ('{profile_id}', 'First_{i}', 'Last_{i}', 'Address_{i}', '{IMAGE_URL}', '{u_id}');"
+        )
+        
+        # Advertiser record
+        adv_id = str(uuid.uuid4())
+        sql_lines.append(
+            f"INSERT INTO advertisers (id, title, description, banner_url, avatar_url, public_location, public_url_location, indexed, paid, verified, user_id) "
+            f"VALUES ('{adv_id}', 'Advertiser_{i}', 'Description_{i}', '{IMAGE_URL}', '{IMAGE_URL}', 'Loc_{i}', 'http://loc_{i}.com', true, false, true, '{u_id}');"
+        )
+        
+        # CSV data
+        csv_data.append([email, PASSWORD])
+
+    # Write SQL file
+    with open("performance-tests/data/seeding-users.sql", "w") as f:
+        f.write("\n".join(sql_lines))
+
+    # Write CSV file
+    with open("performance-tests/data/users.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["email", "password"])
+        writer.writerows(csv_data)
+
+    print(f"Successfully generated seeding-users.sql, users.csv, and updated config with CLIENT_ID {client_id}.")
+
+if __name__ == "__main__":
+    generate_data()

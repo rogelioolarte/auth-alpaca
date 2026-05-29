@@ -1,0 +1,38 @@
+import { check, sleep } from 'k6';
+import { SharedArray } from 'k6/data';
+import { userJourney, warmup, User } from '../lib/user-journey';
+
+const users = new SharedArray('users', function () {
+  return JSON.parse(open('./data/users.csv').split('\n').slice(1).map(line => {
+    const [email, password] = line.split(',');
+    return { email, pass: password };
+  }).filter(Boolean));
+});
+
+export const options = {
+  stages: [
+    { duration: '30s', target: 50 },   // Warm-up
+    { duration: '1m', target: 500 },   // Ramp to starting point
+    { duration: '10m', target: 2000 }, // Linear ramp to breakpoint
+  ],
+  thresholds: {
+    // We don't put strict limits here because we WANT to find the breakpoint.
+    // But we can monitor them.
+    'http_req_duration': ['p(95)<1000'], // Alert if we pass 1s
+    'http_req_failed': ['rate<0.05'],     // Alert if we pass 5%
+  },
+};
+
+export default function () {
+  const user = users[Math.floor(Math.random() * users.length)] as User;
+  
+  if (k6.metrics.get('vus').values.length <= 50) {
+    warmup(user);
+  } else {
+    const result = userJourney(user);
+    check(result, {
+      'journey success': (r) => r.success,
+    });
+  }
+  sleep(1);
+}
