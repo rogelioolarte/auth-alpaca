@@ -1,4 +1,4 @@
-name: Pullfrog Workflow
+name: Pullfrog
 run-name: ${{ inputs.name || github.workflow }}
 on:
   workflow_dispatch:
