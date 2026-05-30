@@ -1,6 +1,5 @@
 package com.alpaca;
 
-import com.alpaca.utils.LoadEnv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Application {
 
     static void main(String[] args) {
-        LoadEnv.init();
         SpringApplication.run(Application.class, args);
     }
 }

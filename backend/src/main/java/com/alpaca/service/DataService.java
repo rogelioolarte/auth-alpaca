@@ -17,4 +17,6 @@ public interface DataService {
      * upon application startup.
      */
     void initializeData();
+
+    void initializeAdminUser();
 }

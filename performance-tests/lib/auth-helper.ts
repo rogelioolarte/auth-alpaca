@@ -6,7 +6,8 @@ import { CONFIG } from './config.ts';
  * @param user User credentials
  * @returns { accessToken: string, refreshToken: string }
  */
-export function login(user: { email: string, pass: string }) {
+export function login(user: { email: string, pass: string }): 
+  ({ accessToken: string, refreshToken: string }) {
   const payload = JSON.stringify({
     email: user.email,
     password: user.pass,
@@ -25,7 +26,7 @@ export function login(user: { email: string, pass: string }) {
     throw new Error(`Login failed with status ${res.status}: ${res.body}`);
   }
 
-  return res.json();
+  return res.json() as { accessToken: string, refreshToken: string };
 }
 
 /**
@@ -55,7 +56,8 @@ export function getMe(token: string) {
  * @param refreshToken Valid refresh token
  * @returns { accessToken: string, refreshToken: string }
  */
-export function rotateToken(accessToken: string, refreshToken: string) {
+export function rotateToken(accessToken: string, refreshToken: string): 
+  ({ accessToken: string, refreshToken: string }) {
   const params = {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -70,7 +72,7 @@ export function rotateToken(accessToken: string, refreshToken: string) {
     throw new Error(`rotateToken failed with status ${res.status}: ${res.body}`);
   }
 
-  return res.json();
+  return res.json() as { accessToken: string, refreshToken: string };
 }
 
 /**

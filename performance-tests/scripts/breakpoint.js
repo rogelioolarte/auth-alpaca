@@ -1,12 +1,13 @@
-import { check, sleep } from 'k6';
+import { check, sleep, metrics } from 'k6';
 import { SharedArray } from 'k6/data';
-import { userJourney, warmup, User } from '../lib/user-journey';
+import { userJourney, warmup } from '../lib/user-journey.ts';
 
 const users = new SharedArray('users', function () {
-  return JSON.parse(open('./data/users.csv').split('\n').slice(1).map(line => {
-    const [email, password] = line.split(',');
-    return { email, pass: password };
-  }).filter(Boolean));
+  return open('../data/users.csv').split('\n').slice(1).map(line => {
+    const parts = line.split(',');
+    if (parts.length < 2) return null;
+    return { email: parts[0].trim(), pass: parts[1].trim() };
+  }).filter(Boolean);
 });
 
 export const options = {
@@ -24,15 +25,11 @@ export const options = {
 };
 
 export default function () {
-  const user = users[Math.floor(Math.random() * users.length)] as User;
+  const user = users[Math.floor(Math.random() * users.length)];
   
-  if (k6.metrics.get('vus').values.length <= 50) {
-    warmup(user);
-  } else {
-    const result = userJourney(user);
-    check(result, {
-      'journey success': (r) => r.success,
-    });
-  }
+  const result = userJourney(user);
+  check(result, {
+    'journey success': (r) => r.success,
+  });
   sleep(1);
 }

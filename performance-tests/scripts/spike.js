@@ -24,7 +24,7 @@ export const options = {
 };
 
 export default function () {
-  const user = users[Math.floor(Math.random() * users.length)] as User;
+  const user = users[Math.floor(Math.random() * users.length)];
   
   if (k6.metrics.get('vus').values.length <= 50) {
     warmup(user);

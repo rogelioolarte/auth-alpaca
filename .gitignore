@@ -12,6 +12,7 @@ buildNumber.properties
 .atl
 /openspec/
 *.log
+.env
 
 # Eclipse m2e generated files
 # Eclipse Core

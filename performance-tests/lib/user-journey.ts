@@ -22,7 +22,7 @@ export interface JourneyResult {
  * @returns JourneyResult containing the status and responses of each step
  */
 export function userJourney(user: User): JourneyResult {
-  const steps: JourneyResult['steps'] = {};
+  const steps: JourneyResult['steps'] = { getMe: null, login: null, logout: null, rotate: null };
 
   try {
     // 1. Login
@@ -62,7 +62,7 @@ export function userJourney(user: User): JourneyResult {
  */
 export function warmup(user: User): void {
   try {
-    const auth = login(user);
+    const auth: any = login(user);
     getMe(auth.accessToken);
     // We skip rotation and logout during warmup to reduce noise
     // and focus on priming the most used paths.

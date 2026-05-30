@@ -1,6 +1,6 @@
 import { check, sleep } from 'k6';
 import http from 'k6/http';
-import { CONFIG } from '../lib/config';
+import { CONFIG } from '../lib/config.ts';
 
 export const options = {
   vus: 1, // Single IP simulation
