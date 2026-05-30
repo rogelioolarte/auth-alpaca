@@ -75,12 +75,11 @@ export class Login implements OnInit {
           state: { from: this.router.routerState.snapshot.url },
         });
         this.submitting.set(false);
-        console.log("aqui estoy al final")
+
       },
       error: (err: HttpErrorResponse) => {
         this.errorMessage.set(err.error.message || err.message);
         this.submitting.set(false);
-        console.log("aqui estoy al final")
       }
     });
   }

@@ -10,6 +10,7 @@ services:
     container_name: auth-alpaca-db
     restart: unless-stopped
     environment:
+      TZ: UTC
       POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
       POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       POSTGRES_DB: auth-alpaca
@@ -32,6 +33,8 @@ services:
       db:
         condition: service_healthy
     environment:
+      TZ: UTC
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=UTC"
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -75,7 +78,8 @@ services:
       # Si tu Dockerfile de Angular expone 8080 internamente, cámbialo a "80:8080".
       - "80:8080" 
     environment:
-      - API_BASE_URL=${API_BASE_URL}
+      TZ: UTC
+      API_BASE_URL: ${API_BASE_URL}
     networks:
       - frontend-net
     logging: *default-logging

@@ -80,7 +80,11 @@ export class AuthenticationService {
   }
 
   private isValidTokenDecode(decode: TokenDecode): boolean {
-    return decode.exp > decode.iat && !!decode.sub;
+    console.log("decode validation: ", decode)
+     console.log("decode validation - now: ", Date.now())
+    const now = Date.now() / 1000;
+    const LEEWAY = 10;
+    return decode.exp > (now + LEEWAY) && !!decode.sub;
   }
 
   public isAuthenticated(): Observable<boolean> {
@@ -146,10 +150,7 @@ export class AuthenticationService {
       const delay = ATExp.getTime() - now - this.REFRESH_THREEHOLD_MS;
       this.ATTimer?.unsubscribe();
       this.ATTimer = timer(Math.max(delay, 0))
-        .pipe(
-          takeUntil(this.destroy),
-          switchMap(() => this.rotateTokens()),
-        )
+        .pipe(takeUntil(this.destroy), switchMap(() => this.rotateTokens()))
         .subscribe();
 
       if (!isRecovered) {
@@ -175,6 +176,8 @@ export class AuthenticationService {
         );
       }
       this.manageClientID();
+    } else {
+      console.warn('Server provided an invalid token. Immediate rotation loop prevented.');
     }
   }
 
@@ -216,6 +219,7 @@ export class AuthenticationService {
           this.setAuthTokens(a, false);
         }
       }),
+      shareReplay(1)
     );
   }
 

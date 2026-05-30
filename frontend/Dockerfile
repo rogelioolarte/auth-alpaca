@@ -20,6 +20,12 @@ RUN bun run build --configuration=production
 # We use the official unprivileged Nginx image to avoid running as root
 FROM nginxinc/nginx-unprivileged:alpine AS runtime
 
+# We temporarily switch to root to install the package
+USER root
+RUN apk add --no-cache tzdata
+# We return to the default unprivileged user of this image
+USER nginx
+
 # Copy the compiled Angular artifacts (ensuring the correct path for Angular 17+)
 COPY --from=build /app/dist/auth-alpaca-ui/browser /usr/share/nginx/html
 

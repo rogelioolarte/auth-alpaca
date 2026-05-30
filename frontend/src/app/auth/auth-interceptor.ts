@@ -15,22 +15,35 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return auth.getJWTState().pipe(
     take(1),
     switchMap((v) => {
-      if (v[0] != null) {
-        return next(
-          req.clone({
-            setHeaders: { [ACCESS_TOKEN_HEADER_KEY]: `Bearer ${v[0].access}` },
-          }),
-        );
-      } else {
-        return next(req).pipe(
-          catchError((err: HttpErrorResponse) => {
-            if (err.status === 430) {
-              auth.logout();
-            }
-            return throwError(() => err);
-          }),
-        );
-      }
+      const accessToken = v[0]?.access;
+      const clonedReq = accessToken 
+        ? req.clone({ setHeaders: { [ACCESS_TOKEN_HEADER_KEY]: `Bearer ${accessToken}` } })
+        : req;
+
+      return next(clonedReq).pipe(
+        catchError((err: HttpErrorResponse) => {
+          if (err.status === 401) {
+            return auth.rotateTokens().pipe(
+              switchMap(() => 
+                auth.getJWTState().pipe(
+                  take(1),
+                  switchMap(([tokens]) => {
+                    const retryReq = req.clone({
+                      setHeaders: { [ACCESS_TOKEN_HEADER_KEY]: `Bearer ${tokens?.access}` },
+                    });
+                    return next(retryReq);
+                  })
+                )
+              )
+            );
+          }
+          if (err.status === 430) {
+            auth.logout();
+          }
+          return throwError(() => err);
+        }),
+      );
     }),
   );
 };
+
