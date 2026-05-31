@@ -50,6 +50,11 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
      */
     @Override
     public boolean existsByUniqueProperties(RefreshToken refreshToken) {
+        if (refreshToken == null
+                || refreshToken.getTokenHash() == null
+                || refreshToken.getTokenHash().isBlank()) {
+            return false;
+        }
         return repo.existsByTokenHash(refreshToken.getTokenHash());
     }
 

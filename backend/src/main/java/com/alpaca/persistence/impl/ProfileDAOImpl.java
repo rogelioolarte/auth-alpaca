@@ -41,7 +41,9 @@ public class ProfileDAOImpl extends GenericDAOImpl<Profile, UUID> implements IPr
      */
     @Override
     public boolean existsByUniqueProperties(Profile profile) {
-        if (profile.getUser() == null || !StringUtils.hasText(profile.getUser().getEmail())) {
+        if (profile == null
+                || profile.getUser() == null
+                || !StringUtils.hasText(profile.getUser().getEmail())) {
             return false;
         }
         return repo.countByUserEmail(profile.getUser().getEmail()) > 0L;

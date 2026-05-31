@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Integration tests for {@link RoleDAOImpl}. */
 @DataJpaIntegrationTest
 @Import({RoleDAOImpl.class, PermissionDAOImpl.class})
+@DisplayName("RoleDAOImpl Integration Tests")
 class RoleDAOImplIT {
 
     @Autowired private IRoleDAO dao;

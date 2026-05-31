@@ -52,7 +52,8 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      */
     @Override
     public boolean existsByUniqueProperties(Session session) {
-        if (session.getUser() == null
+        if (session == null
+                || session.getUser() == null
                 || session.getUser().getId() == null
                 || !StringUtils.hasText(session.getUserAgent())
                 || !StringUtils.hasText(session.getClientId())

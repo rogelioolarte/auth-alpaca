@@ -13,6 +13,7 @@ import com.alpaca.entity.Session;
 import com.alpaca.mapper.ISessionMapper;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.provider.SessionProvider;
+import com.alpaca.resources.utility.ControllerUnitTest;
 import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.ISessionService;
 import java.util.Collections;
@@ -21,17 +22,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+@ControllerUnitTest
 @WebMvcTest(controllers = SessionController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@AutoConfigureJsonTesters
 class SessionControllerTest {
 
     @Autowired private MockMvc mockMvc;

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Integration tests for {@link PermissionDAOImpl}. */
 @DataJpaIntegrationTest
 @Import(PermissionDAOImpl.class)
+@DisplayName("PermissionDAOImpl Integration Tests")
 class PermissionDAOImplIT {
 
     @Autowired private PermissionDAOImpl dao;

@@ -44,7 +44,9 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
      */
     @Override
     public boolean existsByUniqueProperties(Advertiser advertiser) {
-        if (advertiser.getUser() == null || advertiser.getUser().getId() == null) {
+        if (advertiser == null
+                || advertiser.getUser() == null
+                || advertiser.getUser().getId() == null) {
             return false;
         }
         return repo.countByUserId(advertiser.getUser().getId()) > 0L;

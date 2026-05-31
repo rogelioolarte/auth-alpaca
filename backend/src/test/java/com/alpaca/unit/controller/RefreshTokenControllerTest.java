@@ -10,6 +10,7 @@ import com.alpaca.controller.RefreshTokenController;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.resources.utility.ControllerUnitTest;
 import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
@@ -20,15 +21,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = RefreshTokenController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ControllerUnitTest
+@WebMvcTest(RefreshTokenController.class)
 class RefreshTokenControllerTest {
 
     @Autowired private MockMvc mockMvc;

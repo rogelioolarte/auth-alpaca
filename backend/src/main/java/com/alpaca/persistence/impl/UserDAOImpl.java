@@ -54,6 +54,9 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
      */
     @Override
     public boolean existsByUniqueProperties(User user) {
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+            return false;
+        }
         return existsByEmail(user.getEmail());
     }
 

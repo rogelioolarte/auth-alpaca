@@ -13,6 +13,7 @@ import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
 import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.utility.ControllerUnitTest;
 import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.IAdvertiserService;
 import java.util.Collections;
@@ -22,9 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,10 +35,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+@ControllerUnitTest
 @WebMvcTest(AdvertiserController.class)
 @WithMockCustomUser
-@AutoConfigureMockMvc(addFilters = false)
-@AutoConfigureJsonTesters
 class AdvertiserControllerTest {
 
     @Autowired private MockMvc mockMvc;

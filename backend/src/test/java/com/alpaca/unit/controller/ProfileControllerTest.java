@@ -13,6 +13,7 @@ import com.alpaca.dto.response.ProfileResponseDTO;
 import com.alpaca.entity.Profile;
 import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.resources.provider.ProfileProvider;
+import com.alpaca.resources.utility.ControllerUnitTest;
 import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.IProfileService;
 import java.util.Collections;
@@ -22,9 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,10 +34,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+@ControllerUnitTest
 @WebMvcTest(ProfileController.class)
 @WithMockCustomUser
-@AutoConfigureMockMvc(addFilters = false)
-@AutoConfigureJsonTesters
 class ProfileControllerTest {
 
     @Autowired private MockMvc mockMvc;

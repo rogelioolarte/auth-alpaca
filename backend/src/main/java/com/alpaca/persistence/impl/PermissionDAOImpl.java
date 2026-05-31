@@ -40,7 +40,7 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
      */
     @Override
     public boolean existsByUniqueProperties(Permission permission) {
-        if (permission.getName() == null || permission.getName().isBlank()) {
+        if (permission == null || permission.getName() == null || permission.getName().isBlank()) {
             return false;
         }
         return repo.existsByName(permission.getName());

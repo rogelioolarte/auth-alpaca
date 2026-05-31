@@ -56,7 +56,8 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
      */
     @Override
     public boolean existsByUniqueProperties(Role role) {
-        if (role.getName() == null
+        if (role == null
+                || role.getName() == null
                 || role.getName().isBlank()
                 || role.getDescription() == null
                 || role.getDescription().isBlank()) {
