@@ -5,7 +5,7 @@ import time
 # Constants
 USER_COUNT = 2000
 PASSWORD = "123456789"
-PASSWORD_HASH = "$argon2id$v=19$m=19456,t=2,p=1$gzeo+RM0QgogLL0XHjGdRw$cDh5ZGRBkn5lpkP4GzVHMYEz6OjB3AozWgkZ/GTtVYw"
+PASSWORD_HASH = "$2a$12$WQ4q./eFJcOsEo7cCxW.E.umgVFYPS73G1nImfesTMAAD.Bj.joCu"
 IMAGE_URL = "https://res.cloudinary.com/auth-alpaca/image/upload/v1749616715/cld-sample-2.jpg"
 ROLE_NAME = "USER"
 ROLE_DESC = "Standard user role with basic access"
@@ -53,21 +53,8 @@ def generate_data():
     sql_lines = []
     csv_data = []
 
-    # 1. Create Role
-    role_id = str(uuid.uuid4())
-    sql_lines.append(f"INSERT INTO roles (id, name, description) VALUES ('{role_id}', '{ROLE_NAME}', '{ROLE_DESC}');")
-
-    # 2. Create Permissions
-    permission_ids = []
-    for i in range(1, 11):
-        p_id = str(uuid.uuid4())
-        p_name = f"PERMISSION_READ_{i}"
-        sql_lines.append(f"INSERT INTO permissions (id, name) VALUES ('{p_id}', '{p_name}');")
-        permission_ids.append(p_id)
-
-    # 3. Assign Permissions to Role
-    for p_id in permission_ids:
-        sql_lines.append(f"INSERT INTO role_permissions (role_id, permission_id) VALUES ('{role_id}', '{p_id}');")
+    # Use the official USER role ID from V2__seed_security_data.sql
+    role_id = '019e7749-5281-7115-9cd2-7363b0d205a0'
 
     # 4. Create Users, Profiles, and Advertisers
     for i in range(1, USER_COUNT + 1):
@@ -103,6 +90,7 @@ def generate_data():
     # Write SQL file
     with open("performance-tests/data/seeding-users.sql", "w") as f:
         f.write("\n".join(sql_lines))
+
 
     # Write CSV file
     with open("performance-tests/data/users.csv", "w", newline="") as f:
