@@ -95,11 +95,16 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @IsAuthenticated
     public ResponseEntity<String> logout(
             @RequestHeader("X-Refresh-Token") String refreshToken,
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
+            @AuthenticationPrincipal UserPrincipal user,
             HttpServletRequest request) {
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         authService.logout(refreshToken, clientId, userAgent, Utils.extractClientIP(request));
         return ResponseEntity.ok("{\"message\":\"Logout successful\"}");
     }
@@ -114,7 +119,6 @@ public class AuthController {
         String redirectUri = body.get("redirect_uri");
         String clientId = body.get("client_id");
         String clientIp = Utils.extractClientIP(request);
-
         return new ResponseEntity<>(
                 authService.login(
                         new AuthCode(

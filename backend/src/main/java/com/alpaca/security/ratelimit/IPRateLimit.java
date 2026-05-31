@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IPRateLimit {
 
-    private static final int MAX_REQUESTS = 10;
+    private static final int MAX_REQUESTS = 50000;
     private static final Duration WINDOW = Duration.ofMinutes(1);
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();

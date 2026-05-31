@@ -39,8 +39,8 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 50
-      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${SPRING_DATASOURCE_MINIMUM_IDLE}
       SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 30000
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION}
@@ -55,8 +55,6 @@ services:
       INFINITY_LOGIN: ${INFINITY_LOGIN}
       BCRYPT_COST_FACTOR: ${BCRYPT_COST_FACTOR}
     ports:
-      # Expuesto temporalmente para pruebas locales. 
-      # Se eliminará o restringirá a 127.0.0.1 cuando Nginx entre en escena.
       - "8080:8080" 
     deploy:
       resources:
@@ -75,8 +73,6 @@ services:
     depends_on:
       - backend
     ports:
-      # Ajustado a 80:8080 asumiendo que el contenedor expone el puerto 80 (típico en Nginx).
-      # Si tu Dockerfile de Angular expone 8080 internamente, cámbialo a "80:8080".
       - "80:8080" 
     environment:
       TZ: UTC
@@ -87,7 +83,7 @@ services:
 
 networks:
   backend-net:
-    internal: true # Excelente práctica: aísla la BD del exterior
+    internal: true
   frontend-net:
 
 volumes:

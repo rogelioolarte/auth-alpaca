@@ -6,7 +6,7 @@ import time
 USER_COUNT = 2000
 PASSWORD = "123456789"
 PASSWORD_HASH = "$2a$12$WQ4q./eFJcOsEo7cCxW.E.umgVFYPS73G1nImfesTMAAD.Bj.joCu"
-IMAGE_URL = "https://res.cloudinary.com/auth-alpaca/image/upload/v1749616715/cld-sample-2.jpg"
+IMAGE_URL = ""
 ROLE_NAME = "USER"
 ROLE_DESC = "Standard user role with basic access"
 
@@ -48,7 +48,7 @@ def generate_data():
         f.write(f"BASE_URL=http://localhost:8080\nCLIENT_ID={client_id}\n")
     
     with open("performance-tests/lib/config.ts", "w") as f:
-        f.write(f"export const CONFIG = {{\n  baseURL: 'http://localhost:8080',\n  clientId: '{client_id}',\n}};")
+        f.write(f"export const CONFIG = {{\n  baseURL: 'http://localhost:8080',\n  clientId: '{client_id}', \n userAgent: 'Mozilla v1'\n}};")
 
     sql_lines = []
     csv_data = []
@@ -58,30 +58,32 @@ def generate_data():
 
     # 4. Create Users, Profiles, and Advertisers
     for i in range(1, USER_COUNT + 1):
-        u_id = str(uuid.uuid4())
+        
         email = f"perf_user_{i}@example.com"
         
         # User record
+        user_id = str(generate_uuid_v7())
         sql_lines.append(
             f"INSERT INTO users (id, email, password, enable, account_non_expired, account_non_locked, credential_non_expired, email_verified, google_connected) "
-            f"VALUES ('{u_id}', '{email}', '{PASSWORD_HASH}', true, true, true, true, true, false);"
+            f"VALUES ('{user_id}', '{email}', '{PASSWORD_HASH}', true, true, true, true, true, false);"
         )
         
         # User Role record
-        sql_lines.append(f"INSERT INTO user_roles (user_id, role_id) VALUES ('{u_id}', '{role_id}');")
+        user_role_id = str(generate_uuid_v7())
+        sql_lines.append(f"INSERT INTO user_roles (id, user_id, role_id) VALUES ('{user_role_id}', '{user_id}', '{role_id}');")
         
         # Profile record
-        profile_id = str(uuid.uuid4())
+        profile_id = str(generate_uuid_v7())
         sql_lines.append(
             f"INSERT INTO profiles (id, first_name, last_name, address, avatar_url, user_id) "
-            f"VALUES ('{profile_id}', 'First_{i}', 'Last_{i}', 'Address_{i}', '{IMAGE_URL}', '{u_id}');"
+            f"VALUES ('{profile_id}', 'First_{i}', 'Last_{i}', 'Address_{i}', '{IMAGE_URL}', '{user_id}');"
         )
         
         # Advertiser record
-        adv_id = str(uuid.uuid4())
+        adv_id = str(generate_uuid_v7())
         sql_lines.append(
             f"INSERT INTO advertisers (id, title, description, banner_url, avatar_url, public_location, public_url_location, indexed, paid, verified, user_id) "
-            f"VALUES ('{adv_id}', 'Advertiser_{i}', 'Description_{i}', '{IMAGE_URL}', '{IMAGE_URL}', 'Loc_{i}', 'http://loc_{i}.com', true, false, true, '{u_id}');"
+            f"VALUES ('{adv_id}', 'Advertiser_{i}', 'Description_{i}', '{IMAGE_URL}', '{IMAGE_URL}', 'Loc_{i}', 'http://loc_{i}.com', true, false, true, '{user_id}');"
         )
         
         # CSV data

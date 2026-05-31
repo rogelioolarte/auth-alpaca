@@ -36,10 +36,10 @@ export function userJourney(user: User): JourneyResult {
     // 3. Rotate Token
     const rotated = rotateToken(accessToken, refreshToken);
     steps.rotate = rotated;
-    const { refreshToken: newRefreshToken } = rotated;
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = rotated;
 
     // 4. Logout
-    logout(newRefreshToken);
+    logout(newAccessToken, newRefreshToken);
     steps.logout = { status: 'success' };
 
     return {

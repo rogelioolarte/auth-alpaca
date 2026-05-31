@@ -17,6 +17,7 @@ export function login(user: { email: string, pass: string }):
     headers: {
       'Content-Type': 'application/json',
       'X-Client-Id': CONFIG.clientId,
+      'User-Agent': CONFIG.userAgent,
     },
   };
 
@@ -63,6 +64,7 @@ export function rotateToken(accessToken: string, refreshToken: string):
       'Authorization': `Bearer ${accessToken}`,
       'X-Refresh-Token': refreshToken,
       'X-Client-Id': CONFIG.clientId,
+      'User-Agent': CONFIG.userAgent,
     },
   };
 
@@ -79,11 +81,13 @@ export function rotateToken(accessToken: string, refreshToken: string):
  * Logs out the user by invalidating the session.
  * @param refreshToken Refresh token to be invalidated
  */
-export function logout(refreshToken: string): void {
+export function logout(accessToken: string, refreshToken: string): void {
   const params = {
     headers: {
+      'Authorization': `Bearer ${accessToken}`,
       'X-Refresh-Token': refreshToken,
       'X-Client-Id': CONFIG.clientId,
+      'User-Agent': CONFIG.userAgent,
     },
   };
 
