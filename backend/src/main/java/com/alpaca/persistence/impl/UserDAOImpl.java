@@ -2,9 +2,8 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.User;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.UserRepo;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -25,11 +24,11 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     /**
      * Provides the repository used by the generic DAO operations.
      *
-     * @return the {@link GenericRepo} implementation specific to {@link User}
+     * @return the {@link CustomRepo} implementation specific to {@link User}
      */
     @Override
     @Generated
-    protected GenericRepo<User, UUID> getRepo() {
+    protected CustomRepo<User, UUID> getRepo() {
         return repo;
     }
 
@@ -75,17 +74,5 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     @Override
     public Optional<User> lockFindUserById(UUID userId) {
         return repo.lockFindUserById(userId);
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 }

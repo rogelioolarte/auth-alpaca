@@ -13,7 +13,7 @@ import com.alpaca.controller.AuthController;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.WithMockCustomUser;
+import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;

@@ -6,7 +6,6 @@ import com.alpaca.security.manager.PasswordManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 /** Unit tests for {@link PasswordManager}. */
 @DisplayName("Unit Tests for PasswordManager")
@@ -18,9 +17,7 @@ class PasswordManagerTest {
 
     @BeforeEach
     void setUp() {
-        int memoryUsage = 19456;
-        int iterationCount = 2;
-        passwordManager = new PasswordManager(memoryUsage, iterationCount);
+        passwordManager = new PasswordManager(12);
     }
 
     @Test
@@ -30,7 +27,9 @@ class PasswordManagerTest {
 
         assertNotNull(encoded);
         assertNotEquals(rawPassword, encoded);
-        assertTrue(encoded.startsWith("$argon2id"), "Hash should follow Argon2id format");
+        assertTrue(
+                encoded.startsWith("$2a$") || encoded.startsWith("$2b$"),
+                "Hash should follow BCrypt format");
     }
 
     @Test
@@ -68,16 +67,6 @@ class PasswordManagerTest {
     void matches_ShouldReturnFalse_WhenEncodedPasswordIsInvalid() {
         assertFalse(passwordManager.matches(rawPassword, null));
         assertFalse(passwordManager.matches(rawPassword, blankInput));
-    }
-
-    @Test
-    @DisplayName("passwordEncoder: Should return the configured PasswordEncoder instance")
-    void passwordEncoder_ShouldReturnInstance() {
-        PasswordEncoder encoder = passwordManager.passwordEncoder();
-
-        assertNotNull(encoder);
-        String testHash = encoder.encode(rawPassword);
-        assertTrue(encoder.matches(rawPassword, testHash));
     }
 
     @Test

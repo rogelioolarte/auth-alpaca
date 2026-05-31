@@ -10,7 +10,7 @@ import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.ProfileDAOImpl;
 import com.alpaca.repository.ProfileRepo;
-import com.alpaca.resources.ProfileProvider;
+import com.alpaca.resources.provider.ProfileProvider;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -80,10 +80,10 @@ class ProfileDAOImplTest {
     @DisplayName("existsAllByIds: Should compare input size with repository count")
     void existsAllByIds_Coverage() {
         List<UUID> ids = ProfileProvider.listEntities().stream().map(Profile::getId).toList();
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
         assertThat(dao.existsAllByIds(ids)).isTrue();
 
-        when(repo.countByIds(ids)).thenReturn(0L);
+        when(repo.countEntitiesIds(ids)).thenReturn(0L);
         assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

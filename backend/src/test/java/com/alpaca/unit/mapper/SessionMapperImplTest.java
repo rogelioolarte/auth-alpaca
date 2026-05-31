@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.alpaca.dto.response.SessionResponseDTO;
 import com.alpaca.entity.Session;
 import com.alpaca.mapper.impl.SessionMapperImpl;
-import com.alpaca.resources.SessionProvider;
+import com.alpaca.resources.provider.SessionProvider;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;

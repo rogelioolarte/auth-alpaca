@@ -145,7 +145,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         updateIfNotNull(newSession.getFamilyId(), newFamilyId, newSession::setFamilyId);
         updateIfNotNull(newSession.getLastSeenAt(), now, newSession::setLastSeenAt);
 
-        return dao.save(newSession);
+        return super.save(newSession);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -203,7 +203,6 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
      * @return the updated and persisted {@link Session} instance
      * @throws NotFoundException if no {@link Session} with the supplied {@code id} exists
      */
-    @Transactional
     @Override
     public Session updateById(Session session, UUID id) {
         if (session == null || id == null)
@@ -247,6 +246,6 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
                 existingSession.getRevokeReason(),
                 session.getRevokeReason(),
                 existingSession::setRevokeReason);
-        return dao.save(existingSession);
+        return super.save(existingSession);
     }
 }

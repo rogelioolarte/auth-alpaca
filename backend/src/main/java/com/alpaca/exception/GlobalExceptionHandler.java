@@ -3,6 +3,9 @@ package com.alpaca.exception;
 import com.alpaca.dto.response.ErrorResponseDTO;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +41,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @see RestControllerAdvice
  * @see ExceptionHandler
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -70,23 +74,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    /**
-     * Catches all unhandled exceptions and returns a structured error response with details
-     * including the request path, error message, and timestamp.
-     *
-     * @param exception the uncaught exception
-     * @param webRequest the current web request to extract context
-     * @return an INTERNAL_SERVER_ERROR response with an {@link ErrorResponseDTO}
-     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex, WebRequest req) {
+        return buildResponse(
+                HttpStatus.CONFLICT, "A resource with the same identifier already exists.", req);
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<ErrorResponseDTO> handleEmptyResultException(
+            EmptyResultDataAccessException ex, WebRequest req) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGlobalException(
-            Exception exception, WebRequest webRequest) {
-        return new ResponseEntity<>(
-                new ErrorResponseDTO(
-                        webRequest.getDescription(false),
-                        exception.getMessage(),
-                        LocalDateTime.now()),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ErrorResponseDTO> handleGlobalException(Exception ex, WebRequest req) {
+        log.error("Unexpected error occurred: ", ex);
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", req);
     }
 
     /**
@@ -113,5 +118,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
                 .body("Too many requests, try again later");
+    }
+
+    private ResponseEntity<ErrorResponseDTO> buildResponse(
+            HttpStatus status, String message, WebRequest req) {
+        ErrorResponseDTO error =
+                new ErrorResponseDTO(req.getDescription(false), message, LocalDateTime.now());
+        return new ResponseEntity<>(error, status);
     }
 }

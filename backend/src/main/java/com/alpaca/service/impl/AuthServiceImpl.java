@@ -123,6 +123,7 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Invalid Refresh Token");
         }
         Instant now = Instant.now();
+
         RefreshToken actualrefreshToken =
                 refreshTokenService
                         .findByTokenHashSecure(manager.createTokenHash(refreshToken))

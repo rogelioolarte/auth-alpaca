@@ -1,12 +1,13 @@
 package com.alpaca.unit.persistence;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.persistence.impl.RefreshTokenDAOImpl;
 import com.alpaca.repository.RefreshTokenRepo;
-import com.alpaca.resources.RefreshTokenProvider;
+import com.alpaca.resources.provider.RefreshTokenProvider;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -149,25 +150,25 @@ class RefreshTokenDAOImplTest {
     void existsAllByIds_WhenAllIdsExist_ReturnsTrue() {
         Collection<UUID> ids = refreshTokens.stream().map(RefreshToken::getId).toList();
 
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
 
         boolean result = dao.existsAllByIds(ids);
 
         assertTrue(result);
 
-        verify(repo).countByIds(ids);
+        verify(repo).countEntitiesIds(ids);
     }
 
     @Test
     void existsAllByIds_WhenNotAllIdsExist_ReturnsFalse() {
         Collection<UUID> ids = refreshTokens.stream().map(RefreshToken::getId).toList();
 
-        when(repo.countByIds(ids)).thenReturn((long) ids.size() - 1L);
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size() - 1L);
 
         boolean result = dao.existsAllByIds(ids);
 
         assertFalse(result);
 
-        verify(repo).countByIds(ids);
+        verify(repo).countEntitiesIds(ids);
     }
 }

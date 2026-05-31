@@ -10,7 +10,7 @@ import com.alpaca.controller.RefreshTokenController;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.WithMockCustomUser;
+import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.utils.Utils;

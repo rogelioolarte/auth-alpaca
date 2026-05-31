@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
  * @see ApplicationRunner
  * @see DataService
  */
+@Generated
 @Component
 @RequiredArgsConstructor
 public class InitializerServiceImpl implements ApplicationRunner {
@@ -32,7 +33,6 @@ public class InitializerServiceImpl implements ApplicationRunner {
      * @param args the {@link ApplicationArguments} passed to the application
      */
     @Override
-    @Generated
     public void run(@NonNull ApplicationArguments args) {
         dataService.initializeAdminUser();
         if (isDevProfileActive()) {

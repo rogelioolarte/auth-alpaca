@@ -12,9 +12,10 @@ import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IRefreshTokenDAO;
-import com.alpaca.resources.RefreshTokenProvider;
-import com.alpaca.resources.SessionProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RefreshTokenProvider;
+import com.alpaca.resources.provider.SessionProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
@@ -27,15 +28,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /** Integration tests for {@link RefreshTokenServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("RefreshTokenServiceImpl Integration Tests")
-class RefreshTokenServiceImplIT {
+class RefreshTokenServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private RefreshTokenServiceImpl service;
 

@@ -10,8 +10,9 @@ import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IPermissionDAO;
-import com.alpaca.resources.PermissionProvider;
-import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.provider.PermissionProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.RoleServiceImpl;
 import java.time.Instant;
 import java.util.*;
@@ -19,16 +20,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link RoleServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("RoleServiceImpl Integration Tests")
-class RoleServiceImplIT {
+class RoleServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private RoleServiceImpl service;
     @Autowired private IPermissionDAO permissionDAO;
@@ -67,24 +65,8 @@ class RoleServiceImplIT {
 
     @Test
     @Transactional
-    @DisplayName("getUserRoles throws NotFoundException when USER role does not exist")
-    void getUserRoles_ShouldThrowNotFound_WhenUserRoleDoesNotExist() {
-
-        assertThatThrownBy(() -> service.getUserRoles())
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Role with Name USER not found");
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("getUserRoles returns USER role")
+    @DisplayName("getUserRoles returns TEST_USER role")
     void getUserRoles_ShouldReturnUserRole() {
-
-        Role role = buildSingleRole();
-        role.setName("USER");
-
-        service.save(role);
-
         Set<Role> result = service.getUserRoles();
 
         assertThat(result).hasSize(1);
@@ -413,18 +395,11 @@ class RoleServiceImplIT {
 
     @Test
     @Transactional
-    @DisplayName("deleteById validates invalid ids")
+    @DisplayName("deleteById validates invalid id")
     void deleteById_ShouldValidateInvalidIds() {
-
         assertThatThrownBy(() -> service.deleteById(null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Role cannot be deleted");
-
-        UUID id = UUID.randomUUID();
-
-        assertThatThrownBy(() -> service.deleteById(id))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Role not exists");
     }
 
     @Test

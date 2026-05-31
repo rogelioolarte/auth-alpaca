@@ -1,4 +1,4 @@
-package com.alpaca.resources;
+package com.alpaca.resources.provider;
 
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
@@ -32,28 +32,38 @@ public class PermissionProvider {
     }
 
     /**
-     * public static Permission templateSingleEntity() { return new Permission(null, "CREATE", new
-     * HashSet<>()); }
-     *
-     * <p>public static Permission templateAlternativeEntity() { return new Permission(null, "READ",
+     * public static Permission templateSingleEntity() { return new Permission(null, "TEST_CREATE",
      * new HashSet<>()); }
+     *
+     * <p>public static Permission templateAlternativeEntity() { return new Permission(null,
+     * "TEST_READ", new HashSet<>()); }
      */
     public static Permission singleEntity() {
         return new Permission(
-                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "CREATE", new HashSet<>());
+                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"),
+                "TEST_CREATE",
+                new HashSet<>());
     }
 
     public static Permission alternativeEntity() {
         return new Permission(
-                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "READ", new HashSet<>());
+                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"),
+                "TEST_READ",
+                new HashSet<>());
     }
 
     public static Permission singleTemplate() {
-        return Permission.builder().name("CREATE").rolePermissions(Collections.emptySet()).build();
+        return Permission.builder()
+                .name("TEST_CREATE")
+                .rolePermissions(Collections.emptySet())
+                .build();
     }
 
     public static Permission alternativeTemplate() {
-        return Permission.builder().name("READ").rolePermissions(Collections.emptySet()).build();
+        return Permission.builder()
+                .name("TEST_READ")
+                .rolePermissions(Collections.emptySet())
+                .build();
     }
 
     /**
@@ -61,20 +71,20 @@ public class PermissionProvider {
      * ArrayList<>(List.of(singleTemplate(), alternativeTemplate())); }
      */
     public static PermissionRequestDTO singleRequest() {
-        return new PermissionRequestDTO("CREATE");
+        return new PermissionRequestDTO("TEST_CREATE");
     }
 
     /**
      * public static PermissionRequestDTO alternativeRequest() { return new
-     * PermissionRequestDTO("READ"); }
+     * PermissionRequestDTO("TEST_READ"); }
      */
     public static PermissionResponseDTO singleResponse() {
         return new PermissionResponseDTO(
-                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "CREATE");
+                UUID.fromString("b1f383ce-4c1e-4d0e-bb43-a9674377c4a2"), "TEST_CREATE");
     }
 
     public static PermissionResponseDTO alternativeResponse() {
         return new PermissionResponseDTO(
-                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "READ");
+                UUID.fromString("c06f3206-c469-4216-bbc7-77fed3a8a133"), "TEST_READ");
     }
 }

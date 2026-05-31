@@ -8,8 +8,8 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IAdvertiserDAO;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.AdvertiserServiceImpl;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +41,37 @@ class AdvertiserServiceImplTest {
     void setup() {
         firstAdvertiser = AdvertiserProvider.singleEntity();
         secondAdvertiser = AdvertiserProvider.alternativeEntity();
+    }
+
+    // --- save ---
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenAdvertiserIsNull() {
+        assertThrows(BadRequestException.class, () -> service.save(null));
+
+        verify(dao).existsByUniqueProperties(null);
+    }
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenAdvertiserAlreadyExists() {
+        when(dao.existsByUniqueProperties(firstAdvertiser)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> service.save(firstAdvertiser));
+
+        verify(dao).existsByUniqueProperties(firstAdvertiser);
+        verify(dao, never()).save(any(Advertiser.class));
+    }
+
+    @Test
+    void saveShouldPersistAdvertiserSuccessfully() {
+        when(dao.save(secondAdvertiser)).thenReturn(secondAdvertiser);
+
+        Advertiser result = service.save(secondAdvertiser);
+
+        assertNotNull(result);
+        assertEquals(secondAdvertiser, result);
+
+        verify(dao).save(secondAdvertiser);
     }
 
     // --- findAllPageByIndexedTrue ---

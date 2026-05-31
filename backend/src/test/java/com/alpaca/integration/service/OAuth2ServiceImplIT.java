@@ -9,8 +9,9 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -31,10 +31,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link OAuth2ServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("OAuth2ServiceImpl Integration Tests")
-class OAuth2ServiceImplIT {
+class OAuth2ServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private OAuth2ServiceImpl service;
     @Autowired private IUserService userService;
@@ -77,7 +75,7 @@ class OAuth2ServiceImplIT {
     void registerOrLoginOAuth2_ShouldRegister_WhenUserIsNew() {
         // Arrange
         Role userRole = RoleProvider.singleTemplate();
-        userRole.setName("USER");
+        userRole.setName("TEST_USER");
         userRole.setCreatedAt(now); // CRITICAL: Manual audit property
         roleService.save(userRole);
 

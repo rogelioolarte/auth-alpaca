@@ -12,7 +12,6 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Profile} entities. Inherits common CRUD
@@ -54,6 +53,14 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
         return "Profile";
     }
 
+    @Override
+    public Profile save(Profile profile) {
+        if (dao.existsByUniqueProperties(profile)) {
+            throw new BadRequestException(String.format("%s already exists", getEntityName()));
+        }
+        return super.save(profile);
+    }
+
     /**
      * Updates an existing {@link Profile} identified by the given ID using non-null and non-blank
      * values from the provided {@code profile} object. Only fields that differ are updated. Throws
@@ -64,7 +71,6 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
      * @return the updated and saved {@link Profile} instance
      * @throws NotFoundException if no profile exists with the specified ID
      */
-    @Transactional
     @Override
     public Profile updateById(Profile profile, UUID id) {
         if (profile == null || id == null)
@@ -101,6 +107,6 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
                 profile.getAvatarUrl(),
                 existingProfile::setAvatarUrl);
 
-        return dao.save(existingProfile);
+        return super.save(existingProfile);
     }
 }

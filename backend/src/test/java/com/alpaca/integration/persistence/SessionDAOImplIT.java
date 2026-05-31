@@ -2,7 +2,8 @@ package com.alpaca.integration.persistence;
 
 import static org.assertj.core.api.Assertions.within;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
@@ -10,8 +11,9 @@ import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.persistence.impl.UserDAOImpl;
-import com.alpaca.resources.SessionProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.SessionProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -21,14 +23,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link SessionDAOImpl}. */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import({SessionDAOImpl.class, UserDAOImpl.class})
 @DisplayName("SessionDAOImpl Integration Tests")
 class SessionDAOImplIT {

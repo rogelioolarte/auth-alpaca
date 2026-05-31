@@ -15,7 +15,6 @@ import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,13 +64,12 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @return the saved {@link User} instance
      * @throws BadRequestException if the provided user is {@code null}
      */
-    @Transactional
     @Override
     public User save(User user) {
         if (user == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
         user.setPassword(passwordManager.encodePassword(user.getPassword()));
-        return dao.save(user);
+        return super.save(user);
     }
 
     /**
@@ -85,7 +83,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @return the updated and saved {@link User} instance
      * @throws NotFoundException if no existing user is found with the given ID
      */
-    @Transactional
     @Override
     public User updateById(User user, UUID id) {
         if (user == null || id == null)
@@ -135,7 +132,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
                 existingUser.isGoogleConnected(),
                 user.isGoogleConnected(),
                 existingUser::setGoogleConnected);
-        return dao.save(existingUser);
+        return super.save(existingUser);
     }
 
     /**
@@ -144,7 +141,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @param email the email to check; may be {@code null} or blank
      * @return {@code true} if a user with the specified email exists; {@code false} otherwise
      */
-    @Transactional
     @Override
     public boolean existsByEmail(String email) {
         return dao.existsByEmail(email);
@@ -158,7 +154,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if the email is {@code null} or blank
      * @throws NotFoundException if no user is found with the given email
      */
-    @Transactional(readOnly = true)
     @Override
     public User findByEmail(String email) {
         if (email == null || email.isBlank())
@@ -171,7 +166,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
                                         "The email does not match any account"));
     }
 
-    @Transactional
     @Override
     public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
         if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {
@@ -189,7 +183,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
                         "Cannot change the password. Contact the Administrator");
             }
             user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
-            dao.save(user);
+            super.save(user);
             return;
         }
 
@@ -203,6 +197,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         }
 
         user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
-        dao.save(user);
+        super.save(user);
     }
 }

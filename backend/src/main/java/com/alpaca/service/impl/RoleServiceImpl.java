@@ -13,7 +13,6 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Role} entities and encapsulating business logic
@@ -53,6 +52,14 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
         return "Role";
     }
 
+    @Override
+    public Role save(Role role) {
+        if (dao.existsByUniqueProperties(role)) {
+            throw new BadRequestException(String.format("%s already exists", getEntityName()));
+        }
+        return super.save(role);
+    }
+
     /**
      * Retrieves the default set of roles assigned to users. Currently configured to always return a
      * set containing the "USER" role.
@@ -83,7 +90,6 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      * @throws BadRequestException if the provided role name is {@code null} or blank
      * @throws NotFoundException if no role is found with the given name
      */
-    @Transactional
     @Override
     public Role findByRoleName(String roleName) {
         if (roleName == null || roleName.isBlank()) {
@@ -108,7 +114,6 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      * @return the updated and saved {@link Role} instance
      * @throws NotFoundException if no role exists with the specified ID
      */
-    @Transactional
     @Override
     public Role updateById(Role role, UUID id) {
         if (role == null || id == null)
@@ -131,6 +136,6 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
                 && !role.getRolePermissions().equals(existingRole.getRolePermissions())) {
             existingRole.setRolePermissions(role.getPermissions());
         }
-        return dao.save(existingRole);
+        return super.save(existingRole);
     }
 }

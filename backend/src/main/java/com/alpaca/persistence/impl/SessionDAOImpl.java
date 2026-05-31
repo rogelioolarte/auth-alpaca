@@ -2,10 +2,9 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Session;
 import com.alpaca.persistence.ISessionDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.SessionRepo;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -35,11 +34,11 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      * Returns the repository instance backing this DAO's persistence operations for {@link
      * Session}.
      *
-     * @return the {@link GenericRepo} implementation used for CRUD operations on {@link Session}
+     * @return the {@link CustomRepo} implementation used for CRUD operations on {@link Session}
      */
     @Override
     @Generated
-    protected GenericRepo<Session, UUID> getRepo() {
+    protected CustomRepo<Session, UUID> getRepo() {
         return repo;
     }
 
@@ -107,17 +106,5 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
     @Override
     public Page<Session> findAllByUserId(UUID userId, Pageable pageable) {
         return repo.findAllByUserId(userId, pageable);
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 }

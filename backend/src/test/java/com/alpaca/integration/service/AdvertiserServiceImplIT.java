@@ -9,8 +9,9 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.AdvertiserServiceImpl;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -21,16 +22,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AdvertiserServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("AdvertiserServiceImpl Integration Tests")
-class AdvertiserServiceImplIT {
+class AdvertiserServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private AdvertiserServiceImpl service;
     @Autowired private IUserDAO userDAO;

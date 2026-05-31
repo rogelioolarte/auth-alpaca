@@ -5,20 +5,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.alpaca.entity.Permission;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link PermissionDAOImpl}. */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import(PermissionDAOImpl.class)
 class PermissionDAOImplIT {
 
@@ -32,7 +33,6 @@ class PermissionDAOImplIT {
 
     @BeforeEach
     void setup() {
-        // Create fresh transient Permission instances for each test
         now = Instant.now();
         singleEntity = new Permission(null, "PERM_SINGLE", Collections.emptySet());
         singleEntity.setCreatedAt(now);
@@ -88,7 +88,7 @@ class PermissionDAOImplIT {
     }
 
     @Test
-    @DisplayName("deleteById removes entity and existsById reflects removal")
+    @DisplayName("deleteById removes entity and existsById reflects absent")
     @Transactional
     void deleteByIdAndExists() {
         Permission toDelete = repo.save(singleEntity);
@@ -100,8 +100,10 @@ class PermissionDAOImplIT {
 
         // deleting a non-existing id should not throw (idempotent delete)
         UUID nonExisting = UUID.randomUUID();
-        assertDoesNotThrow(
-                () -> dao.deleteById(nonExisting), "deleteById on absent id should not throw");
+        assertThrows(
+                EmptyResultDataAccessException.class,
+                () -> dao.deleteById(nonExisting),
+                "deleteById on absent id should throw");
     }
 
     @Test
@@ -112,7 +114,7 @@ class PermissionDAOImplIT {
         repo.save(alternativeEntity);
 
         List<Permission> all = dao.findAll();
-        assertEquals(2, all.size());
+        assertEquals(6, all.size()); // 2 new + 4 by defult
 
         Page<Permission> page = dao.findAllPage(Pageable.unpaged());
         assertFalse(page.isEmpty());

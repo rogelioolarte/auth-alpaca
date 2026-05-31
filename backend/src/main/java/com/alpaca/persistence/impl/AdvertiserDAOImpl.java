@@ -3,8 +3,7 @@ package com.alpaca.persistence.impl;
 import com.alpaca.entity.Advertiser;
 import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.repository.AdvertiserRepo;
-import com.alpaca.repository.GenericRepo;
-import java.util.Collection;
+import com.alpaca.repository.CustomRepo;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +27,11 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
     /**
      * Provides the repository used by the generic DAO framework.
      *
-     * @return the {@link GenericRepo} for {@link Advertiser}
+     * @return the {@link CustomRepo} for {@link Advertiser}
      */
     @Override
     @Generated
-    protected GenericRepo<Advertiser, UUID> getRepo() {
+    protected CustomRepo<Advertiser, UUID> getRepo() {
         return repo;
     }
 
@@ -49,18 +48,6 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
             return false;
         }
         return repo.countByUserId(advertiser.getUser().getId()) > 0L;
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 
     @Override

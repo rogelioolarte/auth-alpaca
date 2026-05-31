@@ -2,10 +2,9 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.persistence.IRefreshTokenDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.RefreshTokenRepo;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,14 +30,13 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     private final RefreshTokenRepo repo;
 
     /**
-     * Provides the {@link GenericRepo} instance backing the DAO operations for {@link
-     * RefreshToken}.
+     * Provides the {@link CustomRepo} instance backing the DAO operations for {@link RefreshToken}.
      *
      * @return the repository used to perform CRUD operations for {@link RefreshToken}
      */
     @Override
     @Generated
-    protected GenericRepo<RefreshToken, UUID> getRepo() {
+    protected CustomRepo<RefreshToken, UUID> getRepo() {
         return repo;
     }
 
@@ -78,17 +76,5 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
     @Override
     public void revokeTokensByUserId(UUID userId, Instant revokedAt, String reason) {
         repo.revokeTokensByUserId(userId, revokedAt, reason);
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 }

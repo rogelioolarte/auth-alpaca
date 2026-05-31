@@ -1,4 +1,4 @@
-package com.alpaca.resources;
+package com.alpaca.resources.provider;
 
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
@@ -22,7 +22,7 @@ public class UserProvider {
 
     public static User singleTemplate() {
         return User.builder()
-                .email("admin@admin.com")
+                .email("advisor@advisor.com")
                 .password("123456789")
                 .enabled(true)
                 .accountNonExpired(true)
@@ -55,7 +55,7 @@ public class UserProvider {
     public static User singleEntity() {
         return User.builder()
                 .id(UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"))
-                .email("admin@admin.com")
+                .email("advisor@advisor.com")
                 .password("1234567890")
                 .enabled(true)
                 .accountNonExpired(true)
@@ -88,7 +88,7 @@ public class UserProvider {
 
     public static UserRequestDTO singleRequest() {
         return new UserRequestDTO(
-                "admin@admin.com",
+                "advisor@advisor.com",
                 "123456789",
                 new HashSet<>(Set.of(RoleProvider.singleEntity().getId())));
     }
@@ -96,7 +96,7 @@ public class UserProvider {
     public static UserResponseDTO singleResponse() {
         return new UserResponseDTO(
                 UUID.fromString("019e0f51-038c-7f79-96b5-be2e0b329111"),
-                "admin@admin.com",
+                "advisor@advisor.com",
                 new ArrayList<>(List.of(RoleProvider.singleResponse())),
                 null,
                 null);

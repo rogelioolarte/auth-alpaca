@@ -67,8 +67,4 @@ public abstract class Auditable {
     @LastModifiedBy
     @Column(name = "updated_by")
     private String updatedBy;
-
-    // NOTE: It is best practice to include Getters for these fields,
-    // but Setters are usually omitted to enforce automatic auditing control.
-    // However, I will not add them here as they were not in the original class.
 }

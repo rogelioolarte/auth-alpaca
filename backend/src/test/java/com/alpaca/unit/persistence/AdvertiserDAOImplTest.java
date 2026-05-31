@@ -8,7 +8,7 @@ import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.AdvertiserDAOImpl;
 import com.alpaca.repository.AdvertiserRepo;
-import com.alpaca.resources.AdvertiserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,10 +85,10 @@ class AdvertiserDAOImplTest {
     @DisplayName("existsAllByIds: Should compare input size with repository count")
     void existsAllByIds_Coverage() {
         List<UUID> ids = entitiesPage.getContent().stream().map(Advertiser::getId).toList();
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
         assertThat(dao.existsAllByIds(ids)).isTrue();
 
-        when(repo.countByIds(ids)).thenReturn(0L);
+        when(repo.countEntitiesIds(ids)).thenReturn(0L);
         assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

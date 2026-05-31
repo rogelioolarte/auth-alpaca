@@ -11,6 +11,12 @@ jobs:
     defaults: 
       run: 
         working-directory: backend
+    
+    env:
+      MAVEN_OPTS: >-
+        -Xmx3g
+        -XX:+UseG1GC
+      TESTCONTAINERS_RYUK_DISABLED: false
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

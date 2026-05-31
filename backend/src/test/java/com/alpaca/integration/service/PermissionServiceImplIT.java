@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import com.alpaca.entity.Permission;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.resources.PermissionProvider;
+import com.alpaca.resources.provider.PermissionProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.PermissionServiceImpl;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -17,16 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link PermissionServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("PermissionServiceImpl Integration Tests")
-class PermissionServiceImplIT {
+class PermissionServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private PermissionServiceImpl service;
 
@@ -67,7 +65,6 @@ class PermissionServiceImplIT {
     @Test
     @DisplayName("findById throws NotFoundException when permission does not exist")
     void findById_ShouldThrowNotFound_WhenPermissionDoesNotExist() {
-
         UUID id = UUID.randomUUID();
 
         assertThatThrownBy(() -> service.findById(id))
@@ -79,7 +76,6 @@ class PermissionServiceImplIT {
     @Transactional
     @DisplayName("findById returns persisted permission")
     void findById_ShouldReturnPersistedPermission() {
-
         Permission saved = service.save(buildSinglePermission());
 
         Permission result = service.findById(saved.getId());
@@ -311,16 +307,9 @@ class PermissionServiceImplIT {
     @Test
     @DisplayName("deleteById validates invalid arguments")
     void deleteById_ShouldValidateInvalidArguments() {
-
         assertThatThrownBy(() -> service.deleteById(null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Permission cannot be deleted");
-
-        UUID id = UUID.randomUUID();
-
-        assertThatThrownBy(() -> service.deleteById(id))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Permission not exists");
     }
 
     @Test

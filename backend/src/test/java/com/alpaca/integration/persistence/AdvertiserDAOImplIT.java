@@ -8,8 +8,9 @@ import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.persistence.impl.AdvertiserDAOImpl;
 import com.alpaca.repository.AdvertiserRepo;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -17,14 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AdvertiserDAOImpl} */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import({AdvertiserDAOImpl.class})
 @DisplayName("AdvertiserDAOImpl Integration Tests")
 class AdvertiserDAOImplIT {

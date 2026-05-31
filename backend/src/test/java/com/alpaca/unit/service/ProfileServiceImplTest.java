@@ -8,8 +8,8 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IProfileDAO;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.ProfileProvider;
+import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.ProfileServiceImpl;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +34,37 @@ class ProfileServiceImplTest {
     @BeforeEach
     void setup() {
         firstProfile = ProfileProvider.singleEntity();
+    }
+
+    // --- save ---
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenProfileIsNull() {
+        assertThrows(BadRequestException.class, () -> service.save(null));
+
+        verify(dao).existsByUniqueProperties(null);
+    }
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenProfileAlreadyExists() {
+        when(dao.existsByUniqueProperties(firstProfile)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> service.save(firstProfile));
+
+        verify(dao).existsByUniqueProperties(firstProfile);
+        verify(dao, never()).save(any(Profile.class));
+    }
+
+    @Test
+    void saveShouldPersistProfileSuccessfully() {
+        when(dao.save(firstProfile)).thenReturn(firstProfile);
+
+        Profile result = service.save(firstProfile);
+
+        assertNotNull(result);
+        assertEquals(firstProfile, result);
+
+        verify(dao).save(firstProfile);
     }
 
     // --- updateById ---

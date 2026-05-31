@@ -1,8 +1,10 @@
-package com.alpaca.resources;
+package com.alpaca.resources.utility;
 
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

@@ -2,9 +2,8 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Role;
 import com.alpaca.persistence.IRoleDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.RoleRepo;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -25,11 +24,11 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
     /**
      * Provides the specific repository used by the generic DAO system.
      *
-     * @return the {@link GenericRepo} implementation for {@link Role}
+     * @return the {@link CustomRepo} implementation for {@link Role}
      */
     @Override
     @Generated
-    protected GenericRepo<Role, UUID> getRepo() {
+    protected CustomRepo<Role, UUID> getRepo() {
         return repo;
     }
 
@@ -64,17 +63,5 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
             return false;
         }
         return repo.existsByName(role.getName());
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 }

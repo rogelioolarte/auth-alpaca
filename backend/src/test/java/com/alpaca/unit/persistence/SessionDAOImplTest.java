@@ -7,7 +7,7 @@ import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.repository.SessionRepo;
-import com.alpaca.resources.SessionProvider;
+import com.alpaca.resources.provider.SessionProvider;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
@@ -262,26 +262,26 @@ class SessionDAOImplTest {
     void existsAllByIds_WhenAllIdsExist_ReturnsTrue() {
         Collection<UUID> ids = SessionProvider.listEntities().stream().map(Session::getId).toList();
 
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
 
         boolean result = dao.existsAllByIds(ids);
 
         assertTrue(result);
 
-        verify(repo).countByIds(ids);
+        verify(repo).countEntitiesIds(ids);
     }
 
     @Test
     void existsAllByIds_WhenNotAllIdsExist_ReturnsFalse() {
         Collection<UUID> ids = SessionProvider.listEntities().stream().map(Session::getId).toList();
 
-        when(repo.countByIds(ids)).thenReturn((long) ids.size() - 1L);
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size() - 1L);
 
         boolean result = dao.existsAllByIds(ids);
 
         assertFalse(result);
 
-        verify(repo).countByIds(ids);
+        verify(repo).countEntitiesIds(ids);
     }
 
     @Test

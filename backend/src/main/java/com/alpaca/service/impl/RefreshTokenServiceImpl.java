@@ -123,9 +123,9 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String jwtRefreshToken = manager.createRefreshToken(newRefreshToken);
         String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
         newRefreshToken.setTokenHash(refreshTokenHash);
-        RefreshToken savedRefreshToken = dao.save(newRefreshToken);
+        RefreshToken savedRefreshToken = super.save(newRefreshToken);
         actualRefreshToken.setReplacedBy(savedRefreshToken);
-        dao.save(actualRefreshToken);
+        super.save(actualRefreshToken);
         String accessToken =
                 manager.createAccessToken(new UserPrincipal(newRefreshToken.getUser()), now);
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
@@ -143,7 +143,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String jwtRefreshToken = manager.createRefreshToken(refreshToken);
         String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);
-        dao.save(refreshToken);
+        super.save(refreshToken);
         String accessToken = manager.createAccessToken(userPrincipal, session.getLastSeenAt());
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
@@ -167,7 +167,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         String jwtRefreshToken = manager.createRefreshToken(refreshToken);
         String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
         refreshToken.setTokenHash(refreshTokenHash);
-        dao.save(refreshToken);
+        super.save(refreshToken);
         String accessToken =
                 manager.createAccessToken(new UserPrincipal(user), session.getLastSeenAt());
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
@@ -261,7 +261,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
      * @throws NotFoundException if a {@link RefreshToken} with the supplied {@code id} does not
      *     exist
      */
-    @Transactional
     @Override
     public RefreshToken updateById(RefreshToken refreshToken, UUID id) {
         if (refreshToken == null || id == null)
@@ -342,6 +341,6 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                 existingRefreshToken.getRevokeReason(),
                 refreshToken.getRevokeReason(),
                 existingRefreshToken::setRevokeReason);
-        return dao.save(existingRefreshToken);
+        return super.save(existingRefreshToken);
     }
 }

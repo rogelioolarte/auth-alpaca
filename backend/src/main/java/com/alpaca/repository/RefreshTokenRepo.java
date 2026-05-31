@@ -4,7 +4,6 @@ import com.alpaca.entity.RefreshToken;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,10 +29,10 @@ import org.springframework.stereotype.Repository;
  *   <li>Revoking an individual refresh token with a specified reason.
  * </ul>
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
+public interface RefreshTokenRepo extends CustomRepo<RefreshToken, UUID> {
 
     boolean existsByTokenHash(String hash);
 
@@ -103,13 +102,4 @@ public interface RefreshTokenRepo extends GenericRepo<RefreshToken, UUID> {
             @Param("userId") UUID userId,
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
-
-    /**
-     * Counts the number of entities with the given IDs.
-     *
-     * @param ids The collection of entity IDs to count - must not be null.
-     * @return The number of entities found matching the provided IDs.
-     */
-    @Query("SELECT COUNT(e) FROM RefreshToken e WHERE e.id IN :ids")
-    long countByIds(@Param("ids") Collection<UUID> ids);
 }

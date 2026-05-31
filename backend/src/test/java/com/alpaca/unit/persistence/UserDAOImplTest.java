@@ -7,8 +7,10 @@ import static org.mockito.Mockito.*;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.UserProvider;
-import java.util.*;
+import com.alpaca.resources.provider.UserProvider;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -120,10 +122,10 @@ class UserDAOImplTest {
     @DisplayName("existsAllByIds: Should compare input size with repository count")
     void existsAllByIds_Coverage() {
         List<UUID> ids = UserProvider.listEntities().stream().map(User::getId).toList();
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
         assertThat(dao.existsAllByIds(ids)).isTrue();
 
-        when(repo.countByIds(ids)).thenReturn(0L);
+        when(repo.countEntitiesIds(ids)).thenReturn(0L);
         assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

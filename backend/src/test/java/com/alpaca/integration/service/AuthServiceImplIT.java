@@ -14,9 +14,10 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.RefreshTokenProvider;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RefreshTokenProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.IRefreshTokenService;
@@ -30,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,10 +39,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link AuthServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("AuthServiceImpl Integration Tests")
-class AuthServiceImplIT {
+class AuthServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private AuthServiceImpl authService;
 
@@ -89,7 +87,7 @@ class AuthServiceImplIT {
     void register_shouldCreateUserAndReturnTokens() {
         Role role = RoleProvider.singleTemplate();
         role.setCreatedAt(now);
-        role.setName("USER");
+        role.setName("TEST_USER");
 
         roleService.save(role);
 

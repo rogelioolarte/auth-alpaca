@@ -1,4 +1,4 @@
-package com.alpaca.resources;
+package com.alpaca.resources.provider;
 
 import com.alpaca.dto.response.SessionResponseDTO;
 import com.alpaca.entity.Session;

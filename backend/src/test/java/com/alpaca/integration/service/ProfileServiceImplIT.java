@@ -10,8 +10,9 @@ import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.ProfileProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.ProfileServiceImpl;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,16 +23,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link ProfileServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("ProfileServiceImpl Integration Tests")
-class ProfileServiceImplIT {
+class ProfileServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private ProfileServiceImpl service;
     @Autowired private IUserDAO userDAO;
@@ -99,7 +97,6 @@ class ProfileServiceImplIT {
     @Transactional
     @DisplayName("save throws exception when duplicated profile exists")
     void save_ShouldThrowBadRequest_WhenDuplicateExists() {
-
         Profile profile = buildSingleProfile();
 
         service.save(profile);
@@ -369,18 +366,6 @@ class ProfileServiceImplIT {
         assertThatThrownBy(() -> service.deleteById(null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Profile cannot be deleted");
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("deleteById validates missing entity")
-    void deleteById_ShouldValidateMissingEntity() {
-
-        UUID id = UUID.randomUUID();
-
-        assertThatThrownBy(() -> service.deleteById(id))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Profile not exists");
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.alpaca.entity.Session;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -25,10 +24,10 @@ import org.springframework.stereotype.Repository;
  * <p>This is useful for session lifecycle management and bulk logout scenarios across related
  * sessions.
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface SessionRepo extends GenericRepo<Session, UUID> {
+public interface SessionRepo extends CustomRepo<Session, UUID> {
 
     /**
      * Marks all active sessions in a session family as revoked.
@@ -119,15 +118,6 @@ public interface SessionRepo extends GenericRepo<Session, UUID> {
     Optional<Session> findFirstActiveSessionForUpdate(@Param("userId") UUID userId);
 
     long countByUserIdAndRevokedFalse(UUID userId);
-
-    /**
-     * Counts the number of entities with the given IDs.
-     *
-     * @param ids The collection of entity IDs to count - must not be null.
-     * @return The number of entities found matching the provided IDs.
-     */
-    @Query("SELECT COUNT(e) FROM Session e WHERE e.id IN :ids")
-    long countByIds(@Param("ids") Collection<UUID> ids);
 
     @Query(
             value =

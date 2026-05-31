@@ -12,8 +12,9 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IRoleDAO;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.time.Instant;
 import java.util.*;
@@ -21,17 +22,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link UserServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("UserServiceImpl Integration Tests")
-class UserServiceImplIT {
+class UserServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private UserServiceImpl service;
     @Autowired private IRoleDAO roleDAO;
@@ -249,7 +247,7 @@ class UserServiceImplIT {
         User user = buildSingleUser();
 
         Role originalRole = RoleProvider.singleTemplate();
-        originalRole.setName("USER");
+        originalRole.setName("TEST_USER");
         originalRole.setCreatedAt(now);
 
         Role persistedOriginalRole = roleDAO.save(originalRole);
@@ -259,7 +257,7 @@ class UserServiceImplIT {
         User savedUser = service.save(user);
 
         Role updatedRole = RoleProvider.alternativeTemplate();
-        updatedRole.setName("ADMIN");
+        updatedRole.setName("ADVISOR");
         updatedRole.setCreatedAt(now);
 
         Role persistedUpdatedRole = roleDAO.save(updatedRole);
@@ -276,7 +274,7 @@ class UserServiceImplIT {
 
         assertThat(resultRole.getId()).isEqualTo(persistedUpdatedRole.getId());
         assertThat(resultRole.getName()).isEqualTo(persistedUpdatedRole.getName());
-        assertThat(resultRole.getName()).isEqualTo("ADMIN");
+        assertThat(resultRole.getName()).isEqualTo("ADVISOR");
     }
 
     // ------------------------------------------------

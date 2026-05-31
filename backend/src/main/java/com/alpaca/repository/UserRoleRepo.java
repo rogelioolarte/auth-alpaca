@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository;
 /**
  * Repository interface for managing {@link UserRole} entities.
  *
- * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
+ * <p>Extends {@link CustomRepo} to inherit common CRUD operations and defines additional queries
  * for userRole-specific operations.
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface UserRoleRepo extends GenericRepo<UserRole, UUID> {}
+public interface UserRoleRepo extends CustomRepo<UserRole, UUID> {}

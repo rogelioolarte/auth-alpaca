@@ -8,8 +8,9 @@ import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.persistence.impl.ProfileDAOImpl;
 import com.alpaca.repository.ProfileRepo;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.ProfileProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -17,12 +18,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link ProfileDAOImpl} */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import({ProfileDAOImpl.class})
 @DisplayName("ProfileDAOImpl Integration Tests")
 class ProfileDAOImplIT {

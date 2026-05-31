@@ -7,7 +7,8 @@ import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
-import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link RoleDAOImpl}. */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import({RoleDAOImpl.class, PermissionDAOImpl.class})
 class RoleDAOImplIT {
 

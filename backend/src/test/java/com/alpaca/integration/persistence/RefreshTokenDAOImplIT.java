@@ -10,8 +10,9 @@ import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.persistence.impl.RefreshTokenDAOImpl;
 import com.alpaca.repository.RefreshTokenRepo;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.RefreshTokenProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RefreshTokenProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -22,12 +23,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link RefreshTokenDAOImpl} */
-@DataJpaTest
+@DataJpaIntegrationTest
 @Import(RefreshTokenDAOImpl.class)
 @DisplayName("RefreshTokenDAOImpl Integration Tests")
 class RefreshTokenDAOImplIT {

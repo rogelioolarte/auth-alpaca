@@ -7,13 +7,9 @@ import com.alpaca.entity.Permission;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
-import com.alpaca.resources.PermissionProvider;
+import com.alpaca.resources.provider.PermissionProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -140,7 +136,7 @@ class PermissionServiceImplTest {
     void saveShouldThrowBadRequestWhenEntityIsNull() {
         assertThrows(BadRequestException.class, () -> service.save(null));
 
-        verifyNoInteractions(dao);
+        verify(dao).existsByUniqueProperties(null);
     }
 
     @Test
@@ -155,7 +151,6 @@ class PermissionServiceImplTest {
 
     @Test
     void saveShouldPersistEntityWhenEntityDoesNotExist() {
-        when(dao.existsByUniqueProperties(secondEntity)).thenReturn(false);
         when(dao.save(secondEntity)).thenReturn(secondEntity);
 
         Permission result = service.save(secondEntity);
@@ -165,7 +160,6 @@ class PermissionServiceImplTest {
 
         ArgumentCaptor<Permission> permissionCaptor = ArgumentCaptor.forClass(Permission.class);
 
-        verify(dao).existsByUniqueProperties(secondEntity);
         verify(dao).save(permissionCaptor.capture());
 
         assertEquals(secondEntity.getId(), permissionCaptor.getValue().getId());
@@ -330,25 +324,21 @@ class PermissionServiceImplTest {
     void deleteByIdShouldThrowBadRequestWhenEntityDoesNotExist() {
         UUID permissionId = firstEntity.getId();
 
-        when(dao.existsById(permissionId)).thenReturn(false);
+        doThrow(new BadRequestException("Entity Not Exist")).when(dao).deleteById(permissionId);
 
         assertThrows(BadRequestException.class, () -> service.deleteById(permissionId));
 
-        verify(dao).existsById(permissionId);
-        verify(dao, never()).deleteById(permissionId);
+        verify(dao).deleteById(permissionId);
     }
 
     @Test
     void deleteByIdShouldDeleteEntityWhenEntityExists() {
         UUID permissionId = secondEntity.getId();
 
-        when(dao.existsById(permissionId)).thenReturn(true);
-
         service.deleteById(permissionId);
 
         ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
 
-        verify(dao).existsById(permissionId);
         verify(dao).deleteById(idCaptor.capture());
 
         assertEquals(permissionId, idCaptor.getValue());
@@ -582,7 +572,7 @@ class PermissionServiceImplTest {
     void updateIfNotNullShouldUpdateValueWhenIncomingIsDifferent() {
         List<String> values = new ArrayList<>();
 
-        service.updateIfNotNull("READ", "WRITE", values::add);
+        service.updateIfNotNull("TEST_READ", "WRITE", values::add);
 
         assertEquals(List.of("WRITE"), values);
     }
@@ -591,7 +581,7 @@ class PermissionServiceImplTest {
     void updateIfNotNullShouldNotUpdateValueWhenIncomingIsNull() {
         List<String> values = new ArrayList<>();
 
-        service.updateIfNotNull("READ", null, values::add);
+        service.updateIfNotNull("TEST_READ", null, values::add);
 
         assertTrue(values.isEmpty());
     }
@@ -600,7 +590,7 @@ class PermissionServiceImplTest {
     void updateIfNotNullShouldNotUpdateValueWhenIncomingIsEqual() {
         List<String> values = new ArrayList<>();
 
-        service.updateIfNotNull("READ", "READ", values::add);
+        service.updateIfNotNull("TEST_READ", "TEST_READ", values::add);
 
         assertTrue(values.isEmpty());
     }
@@ -609,7 +599,7 @@ class PermissionServiceImplTest {
     void updateTextIfExistsShouldUpdateTextWhenIncomingHasTextAndIsDifferent() {
         List<String> values = new ArrayList<>();
 
-        service.updateTextIfExists("READ", "WRITE", values::add);
+        service.updateTextIfExists("TEST_READ", "WRITE", values::add);
 
         assertEquals(List.of("WRITE"), values);
     }
@@ -618,7 +608,7 @@ class PermissionServiceImplTest {
     void updateTextIfExistsShouldNotUpdateTextWhenIncomingIsBlank() {
         List<String> values = new ArrayList<>();
 
-        service.updateTextIfExists("READ", " ", values::add);
+        service.updateTextIfExists("TEST_READ", " ", values::add);
 
         assertTrue(values.isEmpty());
     }
@@ -627,7 +617,7 @@ class PermissionServiceImplTest {
     void updateTextIfExistsShouldNotUpdateTextWhenIncomingIsEqual() {
         List<String> values = new ArrayList<>();
 
-        service.updateTextIfExists("READ", "READ", values::add);
+        service.updateTextIfExists("TEST_READ", "TEST_READ", values::add);
 
         assertTrue(values.isEmpty());
     }

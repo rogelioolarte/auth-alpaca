@@ -49,7 +49,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @throws BadRequestException if {@code id} is {@code null}
      * @throws NotFoundException if no entity is found for the given {@code id}
      */
-    @Transactional
     @Override
     public T findById(I i) {
         if (i == null) {
@@ -73,7 +72,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if any of the requested entities are not found
      */
-    @Transactional
     @Override
     public List<T> findAllByIds(Collection<I> is) {
         if (invalidCollection(is)) {
@@ -99,9 +97,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
     public T save(T t) {
         if (t == null) {
             throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-        }
-        if (getDAO().existsByUniqueProperties(t)) {
-            throw new BadRequestException(String.format("%s already exists", getEntityName()));
         }
         return getDAO().save(t);
     }
@@ -135,9 +130,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
         if (i == null) {
             throw new BadRequestException(String.format("%s cannot be deleted", getEntityName()));
         }
-        if (!getDAO().existsById(i)) {
-            throw new BadRequestException(String.format("%s not exists", getEntityName()));
-        }
         getDAO().deleteById(i);
     }
 
@@ -146,7 +138,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      *
      * @return a list of all entities
      */
-    @Transactional
     @Override
     public List<T> findAll() {
         return getDAO().findAll();
@@ -159,7 +150,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @return a paginated list of entities
      * @throws BadRequestException if {@code pageable} is {@code null}
      */
-    @Transactional
     @Override
     public Page<T> findAllPage(Pageable pageable) {
         if (pageable == null) {
@@ -175,7 +165,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @param i the identifier to check; may be {@code null}
      * @return {@code true} if entity exists, {@code false} otherwise
      */
-    @Transactional
     @Override
     public boolean existsById(I i) {
         if (i == null) return false;
@@ -188,7 +177,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @param is the collection of IDs; must not be {@code null}, empty, or contain {@code null}
      * @return {@code true} if all IDs exist; {@code false} otherwise
      */
-    @Transactional
     @Override
     public boolean existsAllByIds(Collection<I> is) {
         if (invalidCollection(is)) return false;
@@ -201,7 +189,6 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
      * @param t the entity to check; may be {@code null}
      * @return {@code true} if such an entity exists; {@code false} otherwise
      */
-    @Transactional
     @Override
     public boolean existsByUniqueProperties(T t) {
         if (t == null) return false;

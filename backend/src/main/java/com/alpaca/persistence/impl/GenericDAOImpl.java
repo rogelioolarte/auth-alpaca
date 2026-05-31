@@ -1,7 +1,7 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.persistence.IGenericDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
  * Abstract base implementation of {@link IGenericDAO}, providing generic CRUD and pagination
  * operations for any entity type {@code T} with identifier type {@code ID}.
  *
- * <p>Concrete DAO implementations must supply the specific {@link GenericRepo} and entity class by
+ * <p>Concrete DAO implementations must supply the specific {@link CustomRepo} and entity class by
  * implementing the abstract {@link #getRepo()} method.
  *
  * <p>This class leverages Spring Data repositories to delegate standard persistence operations in a
@@ -30,7 +30,7 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
      * @return the repository instance for {@code T}
      */
     @Generated
-    protected abstract GenericRepo<T, I> getRepo();
+    protected abstract CustomRepo<T, I> getRepo();
 
     /**
      * Finds an entity by its identifier.
@@ -116,5 +116,10 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
     @Override
     public boolean existsById(I i) {
         return getRepo().existsById(i);
+    }
+
+    @Override
+    public boolean existsAllByIds(Collection<I> is) {
+        return (is.size()) == getRepo().countEntitiesIds(is);
     }
 }

@@ -6,7 +6,7 @@ import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
 import com.alpaca.mapper.impl.PermissionMapperImpl;
-import com.alpaca.resources.PermissionProvider;
+import com.alpaca.resources.provider.PermissionProvider;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;

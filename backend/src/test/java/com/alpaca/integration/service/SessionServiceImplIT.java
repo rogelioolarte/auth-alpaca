@@ -11,8 +11,9 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRefreshTokenDAO;
 import com.alpaca.persistence.ISessionDAO;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.SessionProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.SessionProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.SessionServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
 import java.time.Instant;
@@ -23,16 +24,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link SessionServiceImpl} */
-@SpringBootTest
-@Transactional
 @DisplayName("SessionServiceImpl Integration Tests")
-class SessionServiceImplIT {
+class SessionServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private SessionServiceImpl sessionService;
     @Autowired private IUserDAO userDAO;

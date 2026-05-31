@@ -2,7 +2,8 @@ package com.alpaca.unit.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,8 +12,8 @@ import com.alpaca.dto.response.SessionResponseDTO;
 import com.alpaca.entity.Session;
 import com.alpaca.mapper.ISessionMapper;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.SessionProvider;
-import com.alpaca.resources.WithMockCustomUser;
+import com.alpaca.resources.provider.SessionProvider;
+import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.ISessionService;
 import java.util.Collections;
 import java.util.List;

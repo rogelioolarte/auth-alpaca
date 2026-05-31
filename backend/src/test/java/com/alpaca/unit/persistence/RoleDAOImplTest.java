@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import com.alpaca.entity.Role;
 import com.alpaca.persistence.impl.RoleDAOImpl;
 import com.alpaca.repository.RoleRepo;
-import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.provider.RoleProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,7 +51,7 @@ class RoleDAOImplTest {
         @Test
         @DisplayName("Should call repository when role name is valid")
         void findByRoleName_Valid() {
-            String name = "USER";
+            String name = "TEST_USER";
             when(repo.findByName(name)).thenReturn(Optional.of(firstEntity));
             assertThat(dao.findByRoleName(name)).isPresent();
         }
@@ -91,10 +91,10 @@ class RoleDAOImplTest {
         @DisplayName("Should call repository when all unique properties are present")
         void existsByUniqueProperties_Valid() {
             Role validRole = new Role();
-            validRole.setName("ADMIN");
+            validRole.setName("ADVISOR");
             validRole.setDescription("Administrator");
 
-            when(repo.existsByName("ADMIN")).thenReturn(true);
+            when(repo.existsByName("ADVISOR")).thenReturn(true);
             assertThat(dao.existsByUniqueProperties(validRole)).isTrue();
         }
     }
@@ -103,10 +103,10 @@ class RoleDAOImplTest {
     @DisplayName("existsAllByIds: Should compare input size with repository count")
     void existsAllByIds_Coverage() {
         List<UUID> ids = RoleProvider.listEntities().stream().map(Role::getId).toList();
-        when(repo.countByIds(ids)).thenReturn((long) ids.size());
+        when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
         assertThat(dao.existsAllByIds(ids)).isTrue();
 
-        when(repo.countByIds(ids)).thenReturn(0L);
+        when(repo.countEntitiesIds(ids)).thenReturn(0L);
         assertThat(dao.existsAllByIds(ids)).isFalse();
     }
 }

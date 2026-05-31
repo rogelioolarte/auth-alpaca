@@ -2,9 +2,8 @@ package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Permission;
 import com.alpaca.persistence.IPermissionDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.PermissionRepo;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.Generated;
@@ -25,11 +24,11 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
     /**
      * Provides the repository used by the generic DAO framework.
      *
-     * @return the {@link GenericRepo} for {@link Permission}
+     * @return the {@link CustomRepo} for {@link Permission}
      */
     @Override
     @Generated
-    protected GenericRepo<Permission, UUID> getRepo() {
+    protected CustomRepo<Permission, UUID> getRepo() {
         return repo;
     }
 
@@ -56,17 +55,5 @@ public class PermissionDAOImpl extends GenericDAOImpl<Permission, UUID> implemen
     @Override
     public Optional<Permission> findByPermissionName(String permissionName) {
         return repo.findByName(permissionName);
-    }
-
-    /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
-     *
-     * @param is the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
-     */
-    @Override
-    public boolean existsAllByIds(Collection<UUID> is) {
-        return (is.size()) == repo.countByIds(is);
     }
 }

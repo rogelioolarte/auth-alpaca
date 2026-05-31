@@ -3,6 +3,10 @@ name: Workflow for Codecov
 on:
   push:
   pull_request:
+  
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   run:
@@ -14,6 +18,12 @@ jobs:
 
     permissions:
       contents: read
+      
+    env:
+      MAVEN_OPTS: >-
+        -Xmx3g
+        -XX:+UseG1GC
+      TESTCONTAINERS_RYUK_DISABLED: false
 
     steps:
       - name: Checkout repository
@@ -36,7 +46,7 @@ jobs:
         run: mvn -B clean verify
 
       - name: Upload JaCoCo coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_ORG_TOKEN }}
           files: backend/target/site/jacoco/jacoco.xml

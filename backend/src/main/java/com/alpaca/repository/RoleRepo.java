@@ -1,23 +1,20 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.Role;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
  * Repository interface for managing {@link Role} entities.
  *
- * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
+ * <p>Extends {@link CustomRepo} to inherit common CRUD operations and defines additional queries
  * for role-specific operations.
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface RoleRepo extends GenericRepo<Role, UUID> {
+public interface RoleRepo extends CustomRepo<Role, UUID> {
 
     /**
      * Retrieves a role by its name.
@@ -34,13 +31,4 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
      * @return {@code true} if a role with the given name exists, {@code false} otherwise.
      */
     boolean existsByName(String roleName);
-
-    /**
-     * Counts the number of entities with the given IDs.
-     *
-     * @param ids The collection of entity IDs to count - must not be null.
-     * @return The number of entities found matching the provided IDs.
-     */
-    @Query("SELECT COUNT(e) FROM Role e WHERE e.id IN :ids")
-    long countByIds(@Param("ids") Collection<UUID> ids);
 }

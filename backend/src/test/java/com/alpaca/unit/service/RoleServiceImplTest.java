@@ -7,7 +7,7 @@ import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.impl.RoleDAOImpl;
-import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.service.impl.RoleServiceImpl;
 import java.util.HashSet;
 import java.util.Optional;
@@ -37,31 +37,62 @@ class RoleServiceImplTest {
         firstEntity = RoleProvider.singleEntity();
         secondEntity = RoleProvider.alternativeEntity();
 
-        secondEntity.setName("USER");
+        secondEntity.setName("TEST_USER");
+    }
+
+    // --- save ---
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenRoleIsNull() {
+        assertThrows(BadRequestException.class, () -> service.save(null));
+
+        verify(dao).existsByUniqueProperties(null);
+    }
+
+    @Test
+    void saveShouldThrowBadRequestExceptionWhenRoleAlreadyExists() {
+        when(dao.existsByUniqueProperties(firstEntity)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> service.save(firstEntity));
+
+        verify(dao).existsByUniqueProperties(firstEntity);
+        verify(dao, never()).save(any(Role.class));
+    }
+
+    @Test
+    void saveShouldPersistRoleSuccessfully() {
+        when(dao.save(secondEntity)).thenReturn(secondEntity);
+
+        Role result = service.save(secondEntity);
+
+        assertNotNull(result);
+        assertEquals(secondEntity, result);
+
+        verify(dao).save(secondEntity);
     }
 
     // --- getUserRoles ---
 
     @Test
     void getUserRolesShouldThrowNotFoundExceptionWhenDefaultRoleDoesNotExist() {
-        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.empty());
+        when(dao.findByRoleName("USER")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.getUserRoles());
 
-        verify(dao).findByRoleName(secondEntity.getName());
+        verify(dao).findByRoleName("USER");
         verify(dao, never()).save(any(Role.class));
     }
 
     @Test
     void getUserRolesShouldReturnDefaultRoleSuccessfully() {
-        when(dao.findByRoleName(secondEntity.getName())).thenReturn(Optional.of(secondEntity));
+        when(dao.findByRoleName("USER")).thenReturn(Optional.of(secondEntity));
 
         Set<Role> result = service.getUserRoles();
 
         assertNotNull(result);
         assertEquals(new HashSet<>(Set.of(secondEntity)), result);
 
-        verify(dao).findByRoleName(secondEntity.getName());
+        verify(dao).findByRoleName("USER");
     }
 
     // --- findByRoleName ---

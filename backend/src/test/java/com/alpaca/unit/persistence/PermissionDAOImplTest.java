@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import com.alpaca.entity.Permission;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
-import com.alpaca.resources.PermissionProvider;
+import com.alpaca.resources.provider.PermissionProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -152,10 +152,10 @@ class PermissionDAOImplTest {
         @Test
         @DisplayName("existsAllByIds: Should compare input size with repository count")
         void existsAllByIds_Coverage() {
-            when(repo.countByIds(ids)).thenReturn((long) ids.size());
+            when(repo.countEntitiesIds(ids)).thenReturn((long) ids.size());
             assertThat(dao.existsAllByIds(ids)).isTrue();
 
-            when(repo.countByIds(ids)).thenReturn(0L);
+            when(repo.countEntitiesIds(ids)).thenReturn(0L);
             assertThat(dao.existsAllByIds(ids)).isFalse();
         }
     }

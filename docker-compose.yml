@@ -6,7 +6,7 @@ x-logging: &default-logging
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: auth-alpaca-db
     restart: unless-stopped
     environment:
@@ -53,6 +53,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       MAX_SESSIONS_PER_USER: ${MAX_SESSIONS_PER_USER}
       INFINITY_LOGIN: ${INFINITY_LOGIN}
+      BCRYPT_COST_FACTOR: ${BCRYPT_COST_FACTOR}
     ports:
       # Expuesto temporalmente para pruebas locales. 
       # Se eliminará o restringirá a 127.0.0.1 cuando Nginx entre en escena.
@@ -61,7 +62,7 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 4G
+          memory: 2G
     networks:
       - backend-net
       - frontend-net

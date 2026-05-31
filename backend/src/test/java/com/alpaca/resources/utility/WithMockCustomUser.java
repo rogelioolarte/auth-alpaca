@@ -1,4 +1,4 @@
-package com.alpaca.resources;
+package com.alpaca.resources.utility;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,7 +12,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 public @interface WithMockCustomUser {
     String username() default "admin";
 
-    String email() default "admin@admin.com";
+    String email() default "advisor@advisor.com";
 
     int id() default 1;
 }

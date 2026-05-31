@@ -1,4 +1,4 @@
-package com.alpaca.resources;
+package com.alpaca.resources.provider;
 
 import com.alpaca.dto.request.RoleRequestDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
@@ -22,8 +22,8 @@ public class RoleProvider {
 
     public static Role singleTemplate() {
         return Role.builder()
-                .name("ADMIN")
-                .description("It's an admin")
+                .name("ADVISOR")
+                .description("It's an advisor")
                 .rolePermissions(new HashSet<>())
                 .userRoles(new HashSet<>())
                 .build();
@@ -31,8 +31,8 @@ public class RoleProvider {
 
     public static Role alternativeTemplate() {
         return Role.builder()
-                .name("USER")
-                .description("It's an user")
+                .name("TEST_USER")
+                .description("It's an test user")
                 .rolePermissions(new HashSet<>())
                 .userRoles(new HashSet<>())
                 .build();
@@ -42,8 +42,8 @@ public class RoleProvider {
         Role firstEntity =
                 new Role(
                         UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
-                        "ADMIN",
-                        "It's an admin",
+                        "ADVISOR",
+                        "It's an advisor",
                         new HashSet<>(),
                         new HashSet<>());
         firstEntity.setRolePermissions(new HashSet<>(Set.of(PermissionProvider.singleEntity())));
@@ -54,8 +54,8 @@ public class RoleProvider {
         Role secondEntity =
                 new Role(
                         UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
-                        "USER",
-                        "It's an user",
+                        "TEST_USER",
+                        "It's an test user",
                         new HashSet<>(),
                         new HashSet<>());
         secondEntity.setRolePermissions(
@@ -65,24 +65,24 @@ public class RoleProvider {
 
     public static RoleRequestDTO singleRequest() {
         return new RoleRequestDTO(
-                "ADMIN",
-                "It's an admin",
+                "ADVISOR",
+                "It's an advisor",
                 new HashSet<>(Set.of(PermissionProvider.singleEntity().getId())));
     }
 
     public static RoleResponseDTO singleResponse() {
         return new RoleResponseDTO(
                 UUID.fromString("e87ce3ba-fe71-4cf1-b302-94446a3684ca"),
-                "ADMIN",
-                "It's an admin",
+                "ADVISOR",
+                "It's an advisor",
                 new ArrayList<>(List.of(PermissionProvider.singleResponse())));
     }
 
     public static RoleResponseDTO alternativeResponse() {
         return new RoleResponseDTO(
                 UUID.fromString("33d6bb03-ae1c-4b0d-8f31-08095452bc40"),
-                "USER",
-                "It's an user",
+                "TEST_USER",
+                "It's an test user",
                 new ArrayList<>(List.of(PermissionProvider.alternativeResponse())));
     }
 }
