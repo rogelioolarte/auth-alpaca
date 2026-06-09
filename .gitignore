@@ -11,6 +11,9 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 *.log
 .env
+.atl/
+openspec/
+secrets/
 
 # Eclipse m2e generated files
 # Eclipse Core
