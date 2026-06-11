@@ -6,15 +6,23 @@ import io.github.bucket4j.ConsumptionProbe;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class IPRateLimit {
 
-    private static final int MAX_REQUESTS = 500;
+    @Value("${security.ratelimit.max.rpm:500}")
+    private int maxRequests;
+
     private static final Duration WINDOW = Duration.ofMinutes(1);
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public IPRateLimit(@Value("${security.ratelimit.max.rpm:500}") int maxRequests) {
+        this.maxRequests = maxRequests;
+    }
 
     public RateLimitResult check(String ip) {
         Bucket bucket = buckets.computeIfAbsent(ip, this::createBucket);
@@ -30,7 +38,8 @@ public class IPRateLimit {
 
     private Bucket createBucket(String ignoreIp) {
         return Bucket.builder()
-                .addLimit(limit -> limit.capacity(MAX_REQUESTS).refillGreedy(MAX_REQUESTS, WINDOW))
+                .addLimit(limit ->
+                        limit.capacity(maxRequests).refillGreedy(maxRequests, WINDOW))
                 .build();
     }
 }

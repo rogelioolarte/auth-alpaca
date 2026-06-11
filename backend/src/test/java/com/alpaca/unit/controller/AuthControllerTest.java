@@ -192,6 +192,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockCustomUser
     @DisplayName("logout returns 200 OK and success message")
     void logoutReturnsSuccessMessage() throws Exception {
 

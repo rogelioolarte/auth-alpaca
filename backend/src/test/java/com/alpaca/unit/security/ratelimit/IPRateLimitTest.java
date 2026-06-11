@@ -12,11 +12,12 @@ class IPRateLimitTest {
 
     private IPRateLimit ipRateLimit;
     private final String testIp = "192.168.1.1";
+    private static final int MAX_REQUESTS = 10;
 
     @BeforeEach
     void setUp() {
         // A fresh instance for each test to clean the internal ConcurrentHashMap
-        ipRateLimit = new IPRateLimit();
+        ipRateLimit = new IPRateLimit(MAX_REQUESTS);
     }
 
     @Test
