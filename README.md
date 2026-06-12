@@ -63,10 +63,12 @@ The backend app is meant to be run together with the frontend Angular applicatio
  - **Note: Use a terminal with bash to run the scripts.**
 
 # 1. **Start up the database and environment variables:**
- 1. Run the following script to create the security variables:
- 
+  1. Run the following script to create the security variables. Depending on your goal, use the appropriate location:
+
 ```console
-bash backend/generate_keys.sh
+# For Backend Execution: ./generate_keys.sh -L backend/src/main/resources/keys
+# For Backend Tests: ./generate_keys.sh -L backend/src/test/resources/keys
+# For Docker Deployment: ./generate_keys.sh -L secrets/
 ```
 
  2. Create your credentials for using oauth2 in the google cloud console or follow the steps detailed [here](https://blog.devgenius.io/part-3-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-8716646ed062).

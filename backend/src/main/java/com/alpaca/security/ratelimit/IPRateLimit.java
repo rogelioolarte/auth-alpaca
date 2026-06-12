@@ -6,7 +6,6 @@ import io.github.bucket4j.ConsumptionProbe;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +37,7 @@ public class IPRateLimit {
 
     private Bucket createBucket(String ignoreIp) {
         return Bucket.builder()
-                .addLimit(limit ->
-                        limit.capacity(maxRequests).refillGreedy(maxRequests, WINDOW))
+                .addLimit(limit -> limit.capacity(maxRequests).refillGreedy(maxRequests, WINDOW))
                 .build();
     }
 }

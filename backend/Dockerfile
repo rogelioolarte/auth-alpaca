@@ -21,11 +21,8 @@ RUN java -Djarmode=tools -jar application.jar extract --layers --destination ext
 FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 
-# Install tzdata
-RUN apk add --no-cache tzdata
-
-# 1. Security: Create and use a user without privileges
-RUN addgroup -S spring && adduser -S spring -G spring
+# 1. Security: Install tzdata and Create and use a user without privileges
+RUN apk add --no-cache tzdata && addgroup -S spring && adduser -S spring -G spring
 
 # 2. Copy the Spring Boot layers in order volatility
 COPY --from=builder --chown=spring:spring /build/extracted/dependencies/ ./
