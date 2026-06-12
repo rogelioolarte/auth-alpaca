@@ -36,11 +36,11 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Make scripts executable
-        run: chmod +x generate_keys_test.sh
+       - name: Make scripts executable
+         run: chmod +x ../generate_keys.sh
 
-      - name: Run key generation script
-        run: ./generate_keys_test.sh
+       - name: Run key generation script
+         run: ../generate_keys.sh -L src/test/resources/keys
 
       - name: Build project and run tests with coverage
         run: mvn -B clean verify
