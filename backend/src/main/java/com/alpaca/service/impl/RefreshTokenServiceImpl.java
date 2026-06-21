@@ -158,19 +158,8 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                         authCode.getUserAgent(),
                         authCode.getClientId(),
                         authCode.getClientIp());
-        RefreshToken refreshToken =
-                new RefreshToken(
-                        session,
-                        uuidv7Generator.generate(),
-                        session.getLastSeenAt().plusMillis(manager.getJwtTimeExpRefresh()),
-                        session.getLastSeenAt());
-        String jwtRefreshToken = manager.createRefreshToken(refreshToken);
-        String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
-        refreshToken.setTokenHash(refreshTokenHash);
-        super.save(refreshToken);
-        String accessToken =
-                manager.createAccessToken(new UserPrincipal(user), session.getLastSeenAt());
-        return new AuthResponseDTO(accessToken, jwtRefreshToken);
+
+        return this.generateJWTTokens(new UserPrincipal(user), session);
     }
 
     @Override
@@ -194,7 +183,9 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         }
         if (token.getUser().getTokensInvalidBefore() != null
                 && token.getCreatedAt().isBefore(token.getUser().getTokensInvalidBefore())) {
-            throw new UnauthorizedException("Refresh Token issued before tokens_invalid_before");
+            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, "client-mismatch");
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
+            throw new UnauthorizedException("Refresh Token already revoked");
         }
         if (!Objects.equals(token.getClientId(), clientId)) {
             revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, "client-mismatch");
@@ -203,6 +194,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         }
         if (!Objects.equals(token.getUserAgent(), userAgent)) {
             revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, "ua-mismatch");
+            logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
             throw new UnauthorizedException("User-Agent mismatch");
         }
     }

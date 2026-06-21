@@ -27,7 +27,7 @@ import org.springframework.security.web.RedirectStrategy;
 @DisplayName("AuthFailureHandler Unit Tests")
 class AuthFailureHandlerTest {
 
-    private static final String FRONTEND_URI = "http://test.test/";
+    private static final String FRONTEND_URI = "http://test.test";
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
     @Mock private CookieAuthReqRepo repository;
@@ -104,7 +104,7 @@ class AuthFailureHandlerTest {
             handler.onAuthenticationFailure(request, response, exception);
 
             verify(repository).removeAuthorizationRequestCookies(request, response);
-            String expected = FRONTEND_URI + "?error=orig error";
+            String expected = FRONTEND_URI + "/login" + "?error=orig error";
             verify(redirectStrategy).sendRedirect(request, response, expected);
         }
     }

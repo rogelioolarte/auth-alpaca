@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.exception.BadRequestException;
-import com.alpaca.exception.InternalErrorException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
@@ -20,7 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,7 +66,7 @@ class AuthSuccessHandlerTest {
 
         handler =
                 new AuthSuccessHandler(
-                        repository, List.of(authorizedRedirectUri), exchangeManager, uuidGenerator);
+                        repository, authorizedRedirectUri, exchangeManager, uuidGenerator);
 
         handler.setRedirectStrategy(redirectStrategy);
         handler.setDefaultTargetUrl("https://alpaca.com/default");
@@ -321,25 +319,6 @@ class AuthSuccessHandlerTest {
 
             assertEquals("Unauthorized redirect URI", exception.getReason());
         }
-    }
-
-    @Test
-    @DisplayName("Should throw internal error exception when authorized redirect URIs are empty")
-    void onAuthenticationSuccess_ShouldThrowInternalErrorException_WhenAuthorizedUrisAreEmpty() {
-
-        AuthSuccessHandler invalidHandler =
-                new AuthSuccessHandler(repository, List.of(), exchangeManager, uuidGenerator);
-
-        when(response.isCommitted()).thenReturn(false);
-
-        InternalErrorException exception =
-                assertThrows(
-                        InternalErrorException.class,
-                        () ->
-                                invalidHandler.onAuthenticationSuccess(
-                                        request, response, authentication));
-
-        assertEquals("Bad configuration of Authorized Redirect URIs", exception.getReason());
     }
 
     @Test

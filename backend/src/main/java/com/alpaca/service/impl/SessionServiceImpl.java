@@ -141,6 +141,8 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
             updateIfNotNull(newSession.getClientId(), clientId, newSession::setClientId);
         }
         newSession.setRevoked(false);
+        newSession.setRevokedAt(null);
+        newSession.setRevokeReason(null);
         updateTextIfExists(newSession.getIpAddress(), clientIp, newSession::setIpAddress);
         updateIfNotNull(newSession.getFamilyId(), newFamilyId, newSession::setFamilyId);
         updateIfNotNull(newSession.getLastSeenAt(), now, newSession::setLastSeenAt);

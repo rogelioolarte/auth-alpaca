@@ -4,6 +4,7 @@ import com.alpaca.entity.User;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import java.util.UUID;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +30,10 @@ public interface UserRepo extends CustomRepo<User, UUID> {
      */
     @EntityGraph(value = "User.withAuthorities", type = EntityGraph.EntityGraphType.LOAD)
     Optional<User> findByEmail(String email);
+
+    @NonNull
+    @EntityGraph(value = "User.withAuthorities", type = EntityGraph.EntityGraphType.LOAD)
+    Optional<User> findById(@NonNull UUID id);
 
     /**
      * Checks whether a user with the specified email address exists.

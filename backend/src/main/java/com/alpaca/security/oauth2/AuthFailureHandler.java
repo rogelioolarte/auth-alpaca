@@ -40,7 +40,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private final CookieAuthReqRepo repository;
-    private final String frontendUri;
+    private final String frontendUriFallback;
     private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
@@ -54,7 +54,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
             CookieAuthReqRepo repository,
             @Value("${app.frontend.uri}") @NotNull String frontendUri) {
         this.repository = repository;
-        this.frontendUri = frontendUri;
+        this.frontendUriFallback = String.format("%s/%s", frontendUri, "login");
     }
 
     @Override
@@ -91,7 +91,7 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
                         () ->
                                 CookieManager.getCookie(request, REDIRECT_PARAM_NAME)
                                         .map(Cookie::getValue))
-                .orElse(frontendUri);
+                .orElse(frontendUriFallback);
     }
 
     /**

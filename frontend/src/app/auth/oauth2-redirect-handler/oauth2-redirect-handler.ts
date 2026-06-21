@@ -13,8 +13,15 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-oauth2-redirect-handler',
   imports: [MatProgressSpinner],
-  template: `<mat-spinner/>`,
-  styles: ``,
+  template: `<div class="spinn" ><mat-spinner/></div>`,
+  styles: `
+    .spinn {
+      display: grid;
+      place-content: center;
+      place-items: center;
+      padding-top: 5rem
+    }
+  `,
 })
 export class Oauth2RedirectHandler implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -50,12 +57,17 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
         this.authService
           .exchangeCode(authCode)
           .pipe(takeUntil(this.destroy))
-          .subscribe(() => {
-            this.authService.recoverStates();
-            this.router.navigate(['/dashboard'], {
-              state: { from: this.router.routerState.snapshot.url },
-            })
-            .catch(() => this.router.navigateByUrl("/login"));
+          .subscribe({
+            next: () => {
+              this.authService.recoverStates();
+              this.router.navigate(['/dashboard'], {
+                state: { from: this.router.routerState.snapshot.url },
+              })
+            },
+            error: () => {
+              this.router.navigate(['/dashboard']);
+              this.toastService.error('Error while processing. Report the Error');
+            }
           });
           this.pkceService.clear();
       } else {

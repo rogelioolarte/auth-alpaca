@@ -91,5 +91,4 @@ The following table summarizes all environment variables required to run the ser
 | `ADMIN_EMAIL` | `backend` | Bootstrap administrator email account. | `admin@admin.com` |
 | `ADMIN_PASSWORD` | `backend` | Bootstrap administrator password. | `123456789` |
 | `API_BASE_URL` | `frontend` | Absolute base HTTP URL target of the API server. | `http://localhost:8080` |
-| `FRONTEND_URI` | `backend` | Absolute base HTTP URL of the frontend client. | `http://localhost:80` |
 | `RATELIMIT_MAX_RPM` | `backend` | Max requests per minute threshold allowed per client IP. | `500` |

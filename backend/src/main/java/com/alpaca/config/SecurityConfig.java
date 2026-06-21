@@ -5,7 +5,9 @@ import com.alpaca.security.manager.CustomAuthenticationManager;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IOAuth2Service;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Configures security settings for the application, including authentication, authorization, OAuth2
@@ -43,6 +48,9 @@ public class SecurityConfig {
 
     private static final String O_AUTH_2_BASE_URI = "/oauth2/authorize";
     private static final String O_AUTH_2_REDIRECTION_END_POINT = "/oauth2/callback/*";
+
+    @Value("${app.frontend.uri:http://localhost:4200}")
+    private String allowedOrigin;
 
     private final JJwtManager jwtManager;
     private final IOAuth2Service securityService;
@@ -166,5 +174,28 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(allowedOrigin));
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(
+                List.of(
+                        "Content-Type",
+                        "Accept",
+                        "X-Requested-With",
+                        "remember-me",
+                        "Authorization",
+                        "X-Client-Id",
+                        "User-Agent",
+                        "X-Refresh-Token"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

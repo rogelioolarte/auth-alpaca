@@ -198,7 +198,9 @@ export class AuthenticationService {
       filter((i) => i[0] != null && i[1] != null),
       switchMap((v) => this.authService.logout(v[0]?.refresh || '', v[1] || '')),
       tap({
-        next: () => this.cleanStates(),
+        next: () => {
+          this.cleanStates();
+        },
         error: (error: HttpErrorResponse) => {
           if(error.status === 400 || error.status == 401) {
             this.cleanStates()
@@ -238,6 +240,7 @@ export class AuthenticationService {
 
   private manageClientID(): void {
     const c = this.storage.get(CLIENT_ID);
+    console.log("cliend id:", c)
     if (c === null || c === '' || !this.uuidValidateV7(c)) {
       const id = v7();
       this.clientId.next(id);

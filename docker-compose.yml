@@ -51,7 +51,6 @@ services:
       JWT_REFRESH_PUBLIC_KEY_PATH: ${JWT_REFRESH_PUBLIC_KEY_PATH}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      APP_OAUTH2_REDIRECT_URI: ${APP_OAUTH2_REDIRECT_URI}
       APP_FRONTEND_URI: ${APP_FRONTEND_URI}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
@@ -82,7 +81,8 @@ services:
       - "80:8080" 
     environment:
       TZ: UTC
-      API_BASE_URL: ${API_BASE_URL}
+      API_URL: ${API_URL}
+      UI_URL: ${UI_URL}
     networks:
       - frontend-net
     logging: *default-logging

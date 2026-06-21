@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.NonNull;
@@ -59,15 +58,15 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      * Constructs an {@code AuthSuccessHandler}.
      *
      * @param repository cookie-based repository used to manage OAuth2 state cookies
-     * @param redirectUris list of URIs authorized for redirection; must not be {@code null}
+     * @param redirectUri URI authorized for redirection; must not be {@code null}
      */
     public AuthSuccessHandler(
             CookieAuthReqRepo repository,
-            @Value("${app.oauth2.authorized-redirect-uri}") @NonNull List<URI> redirectUris,
+            @Value("${app.frontend.uri}") URI redirectUri,
             TokenExchangeManager exchangeManager,
             UUIDv7Generator uuidGenerator) {
         this.repository = repository;
-        this.authorizedRedirectUris = Set.copyOf(redirectUris);
+        this.authorizedRedirectUris = Set.of(redirectUri);
         this.exchangeManager = exchangeManager;
         this.uuidGenerator = uuidGenerator;
     }
@@ -151,10 +150,6 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             Authentication auth) {
-
-        if (authorizedRedirectUris.isEmpty()) {
-            throw new InternalErrorException("Bad configuration of Authorized Redirect URIs");
-        }
 
         Optional<Cookie> redirectCookie = CookieManager.getCookie(request, REDIRECT_PARAM_NAME);
         String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
