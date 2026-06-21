@@ -63,7 +63,7 @@ public class HibernateStatisticsConfig {
     public void enableStatistics() {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         Statistics stats = sessionFactory.getStatistics();
-        stats.setStatisticsEnabled(true);
+        stats.setStatisticsEnabled(false);
         log.info("Hibernate Statistics enabled");
     }
 }

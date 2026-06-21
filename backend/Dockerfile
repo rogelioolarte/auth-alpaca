@@ -34,7 +34,8 @@ COPY --from=builder --chown=spring:spring /build/extracted/application/ ./
 USER spring:spring
 
 # 3. JVM Configuration for Dynamic Containers
-ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+# ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Duser.timezone=UTC"
+ENV JAVA_TOOL_OPTIONS="-XX:+UseSerialGC -Xss256k -XX:MaxRAMPercentage=60.0 -Duser.timezone=UTC -Djava.security.egd=file:/dev/./urandom -Dspring.main.lazy-initialization=true"
 
 # 4. Run through the layer launcher
 ENTRYPOINT ["sh", "-c", "java -jar application.jar"]
