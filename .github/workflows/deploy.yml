@@ -71,7 +71,7 @@ jobs:
             echo "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}" > /home/ubuntu/app/.env
             echo "SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=${{secrets.SPRING_DATASOURCE_MINIMUM_IDLE}}" > /home/ubuntu/app/.env
             echo "SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=30000" > /home/ubuntu/app/.env
-            echo"JWT_ISSUER=${{secrets.JWT_ISSUER}}" > /home/ubuntu/app/.env
+            echo "JWT_ISSUER=${{secrets.JWT_ISSUER}}" > /home/ubuntu/app/.env
             echo "JWT_ACCESS_TOKEN_EXPIRATION=${{secrets.JWT_ACCESS_TOKEN_EXPIRATION}}" > /home/ubuntu/app/.env
             echo "JWT_REFRESH_TOKEN_EXPIRATION=${{secrets.JWT_REFRESH_TOKEN_EXPIRATION}}" > /home/ubuntu/app/.env
             echo "JWT_ACCESS_PRIVATE_KEY_PATH=${{secrets.JWT_ACCESS_PRIVATE_KEY_PATH}}" > /home/ubuntu/app/.env
@@ -86,7 +86,7 @@ jobs:
             echo "GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}" > /home/ubuntu/app/.env
             echo "MAX_SESSIONS_PER_USER=${{secrets.MAX_SESSIONS_PER_USER}}" > /home/ubuntu/app/.env
             echo "INFINITY_LOGIN=${{secrets.INFINITY_LOGIN}}" > /home/ubuntu/app/.env
-            echo"BCRYPT_COST_FACTOR=${{secrets.BCRYPT_COST_FACTOR}}" > /home/ubuntu/app/.env
+            echo "BCRYPT_COST_FACTOR=${{secrets.BCRYPT_COST_FACTOR}}" > /home/ubuntu/app/.env
             
             chmod 600 /home/ubuntu/app/.env
             chmod 600 /home/ubuntu/app/keys/*.pem
