@@ -1,6 +1,7 @@
 {
   "name": "auth-alpaca-ui",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "prebuild": "node set-env.js",

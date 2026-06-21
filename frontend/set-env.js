@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Obtenemos las variables
 const envContent = `
 export const environment = {
   production: true,
@@ -17,7 +16,7 @@ export const environment = {
 `;
 
 const targetDir = path.join(__dirname, 'src/environments');
-const targetPath = path.join(targetDir, 'environment.prod.ts');
+const targetPath = path.join(targetDir, 'environment.ts');
 
 try {
   if (!fs.existsSync(targetDir)) {
