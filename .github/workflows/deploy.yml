@@ -64,33 +64,31 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Crear el .env si no existe o actualizarlo
-            cat <<EOF > /home/ubuntu/app/.env
-            SPRING_PROFILES_ACTIVE=prod
-            SPRING_DATASOURCE_URL="${{secrets.SPRING_DATASOURCE_URL}}"
-            SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}
-            SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}
-            SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}
-            SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=${{secrets.SPRING_DATASOURCE_MINIMUM_IDLE}}
-            SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=30000
-            JWT_ISSUER=${{secrets.JWT_ISSUER}}
-            JWT_ACCESS_TOKEN_EXPIRATION=${{secrets.JWT_ACCESS_TOKEN_EXPIRATION}}
-            JWT_REFRESH_TOKEN_EXPIRATION=${{secrets.JWT_REFRESH_TOKEN_EXPIRATION}}
-            JWT_ACCESS_PRIVATE_KEY_PATH=${{secrets.JWT_ACCESS_PRIVATE_KEY_PATH}}
-            JWT_ACCESS_PUBLIC_KEY_PATH=${{secrets.JWT_ACCESS_PUBLIC_KEY_PATH}}
-            JWT_REFRESH_PRIVATE_KEY_PATH=${{secrets.JWT_REFRESH_PRIVATE_KEY_PATH}}
-            JWT_REFRESH_PUBLIC_KEY_PATH=${{secrets.JWT_REFRESH_PUBLIC_KEY_PATH}}
-            ADMIN_EMAIL=${{secrets.ADMIN_EMAIL}}
-            ADMIN_PASSWORD=${{secrets.ADMIN_PASSWORD}}
-            APP_OAUTH2_REDIRECT_URI=${{secrets.APP_OAUTH2_REDIRECT_URI}}
-            APP_FRONTEND_URI=${{secrets.APP_FRONTEND_URI}}
-            GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}
-            GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}
-            MAX_SESSIONS_PER_USER=${{secrets.MAX_SESSIONS_PER_USER}}
-            INFINITY_LOGIN=${{secrets.INFINITY_LOGIN}}
-            BCRYPT_COST_FACTOR=${{secrets.BCRYPT_COST_FACTOR}}
-            EOF
+            echo "SPRING_PROFILES_ACTIVE=prod" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_URL=${{secrets.SPRING_DATASOURCE_URL}}" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=${{secrets.SPRING_DATASOURCE_MINIMUM_IDLE}}" > /home/ubuntu/app/.env
+            echo "SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=30000" > /home/ubuntu/app/.env
+            echo"JWT_ISSUER=${{secrets.JWT_ISSUER}}" > /home/ubuntu/app/.env
+            echo "JWT_ACCESS_TOKEN_EXPIRATION=${{secrets.JWT_ACCESS_TOKEN_EXPIRATION}}" > /home/ubuntu/app/.env
+            echo "JWT_REFRESH_TOKEN_EXPIRATION=${{secrets.JWT_REFRESH_TOKEN_EXPIRATION}}" > /home/ubuntu/app/.env
+            echo "JWT_ACCESS_PRIVATE_KEY_PATH=${{secrets.JWT_ACCESS_PRIVATE_KEY_PATH}}" > /home/ubuntu/app/.env
+            echo "JWT_ACCESS_PUBLIC_KEY_PATH=${{secrets.JWT_ACCESS_PUBLIC_KEY_PATH}}" > /home/ubuntu/app/.env
+            echo "JWT_REFRESH_PRIVATE_KEY_PATH=${{secrets.JWT_REFRESH_PRIVATE_KEY_PATH}}" > /home/ubuntu/app/.env
+            echo "JWT_REFRESH_PUBLIC_KEY_PATH=${{secrets.JWT_REFRESH_PUBLIC_KEY_PATH}}" > /home/ubuntu/app/.env
+            echo "ADMIN_EMAIL=${{secrets.ADMIN_EMAIL}}" > /home/ubuntu/app/.env
+            echo "ADMIN_PASSWORD=${{secrets.ADMIN_PASSWORD}}" > /home/ubuntu/app/.env
+            echo "APP_OAUTH2_REDIRECT_URI=${{secrets.APP_OAUTH2_REDIRECT_URI}}" > /home/ubuntu/app/.env
+            echo "APP_FRONTEND_URI=${{secrets.APP_FRONTEND_URI}}" > /home/ubuntu/app/.env
+            echo "GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}" > /home/ubuntu/app/.env
+            echo "GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}" > /home/ubuntu/app/.env
+            echo "MAX_SESSIONS_PER_USER=${{secrets.MAX_SESSIONS_PER_USER}}" > /home/ubuntu/app/.env
+            echo "INFINITY_LOGIN=${{secrets.INFINITY_LOGIN}}" > /home/ubuntu/app/.env
+            echo"BCRYPT_COST_FACTOR=${{secrets.BCRYPT_COST_FACTOR}}" > /home/ubuntu/app/.env
             
+            chmod 600 /home/ubuntu/app/.env
             chmod 600 /home/ubuntu/app/keys/*.pem
             
             sudo systemctl restart alpaca.service
