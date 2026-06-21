@@ -316,7 +316,7 @@ class RefreshTokenServiceImplTest {
                                 service.rotateRefreshToken(
                                         oldRefreshToken, clientId, userAgent, ipAddress));
 
-        assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
+        assertEquals("Refresh Token already revoked", exception.getReason());
     }
 
     @Test
@@ -571,9 +571,11 @@ class RefreshTokenServiceImplTest {
                                 service.validateRefreshToken(
                                         refreshToken, clientId, now, ipAddress, userAgent));
 
-        assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
+        assertEquals("Refresh Token already revoked", exception.getReason());
 
-        verify(dao, never()).revokeFamilyWithReason(any(), any(), any());
+        verify(dao).revokeFamilyWithReason(refreshToken.getFamilyId(), now, "reuse-detected");
+        verify(sessionService)
+                .revokeSessionByFamilyId(refreshToken.getFamilyId(), now, "reuse-detected");
     }
 
     @Test

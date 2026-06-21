@@ -183,7 +183,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         }
         if (token.getUser().getTokensInvalidBefore() != null
                 && token.getCreatedAt().isBefore(token.getUser().getTokensInvalidBefore())) {
-            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, "client-mismatch");
+            revokeRefreshTokensAndSessionByFamilyId(token.getFamilyId(), now, MESSAGE_REUSE_REASON);
             logWhenReuseDetected(token.getFamilyId().toString(), clientIp, userAgent);
             throw new UnauthorizedException("Refresh Token already revoked");
         }

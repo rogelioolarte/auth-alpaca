@@ -345,7 +345,7 @@ class RefreshTokenServiceImplIT extends BaseIntegrationTests {
                                         persistedToken.getUserAgent(),
                                         persistedToken.getIpAddress()));
 
-        assertEquals("Refresh Token issued before tokens_invalid_before", exception.getReason());
+        assertEquals("Refresh Token already revoked", exception.getReason());
     }
 
     @Test
