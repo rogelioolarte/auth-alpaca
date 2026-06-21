@@ -80,7 +80,6 @@ jobs:
             printf "JWT_REFRESH_PUBLIC_KEY_PATH=%s\n" "${{secrets.JWT_REFRESH_PUBLIC_KEY_PATH}}" >> /home/ubuntu/app/.env
             printf "ADMIN_EMAIL=%s\n" "${{secrets.ADMIN_EMAIL}}" >> /home/ubuntu/app/.env
             printf "ADMIN_PASSWORD=%s\n" "${{secrets.ADMIN_PASSWORD}}" >> /home/ubuntu/app/.env
-            printf "APP_OAUTH2_REDIRECT_URI=%s\n" "${{secrets.APP_OAUTH2_REDIRECT_URI}}" >> /home/ubuntu/app/.env
             printf "APP_FRONTEND_URI=%s\n" "${{secrets.APP_FRONTEND_URI}}" >> /home/ubuntu/app/.env
             printf "GOOGLE_CLIENT_ID=%s\n" "${{secrets.GOOGLE_CLIENT_ID}}" >> /home/ubuntu/app/.env
             printf "GOOGLE_CLIENT_SECRET=%s\n" "${{secrets.GOOGLE_CLIENT_SECRET}}" >> /home/ubuntu/app/.env
