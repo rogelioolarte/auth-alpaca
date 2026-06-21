@@ -24,11 +24,17 @@ WORKDIR /app
 # 1. Security: Install tzdata and Create and use a user without privileges
 RUN apk add --no-cache tzdata && addgroup -S spring && adduser -S spring -G spring
 
+# 2. Copy the Spring Boot layers in order volatility
+COPY --from=builder --chown=spring:spring /build/extracted/dependencies/ ./
+COPY --from=builder --chown=spring:spring /build/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=spring:spring /build/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=spring:spring /build/extracted/application/ ./
+
 # Switch to secure user
 USER spring:spring
 
-# 2. JVM Configuration for Dynamic Containers
-ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+# 3. JVM Configuration for Dynamic Containers
+ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
-# 3. Run through the layer launcher
+# 4. Run through the layer launcher
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar application.jar"]
