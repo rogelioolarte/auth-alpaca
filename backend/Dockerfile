@@ -37,4 +37,4 @@ USER spring:spring
 ENV JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
 # 4. Run through the layer launcher
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar application.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar application.jar"]
