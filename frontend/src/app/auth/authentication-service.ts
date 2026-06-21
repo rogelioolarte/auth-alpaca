@@ -80,8 +80,6 @@ export class AuthenticationService {
   }
 
   private isValidTokenDecode(decode: TokenDecode): boolean {
-    console.log("decode validation: ", decode)
-     console.log("decode validation - now: ", Date.now())
     const now = Date.now() / 1000;
     const LEEWAY = 10;
     return decode.exp > (now + LEEWAY) && !!decode.sub;
@@ -240,7 +238,6 @@ export class AuthenticationService {
 
   private manageClientID(): void {
     const c = this.storage.get(CLIENT_ID);
-    console.log("cliend id:", c)
     if (c === null || c === '' || !this.uuidValidateV7(c)) {
       const id = v7();
       this.clientId.next(id);
