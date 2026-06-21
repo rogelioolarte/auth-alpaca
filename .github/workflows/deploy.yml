@@ -67,7 +67,7 @@ jobs:
             # Crear el .env si no existe o actualizarlo
             cat <<EOF > /home/ubuntu/app/.env
             SPRING_PROFILES_ACTIVE=prod
-            SPRING_DATASOURCE_URL="${{secrets.SPRING_DATASOURCE_URL}}""
+            SPRING_DATASOURCE_URL="${{secrets.SPRING_DATASOURCE_URL}}"
             SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}
             SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}
             SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}
