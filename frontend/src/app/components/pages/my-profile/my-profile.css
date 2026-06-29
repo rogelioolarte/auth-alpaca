@@ -6,7 +6,7 @@
 h1 {
   margin-bottom: var(--spacing-6);
   font-size: var(--text-2xl);
-   font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-normal);
 }
  
 .profile-card {

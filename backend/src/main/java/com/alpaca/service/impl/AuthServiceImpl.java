@@ -83,15 +83,15 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         // Optional additional validation userAgent, clientId, ClientIp
-         if (!savedAuthCode.getClientId().equals(authCode.getClientId())) {
-             throw new UnauthorizedException("Code Invalid or Expired");
-         }
-         if (!savedAuthCode.getUserAgent().equals(authCode.getUserAgent())) {
-             throw new UnauthorizedException("Code Invalid or Expired");
-         }
-         if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
-             throw new UnauthorizedException("Code Invalid or Expired");
-         }
+        if (!savedAuthCode.getClientId().equals(authCode.getClientId())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getUserAgent().equals(authCode.getUserAgent())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
 
         return refreshTokenService.generateJWTTokens(savedAuthCode);
     }
