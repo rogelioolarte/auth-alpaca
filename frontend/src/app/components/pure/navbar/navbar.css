@@ -50,6 +50,12 @@
             height: 1.25rem;
             color: var(--mat-sys-on-primary);
         }
+
+        .brand-logo {
+            display: flex;
+            height: 3.6rem;
+            width: 3.6rem;
+        }
     }
 
     .brand-text {

@@ -1,4 +1,4 @@
-# Auth Alpaca
+# AUTH ALPACA
 
 [![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
 [![release badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver)](https://github.com/rogelioolarte/auth-alpaca/releases)
@@ -59,18 +59,19 @@ graph TD
 ### 1. Security & Environment Setup
 Generate the required JWT asymmetric keys using the helper script. Depending on your goal, use the appropriate location:
 
-- **For Backend Execution**:
-  ```bash
-  ./generate_keys.sh -L backend/src/main/resources/keys
-  ```
-- **For Backend Tests**:
-  ```bash
-  ./generate_keys.sh -L backend/src/test/resources/keys
-  ```
 - **For Docker Deployment**:
   ```bash
   ./generate_keys.sh -L secrets/
   ```
+- **For Only Backend Execution (Optional)**:
+  ```bash
+  ./generate_keys.sh -L backend/src/main/resources/keys
+  ```
+- **For Only Backend Tests (Optional)**:
+  ```bash
+  ./generate_keys.sh -L backend/src/test/resources/keys
+  ```
+
 
 Configure your local environment by copying the template file:
 ```bash
@@ -92,7 +93,7 @@ Run the Spring Boot application using the wrapper script from the root directory
 ```bash
 ./mvnw spring-boot:run
 ```
-*   **Java Runtime:** Java 25 (configured with `--enable-preview`)
+*   **Java Runtime:** Java 25
 *   **Default API Port:** `8080`
 
 ### Frontend Application & Integration Example
@@ -138,6 +139,6 @@ sequenceDiagram
 
 For a detailed step-by-step breakdown of endpoint operations, see **[docs/backend-architecture.md](docs/backend-architecture.md)**.
 
-## Would like to learn more about?
- - Learn About Auth Alpaca uisng The Pedagogical Framework: **[The 4-Pillar Journey](docs/learning/index.md)**
- - Learn about important concepts **[Glosary](docs/learning/glossary.md)**
+# Would like to learn more about?
+## Learn About Auth Alpaca uisng The Pedagogical Framework: **[The 4-Pillar Journey](docs/learning/index.md)**
+### Learn about important concepts **[Glosary](docs/learning/glossary.md)**
