@@ -43,7 +43,6 @@ public class AdvertiserController {
      *     {@link HttpStatus#OK}
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      */
-    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<AdvertiserResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
