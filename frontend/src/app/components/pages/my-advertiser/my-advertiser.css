@@ -1,39 +1,39 @@
-.page-container {
+.advertiser-content {
   max-width: 600px;
-  margin: 2rem auto;
+  margin: var(--spacing-8) auto;
 }
-
+ 
 h1 {
-  margin-bottom: 24px;
-  font-size: 28px;
-  font-weight: 400;
+  margin-bottom: var(--spacing-6);
+  font-size: var(--text-2xl);
+   font-weight: var(--font-weight-normal);
 }
-
+ 
 .advertiser-card {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-6);
 }
-
+ 
 mat-card-content {
-  padding: 24px;
+  padding: var(--spacing-6);
 }
-
+ 
 .full-width {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-4);
 }
-
+ 
 .toggle-field {
-  margin: 24px 0;
+  margin: var(--spacing-6) 0;
 }
-
+ 
 .form-actions {
-  margin-top: 24px;
+  margin-top: var(--spacing-6);
   display: flex;
   justify-content: flex-end;
 }
-
+ 
 .loading-container {
   display: flex;
   justify-content: center;
-  padding: 48px;
+  padding: var(--spacing-12);
 }
