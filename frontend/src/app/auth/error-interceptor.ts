@@ -17,10 +17,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      // --- VALIDATION LOGIC ---
+      // Bypass global toast if:
+      // 1. Body is empty/null (nothing to show)
+      // 2. It's a field validation error: status 400, is an object, and DOES NOT have a 'message' key
+      const hasNoBody = !error.error;
+      const isFieldValidationError = 
+        error.status === 400 && 
+        typeof error.error === 'object' && 
+        error.error !== null && 
+        !error.error?.['message'];
+
+      if (hasNoBody || isFieldValidationError) {
+        if (isFieldValidationError) {
+          console.warn(`[HTTP Validation Error] Bypassing global toast for field errors:`, error.error);
+        }
+        return throwError(() => error); // Pass error intact to the component
+      }
+
       let errorMessage: string;
 
       if (error.error instanceof Error) {
-        errorMessage = `Client error: ${error.error.message}`;
+        errorMessage = error.error.message;
       } else {
         errorMessage = evaluateErrorStatus(error)
       }
@@ -28,7 +46,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         return throwError(() => error);
       }
+      console.log("llego aca")
 
+      toastService.info("Holaaa")
       toastService.error(errorMessage, 'Error');
 
       console.error(`[HTTP Error Log]`, {
@@ -48,17 +68,13 @@ export const evaluateErrorStatus = (error: HttpErrorResponse): string => {
       return 'Session expired. Please log in again.';
     case 403:
       return 'You do not have permission to access this resource.';
-      break;
     case 404:
       return 'The requested resource was not found.';
-      break;
     case 500:
       return 'Internal server error. Please try again later.';
-      break;
     case 0:
       return 'Unable to connect to the server. Check your connection.';
-      break;
     default:
-      return error.error?.message || `Error ${error.status}: ${error.status}`;
+      return error.error?.message || `Error ${error.status}: ${error.message}`;
   }
 }

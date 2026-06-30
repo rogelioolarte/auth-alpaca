@@ -174,8 +174,6 @@ export class AuthenticationService {
         );
       }
       this.manageClientID();
-    } else {
-      console.warn('Server provided an invalid token. Immediate rotation loop prevented.');
     }
   }
 

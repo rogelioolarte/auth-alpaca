@@ -107,31 +107,9 @@ export class Users implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        if (user) {
-          // Edit mode - update user
-          this.userService.updateUserById(user.id, result).subscribe({
-            next: () => {
-              this.snackBar.open('User updated', 'Close', { duration: 3000 });
-              this.loadUsers();
-              if(this.myUser()?.id === user.id) {
-                this.authService.rotateTokens().subscribe();
-              }
-            },
-            error: () => {
-              this.snackBar.open('Error updating user', 'Close', { duration: 3000 });
-            },
-          });
-        } else {
-          // Create mode
-          this.userService.createUser(result).subscribe({
-            next: () => {
-              this.snackBar.open('User created', 'Close', { duration: 3000 });
-              this.loadUsers();
-            },
-            error: () => {
-              this.snackBar.open('Error creating user', 'Close', { duration: 3000 });
-            },
-          });
+        this.loadUsers();
+        if (user && this.myUser()?.id === user.id) {
+          this.authService.rotateTokens().subscribe();
         }
       }
     });

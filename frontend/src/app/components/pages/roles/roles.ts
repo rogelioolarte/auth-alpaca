@@ -110,29 +110,7 @@ export class Roles {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        if (role) {
-          // Edit mode
-          this.roleService.updateRoleById(role.id, result).subscribe({
-            next: () => {
-              this.snackBar.open('Role updated', 'Close', { duration: 3000 });
-              this.loadRoles();
-            },
-            error: () => {
-              this.snackBar.open('Error updating role', 'Close', { duration: 3000 });
-            },
-          });
-        } else {
-          // Create mode
-          this.roleService.createRole(result).subscribe({
-            next: () => {
-              this.snackBar.open('Role created', 'Close', { duration: 3000 });
-              this.loadRoles();
-            },
-            error: () => {
-              this.snackBar.open('Error creating role', 'Close', { duration: 3000 });
-            },
-          });
-        }
+        this.loadRoles();
       }
     });
   }

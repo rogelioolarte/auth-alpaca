@@ -2,72 +2,76 @@
   <h1>My Profile</h1>
 
   @if (loading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+  <div class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
   } @else {
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <mat-card-title>Profile Information</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>First Name</mat-label>
-            <input matInput formControlName="firstName" />
-            @if (profileForm.get('firstName')?.hasError('required')) {
-              <mat-error> First name is required </mat-error>
+  <mat-card class="profile-card">
+    <mat-card-header>
+      <mat-card-title>Profile Information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="firstName" />
+          @if (profileForm.get('firstName')?.hasError('required')) {
+          <mat-error> First name is required </mat-error>
+          }
+          @if (profileForm.get('firstName')?.hasError('serverError')) {
+          <mat-error> {{ profileForm.get('firstName')?.getError('serverError') }} </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="lastName" />
+          @if (profileForm.get('lastName')?.hasError('required')) {
+          <mat-error> Last name is required </mat-error>
+          }
+          @if (profileForm.get('lastName')?.hasError('serverError')) {
+          <mat-error> {{ profileForm.get('lastName')?.getError('serverError') }} </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" />
+          @if (profileForm.get('email')?.hasError('required')) {
+          <mat-error> Email is required </mat-error>
+          }
+          @if (profileForm.get('email')?.hasError('email')) {
+          <mat-error> Please enter a valid email </mat-error>
+          }
+          @if (profileForm.get('email')?.hasError('serverError')) {
+          <mat-error> {{ profileForm.get('email')?.getError('serverError') }} </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Address</mat-label>
+          <textarea matInput formControlName="address" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Avatar URL</mat-label>
+          <input matInput formControlName="avatarUrl" />
+          <button mat-icon-button matSuffix type="button" (click)="openAvatarUrl()">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="profileForm.invalid || saving()">
+            @if (saving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+            Save Changes
             }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Last Name</mat-label>
-            <input matInput formControlName="lastName" />
-            @if (profileForm.get('lastName')?.hasError('required')) {
-              <mat-error> Last name is required </mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" />
-            @if (profileForm.get('email')?.hasError('required')) {
-              <mat-error> Email is required </mat-error>
-            }
-            @if (profileForm.get('email')?.hasError('email')) {
-              <mat-error> Please enter a valid email </mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Address</mat-label>
-            <textarea matInput formControlName="address" rows="3"></textarea>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Avatar URL</mat-label>
-            <input matInput formControlName="avatarUrl" />
-            <button mat-icon-button matSuffix type="button" (click)="openAvatarUrl()">
-              <mat-icon>open_in_new</mat-icon>
-            </button>
-          </mat-form-field>
-
-          <div class="form-actions">
-            <button
-              mat-raised-button
-              color="primary"
-              type="submit"
-              [disabled]="profileForm.invalid || saving()"
-            >
-              @if (saving()) {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                Save Changes
-              }
-            </button>
-          </div>
-        </form>
-      </mat-card-content>
-    </mat-card>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
   }
 </div>

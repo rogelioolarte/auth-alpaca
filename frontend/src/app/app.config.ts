@@ -20,7 +20,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideToastr(),
+    provideToastr({ 
+      closeButton: true, maxOpened: 5, positionClass: 'toast-bottom-right', 
+      tapToDismiss: false, autoDismiss: true, timeOut: 5000,
+    }),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
   ],
 };

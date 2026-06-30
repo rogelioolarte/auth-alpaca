@@ -18,16 +18,25 @@
             @if (advertiserForm.get('title')?.hasError('required')) {
               <mat-error> Title is required </mat-error>
             }
+            @if (advertiserForm.get('title')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('title')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Description</mat-label>
             <textarea matInput formControlName="description" rows="5"></textarea>
+            @if (advertiserForm.get('description')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('description')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Public Location</mat-label>
             <input matInput formControlName="publicLocation" />
+            @if (advertiserForm.get('publicLocation')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('publicLocation')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -37,6 +46,9 @@
               (click)="openExternalURL('publicUrlLocation')" >
               <mat-icon>open_in_new</mat-icon>
             </button>
+            @if (advertiserForm.get('publicUrlLocation')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('publicUrlLocation')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -46,6 +58,9 @@
               (click)="openExternalURL('avatarUrl')">
               <mat-icon>open_in_new</mat-icon>
             </button>
+            @if (advertiserForm.get('avatarUrl')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('avatarUrl')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -55,6 +70,9 @@
               (click)="openExternalURL('bannerUrl')">
               <mat-icon>open_in_new</mat-icon>
             </button>
+            @if (advertiserForm.get('bannerUrl')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('bannerUrl')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <div class="toggle-field">

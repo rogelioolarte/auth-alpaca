@@ -163,6 +163,7 @@
 
 .hero-btn-primary mat-icon {
   margin-right: var(--space-2);
+  
 }
 
 .hero-stats {
@@ -559,6 +560,12 @@
   text-align: center;
   max-width: 40rem;
   margin: 0 auto;
+
+  .mat-mdc-unelevated-button {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
 }
 
 .cta-content h2 {
@@ -581,8 +588,10 @@
   font-size: 1rem;
   font-weight: 600;
   border-radius: var(--radius-full);
-  background: var(--color-on-primary-container);
-  color: var(--color-primary-container);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+
+  
 
   mat-icon {
     margin-left: var(--space-2);
@@ -625,6 +634,13 @@
 
 .footer-copyright {
   opacity: 0.7;
+}
+
+.brand-logo {
+  display: flex;
+  height: 3rem;
+  width: 3rem;
+  background-blend-mode: overlay;
 }
 
 /* ========================================

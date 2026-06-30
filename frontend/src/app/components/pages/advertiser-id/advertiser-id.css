@@ -5,6 +5,8 @@
 
 .page-container {
   margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--color-surface);
 }
 
 .loading-container {

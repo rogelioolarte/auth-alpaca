@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { AuthenticationService } from '../../../auth/authentication-service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +11,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { Profile } from '@app/models/profile';
 import { MatButtonModule } from '@angular/material/button';
+import { ToastrService } from 'ngx-toastr';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import { DestroyRef } from '@angular/core';
 
 @Component({
   selector: 'app-profile',
@@ -26,11 +29,13 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: `./my-profile.html`,
   styleUrl: `./my-profile.css`,
 })
-export class MyProfile {
+export class MyProfile implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthenticationService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly toastService = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
 
   public loading = signal(true);
   public saving = signal(false);
@@ -46,8 +51,9 @@ export class MyProfile {
     userId: [''],
   });
 
-  constructor() {
+  ngOnInit() {
     this.loadProfile();
+    setupServerErrorClearing(this.profileForm, this.destroyRef);
   }
 
   loadProfile() {
@@ -79,8 +85,8 @@ export class MyProfile {
             this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
             this.saving.set(false);
           },
-          error: () => {
-            this.snackBar.open('Error updating profile', 'Close', { duration: 3000 });
+          error: (err) => {
+            handleBackendFormErrors(err, this.profileForm, this.toastService);
             this.saving.set(false);
           },
         });
@@ -91,8 +97,8 @@ export class MyProfile {
             this.saving.set(false);
             this.authService.rotateTokens().subscribe();
           },
-          error: () => {
-            this.snackBar.open('Error creating profile', 'Close', { duration: 3000 });
+          error: (err) => {
+            handleBackendFormErrors(err, this.profileForm, this.toastService);
             this.saving.set(false);
           },
         });

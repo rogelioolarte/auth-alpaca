@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, DestroyRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 import { Role } from '@app/models/role';
 import { UserRequest } from '@app/models/user';
+import { UserService } from '@app/api/user-service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthenticationService } from '@app/auth/authentication-service';
+import { ToastrService } from 'ngx-toastr';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
 
 export interface UserDialogData {
   mode: 'create' | 'edit';
@@ -63,6 +68,9 @@ export interface UserDialogData {
             @if (userForm.get('email')?.hasError('email')) {
               <mat-error>Please enter a valid email</mat-error>
             }
+            @if (userForm.get('email')?.hasError('serverError')) {
+              <mat-error>{{ userForm.get('email')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -70,7 +78,6 @@ export interface UserDialogData {
             <input
               matInput
               formControlName="password"
-              matInput
               [type]="hidePassword() ? 'password' : 'text'"
               placeholder="Temporary password"
             />
@@ -87,6 +94,9 @@ export interface UserDialogData {
             }
             @if (userForm.get('password')?.hasError('minlength')) {
               <mat-error>Password must be at least 8 characters</mat-error>
+            }
+            @if (userForm.get('password')?.hasError('serverError')) {
+              <mat-error>{{ userForm.get('password')?.getError('serverError') }}</mat-error>
             }
           </mat-form-field>
 
@@ -109,6 +119,9 @@ export interface UserDialogData {
                 <mat-option [value]="role.id">{{ role.name }}</mat-option>
               }
             </mat-select>
+            @if (userForm.get('roles')?.hasError('serverError')) {
+              <mat-error>{{ userForm.get('roles')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
         </mat-dialog-content>
 
@@ -188,6 +201,11 @@ export class UserDialog {
   private dialogRef = inject(MatDialogRef<UserDialog>);
   public data: UserDialogData = inject(MAT_DIALOG_DATA);
   public hidePassword = signal(true);
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthenticationService);
+  private toastr = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     // Get initial role IDs for edit mode
@@ -203,6 +221,8 @@ export class UserDialog {
       ],
       roles: [initialRoleIds],
     });
+
+    setupServerErrorClearing(this.userForm, this.destroyRef);
   }
 
   onSubmit() {
@@ -212,7 +232,31 @@ export class UserDialog {
         form.password = undefined;
       }
       this.saving.set(true);
-      this.dialogRef.close(form);
+
+      if (this.data.mode === 'edit') {
+        this.userService.updateUserById(this.data.user!.id, form).subscribe({
+          next: () => {
+            this.snackBar.open('User updated', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            handleBackendFormErrors(err, this.userForm, this.toastr);
+            this.saving.set(false);
+          },
+        });
+      } else {
+        this.userService.createUser(form).subscribe({
+          next: () => {
+            this.snackBar.open('User created', 'Close', { duration: 3000 });
+            this.authService.rotateTokens().subscribe();
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            handleBackendFormErrors(err, this.userForm, this.toastr);
+            this.saving.set(false);
+          },
+        });
+      }
     }
   }
 

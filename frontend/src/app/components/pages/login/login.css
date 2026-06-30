@@ -84,7 +84,7 @@
   background: var(--color-surface-container-high);
   border-radius: var(--radius-xl);
   padding: var(--space-12) var(--space-10);
-   box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-xl);
 }
 
 .card-header {

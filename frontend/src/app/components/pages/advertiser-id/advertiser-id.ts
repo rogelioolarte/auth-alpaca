@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChip } from '@angular/material/chips';
 import { MatDivider } from '@angular/material/divider';
@@ -19,6 +20,7 @@ import { Advertiser } from '@app/models/advertiser';
     MatCardContent,
     MatDivider,
     MatCardActions,
+    MatButton,
   ],
   templateUrl: './advertiser-id.html',
   styleUrl: './advertiser-id.css',

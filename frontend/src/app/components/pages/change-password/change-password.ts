@@ -8,6 +8,9 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '@app/api/user-service';
 import { ChangePassword } from '@app/models/user';
+import { ToastrService } from 'ngx-toastr';
+import { DestroyRef } from '@angular/core';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
 
 @Component({
   selector: 'app-change-password',
@@ -19,7 +22,7 @@ import { ChangePassword } from '@app/models/user';
     MatInputModule,
     MatButtonModule,
     MatProgressSpinner,
-],
+  ],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
 })
@@ -27,7 +30,8 @@ export class ChangePasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly snackBar = inject(MatSnackBar);
-
+  private readonly toastService = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
   public submitting = signal(false);
 
   passwordForm: FormGroup = this.fb.group({
@@ -37,6 +41,11 @@ export class ChangePasswordComponent {
   }, {
     validators: this.passwordMatchValidator,
   });
+
+  constructor() {
+    setupServerErrorClearing(this.passwordForm, this.destroyRef);
+    this.toastService.error("Holaaa", "error")
+  }
 
   passwordMatchValidator(group: FormGroup) {
     const newPwd = group.get('newPassword')?.value;
@@ -56,8 +65,7 @@ export class ChangePasswordComponent {
           this.submitting.set(false);
         },
         error: (err) => {
-          const errorMessage = err.error?.message || 'Error changing password';
-          this.snackBar.open(errorMessage, 'Close', { duration: 3000 });
+          handleBackendFormErrors(err, this.passwordForm, this.toastService);
           this.submitting.set(false);
         },
       });

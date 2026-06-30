@@ -6,3 +6,9 @@ export interface Role {
   description: string;
   permissions: Permission[];
 }
+
+export interface RoleRequest {
+  name: string;
+  description: string;
+  permissions: Permission[];
+}

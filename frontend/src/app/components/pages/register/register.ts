@@ -12,6 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import { DestroyRef } from '@angular/core';
 
 @Component({
   selector: 'app-register',
@@ -34,12 +36,12 @@ export class Register implements OnInit {
   private readonly apiAuthService = inject(AuthService);
   private readonly authService = inject(AuthenticationService);
   private readonly toastService = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
 
   public readonly clientId = toSignal(this.authService.getClientID());
 
   public registerForm!: FormGroup;
   public submitting = signal(false);
-  public errorMessage = signal('');
   public hidePassword = signal(true);
 
   ngOnInit() {
@@ -51,6 +53,7 @@ export class Register implements OnInit {
       },
       { validators: this.passwordMatchValidator },
     );
+    setupServerErrorClearing(this.registerForm, this.destroyRef);
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -70,7 +73,6 @@ export class Register implements OnInit {
     }
 
     this.submitting.set(true);
-    this.errorMessage.set('');
 
     const { email, password } = this.registerForm.value;
 
@@ -83,7 +85,7 @@ export class Register implements OnInit {
         this.submitting.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMessage.set(err.error?.message || err.message || 'Registration failed');
+        handleBackendFormErrors(err, this.registerForm, this.toastService);
         this.submitting.set(false);
       },
     });

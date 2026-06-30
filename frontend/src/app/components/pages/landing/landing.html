@@ -24,7 +24,7 @@
       </p>
       <div class="hero-actions">
         @if (!isAuthenticated()) {
-          <a mat-flat-button color="primary" routerLink="/login" class="hero-btn-primary">
+          <a routerLink="/login" class="special-btn">
             <mat-icon>login</mat-icon>
             Get Started
           </a>
@@ -200,7 +200,7 @@
           Sign In Now
         </a>
       } @else {
-        <a mat-flat-button routerLink="/dashboard" class="cta-button">
+        <a mat-flat-button color="primary" routerLink="/dashboard" class="cta-button">
           <mat-icon>dashboard</mat-icon>
           Go to Dashboard
         </a>
@@ -212,7 +212,9 @@
   <footer class="landing-footer">
     <div class="footer-content">
       <div class="footer-brand">
-        <mat-icon>campaign</mat-icon>
+        <div class="brand-icon">
+          <img src="logo.svg" alt="logo" class="brand-logo">
+        </div>
         <span>Auth Alpaca</span>
       </div>
       <p>Built with Angular + Angular Material</p>

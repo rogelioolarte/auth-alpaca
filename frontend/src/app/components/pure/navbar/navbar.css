@@ -31,10 +31,6 @@
     padding: var(--space-1) var(--space-3);
     transition: all 0.2s ease;
 
-    &:hover {
-        background: var(--color-surface-variant);
-    }
-
     .brand-icon {
         width: 2.25rem;
         height: 2.25rem;
@@ -43,7 +39,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: var(--shadow-md);
+        box-shadow: none;
 
         mat-icon {
             font-size: 1.25rem;
@@ -160,7 +156,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
-        box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-sm);
 
     mat-icon {
         font-size: 1.125rem;

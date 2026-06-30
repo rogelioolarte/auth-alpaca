@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, DestroyRef } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 import { Permission } from '@app/models/permission';
+import { RoleService } from '@app/api/role-service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import { RoleRequest } from '@app/models/role';
 
 export interface RoleDialogData {
   mode: 'create' | 'edit';
@@ -54,6 +59,9 @@ export interface RoleDialogData {
             @if (roleForm.get('name')?.hasError('required')) {
               <mat-error>Name is required</mat-error>
             }
+            @if (roleForm.get('name')?.hasError('serverError')) {
+              <mat-error>{{ roleForm.get('name')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -64,6 +72,9 @@ export interface RoleDialogData {
               rows="2"
               placeholder="Role description..."
             ></textarea>
+            @if (roleForm.get('description')?.hasError('serverError')) {
+              <mat-error>{{ roleForm.get('description')?.getError('serverError') }}</mat-error>
+            }
           </mat-form-field>
 
           @let currentPerms = data.role?.permissions;
@@ -86,6 +97,9 @@ export interface RoleDialogData {
                   <mat-option [value]="perm.id">{{ perm.name }}</mat-option>
                 }
               </mat-select>
+              @if (roleForm.get('permissions')?.hasError('serverError')) {
+                <mat-error>{{ roleForm.get('permissions')?.getError('serverError') }}</mat-error>
+              }
             </mat-form-field>
           } @else {
             <div class="no-permissions">
@@ -186,6 +200,10 @@ export class RoleDialog {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<RoleDialog>);
   public data: RoleDialogData = inject(MAT_DIALOG_DATA);
+  private roleService = inject(RoleService);
+  private snackBar = inject(MatSnackBar);
+  private toastr = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     // Get initial permission IDs for edit mode
@@ -196,17 +214,42 @@ export class RoleDialog {
       description: [this.data.role?.description || ''],
       permissions: [initialPermissionIds],
     });
+
+    setupServerErrorClearing(this.roleForm, this.destroyRef);
   }
 
   onSubmit() {
     if (this.roleForm.valid) {
-      this.saving.set(true);
-      const result = {
+      const result: RoleRequest = {
         name: this.roleForm.value.name,
         description: this.roleForm.value.description,
         permissions: this.roleForm.value.permissions || [],
       };
-      this.dialogRef.close(result);
+      this.saving.set(true);
+
+      if (this.data.mode === 'edit') {
+        this.roleService.updateRoleById(this.data.role!.id, result).subscribe({
+          next: () => {
+            this.snackBar.open('Role updated', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            handleBackendFormErrors(err, this.roleForm, this.toastr);
+            this.saving.set(false);
+          },
+        });
+      } else {
+        this.roleService.createRole(result).subscribe({
+          next: () => {
+            this.snackBar.open('Role created', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            handleBackendFormErrors(err, this.roleForm, this.toastr);
+            this.saving.set(false);
+          },
+        });
+      }
     }
   }
 

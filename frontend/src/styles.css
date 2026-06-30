@@ -80,7 +80,7 @@
 
 @layer reset {
     *, *::before, *::after {
-        box-sizing: border-box;
+        box-sizing: none;
     }
 
     html, body {
@@ -357,5 +357,33 @@
 
     mat-form-field {
         --mdc-outlined-text-field-container-shape: var(--radius-md);
+    }
+}
+
+.special-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-5);
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+
+    mat-icon {
+        font-size: 1.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+
+    &:hover {
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-0.0625rem);
     }
 }

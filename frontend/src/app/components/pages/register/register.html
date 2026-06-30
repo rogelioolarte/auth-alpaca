@@ -23,80 +23,82 @@
 
       <mat-card-content>
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="you@example.com" />
-            <mat-icon matPrefix>email</mat-icon>
-            @if (
-              registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched
-            ) {
-              <mat-error>Email is required</mat-error>
-            }
-            @if (
-              registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched
-            ) {
-              <mat-error>Please enter a valid email</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="you@example.com" />
+              <mat-icon matPrefix>email</mat-icon>
+              @if (
+                registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched
+              ) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (
+                registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched
+              ) {
+                <mat-error>Please enter a valid email</mat-error>
+              }
+              @if (registerForm.get('email')?.hasError('serverError')) {
+                <mat-error> {{ registerForm.get('email')?.getError('serverError') }} </mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Password</mat-label>
-            <input
-              matInput
-              [type]="hidePassword() ? 'password' : 'text'"
-              formControlName="password"
-            />
-            <mat-icon matPrefix>lock</mat-icon>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+              />
+              <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+              >
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (
+                registerForm.get('password')?.hasError('required') &&
+                registerForm.get('password')?.touched
+              ) {
+                <mat-error>Password is required</mat-error>
+              }
+              @if (
+                registerForm.get('password')?.hasError('minlength') &&
+                registerForm.get('password')?.touched
+              ) {
+                <mat-error>Password must be at least 6 characters</mat-error>
+              }
+              @if (registerForm.get('password')?.hasError('serverError')) {
+                <mat-error> {{ registerForm.get('password')?.getError('serverError') }} </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Confirm Password</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="confirmPassword"
+              />
+              <mat-icon matPrefix>lock_outline</mat-icon>
+              @if (
+                registerForm.get('confirmPassword')?.hasError('required') &&
+                registerForm.get('confirmPassword')?.touched
+              ) {
+                <mat-error>Please confirm your password</mat-error>
+              }
+              @if (registerForm.get('confirmPassword')?.hasError('serverError')) {
+                <mat-error> {{ registerForm.get('confirmPassword')?.getError('serverError') }} </mat-error>
+              }
+            </mat-form-field>
+
             <button
-              mat-icon-button
-              matSuffix
-              type="button"
-              (click)="hidePassword.set(!hidePassword())"
+              class="submit-btn"
+              type="submit"
+              [disabled]="registerForm.invalid || submitting()"
             >
-              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            @if (
-              registerForm.get('password')?.hasError('required') &&
-              registerForm.get('password')?.touched
-            ) {
-              <mat-error>Password is required</mat-error>
-            }
-            @if (
-              registerForm.get('password')?.hasError('minlength') &&
-              registerForm.get('password')?.touched
-            ) {
-              <mat-error>Password must be at least 6 characters</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Confirm Password</mat-label>
-            <input
-              matInput
-              [type]="hidePassword() ? 'password' : 'text'"
-              formControlName="confirmPassword"
-            />
-            <mat-icon matPrefix>lock_outline</mat-icon>
-            @if (
-              registerForm.get('confirmPassword')?.hasError('required') &&
-              registerForm.get('confirmPassword')?.touched
-            ) {
-              <mat-error>Please confirm your password</mat-error>
-            }
-          </mat-form-field>
-
-          @if (errorMessage()) {
-            <div class="error-alert">
-              <mat-icon>error</mat-icon>
-              <span>{{ errorMessage() }}</span>
-            </div>
-          }
-
-          <button
-            class="submit-btn"
-            type="submit"
-            [disabled]="registerForm.invalid || submitting()"
-          >
             @if (submitting()) {
               <mat-spinner diameter="20"></mat-spinner>
               <span>Creating account...</span>

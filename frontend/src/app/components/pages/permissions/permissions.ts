@@ -93,27 +93,7 @@ export class Permissions {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        if (permission) {
-          this.permissionService.updatePermissionById(permission.id, result.name).subscribe({
-            next: () => {
-              this.snackBar.open('Permission updated', 'Close', { duration: 3000 });
-              this.loadPermissions();
-            },
-            error: () => {
-              this.snackBar.open('Error updating permission', 'Close', { duration: 3000 });
-            },
-          });
-        } else {
-          this.permissionService.createPermission(result.name).subscribe({
-            next: () => {
-              this.snackBar.open('Permission created', 'Close', { duration: 3000 });
-              this.loadPermissions();
-            },
-            error: () => {
-              this.snackBar.open('Error creating permission', 'Close', { duration: 3000 });
-            },
-          });
-        }
+        this.loadPermissions();
       }
     });
   }

@@ -17,6 +17,8 @@ import { addCodeChallenge, GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../mod
 import { GoogleIcon } from '../../icons/google-icon/google-icon';
 import { CommonModule } from '@angular/common';
 import { PkceService } from '@app/auth/pkce-service';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import { DestroyRef } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -44,11 +46,11 @@ export class Login implements OnInit {
   private readonly toastService = inject(ToastrService);
   public readonly clientId = toSignal(this.authService.getClientID());
   public readonly ProviderGoogle = AuthProvider.google;
+  private destroyRef = inject(DestroyRef);
 
   private authProvider = AuthProvider.provider;
   public loginForm!: FormGroup;
   public submitting = signal(false);
-  public errorMessage = signal('');
   public hidePassword = signal(true);
 
   ngOnInit() {
@@ -56,6 +58,7 @@ export class Login implements OnInit {
       email: ['', Validators.required],
       password: ['', Validators.required],
     });
+    setupServerErrorClearing(this.loginForm, this.destroyRef);
   }
 
   onSubmit() {
@@ -78,7 +81,7 @@ export class Login implements OnInit {
 
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMessage.set(err.error.message || err.message);
+        handleBackendFormErrors(err, this.loginForm, this.toastService);
         this.submitting.set(false);
       }
     });
@@ -95,7 +98,7 @@ export class Login implements OnInit {
         window.location.href = addCodeChallenge(GITHUB_AUTH_URL, codeChallenge);
         break;
       default:
-        this.toastService.error('UnKnown Provider');
+        this.toastService.error('Unknown Provider');
     }
   }
 }

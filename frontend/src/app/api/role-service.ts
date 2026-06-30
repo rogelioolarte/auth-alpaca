@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Role } from '../models/role';
+import { Role, RoleRequest } from '../models/role';
 import { environment } from '../../environments/environment';
 import { getParams, Page, Pageable } from '../models/pageable';
 
@@ -11,11 +11,11 @@ import { getParams, Page, Pageable } from '../models/pageable';
 export class RoleService {
   private readonly http = inject(HttpClient);
 
-  createRole(role: Role): Observable<Role> {
+  createRole(role: RoleRequest): Observable<Role> {
     return this.http.post<Role>(`${environment.API_URL}/api/roles`, role);
   }
 
-  updateRoleById(id: string, role: Role): Observable<Role> {
+  updateRoleById(id: string, role: RoleRequest): Observable<Role> {
     return this.http.put<Role>(`${environment.API_URL}/api/roles/${id}`, role);
   }
 

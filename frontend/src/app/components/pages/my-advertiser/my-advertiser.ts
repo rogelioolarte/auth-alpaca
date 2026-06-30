@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +12,8 @@ import { AdvertiserService } from '@app/api/advertiser-service';
 import { AuthenticationService } from '@app/auth/authentication-service';
 import { MatButtonModule } from '@angular/material/button';
 import { AdvertiserRequest } from '@app/models/advertiser';
+import { ToastrService } from 'ngx-toastr';
+import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
 
 @Component({
   selector: 'app-my-advertiser',
@@ -33,6 +35,8 @@ export class MyAdvertiser implements OnInit {
   private advertiserService = inject(AdvertiserService);
   private authService = inject(AuthenticationService);
   private snackBar = inject(MatSnackBar);
+  private toastr = inject(ToastrService);
+  private destroyRef = inject(DestroyRef);
 
   loading = signal(true);
   saving = signal(false);
@@ -50,6 +54,7 @@ export class MyAdvertiser implements OnInit {
 
   ngOnInit(): void {
     this.loadAdvertiser();
+    setupServerErrorClearing(this.advertiserForm, this.destroyRef);
   }
 
   loadAdvertiser() {
@@ -84,7 +89,8 @@ export class MyAdvertiser implements OnInit {
             this.snackBar.open('Advertiser updated successfully', 'Close', { duration: 3000 });
             this.saving.set(false);
           },
-          error: () => {
+          error: (err) => {
+            handleBackendFormErrors(err, this.advertiserForm, this.toastr);
             this.snackBar.open('Error updating advertiser', 'Close', { duration: 3000 });
             this.saving.set(false);
           },
@@ -96,7 +102,8 @@ export class MyAdvertiser implements OnInit {
             this.saving.set(false);
             this.authService.rotateTokens().subscribe();
           },
-          error: () => {
+          error: (err) => {
+            handleBackendFormErrors(err, this.advertiserForm, this.toastr);
             this.snackBar.open('Error creating advertiser', 'Close', { duration: 3000 });
             this.saving.set(false);
           },
