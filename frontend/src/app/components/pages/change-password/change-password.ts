@@ -44,7 +44,6 @@ export class ChangePasswordComponent {
 
   constructor() {
     setupServerErrorClearing(this.passwordForm, this.destroyRef);
-    this.toastService.error("Holaaa", "error")
   }
 
   passwordMatchValidator(group: FormGroup) {

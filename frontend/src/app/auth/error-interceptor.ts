@@ -46,9 +46,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         return throwError(() => error);
       }
-      console.log("llego aca")
 
-      toastService.info("Holaaa")
       toastService.error(errorMessage, 'Error');
 
       console.error(`[HTTP Error Log]`, {
