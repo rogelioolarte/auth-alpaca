@@ -43,12 +43,13 @@ export class Register implements OnInit {
   public registerForm!: FormGroup;
   public submitting = signal(false);
   public hidePassword = signal(true);
+  public hideConfirmPassword = signal(true);
 
   ngOnInit() {
     this.registerForm = this.formBuilder.group(
       {
         email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
+        password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(200)]],
         confirmPassword: ['', Validators.required],
       },
       { validators: this.passwordMatchValidator },

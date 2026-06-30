@@ -11,6 +11,7 @@ import { ChangePassword } from '@app/models/user';
 import { ToastrService } from 'ngx-toastr';
 import { DestroyRef } from '@angular/core';
 import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-change-password',
@@ -22,6 +23,7 @@ import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/u
     MatInputModule,
     MatButtonModule,
     MatProgressSpinner,
+    MatIcon,
   ],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
@@ -33,6 +35,9 @@ export class ChangePasswordComponent {
   private readonly toastService = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
   public submitting = signal(false);
+  public hideCurrentPassword = signal(true);
+  public hideNewPassword = signal(true);
+  public hideRepeatPassword = signal(true);
 
   passwordForm: FormGroup = this.fb.group({
     currentPassword: ['', Validators.required],

@@ -55,6 +55,8 @@
                 matSuffix
                 type="button"
                 (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+                [attr.aria-pressed]="!hidePassword()"
               >
                 <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
@@ -68,7 +70,13 @@
                 registerForm.get('password')?.hasError('minlength') &&
                 registerForm.get('password')?.touched
               ) {
-                <mat-error>Password must be at least 6 characters</mat-error>
+                <mat-error>Password must be at least 8 characters</mat-error>
+              }
+              @if (
+                registerForm.get('password')?.hasError('maxlength') &&
+                registerForm.get('password')?.touched
+              ) {
+                <mat-error>The password must have a maximum of 200 characters</mat-error>
               }
               @if (registerForm.get('password')?.hasError('serverError')) {
                 <mat-error> {{ registerForm.get('password')?.getError('serverError') }} </mat-error>
@@ -79,10 +87,20 @@
               <mat-label>Confirm Password</mat-label>
               <input
                 matInput
-                [type]="hidePassword() ? 'password' : 'text'"
+                [type]="hideConfirmPassword() ? 'password' : 'text'"
                 formControlName="confirmPassword"
               />
               <mat-icon matPrefix>lock_outline</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hideConfirmPassword.set(!hideConfirmPassword())"
+                [attr.aria-label]="hideConfirmPassword() ? 'Show password' : 'Hide password'"
+                [attr.aria-pressed]="!hideConfirmPassword()"
+              >
+                <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
               @if (
                 registerForm.get('confirmPassword')?.hasError('required') &&
                 registerForm.get('confirmPassword')?.touched
@@ -99,16 +117,16 @@
               type="submit"
               [disabled]="registerForm.invalid || submitting()"
             >
-            @if (submitting()) {
-              <mat-spinner diameter="20"></mat-spinner>
-              <span>Creating account...</span>
-            } @else {
-              <mat-icon>arrow_forward</mat-icon>
-              <span>Create Account</span>
-            }
-          </button>
-        </form>
-      </mat-card-content>
+              @if (submitting()) {
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Creating account...</span>
+              } @else {
+                <mat-icon>arrow_forward</mat-icon>
+                <span>Create Account</span>
+              }
+            </button>
+          </form>
+        </mat-card-content>
 
       <div class="card-footer">
         <p>Already have an account? <a routerLink="/login">Sign In</a></p>

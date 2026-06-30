@@ -66,6 +66,8 @@
                 matSuffix
                 type="button"
                 (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+                [attr.aria-pressed]="!hidePassword()"
               >
                 <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
@@ -73,6 +75,18 @@
                 loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched
               ) {
                 <mat-error>Password is required</mat-error>
+              }
+              @if (
+                loginForm.get('password')?.hasError('minlength') &&
+                loginForm.get('password')?.touched
+              ) {
+                <mat-error>Password must be at least 8 characters</mat-error>
+              }
+              @if (
+                loginForm.get('password')?.hasError('maxlength') &&
+                loginForm.get('password')?.touched
+              ) {
+                <mat-error>The password must have a maximum of 200 characters</mat-error>
               }
               @if (loginForm.get('password')?.hasError('serverError')) {
                 <mat-error> {{ loginForm.get('password')?.getError('serverError') }} </mat-error>

@@ -73,32 +73,35 @@ export interface UserDialogData {
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input
-              matInput
-              formControlName="password"
-              [type]="hidePassword() ? 'password' : 'text'"
-              placeholder="Temporary password"
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              type="button"
-              (click)="hidePassword.set(!hidePassword())"
-            >
-              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            @if (userForm.get('password')?.hasError('required')) {
-              <mat-error>Password is required</mat-error>
-            }
-            @if (userForm.get('password')?.hasError('minlength')) {
-              <mat-error>Password must be at least 8 characters</mat-error>
-            }
-            @if (userForm.get('password')?.hasError('serverError')) {
-              <mat-error>{{ userForm.get('password')?.getError('serverError') }}</mat-error>
-            }
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                formControlName="password"
+                [type]="hidePassword() ? 'password' : 'text'"
+                placeholder="Temporary password"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+                [attr.aria-pressed]="!hidePassword()"
+              >
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (userForm.get('password')?.hasError('required')) {
+                <mat-error>Password is required</mat-error>
+              }
+              @if (userForm.get('password')?.hasError('minlength')) {
+                <mat-error>Password must be at least 8 characters</mat-error>
+              }
+              @if (userForm.get('password')?.hasError('serverError')) {
+                <mat-error>{{ userForm.get('password')?.getError('serverError') }}</mat-error>
+              }
+            </mat-form-field>
+
 
           @let currentRoles = data.user?.roles;
           @if (data.mode === 'edit' && currentRoles && currentRoles.length > 0) {
