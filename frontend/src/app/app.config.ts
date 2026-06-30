@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideToastr({ 
       closeButton: true, maxOpened: 5, positionClass: 'toast-bottom-right', 
-      tapToDismiss: false, autoDismiss: true, timeOut: 5000,
+      tapToDismiss: false, autoDismiss: true, timeOut: 7000,
     }),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
   ],

@@ -1,6 +1,7 @@
 @layer reset, material, base, components, utilities, overrides;
 
 @import '@angular/material/prebuilt-themes/indigo-pink.css' layer(material);
+@import 'ngx-toastr/toastr';
 
 :root {
     /* --- Color Palette (Material 3 inspired) --- */
