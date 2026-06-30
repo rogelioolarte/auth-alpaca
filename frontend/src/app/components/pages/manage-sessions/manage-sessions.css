@@ -9,7 +9,7 @@
   gap: var(--space-6);
   min-height: 100vh;
   padding: var(--space-8);
-  background: var(--color-surface);
+  background: var(--sys-color-surface);
 }
 
 .page-header {
@@ -28,9 +28,9 @@
 }
 
 .info-icon {
-  font-size: 1rem;
-  height: 1rem;
-  width: 1rem;
+  font-size: var(--space-4);
+  height: var(--space-4);
+  width: var(--space-4);
   margin-left: var(--space-1);
   cursor: help;
   vertical-align: middle;
@@ -41,13 +41,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-10);
-  color: var(--color-on-surface-variant);
+  padding: var(--space-8);
+  color: var(--sys-color-on-surface-variant);
   gap: var(--space-3);
 }
 
 .empty-state mat-icon {
-  font-size: 3rem;
-  width: 3rem;
-  height: 3rem;
+  font-size: var(--space-12);
+  width: var(--space-12);
+  height: var(--space-12);
 }

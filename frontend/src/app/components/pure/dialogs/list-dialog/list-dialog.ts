@@ -47,8 +47,8 @@ export interface ListDialogData {
   styles: [
     `
       .list-dialog {
-        min-width: 350px;
-        max-width: 500px;
+        min-width: 20rem;
+        max-width: 30rem;
         container-type: inline-size;
 
         .dialog-header {
@@ -67,7 +67,7 @@ export interface ListDialogData {
 
         mat-dialog-content {
           padding: var(--space-6);
-          min-height: 100px;
+          min-height: calc(var(--space-16) * 1.5);
         }
 
         .items-list {
@@ -85,9 +85,9 @@ export interface ListDialogData {
           color: var(--color-on-surface-variant);
 
           mat-icon {
-            font-size: 3rem;
-            width: 3rem;
-            height: 3rem;
+            font-size: var(--space-12);
+            width: var(--space-12);
+            height: var(--space-12);
             opacity: 0.5;
           }
         }
@@ -96,7 +96,7 @@ export interface ListDialogData {
           padding: var(--space-4) var(--space-6);
         }
 
-        @container (max-width: 400px) {
+        @container (max-width: 25rem) {
           .dialog-header {
             flex-direction: column;
             align-items: flex-start;

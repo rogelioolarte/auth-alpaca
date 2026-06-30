@@ -75,29 +75,29 @@ export interface PermissionDialogData {
   styles: [
     `
       .dialog-container {
-        min-width: 400px;
+        min-width: 25rem;
       }
       .dialog-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 24px;
+        padding: var(--space-4) var(--space-6);
         border-bottom: 1px solid var(--mat-sys-outline-variant);
         h2 {
           margin: 0;
-          font-size: 20px;
+          font-size: 1.25rem;
           font-weight: 500;
         }
       }
       mat-dialog-content {
-        padding: 24px;
+        padding: var(--space-6);
       }
       .full-width {
         width: 100%;
       }
       mat-dialog-actions {
-        padding: 16px 24px;
-        gap: 8px;
+        padding: var(--space-4) var(--space-6);
+        gap: var(--space-2);
       }
     `,
   ],

@@ -4,9 +4,10 @@
    ======================================== */
 
 .page-container {
+  container-type: inline-size;
   margin: 0 auto;
   padding: var(--space-8);
-  background: var(--color-surface);
+  background: var(--sys-color-surface);
 }
 
 .loading-container {
@@ -23,7 +24,7 @@
   height: 15rem;
   background-size: cover;
   background-position: center;
-  background-color: var(--color-surface-variant);
+  background-color: var(--sys-color-surface-variant);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,10 +32,10 @@
   overflow: hidden;
 
     .placeholder-banner {
-      font-size: 6rem;
-      width: 6rem;
-      height: 6rem;
-      color: var(--color-on-surface-variant);
+      font-size: var(--space-20);
+      width: var(--space-20);
+      height: var(--space-20);
+      color: var(--sys-color-on-surface-variant);
     }
 
 }
@@ -69,7 +70,7 @@
       margin: 0 0 var(--space-2);
       font-size: 1.75rem;
       font-weight: 600;
-      color: var(--color-on-surface);
+      color: var(--sys-color-on-surface);
     }
 
     .badges {
@@ -78,13 +79,13 @@
     }
 
     .verified-chip {
-      background: var(--color-primary-container);
-      color: var(--color-on-primary-container);
+      background: var(--sys-color-primary-container);
+      color: var(--sys-color-on-primary-container);
     }
 
     .paid-chip {
-      background: var(--color-secondary-container);
-      color: var(--color-on-secondary-container);
+      background: var(--sys-color-secondary-container);
+      color: var(--sys-color-on-secondary-container);
     }
 }
 
@@ -92,20 +93,20 @@
   width: 7.5rem;
   height: 7.5rem;
   border-radius: 50%;
-  border: var(--space-1) solid var(--color-surface);
+  border: var(--space-1) solid var(--sys-color-surface);
   background-size: cover;
   background-position: center;
-  background-color: var(--color-surface-variant);
+  background-color: var(--sys-color-surface-variant);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
     .placeholder-avatar {
-      font-size: 4rem;
-      width: 4rem;
-      height: 4rem;
-      color: var(--color-on-surface-variant);
+      font-size: var(--space-16);
+      width: var(--space-16);
+      height: var(--space-16);
+      color: var(--sys-color-on-surface-variant);
     }
 }
 
@@ -124,7 +125,7 @@ mat-card-content {
       margin: 0 0 var(--space-3);
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--color-on-surface-variant);
+      color: var(--sys-color-on-surface-variant);
     }
 
     p {
@@ -136,7 +137,7 @@ mat-card-content {
       line-height: 1.5;
 
       mat-icon {
-        color: var(--color-on-surface-variant);
+        color: var(--sys-color-on-surface-variant);
       }
     }
 
@@ -154,10 +155,10 @@ mat-divider {
   padding: var(--space-12);
 
   mat-icon {
-    font-size: 4rem;
-    width: 4rem;
-    height: 4rem;
-    color: var(--color-on-surface-variant);
+    font-size: var(--space-16);
+    width: var(--space-16);
+    height: var(--space-16);
+    color: var(--sys-color-on-surface-variant);
   }
 
   h2 {
@@ -165,7 +166,7 @@ mat-divider {
   }
 
   p {
-    color: var(--color-on-surface-variant);
+    color: var(--sys-color-on-surface-variant);
     margin-bottom: var(--space-6);
   }
 }

@@ -17,13 +17,13 @@
     margin: 0;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--color-on-surface);
+    color: var(--sys-color-on-surface);
   }
 }
 
 .search-field {
   width: 100%;
-  max-width: 25rem;
+  max-width: var(--space-20);
   margin-bottom: var(--space-4);
 }
 
@@ -37,9 +37,9 @@ mat-paginator {
 }
 
 mat-chip {
-  margin: 0.125rem;
+  margin: var(--space-0);
 }
 
 .empty-field {
-  color: var(--color-outline-variant);
+  color: var(--sys-color-outline-variant);
 }

@@ -9,15 +9,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface);
+  background: var(--sys-color-surface);
   overflow: hidden;
   container-type: inline-size;
 }
 
 .brand-logo {
   display: flex;
-  height: 3.6rem;
-  width: 3.6rem;
+  height: var(--space-6);
+  width: var(--space-6);
 }
 
 .login-background {
@@ -29,24 +29,24 @@
 .bg-shape {
   position: absolute;
   border-radius: 50%;
-  filter: blur(6.25rem);
+  filter: blur(var(--space-12));
   opacity: 0.2;
 }
 
 .bg-shape-1 {
-  width: 37.5rem;
-  height: 37.5rem;
-  background: var(--color-primary);
-  top: -12.5rem;
-  right: -6.25rem;
+  width: var(--space-32);
+  height: var(--space-32);
+  background: var(--sys-color-primary);
+  top: calc(var(--space-32) * -0.5);
+  right: calc(var(--space-12) * -0.5);
 }
 
 .bg-shape-2 {
-  width: 31.25rem;
-  height: 31.25rem;
-  background: var(--color-tertiary);
-  bottom: -12.5rem;
-  left: -6.25rem;
+  width: var(--space-20);
+  height: var(--space-20);
+  background: var(--sys-color-tertiary);
+  bottom: calc(var(--space-32) * -0.5);
+  left: calc(var(--space-12) * -0.5);
 }
 
 .login-content {
@@ -59,7 +59,7 @@
 
 .login-brand {
   text-align: center;
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-8);
 }
 
 .brand-link {
@@ -67,23 +67,23 @@
   align-items: center;
   gap: var(--space-3);
   text-decoration: none;
-  color: var(--color-on-surface);
+  color: var(--sys-color-on-surface);
   font-size: 1.5rem;
   font-weight: 600;
 
   mat-icon {
     font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
-    color: var(--color-primary);
+    width: var(--space-4);
+    height: var(--space-4);
+    color: var(--sys-color-primary);
   }
 }
 
 /* Login Card */
 .login-card {
-  background: var(--color-surface-container-high);
+  background: var(--sys-color-surface-container-high);
   border-radius: var(--radius-xl);
-  padding: var(--space-12) var(--space-10);
+  padding: var(--space-12) var(--space-8);
   box-shadow: var(--shadow-xl);
 }
 
@@ -93,10 +93,10 @@
 }
 
 .brand-decoration {
-  width: 4rem;
-  height: 4rem;
+  width: var(--space-8);
+  height: var(--space-8);
   border-radius: var(--radius-lg);
-  background: var(--color-primary-container);
+  background: var(--sys-color-primary-container);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,22 +104,22 @@
 
   mat-icon {
     font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
-    color: var(--color-on-primary-container);
+    width: var(--space-4);
+    height: var(--space-4);
+    color: var(--sys-color-on-primary-container);
   }
 }
 
 .card-header h1 {
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--sys-color-on-surface);
   margin: 0 0 var(--space-2);
 }
 
 .card-header p {
   font-size: 0.9375rem;
-  color: var(--color-on-surface-variant);
+  color: var(--sys-color-on-surface-variant);
   margin: 0;
 }
 
@@ -129,14 +129,14 @@
 }
 
 .social-btn {
-  height: 3.25rem;
-  width: 100%;
+  height: var(--space-12);
+  width: 80%;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-outline-variant);
+  border: 1px solid var(--sys-color-outline-variant);
   background: transparent;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--color-on-surface);
+  color: var(--sys-color-on-surface);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -145,11 +145,8 @@
   transition: all 0.2s ease;
   padding: 0 var(--space-4);
   gap: var(--space-3);
-
-  &:hover {
-    background: var(--color-surface-variant);
-    border-color: var(--color-primary);
-  }
+  margin: auto;
+}
 
   .social-icon {
     display: flex;
@@ -160,7 +157,6 @@
   span {
     text-align: center;
   }
-}
 
 /* Divider */
 .divider-section {
@@ -174,12 +170,12 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--color-outline-variant);
+    background: var(--sys-color-outline-variant);
   }
 
   span {
     font-size: 0.8125rem;
-    color: var(--color-on-surface-variant);
+    color: var(--sys-color-on-surface-variant);
     white-space: nowrap;
   }
 }
@@ -191,7 +187,7 @@
 
   mat-icon[matPrefix] {
     margin-right: var(--space-3);
-    color: var(--color-on-surface-variant);
+    color: var(--sys-color-on-surface-variant);
   }
 }
 
@@ -201,34 +197,34 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-error-container);
-  color: var(--color-on-error-container);
+  background: var(--sys-color-error-container);
+  color: var(--sys-color-on-error-container);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
   font-size: 0.875rem;
 
   mat-icon {
     font-size: 1.25rem;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--space-2);
+    height: var(--space-2);
   }
 }
 
 /* Submit Button */
 .submit-btn {
+  display: flex;
   width: 100%;
-  height: 3.25rem;
+  height: var(--space-12);
   border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
-  margin-top: var(--space-2);
+  margin: auto;
 }
 
 .btn-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
 }
 
 /* Card Footer */
@@ -236,16 +232,16 @@
   text-align: center;
   margin-top: var(--space-6);
   padding-top: var(--space-6);
-  border-top: 1px solid var(--color-outline-variant);
+  border-top: 1px solid var(--sys-color-outline-variant);
 
   p {
     font-size: 0.875rem;
-    color: var(--color-on-surface-variant);
+    color: var(--sys-color-on-surface-variant);
     margin: 0;
   }
 
   a {
-    color: var(--color-primary);
+    color: var(--sys-color-primary);
     font-weight: 500;
     text-decoration: none;
 
@@ -260,7 +256,7 @@
   display: flex;
   justify-content: center;
   gap: var(--space-8);
-  margin-top: var(--space-10);
+  margin-top: var(--space-8);
 }
 
 .info-item {
@@ -268,12 +264,12 @@
   align-items: center;
   gap: var(--space-2);
   font-size: 0.8125rem;
-  color: var(--color-on-surface-variant);
+  color: var(--sys-color-on-surface-variant);
 
   mat-icon {
     font-size: 1.125rem;
-    width: 1.125rem;
-    height: 1.125rem;
+    width: var(--space-2);
+    height: var(--space-2);
   }
 }
 

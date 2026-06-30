@@ -24,12 +24,12 @@
       </p>
       <div class="hero-actions">
         @if (!isAuthenticated()) {
-          <a routerLink="/login" class="special-btn">
+          <a mat-flat-button color="primary" routerLink="/login">
             <mat-icon>login</mat-icon>
             Get Started
           </a>
         }
-        <a mat-stroked-button routerLink="/advertisers" class="hero-btn-secondary">
+        <a mat-stroked-button routerLink="/advertisers">
           <mat-icon>search</mat-icon>
           Explore
         </a>

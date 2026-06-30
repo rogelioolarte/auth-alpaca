@@ -17,7 +17,7 @@
     margin-bottom: var(--space-6);
     font-size: 2rem;
     font-weight: 300;
-    color: var(--color-on-surface);
+    color: var(--sys-color-on-surface);
   }
 }
 
@@ -28,7 +28,7 @@
 
 .advertisers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--space-48), 1fr));
   gap: var(--space-6);
   margin-bottom: var(--space-6);
 }
@@ -47,16 +47,16 @@
   height: 10rem;
   background-size: cover;
   background-position: center;
-  background-color: var(--color-surface-container-high);
+  background-color: var(--sys-color-surface-container-high);
   display: flex;
   align-items: center;
   justify-content: center;
 
   .placeholder-icon {
-    font-size: 4rem;
-    width: 4rem;
-    height: 4rem;
-    color: var(--color-outline-variant);
+    font-size: var(--space-16);
+    width: var(--space-16);
+    height: var(--space-16);
+    color: var(--sys-color-outline-variant);
   }
 }
 
@@ -75,19 +75,19 @@ mat-card-content {
     gap: var(--space-1);
     margin: 0 0 var(--space-2);
     font-size: 0.875rem;
-    color: var(--color-on-surface-variant);
+    color: var(--sys-color-on-surface-variant);
 
     mat-icon {
-      font-size: 1.125rem;
-      width: 1.125rem;
-      height: 1.125rem;
+      font-size: var(--space-4);
+      width: var(--space-4);
+      height: var(--space-4);
     }
   }
 
   .description {
     margin: 0 0 var(--space-3);
     font-size: 0.875rem;
-    color: var(--color-on-surface);
+    color: var(--sys-color-on-surface);
     line-height: 1.5;
   }
 
@@ -97,13 +97,13 @@ mat-card-content {
   }
 
   .verified-chip {
-    background: var(--color-tertiary-container);
-    color: var(--color-on-tertiary-container);
+    background: var(--sys-color-tertiary-container);
+    color: var(--sys-color-on-tertiary-container);
   }
 
   .paid-chip {
-    background: var(--color-secondary-container);
-    color: var(--color-on-secondary-container);
+    background: var(--sys-color-secondary-container);
+    color: var(--sys-color-on-secondary-container);
   }
 }
 
@@ -117,12 +117,12 @@ mat-card-content {
   grid-column: 1 / -1;
   text-align: center;
   padding: var(--space-12);
-  color: var(--color-outline-variant);
+  color: var(--sys-color-outline-variant);
 
   mat-icon {
-    font-size: 4rem;
-    width: 4rem;
-    height: 4rem;
+    font-size: var(--space-16);
+    width: var(--space-16);
+    height: var(--space-16);
   }
 
   p {

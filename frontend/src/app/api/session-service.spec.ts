@@ -59,7 +59,7 @@ describe('SessionService', () => {
 
   describe('revokeAllOtherSessions', () => {
     it('should call the correct endpoint to revoke all sessions', () => {
-      service.revokeAllOtherSessions().subscribe();
+      service.revokeAllSessions().subscribe();
 
       const req = httpMock.expectOne(`${environment.API_URL}/api/sessions/all`);
       expect(req.request.method).toBe('DELETE');

@@ -18,7 +18,7 @@ import { PlatformService } from '@app/services/platform-service';
     MatIconModule,
     MatMenuModule,
     MatButtonModule,
-    MatSidenavModule,
+    MatSidenavModule
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',

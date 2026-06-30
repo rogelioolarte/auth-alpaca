@@ -130,66 +130,66 @@ export interface RoleDialogData {
   styles: [
     `
       .dialog-container {
-        min-width: 480px;
+        min-width: 30rem;
       }
       .dialog-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 24px;
+        padding: var(--space-4) var(--space-6);
         border-bottom: 1px solid var(--mat-sys-outline-variant);
         h2 {
           margin: 0;
-          font-size: 20px;
+          font-size: 1.25rem;
           font-weight: 500;
         }
       }
       mat-dialog-content {
-        padding: 24px;
+        padding: var(--space-6);
       }
       .full-width {
         width: 100%;
-        margin-bottom: 8px;
+        margin-bottom: var(--space-2);
       }
       .current-permissions {
-        margin-bottom: 16px;
-        padding: 12px 16px;
+        margin-bottom: var(--space-4);
+        padding: var(--space-3) var(--space-4);
         background: var(--mat-sys-surface-container-low);
-        border-radius: 12px;
+        border-radius: var(--radius-lg);
 
         .section-label {
           display: block;
-          font-size: 12px;
+          font-size: 0.75rem;
           font-weight: 500;
           color: var(--mat-sys-on-surface-variant);
-          margin-bottom: 8px;
+          margin-bottom: var(--space-2);
         }
 
         .permissions-chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
+          gap: var(--space-1);
         }
       }
       .no-permissions {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
         background: var(--mat-sys-surface-container-low);
-        border-radius: 12px;
+        border-radius: var(--radius-lg);
         color: var(--mat-sys-on-surface-variant);
-        font-size: 13px;
+        font-size: 0.8125rem;
 
         mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
+          font-size: 1.25rem;
+          width: var(--space-3);
+          height: var(--space-3);
         }
       }
       mat-dialog-actions {
-        padding: 16px 24px;
-        gap: 8px;
+        padding: var(--space-4) var(--space-6);
+        gap: var(--space-2);
       }
     `,
   ],
