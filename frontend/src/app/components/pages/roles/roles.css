@@ -1,40 +1,41 @@
 /* ========================================
    ROLES PAGE - Premium UI Styles
-   Using rem (16px base)
+   Using design tokens from src/styles.css
    ======================================== */
 
 .content {
-    margin: 2rem 1rem 0;
+  margin: var(--space-8) var(--space-4) 0;
 }
 
 .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
 
-    h1 {
-        margin: 0;
-        font-size: 1.75rem;
-        font-weight: 600;
-    }
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-on-surface);
+  }
 }
 
 .search-field {
-    width: 100%;
-    max-width: 25rem;
-    margin-bottom: 1rem;
+  width: 100%;
+  max-width: 25rem;
+  margin-bottom: var(--space-4);
 }
 
 .roles-table {
-    width: 100%;
-    margin-bottom: 1rem;
+  width: 100%;
+  margin-bottom: var(--space-4);
 }
 
 mat-paginator {
-    background: transparent;
+  background: transparent;
 }
 
 mat-chip {
-    margin: 0.125rem;
+  margin: 0.125rem;
 }

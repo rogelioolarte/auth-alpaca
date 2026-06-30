@@ -49,46 +49,60 @@ export interface ListDialogData {
       .list-dialog {
         min-width: 350px;
         max-width: 500px;
-      }
-      .dialog-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 24px;
-        border-bottom: 1px solid var(--mat-sys-outline-variant);
+        container-type: inline-size;
 
-        h2 {
-          margin: 0;
-          font-size: 20px;
-          font-weight: 500;
-        }
-      }
-      mat-dialog-content {
-        padding: 24px;
-        min-height: 100px;
-      }
-      .items-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        padding: 32px;
-        color: var(--mat-sys-on-surface-variant);
+        .dialog-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: var(--space-4) var(--space-6);
+          border-bottom: 1px solid var(--color-outline-variant);
 
-        mat-icon {
-          font-size: 48px;
-          width: 48px;
-          height: 48px;
-          opacity: 0.5;
+          h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+          }
         }
-      }
-      mat-dialog-actions {
-        padding: 16px 24px;
+
+        mat-dialog-content {
+          padding: var(--space-6);
+          min-height: 100px;
+        }
+
+        .items-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-2);
+        }
+
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3);
+          padding: var(--space-8);
+          color: var(--color-on-surface-variant);
+
+          mat-icon {
+            font-size: 3rem;
+            width: 3rem;
+            height: 3rem;
+            opacity: 0.5;
+          }
+        }
+
+        mat-dialog-actions {
+          padding: var(--space-4) var(--space-6);
+        }
+
+        @container (max-width: 400px) {
+          .dialog-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-2);
+          }
+        }
       }
     `,
   ],

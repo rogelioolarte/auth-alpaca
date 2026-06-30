@@ -1,39 +1,51 @@
+/* ========================================
+   MY ADVERTISER PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
 .advertiser-content {
-  max-width: 600px;
-  margin: var(--spacing-8) auto;
+  max-width: 37.5rem;
+  margin: var(--space-8) auto;
+  padding: var(--space-8);
 }
- 
+
 h1 {
-  margin-bottom: var(--spacing-6);
-  font-size: var(--text-2xl);
-   font-weight: var(--font-weight-normal);
+  margin-bottom: var(--space-6);
+  padding-left: var(--space-6);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--color-on-surface);
 }
- 
+
 .advertiser-card {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--space-6);
 }
- 
+
+mat-card {
+  box-shadow: none;
+}
+
 mat-card-content {
-  padding: var(--spacing-6);
+  padding: var(--space-6);
 }
- 
+
 .full-width {
   width: 100%;
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--space-4);
 }
- 
+
 .toggle-field {
-  margin: var(--spacing-6) 0;
+  margin: var(--space-6) 0;
 }
- 
+
 .form-actions {
-  margin-top: var(--spacing-6);
+  margin-top: var(--space-6);
   display: flex;
   justify-content: flex-end;
 }
- 
+
 .loading-container {
   display: flex;
   justify-content: center;
-  padding: var(--spacing-12);
+  padding: var(--space-12);
 }

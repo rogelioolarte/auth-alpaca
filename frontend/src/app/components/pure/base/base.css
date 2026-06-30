@@ -1,6 +1,6 @@
 /* ========================================
    BASE - Dashboard Layout Styles
-   Using rem (16px base)
+   Using design tokens from src/styles.css
    ======================================== */
 
 .dashboard-container {
@@ -15,10 +15,10 @@
 
 .dashboard-sidenav {
     width: 16rem;
-    background: var(--mat-sys-surface-container-low);
-    border-right: 1px solid var(--mat-sys-outline-variant);
+    background: var(--color-surface-variant);
+    border-right: 1px solid var(--color-outline-variant);
     overflow: hidden;
-    
+
     .sidenav-container {
         display: flex;
         flex-direction: column;
@@ -27,32 +27,32 @@
     }
 
     .sidenav-header {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--mat-sys-outline-variant);
+        padding: var(--space-4) var(--space-5);
+        border-bottom: 1px solid var(--color-outline-variant);
         flex-shrink: 0;
 
         h2 {
             margin: 0;
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--mat-sys-on-surface);
+            color: var(--color-on-surface);
         }
     }
 
     .sidenav-nav {
-        padding: 0.5rem 0;
+        padding: var(--space-2) 0;
         flex: 1;
         overflow-y: auto;
 
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            margin: 0 0.5rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            gap: var(--space-3);
+            margin: 0 var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
             height: auto;
-            color: var(--mat-sys-on-surface-variant);
+            color: var(--color-on-surface-variant);
             transition: all 0.15s ease;
             max-width: 90%;
 
@@ -69,32 +69,32 @@
             }
 
             &:hover {
-                background: var(--mat-sys-surface-container-hover);
-                color: var(--mat-sys-on-surface);
+                background: var(--color-surface-variant);
+                color: var(--color-on-surface);
             }
 
             &.active {
-                background: var(--mat-sys-primary-container);
-                color: var(--mat-sys-on-primary-container);
+                background: var(--color-primary-container);
+                color: var(--color-on-primary-container);
 
                 mat-icon {
-                    color: var(--mat-sys-on-primary-container);
+                    color: var(--color-on-primary-container);
                 }
             }
 
             &.logout {
-                color: var(--mat-sys-error);
+                color: var(--color-error);
 
                 mat-icon {
-                    color: var(--mat-sys-error);
+                    color: var(--color-error);
                 }
 
                 &:hover {
-                    background: var(--mat-sys-error-container);
-                    color: var(--mat-sys-on-error-container);
+                    background: var(--color-error-container);
+                    color: var(--color-on-error-container);
 
                     mat-icon {
-                        color: var(--mat-sys-on-error-container);
+                        color: var(--color-on-error-container);
                     }
                 }
             }
@@ -102,18 +102,18 @@
 
         .nav-divider {
             height: 1px;
-            background: var(--mat-sys-outline-variant);
-            margin: 0.75rem 1rem;
+            background: var(--color-outline-variant);
+            margin: var(--space-3) var(--space-4);
         }
 
         .nav-section-label {
             display: block;
-            padding: 0.5rem 1.25rem 0.25rem;
+            padding: var(--space-2) var(--space-5) var(--space-1);
             font-size: 0.6875rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--mat-sys-on-surface-variant);
+            color: var(--color-on-surface-variant);
         }
     }
 }
@@ -127,14 +127,13 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    background: var(--mat-sys-surface);
+    background: var(--color-surface);
 }
 
 .page-content {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 4rem;
 }
 
 /* ========================================

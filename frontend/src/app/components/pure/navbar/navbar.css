@@ -1,19 +1,20 @@
 /* ========================================
    NAVBAR - Premium UI Styles
-   Using rem (16px base)
+   Using design tokens from src/styles.css
    ======================================== */
 
 .app-header {
+    container-type: inline-size;
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: var(--mat-sys-surface);
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-    padding: 0 1.5rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-outline-variant);
+    padding: 0 var(--space-6);
     height: 4rem;
     display: flex;
     align-items: center;
-    backdrop-filter: blur(0.5rem);
+    backdrop-filter: blur(var(--space-2));
 }
 
 /* ========================================
@@ -22,33 +23,33 @@
 .brand {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: var(--space-2);
     text-decoration: none;
-    color: var(--mat-sys-on-surface);
+    color: var(--color-on-surface);
     cursor: pointer;
-    border-radius: 0.75rem;
-    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    padding: var(--space-1) var(--space-3);
     transition: all 0.2s ease;
 
     &:hover {
-        background: var(--mat-sys-surface-container-hover);
+        background: var(--color-surface-variant);
     }
 
     .brand-icon {
         width: 2.25rem;
         height: 2.25rem;
-        border-radius: 0.625rem;
-        background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-tertiary) 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
+        box-shadow: var(--shadow-md);
 
         mat-icon {
             font-size: 1.25rem;
             width: 1.25rem;
             height: 1.25rem;
-            color: var(--mat-sys-on-primary);
+            color: var(--color-on-primary);
         }
 
         .brand-logo {
@@ -62,7 +63,7 @@
         font-size: 1.125rem;
         font-weight: 600;
         letter-spacing: -0.03125rem;
-        background: linear-gradient(135deg, var(--mat-sys-on-surface) 0%, var(--mat-sys-primary) 100%);
+        background: linear-gradient(135deg, var(--color-on-surface) 0%, var(--color-primary) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -82,17 +83,17 @@
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--space-1);
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-md);
     text-decoration: none;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--color-on-surface-variant);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -105,8 +106,8 @@
     }
 
     &:hover {
-        background: var(--mat-sys-surface-container-hover);
-        color: var(--mat-sys-on-surface);
+        background: var(--color-surface-variant);
+        color: var(--color-on-surface);
         
         mat-icon {
             transform: scale(1.1);
@@ -117,8 +118,8 @@
 .nav-divider {
     width: 1px;
     height: 1.5rem;
-    background: var(--mat-sys-outline-variant);
-    margin: 0 0.75rem;
+    background: var(--color-outline-variant);
+    margin: 0 var(--space-3);
 }
 
 /* ========================================
@@ -127,39 +128,39 @@
 .auth-buttons {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-3);
 }
 
 .btn-register {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-md);
     text-decoration: none;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--color-on-surface-variant);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
 
     &:hover {
-        background: var(--mat-sys-surface-container-hover);
-        color: var(--mat-sys-on-surface);
+        background: var(--color-surface-variant);
+        color: var(--color-on-surface);
     }
 }
 
 .btn-login {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 1.25rem;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-5);
+    border-radius: var(--radius-full);
     text-decoration: none;
-    background: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
     font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
-    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
 
     mat-icon {
         font-size: 1.125rem;
@@ -168,9 +169,9 @@
     }
 
     &:hover {
-        background: var(--mat-sys-primary-container);
-        color: var(--mat-sys-on-primary-container);
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        box-shadow: var(--shadow-lg);
         transform: translateY(-0.0625rem);
     }
 }
@@ -181,224 +182,64 @@
 .user-menu-trigger {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.25rem 0.75rem 0.25rem 0.25rem;
-    border-radius: 1.75rem;
-    border: 1px solid var(--mat-sys-outline-variant);
-    background: var(--mat-sys-surface-container-low);
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-variant);
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-        background: var(--mat-sys-surface-container-hover);
-        border-color: var(--mat-sys-primary);
+        background: var(--color-surface-variant);
+        border-color: var(--color-primary);
     }
 
     .user-avatar {
         width: 2rem;
         height: 2rem;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-tertiary) 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
 
         mat-icon {
             font-size: 1.125rem;
             width: 1.125rem;
             height: 1.125rem;
-            color: var(--mat-sys-on-primary);
+            color: var(--color-on-primary);
         }
     }
 
     .user-info {
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: var(--space-1);
 
         .user-name {
             font-size: 0.875rem;
             font-weight: 500;
-            color: var(--mat-sys-on-surface);
+            color: var(--color-on-surface);
         }
 
         .dropdown-icon {
             font-size: 1.125rem;
             width: 1.125rem;
             height: 1.125rem;
-            color: var(--mat-sys-on-surface-variant);
+            color: var(--color-on-surface-variant);
             transition: transform 0.2s ease;
         }
     }
 }
 
 /* ========================================
-   DROPDOWN MENU
-   ======================================== */
-::ng-deep .user-dropdown {
-    min-width: 17.5rem;
-    margin-top: 0.5rem;
-    border-radius: 1rem;
-    overflow: hidden;
-
-    /* User Header Section */
-    .menu-header {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.875rem;
-        padding: 1rem 1.25rem;
-        background: linear-gradient(135deg, var(--mat-sys-surface-container-high) 0%, var(--mat-sys-surface-container-low) 100%);
-        cursor: default !important;
-        pointer-events: none !important;
-
-        .user-avatar-large {
-            width: 3rem;
-            height: 3rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-
-            mat-icon {
-                font-size: 1.5rem;
-                width: 1.5rem;
-                height: 1.5rem;
-                color: var(--mat-sys-on-primary);
-            }
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.375rem;
-            flex: 1;
-            min-width: 0;
-
-            .user-name-text {
-                font-size: 0.9375rem;
-                font-weight: 600;
-                color: var(--mat-sys-on-surface);
-            }
-
-            .user-roles {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.25rem;
-
-                .role-chip {
-                    font-size: 0.625rem;
-                    font-weight: 600;
-                    padding: 0.125rem 0.5rem;
-                    background: var(--mat-sys-secondary-container);
-                    color: var(--mat-sys-on-secondary-container);
-                    border-radius: 0.625rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.03125rem;
-
-                    &.more {
-                        background: var(--mat-sys-tertiary-container);
-                        color: var(--mat-sys-on-tertiary-container);
-                    }
-                }
-            }
-        }
-    }
-
-    /* Menu Sections */
-    .menu-section {
-        padding: 0.5rem 0;
-
-        .section-label {
-            display: block;
-            padding: 0.5rem 1.25rem 0.25rem;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--mat-sys-on-surface-variant);
-            text-align: left;
-        }
-    }
-
-    .menu-divider {
-        height: 1px;
-        background: var(--mat-sys-outline-variant);
-        margin: 0.5rem 0;
-    }
-
-    /* Menu Items */
-    .menu-item {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.75rem;
-        padding: 0.625rem 1.25rem;
-        margin: 0 0.5rem;
-        border-radius: 0.625rem;
-        height: auto;
-        transition: all 0.15s ease;
-        
-        .item-icon {
-            font-size: 1.25rem;
-            width: 1.25rem;
-            height: 1.25rem;
-            color: var(--mat-sys-on-surface-variant);
-            transition: all 0.15s ease;
-            flex-shrink: 0;
-        }
-
-        .item-text {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--mat-sys-on-surface);
-        }
-
-        &:hover {
-            background: var(--mat-sys-surface-container-hover);
-            
-            .item-icon {
-                color: var(--mat-sys-primary);
-                transform: scale(1.1);
-            }
-        }
-
-        &.logout {
-            .item-icon {
-                color: var(--mat-sys-error);
-            }
-            .item-text {
-                color: var(--mat-sys-error);
-            }
-
-            &:hover {
-                background: var(--mat-sys-error-container);
-                
-                .item-icon {
-                    color: var(--mat-sys-on-error-container);
-                }
-                .item-text {
-                    color: var(--mat-sys-on-error-container);
-                }
-            }
-        }
-    }
-
-    mat-divider {
-        margin: 0.25rem 1rem;
-    }
-}
-
-/* ========================================
    RESPONSIVE
    ======================================== */
-@media (max-width: 48rem) {
+@container (max-width: 48rem) {
     .app-header {
-        padding: 0 1rem;
+        padding: 0 var(--space-4);
     }
 
     .brand-text {
@@ -410,7 +251,7 @@
     }
 
     .nav-link {
-        padding: 0.5rem;
+        padding: var(--space-1);
     }
 
     .btn-register span {
@@ -423,9 +264,5 @@
 
     .user-info .user-name {
         display: none;
-    }
-
-    ::ng-deep .user-dropdown {
-        min-width: 16.25rem;
     }
 }

@@ -1,129 +1,133 @@
+/* ========================================
+   ADVERTISERS PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
 .page-container {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--space-6);
 }
 
 .search-section {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 
   h1 {
-    margin-bottom: 24px;
-    font-size: 32px;
+    margin-bottom: var(--space-6);
+    font-size: 2rem;
     font-weight: 300;
+    color: var(--color-on-surface);
   }
 }
 
 .search-field {
   width: 100%;
-  max-width: 500px;
+  max-width: 31.25rem;
 }
 
 .advertisers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
 }
 
 .advertiser-card {
   cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-0.25rem);
+     box-shadow: var(--shadow-xl);
   }
 }
 
 .card-image {
-  height: 160px;
+  height: 10rem;
   background-size: cover;
   background-position: center;
-  background-color: var(--mat-sys-surface-container-high);
+  background-color: var(--color-surface-container-high);
   display: flex;
   align-items: center;
   justify-content: center;
 
   .placeholder-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: var(--mat-sys-outline);
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
+    color: var(--color-outline-variant);
   }
 }
 
 mat-card-content {
-  padding: 16px;
+  padding: var(--space-4);
 
   h3 {
-    margin: 0 0 8px;
-    font-size: 18px;
+    margin: 0 0 var(--space-2);
+    font-size: 1.125rem;
     font-weight: 500;
   }
 
   .location {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin: 0 0 8px;
-    font-size: 14px;
-    color: var(--mat-sys-on-surface-variant);
+    gap: var(--space-1);
+    margin: 0 0 var(--space-2);
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
 
     mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      font-size: 1.125rem;
+      width: 1.125rem;
+      height: 1.125rem;
     }
   }
 
   .description {
-    margin: 0 0 12px;
-    font-size: 14px;
-    color: var(--mat-sys-on-surface);
+    margin: 0 0 var(--space-3);
+    font-size: 0.875rem;
+    color: var(--color-on-surface);
     line-height: 1.5;
   }
 
   .badges {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .verified-chip {
-    background: var(--mat-sys-tertiary-container);
-    color: var(--mat-sys-on-tertiary-container);
+    background: var(--color-tertiary-container);
+    color: var(--color-on-tertiary-container);
   }
 
   .paid-chip {
-    background: var(--mat-sys-secondary-container);
-    color: var(--mat-sys-on-secondary-container);
+    background: var(--color-secondary-container);
+    color: var(--color-on-secondary-container);
   }
 }
 
 .loading-container {
   display: flex;
   justify-content: center;
-  padding: 48px;
+  padding: var(--space-12);
 }
 
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 48px;
-  color: var(--mat-sys-outline);
+  padding: var(--space-12);
+  color: var(--color-outline-variant);
 
   mat-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
+    font-size: 4rem;
+    width: 4rem;
+    height: 4rem;
   }
 
   p {
-    margin-top: 16px;
-    font-size: 18px;
+    margin-top: var(--space-4);
+    font-size: 1.125rem;
   }
 }
 

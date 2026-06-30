@@ -1,29 +1,35 @@
+/* ========================================
+   PERMISSIONS PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
 .content {
-  margin: 2rem 1rem 0rem 1rem;
+  margin: var(--space-8) var(--space-4) 0;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 
   h1 {
     margin: 0;
-    font-size: 28px;
-    font-weight: 400;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-on-surface);
   }
 }
 
 .search-field {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 16px;
+  max-width: 25rem;
+  margin-bottom: var(--space-4);
 }
 
 .permissions-table {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
 
 mat-paginator {

@@ -18,7 +18,7 @@ import { ChangePassword } from '@app/models/user';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinner
+    MatProgressSpinner,
 ],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
