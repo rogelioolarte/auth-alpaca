@@ -93,8 +93,8 @@
 }
 
 .brand-decoration {
-  width: var(--space-8);
-  height: var(--space-8);
+  width: var(--space-16);
+  height: var(--space-16);
   border-radius: var(--radius-lg);
   background: var(--sys-color-primary-container);
   display: flex;
@@ -103,10 +103,10 @@
   margin: 0 auto var(--space-6);
 
   mat-icon {
-    font-size: 2rem;
-    width: var(--space-4);
-    height: var(--space-4);
-    color: var(--sys-color-on-primary-container);
+    font-size: var(--space-8);
+    width: var(--space-8);
+    height: var(--space-8);
+    color: var(--sys-color-primary);
   }
 }
 

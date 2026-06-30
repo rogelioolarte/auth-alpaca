@@ -93,8 +93,8 @@
 }
 
 .brand-decoration {
-  width: 4rem;
-  height: 4rem;
+  width: var(--space-16);
+  height: var(--space-16);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
