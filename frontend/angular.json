@@ -3,7 +3,9 @@
   "version": 1,
   "cli": {
     "packageManager": "bun",
-    "schematicCollections": ["angular-eslint"],
+    "schematicCollections": [
+      "angular-eslint"
+    ],
     "analytics": false
   },
   "newProjectRoot": "projects",
@@ -16,7 +18,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@ngx-env/builder:application",
+          "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
@@ -59,7 +61,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@ngx-env/builder:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "auth-alpaca-ui:build:production"
@@ -68,12 +70,10 @@
               "buildTarget": "auth-alpaca-ui:build:development"
             }
           },
-          "defaultConfiguration": "development",
-          "options": {}
+          "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@ngx-env/builder:unit-test",
-          "options": {}
+          "builder": "@angular/build:unit-test"
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
