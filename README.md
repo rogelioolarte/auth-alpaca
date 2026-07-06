@@ -9,169 +9,93 @@
   <img src="docs/banner.png" alt="auth alpaca banner">
 </div>
 
-## 📚 Quick Navigation
+**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 21 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric RS512 signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
 
-| Section | Description |
-|---|---|
-| [🏗️ Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API |
-| [🎨 Frontend Architecture](docs/frontend-architecture.md) | Angular, guards, interceptors |
-| [🧪 Testing Strategy](docs/testing-strategy.md) | Unit, integration, k6 perf |
-| [🚀 Deployment](docs/deployment.md) | Docker, env vars, networking |
-| [🎓 4-Pillar Learning Path](docs/learning/index.md) | Masterclass from theory to code |
-| [📖 Glossary](docs/learning/glossary.md) | Security terminology reference |
-
-> A secure, production-ready reference implementation for OAuth2 and JWT-based authentication using **Spring Boot 4.0.6** with **Java 25** and **Angular 21** with **Bun**.
-
-
-
-## 🧭 Documentation Hub
-
-This section maps the project's documentation tree — each link below leads to a self-contained domain doc:
-
-```mermaid
-graph TD
-    Root[README.md] --> BE[docs/backend-architecture.md]
-    Root --> FE[docs/frontend-architecture.md]
-    Root --> TS[docs/testing-strategy.md]
-    Root --> DP[docs/deployment.md]
-```
-
-*   **[Backend Architecture](/docs/backend-architecture.md)**
-    *   Spring Security 6 & OAuth2 integration patterns.
-    *   JWT token generation, validation, and key rotation strategy.
-    *   Database schemas, JPA/Hibernate mapping, and REST API specification.
-*   **[Frontend Architecture](/docs/frontend-architecture.md)**
-    *   Angular 21 application structure, guards, and interceptor patterns.
-    *   Session state management and token storage mechanisms.
-    *   Integration deployment options and run configurations.
-*   **[Testing Strategy](/docs/testing-strategy.md)**
-    *   Spring Boot unit and slice tests with `@WebMvcTest` and `@DataJpaTest`.
-    *   Integration testing using Testcontainers.
-    *   Performance testing suite using Gatling.
-*   **[Deployment & Operations](/docs/deployment.md)**
-    *   Multi-environment properties and environment variable mappings.
-    *   Docker Compose multi-service topology.
-     *   Production readiness checklist and security configurations.
+The frontend is a functional integration example; the backend is the core — hardened, tested, and ready for real-world adoption.
 
 ---
 
-**← [Back to Top](#auth-alpaca)** | **📚 [Full Documentation](docs/backend-architecture.md)**
+## 🧭 Navigation
+
+| Category | Document | Description |
+|---|---|---|
+| **🏗️ Architecture** | [Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API, database schema |
+| | [Frontend Architecture](docs/frontend-architecture.md) | Angular guards, interceptors, token lifecycle |
+| **🧪 Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, k6 performance |
+| | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
+| **🎓 Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Masterclass from theory to code |
+| | [📖 Glossary](docs/learning/glossary.md) | Security terminology reference |
 
 ---
 
-## 🛠️ Stack Overview
+## 🚀 Quick Deploy (Docker)
 
-| Layer | Technology | Primary Libraries / Frameworks / Tools |
-| :--- | :--- | :--- |
-| **Backend** | Java 25 | Spring Boot 4.0.6, Spring Security, Spring Data JPA, JJWT |
-| **Frontend** | Angular 21 | RxJS, JWT-Decode, TypeScript, Bun 1.3.11 |
-| **Database** | PostgreSQL | Dockerized Postgres |
+You need **Docker**, **Docker Compose**, and a **bash terminal**. That's it.
 
----
-
-## 🚀 Quick Start Guide
-
-### 1. Security & Environment Setup
-Generate the required JWT asymmetric keys using the helper script. Depending on your goal, use the appropriate location:
-
-- **For Docker Deployment**:
-  ```bash
-  ./generate_keys.sh -L secrets/
-  ```
-- **For Only Backend Execution (Optional)**:
-  ```bash
-  ./generate_keys.sh -L backend/src/main/resources/keys
-  ```
-- **For Only Backend Tests (Optional)**:
-  ```bash
-  ./generate_keys.sh -L backend/src/test/resources/keys
-  ```
-
-
-Configure your local environment by copying the template file:
 ```bash
+# 1. Clone
+git clone https://github.com/rogelioolarte/auth-alpaca.git
+cd auth-alpaca
+
+# 2. Generate JWT RSA key pairs
+./generate_keys.sh -L secrets/
+
+# 3. Configure environment
 cp .env.example .env
 ```
-Ensure you update the variables inside `.env` with your Google Cloud Console OAuth2 client credentials and secure passwords.
 
-### 2. Spinning Up All The Stack
-Launch all the stack using Docker Compose:
+Edit `.env` and set your **Google OAuth2 credentials** (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) and a secure database password (`SPRING_DATASOURCE_PASSWORD`). The rest of the defaults work out of the box.
+
 ```bash
+# 4. Launch everything
 docker compose up -d --build
 ```
----
 
-## 🖥️ Application Run Modes
+Once the stack is up:
+- **Frontend**: `http://localhost:80`
+- **Backend API**: `http://localhost:8080`
+- **Health check**: `GET http://localhost:8080/api/auth`
 
-### Backend Application
-Run the Spring Boot application using the wrapper script from the root directory:
-```bash
-./mvnw spring-boot:run
-```
-*   **Java Runtime:** Java 25
-*   **Default API Port:** `8080`
-
-### Frontend Application & Integration Example
-To run the web UI and verify the end-to-end integration:
-
-1.  **Install dependencies using Bun:**
-    ```bash
-    bun install
-    ```
-2.  **Start development server:**
-    ```bash
-    bun run start
-    ```
-3.  **Local Access:** Navigate to `http://localhost:4200` to interact with the application.
-4.  **Running the Integration Example:**
-    Ensure both backend and frontend are running. Login via the UI using local test credentials or click the **Google OAuth2** button to experience the federated login sequence.
+> Log in with `admin@admin.com` / `123456789` or click "Login with Google" if you configured OAuth2 credentials.
 
 ---
 
-## 🔐 OAuth2 Authentication Flow
+## 🔐 Authentication Flow (OAuth2 + PKCE)
 
-Auth Alpaca implements the standard OAuth2 Authorization Code flow with PKCE/State validation. The diagram below illustrates how components interact during a typical login handshake:
+Auth Alpaca implements the **Authorization Code flow with PKCE** — the industry standard for secure public-client authentication. Here is the high-level handshake:
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor User as User Agent
-    participant Angular as Angular Client (UI)
-    participant Spring as Spring Boot (API)
-    participant IDP as Identity Provider (Google)
+    actor You as You (Browser)
+    participant UI as Angular (Frontend)
+    participant API as Spring Boot (Backend)
+    participant Google as Google (Identity Provider)
 
-    User->>Angular: Clicks "Login with Google"
-    Angular->>Spring: Initiates OAuth2 redirection request
-    Spring-->>User: Redirects to Google Consent Page
-    User->>IDP: Grants approval / authenticates
-    IDP-->>Spring: Redirects back with Authorization Code
-    Spring->>IDP: Exchanges Authorization Code for Token
-    IDP-->>Spring: Returns Access Token & User Info
-    Spring->>Spring: Resolves identity, generates JWT
-    Spring-->>Angular: Redirects to UI with JWT payload
-    Angular->>User: Renders authenticated session dashboard
+    You->>UI: Click "Login"
+    UI->>API: Request OAuth2 login URL
+    API-->>You: Redirect to Google consent page
+    You->>Google: Authenticate & grant access
+    Google-->>API: Redirect back with auth code
+    API->>Google: Exchange code + PKCE secret for tokens
+    Google-->>API: Return access + ID tokens
+    API->>API: Validate, resolve identity, issue JWT pair
+    API-->>UI: Set tokens (access + refresh)
+    UI->>You: Authenticated dashboard
 ```
 
-For a detailed step-by-step breakdown of endpoint operations, see **[docs/backend-architecture.md](docs/backend-architecture.md)**.
+The backend signs access tokens (5 min) and refresh tokens (12 h) with **separate RS512 key pairs**. Refresh tokens rotate on every use — if an old token is replayed, the entire family is revoked immediately.
 
 ---
 
-## 🗺️ Documentation Map
+## 🛠️ Stack
 
-### Architecture & Operations
-- [Backend Architecture](docs/backend-architecture.md) — Spring Security, JWT, API, DB schema
-- [Frontend Architecture](docs/frontend-architecture.md) — Angular, guards, interceptors, state
-- [Testing Strategy](docs/testing-strategy.md) — Unit tests, integration, k6 performance
-- [Deployment & Operations](docs/deployment.md) — Docker Compose, env vars, networking
-
-### Learning Path (The 4-Pillar Journey)
-- [Start the Masterclass](docs/learning/index.md) — Begin here
-- [Glossary](docs/learning/glossary.md) — Security terms reference
-- Pillar 1 — Concepts: [OAuth2 Flow](docs/learning/pillar-1-concepts/oauth2-flow.md) → [JWT Deep Dive](docs/learning/pillar-1-concepts/jwt-deep-dive.md) → [Crypto Fundamentals](docs/learning/pillar-1-concepts/crypto-fundamentals.md)
-- Pillar 2 — Architecture: [Backend Flow](docs/learning/pillar-2-architecture/backend-flow.md) → [Frontend Security](docs/learning/pillar-2-architecture/frontend-security.md) → [Component Map](docs/learning/pillar-2-architecture/component-map.md)
-- Pillar 3 — Exploration: [Treasure Hunt](docs/learning/pillar-3-exploration/treasure-hunt.md) → [Pattern Analysis](docs/learning/pillar-3-exploration/pattern-analysis.md)
-- Pillar 4 — Challenges: [Build It](docs/learning/pillar-4-challenges/build-it-tasks.md) → [Break It](docs/learning/pillar-4-challenges/break-it-guide.md)
+| Layer | Technology | Key Libraries |
+|---|---|---|
+| **Backend** | Java 25 | Spring Boot 4.0.6, Spring Security 6, Spring Data JPA, JJWT, Flyway |
+| **Frontend** | Angular 21 | RxJS, JWT-Decode, ngx-cookie-service |
+| **Database** | PostgreSQL 18 | Dockerized, Flyway-migrated |
+| **Infra** | Docker Compose | Multi-stage builds, isolated networks |
 
 ---
 
-<sub>Auth Alpaca — Built with Spring Boot 4 + Angular 21</sub>
+<sub>Auth Alpaca — Built with Spring Boot 4 + Java 25 + Angular 21</sub>
