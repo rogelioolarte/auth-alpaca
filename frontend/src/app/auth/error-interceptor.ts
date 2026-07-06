@@ -65,6 +65,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
+      if (error.status < 99) {
+        return throwError(() => error);
+      }
+
       toastService.error(errorMessage, 'Error');
 
       console.error(`[HTTP Error Log]`, {

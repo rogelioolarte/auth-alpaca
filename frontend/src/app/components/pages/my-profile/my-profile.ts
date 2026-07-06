@@ -7,7 +7,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatIcon } from '@angular/material/icon';
 import { ProfileService } from '@app/api/profile-service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { Profile } from '@app/models/profile';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,7 +32,6 @@ export class MyProfile implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthenticationService);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly toastService = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
@@ -65,7 +63,7 @@ export class MyProfile implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.snackBar.open('Error loading profile', 'Close', { duration: 3000 });
+          this.toastService.error('Error loading profile');
           this.loading.set(false);
         },
       });
@@ -82,7 +80,7 @@ export class MyProfile implements OnInit {
       if (profileData.id) {
         this.profileService.updateProfileById(profileData.id, profileData).subscribe({
           next: () => {
-            this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
+            this.toastService.success('Profile updated successfully');
             this.saving.set(false);
           },
           error: (err) => {
@@ -93,7 +91,7 @@ export class MyProfile implements OnInit {
       } else {
         this.profileService.createProfile(profileData).subscribe({
           next: () => {
-            this.snackBar.open('Profile created successfully', 'Close', { duration: 3000 });
+            this.toastService.success('Profile created successfully');
             this.saving.set(false);
             this.authService.rotateTokens().subscribe();
           },

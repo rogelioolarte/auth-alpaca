@@ -72,7 +72,12 @@ services:
     logging: *default-logging
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NG_API_URL: ${NG_API_URL}
+        NG_UI_URL: ${NG_UI_URL}
+        NG_INFINITY_LOGIN: ${NG_INFINITY_LOGIN}
     container_name: auth-alpaca-ui
     restart: unless-stopped
     depends_on:
@@ -81,8 +86,9 @@ services:
       - "80:8080" 
     environment:
       TZ: UTC
-      API_URL: ${API_URL}
-      UI_URL: ${UI_URL}
+      NG_API_URL: ${NG_API_URL}
+      NG_UI_URL: ${NG_UI_URL}
+      NG_INFINITY_LOGIN: ${NG_INFINITY_LOGIN}
     networks:
       - frontend-net
     logging: *default-logging

@@ -6,7 +6,7 @@ import { MatFormField, MatFormFieldModule, MatLabel } from '@angular/material/fo
 import { MatIcon } from '@angular/material/icon';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { RouterLink } from '@angular/router';
 import { AdvertiserService } from '@app/api/advertiser-service';
 import { Pageable } from '@app/models/pageable';
@@ -42,7 +42,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 })
 export class AdvertiserPage {
   private advertiserService = inject(AdvertiserService);
-  private snackBar = inject(MatSnackBar);
+  private toastr = inject(ToastrService);
   private searchSubject = new Subject<string>();
   private authenticationService = inject(AuthenticationService);
   private isAdmin = toSignal(this.authenticationService.isAdmin());
@@ -79,7 +79,7 @@ export class AdvertiserPage {
         this.loading.set(false);
       },
       error: () => {
-        this.snackBar.open('Error loading advertisers', 'Close', { duration: 3000 });
+        this.toastr.error('Error loading advertisers');
         this.loading.set(false);
       },
     });
@@ -91,7 +91,7 @@ export class AdvertiserPage {
         this.loading.set(false);
       },
       error: () => {
-        this.snackBar.open('Error loading advertisers', 'Close', { duration: 3000 });
+        this.toastr.error('Error loading advertisers');
         this.loading.set(false);
       },
     });

@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +40,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export class Users implements OnInit {
   private readonly userService = inject(UserService);
   private readonly roleService = inject(RoleService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastr = inject(ToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly authService = inject(AuthenticationService);
   private readonly myUser = toSignal(this.authService.getUserInfo());
@@ -60,7 +60,7 @@ export class Users implements OnInit {
   loadRoles() {
     this.roleService.getAllRoles().subscribe({
       next: (roles) => this.roles.set(roles),
-      error: () => this.snackBar.open('Error loading roles', 'Close', { duration: 3000 }),
+      error: () => this.toastr.error('Error loading roles'),
     });
   }
 
@@ -77,7 +77,7 @@ export class Users implements OnInit {
         this.totalItems.set(page.page.totalElements);
       },
       error: () => {
-        this.snackBar.open('Error loading users', 'Close', { duration: 3000 });
+        this.toastr.error('Error loading users');
       },
     });
   }
@@ -119,11 +119,11 @@ export class Users implements OnInit {
     if (confirm('Are you sure you want to delete this user?')) {
       this.userService.deleteUserById(id).subscribe({
         next: () => {
-          this.snackBar.open('User deleted', 'Close', { duration: 3000 });
+          this.toastr.success('User deleted');
           this.loadUsers();
         },
         error: () => {
-          this.snackBar.open('Error deleting user', 'Close', { duration: 3000 });
+          this.toastr.error('Error deleting user');
         },
       });
     }

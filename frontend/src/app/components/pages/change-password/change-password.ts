@@ -5,7 +5,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '@app/api/user-service';
 import { ChangePassword } from '@app/models/user';
 import { ToastrService } from 'ngx-toastr';
@@ -31,7 +30,6 @@ import { MatIcon } from '@angular/material/icon';
 export class ChangePasswordComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly toastService = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
   public submitting = signal(false);
@@ -64,7 +62,7 @@ export class ChangePasswordComponent {
 
       this.userService.changePassword(request).subscribe({
         next: () => {
-          this.snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
+          this.toastService.success('Password changed successfully');
           this.passwordForm.reset();
           this.submitting.set(false);
         },

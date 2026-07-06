@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,7 +38,7 @@ import { ListDialog, ListDialogData } from '@app/components/pure/dialogs/list-di
 export class Roles {
   private readonly roleService = inject(RoleService);
   private readonly permissionService = inject(PermisionService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastr = inject(ToastrService);
   private readonly dialog = inject(MatDialog);
 
   displayedColumns = [/* 'id',  */ 'name', 'description', 'permissions', 'actions'];
@@ -56,7 +56,7 @@ export class Roles {
   loadPermissions() {
     this.permissionService.getAllPermissions().subscribe({
       next: (permissions) => this.permissions.set(permissions),
-      error: () => this.snackBar.open('Error loading permissions', 'Close', { duration: 3000 }),
+      error: () => this.toastr.error('Error loading permissions'),
     });
   }
 
@@ -73,7 +73,7 @@ export class Roles {
         this.totalItems.set(page.page.totalElements);
       },
       error: () => {
-        this.snackBar.open('Error loading roles', 'Close', { duration: 3000 });
+        this.toastr.error('Error loading roles');
       },
     });
   }
@@ -119,11 +119,11 @@ export class Roles {
     if (confirm('Are you sure you want to delete this role?')) {
       this.roleService.deleteRoleById(id).subscribe({
         next: () => {
-          this.snackBar.open('Role deleted', 'Close', { duration: 3000 });
+          this.toastr.success('Role deleted');
           this.loadRoles();
         },
         error: () => {
-          this.snackBar.open('Error deleting role', 'Close', { duration: 3000 });
+          this.toastr.error('Error deleting role');
         },
       });
     }

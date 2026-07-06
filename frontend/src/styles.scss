@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use 'ngx-toastr/toastr';
 
 // 1. Theme Configuration
 $my-theme: mat.define-theme((

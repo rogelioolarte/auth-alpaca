@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { SessionService } from '../../../api/session-service';
 import { Pageable } from '../../../models/pageable';
 import { Session } from '@app/models/session';
@@ -37,7 +37,7 @@ export class ManageSessions implements OnInit {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly toastService = inject(ToastrService);
   private clientId = toSignal(this.authenticationService.getClientID());
 
   public displayedColumns = ['ipAddress', 'userAgent', 'lastSeenAt', 'actions'];
@@ -94,7 +94,7 @@ export class ManageSessions implements OnInit {
       if (confirmed) {
         this.sessionService.revokeSession(id).subscribe({
           next: () => {
-            this.snackBar.open('Session revoked successfully', 'Close', { duration: 3000 });
+            this.toastService.success('Session revoked successfully');
             this.loadSessions();
             const mySession = this.sessions().find(s => s.id === id);
             if(mySession?.clientId === this.clientId()) {
@@ -102,7 +102,7 @@ export class ManageSessions implements OnInit {
             }
           },
           error: (err) => {
-            this.snackBar.open(`Error revoking session: ${err.message || 'Unknown error'}`, 'Close', { duration: 3000 });
+            this.toastService.error(`Error revoking session: ${err.message || 'Unknown error'}`);
           },
         });
       }
@@ -121,11 +121,11 @@ export class ManageSessions implements OnInit {
       if (confirmed) {
         this.sessionService.revokeAllSessions().subscribe({
           next: () => {
-            this.snackBar.open('All sessions revoked successfully', 'Close', { duration: 3000 });
+            this.toastService.success('All sessions revoked successfully');
             this.revokeMySession();
           },
           error: (err) => {
-            this.snackBar.open(`Error revoking sessions: ${err.message || 'Unknown error'}`, 'Close', { duration: 3000 });
+            this.toastService.error(`Error revoking sessions: ${err.message || 'Unknown error'}`);
           },
         });
         

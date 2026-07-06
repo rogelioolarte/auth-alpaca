@@ -3,7 +3,7 @@ declare interface Env {
   readonly NODE_ENV: string;
   // Replace the following with your own environment variables.
   // Example: NGX_VERSION: string;
-  [key: string]: any;
+  // [key: string]: any;
   NG_API_URL: string;
   NG_UI_URL: string;
   NG_INFINITY_LOGIN: boolean;
@@ -26,5 +26,5 @@ declare const _NGX_ENV_: Env;
 
 // 3. Use process.env.YOUR_ENV_VAR in your code. (deprecated)
 declare namespace NodeJS {
-  export interface ProcessEnv extends Env {}
+  export type ProcessEnv = Env
 }

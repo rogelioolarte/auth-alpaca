@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastrService } from 'ngx-toastr';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,7 +37,7 @@ import {
 })
 export class Permissions {
   private permissionService = inject(PermisionService);
-  private snackBar = inject(MatSnackBar);
+  private toastr = inject(ToastrService);
   private dialog = inject(MatDialog);
 
   displayedColumns = [/* 'id',  */ 'name', 'actions'];
@@ -63,7 +63,7 @@ export class Permissions {
         this.totalItems.set(page.page.totalElements);
       },
       error: () => {
-        this.snackBar.open('Error loading permissions', 'Close', { duration: 3000 });
+        this.toastr.error('Error loading permissions');
       },
     });
   }
@@ -102,11 +102,11 @@ export class Permissions {
     if (confirm('Are you sure you want to delete this permission?')) {
       this.permissionService.deletePermissionById(id).subscribe({
         next: () => {
-          this.snackBar.open('Permission deleted', 'Close', { duration: 3000 });
+          this.toastr.success('Permission deleted');
           this.loadPermissions();
         },
         error: () => {
-          this.snackBar.open('Error deleting permission', 'Close', { duration: 3000 });
+          this.toastr.error('Error deleting permission');
         },
       });
     }

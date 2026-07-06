@@ -12,7 +12,6 @@ import { CommonModule } from '@angular/common';
 import { Role } from '@app/models/role';
 import { UserRequest } from '@app/models/user';
 import { UserService } from '@app/api/user-service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthenticationService } from '@app/auth/authentication-service';
 import { ToastrService } from 'ngx-toastr';
 import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
@@ -205,7 +204,6 @@ export class UserDialog {
   public data: UserDialogData = inject(MAT_DIALOG_DATA);
   public hidePassword = signal(true);
   private userService = inject(UserService);
-  private snackBar = inject(MatSnackBar);
   private authService = inject(AuthenticationService);
   private toastr = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
@@ -239,7 +237,7 @@ export class UserDialog {
       if (this.data.mode === 'edit') {
         this.userService.updateUserById(this.data.user!.id, form).subscribe({
           next: () => {
-            this.snackBar.open('User updated', 'Close', { duration: 3000 });
+            this.toastr.success('User updated');
             this.dialogRef.close(true);
           },
           error: (err) => {
@@ -250,7 +248,7 @@ export class UserDialog {
       } else {
         this.userService.createUser(form).subscribe({
           next: () => {
-            this.snackBar.open('User created', 'Close', { duration: 3000 });
+            this.toastr.success('User created');
             this.authService.rotateTokens().subscribe();
             this.dialogRef.close(true);
           },

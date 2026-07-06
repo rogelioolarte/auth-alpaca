@@ -7,7 +7,6 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIcon } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AdvertiserService } from '@app/api/advertiser-service';
 import { AuthenticationService } from '@app/auth/authentication-service';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,7 +33,6 @@ export class MyAdvertiser implements OnInit {
   private fb = inject(FormBuilder);
   private advertiserService = inject(AdvertiserService);
   private authService = inject(AuthenticationService);
-  private snackBar = inject(MatSnackBar);
   private toastr = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
@@ -66,7 +64,7 @@ export class MyAdvertiser implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.snackBar.open('Error loading advertiser', 'Close', { duration: 3000 });
+          this.toastr.error('Error loading advertiser');
           this.loading.set(false);
         },
       });
@@ -86,25 +84,25 @@ export class MyAdvertiser implements OnInit {
       if (advertiserData.id) {
         this.advertiserService.updateAdvertiserById(advertiserData.id, advertiserData).subscribe({
           next: () => {
-            this.snackBar.open('Advertiser updated successfully', 'Close', { duration: 3000 });
+            this.toastr.success('Advertiser updated successfully');
             this.saving.set(false);
           },
           error: (err) => {
             handleBackendFormErrors(err, this.advertiserForm, this.toastr);
-            this.snackBar.open('Error updating advertiser', 'Close', { duration: 3000 });
+            this.toastr.error('Error updating advertiser');
             this.saving.set(false);
           },
         });
       } else {
         this.advertiserService.createAdvertiser(advertiserData).subscribe({
           next: () => {
-            this.snackBar.open('Advertiser created successfully', 'Close', { duration: 3000 });
+            this.toastr.success('Advertiser created successfully');
             this.saving.set(false);
             this.authService.rotateTokens().subscribe();
           },
           error: (err) => {
             handleBackendFormErrors(err, this.advertiserForm, this.toastr);
-            this.snackBar.open('Error creating advertiser', 'Close', { duration: 3000 });
+            this.toastr.error('Error creating advertiser');
             this.saving.set(false);
           },
         });

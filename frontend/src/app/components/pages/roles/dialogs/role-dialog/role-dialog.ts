@@ -11,7 +11,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 import { Permission } from '@app/models/permission';
 import { RoleService } from '@app/api/role-service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ToastrService } from 'ngx-toastr';
 import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
 import { RoleRequest } from '@app/models/role';
@@ -201,7 +200,6 @@ export class RoleDialog {
   private dialogRef = inject(MatDialogRef<RoleDialog>);
   public data: RoleDialogData = inject(MAT_DIALOG_DATA);
   private roleService = inject(RoleService);
-  private snackBar = inject(MatSnackBar);
   private toastr = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
@@ -230,7 +228,7 @@ export class RoleDialog {
       if (this.data.mode === 'edit') {
         this.roleService.updateRoleById(this.data.role!.id, result).subscribe({
           next: () => {
-            this.snackBar.open('Role updated', 'Close', { duration: 3000 });
+            this.toastr.success('Role updated');
             this.dialogRef.close(true);
           },
           error: (err) => {
@@ -241,7 +239,7 @@ export class RoleDialog {
       } else {
         this.roleService.createRole(result).subscribe({
           next: () => {
-            this.snackBar.open('Role created', 'Close', { duration: 3000 });
+            this.toastr.success('Role created');
             this.dialogRef.close(true);
           },
           error: (err) => {

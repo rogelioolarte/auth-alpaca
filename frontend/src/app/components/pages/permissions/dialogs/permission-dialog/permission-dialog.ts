@@ -7,7 +7,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PermisionService } from '@app/api/permision-service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ToastrService } from 'ngx-toastr';
 import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
 
@@ -109,7 +108,6 @@ export class PermissionDialog {
   private dialogRef = inject(MatDialogRef<PermissionDialog>);
   public data: PermissionDialogData = inject(MAT_DIALOG_DATA);
   private permissionService = inject(PermisionService);
-  private snackBar = inject(MatSnackBar);
   private toastr = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
@@ -129,7 +127,7 @@ export class PermissionDialog {
       if (this.data.mode === 'edit') {
         this.permissionService.updatePermissionById(this.data.permission!.id, name).subscribe({
           next: () => {
-            this.snackBar.open('Permission updated', 'Close', { duration: 3000 });
+            this.toastr.success('Permission updated');
             this.dialogRef.close(true);
           },
           error: (err) => {
@@ -140,7 +138,7 @@ export class PermissionDialog {
       } else {
         this.permissionService.createPermission(name).subscribe({
           next: () => {
-            this.snackBar.open('Permission created', 'Close', { duration: 3000 });
+            this.toastr.success('Permission created');
             this.dialogRef.close(true);
           },
           error: (err) => {
