@@ -112,9 +112,13 @@ public class AdvertiserController {
     }
 
     /**
-     * Retrieves a paginated list of advertisers.
+     * Retrieves a paginated list of <em>all</em> advertisers (including unindexed ones) for admin
+     * use.
      *
-     * @param pageable the pagination information; must not be {@code null}
+     * <p>Returns every advertiser regardless of indexed status. Compare with {@link
+     * #findAllPage(Pageable)} which only returns indexed advertisers (public-facing view).
+     *
+     * @param pageable the pagination parameters (page, size, sort); must not be {@code null}
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
      *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
      */
@@ -126,12 +130,22 @@ public class AdvertiserController {
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }
 
+    /**
+     * Retrieves a paginated list of indexed advertisers (public-facing view).
+     *
+     * <p>Only returns advertisers where {@code indexed = true}. This is the public listing. Compare
+     * with {@link #findAllPageForAdmin(Pageable)} which includes all advertisers regardless of
+     * indexed status.
+     *
+     * @param pageable the pagination parameters (page, size, sort); must not be {@code null}
+     * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
+     *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
+     */
     @GetMapping("/page")
     public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(
                         new PagedModel<>(
-                                mapper.toPageResponseDTO(
-                                        service.findAllPageByIndexedTrue(pageable))));
+                                mapper.toPageResponseDTO(service.findAllByIndexedTrue(pageable))));
     }
 }

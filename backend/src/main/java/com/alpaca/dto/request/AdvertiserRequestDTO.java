@@ -13,6 +13,10 @@ import org.hibernate.validator.constraints.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+/**
+ * Payload for creating or updating an advertiser profile: branding assets (title, description,
+ * banner and avatar URLs), public-facing location info, and the indexing/publishing state.
+ */
 public class AdvertiserRequestDTO {
 
     @Size(min = 5, max = 250, message = "Title must be at least 5 to 250 characters.")

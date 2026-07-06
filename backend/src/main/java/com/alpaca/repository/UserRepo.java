@@ -31,6 +31,16 @@ public interface UserRepo extends CustomRepo<User, UUID> {
     @EntityGraph(value = "User.withAuthorities", type = EntityGraph.EntityGraphType.LOAD)
     Optional<User> findByEmail(String email);
 
+    /**
+     * Retrieves a user by ID, eagerly loading associated roles and permissions.
+     *
+     * <p>The {@link EntityGraph} ensures that the {@code User.withAuthorities} named entity graph
+     * is fetched in a single query, avoiding N+1 selects when the user's authorities are accessed
+     * after retrieval.
+     *
+     * @param id The user UUID - must not be null.
+     * @return An {@link Optional} containing the user if found, otherwise empty.
+     */
     @NonNull
     @EntityGraph(value = "User.withAuthorities", type = EntityGraph.EntityGraphType.LOAD)
     Optional<User> findById(@NonNull UUID id);
@@ -43,6 +53,16 @@ public interface UserRepo extends CustomRepo<User, UUID> {
      */
     boolean existsByEmail(String email);
 
+    /**
+     * Retrieves and pessimistically locks a user row for the duration of the current transaction.
+     *
+     * <p>This is used in concurrency-sensitive operations (e.g. token rotation, credential updates)
+     * where a {@code PESSIMISTIC_WRITE} lock prevents overlapping transactions from reading or
+     * modifying the same user record until the lock is released.
+     *
+     * @param userId The user UUID to lock and retrieve.
+     * @return An {@link Optional} containing the locked user if found, otherwise empty.
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u WHERE u.id = :userId")
     Optional<User> lockFindUserById(@Param("userId") UUID userId);

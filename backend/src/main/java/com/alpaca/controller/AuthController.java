@@ -94,6 +94,20 @@ public class AuthController {
                                 Utils.extractClientIP(request))));
     }
 
+    /**
+     * Logs out the current user by revoking the provided refresh token.
+     *
+     * <p>The identified session is invalidated server-side. Subsequent requests using the revoked
+     * refresh token will be rejected.
+     *
+     * @param refreshToken the refresh token to revoke, provided via {@code X-Refresh-Token} header
+     * @param clientId the client identifier, provided via {@code X-Client-Id} header
+     * @param userAgent the user agent string, provided via {@code User-Agent} header
+     * @param user the currently authenticated user; may be {@code null}
+     * @param request the HTTP servlet request (used for client IP extraction)
+     * @return {@link ResponseEntity} with a confirmation message and status {@link HttpStatus#OK},
+     *     or {@link HttpStatus#UNAUTHORIZED} if not authenticated
+     */
     @PostMapping("/logout")
     @IsAuthenticated
     public ResponseEntity<String> logout(
@@ -109,6 +123,21 @@ public class AuthController {
         return ResponseEntity.ok("{\"message\":\"Logout successful\"}");
     }
 
+    /**
+     * Exchanges an authorization code for authentication tokens (OAuth 2.0 Authorization Code flow
+     * with PKCE).
+     *
+     * <p>The request body must contain {@code code}, {@code code_verifier}, {@code redirect_uri},
+     * and {@code client_id}. PKCE verification is performed using the provided {@code
+     * code_verifier}.
+     *
+     * @param request the HTTP servlet request (used for client IP extraction)
+     * @param userAgent the user agent string, provided via {@code User-Agent} header
+     * @param body a map containing the authorization grant parameters ({@code code}, {@code
+     *     code_verifier}, {@code redirect_uri}, {@code client_id})
+     * @return {@link ResponseEntity} containing the {@link AuthResponseDTO} with status {@link
+     *     HttpStatus#OK}
+     */
     @PostMapping("/exchange")
     public ResponseEntity<AuthResponseDTO> exchangeToken(
             HttpServletRequest request,

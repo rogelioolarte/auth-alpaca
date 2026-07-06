@@ -34,10 +34,37 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RefreshTokenRepo extends CustomRepo<RefreshToken, UUID> {
 
+    /**
+     * Checks whether a refresh token with the given hash exists in the database.
+     *
+     * <p>Provides a lightweight existence check without loading the full entity, useful during
+     * initial validation before full token processing.
+     *
+     * @param hash the stored token hash
+     * @return {@code true} if a token with the given hash exists, {@code false} otherwise
+     */
     boolean existsByTokenHash(String hash);
 
+    /**
+     * Retrieves all refresh tokens belonging to the same token family.
+     *
+     * <p>A token family groups related tokens generated through successive rotations. This method
+     * is used during reuse detection to examine all tokens sharing the same family identifier.
+     *
+     * @param familyId the token family identifier
+     * @return a list of refresh tokens in the family, empty if none found
+     */
     List<RefreshToken> findAllByFamilyId(UUID familyId);
 
+    /**
+     * Resolves the token family identifier from a single token hash.
+     *
+     * <p>This is typically the first step in reuse detection: given the hash of the token being
+     * presented, resolve its family ID to then inspect all family members.
+     *
+     * @param hash the stored token hash
+     * @return An {@link Optional} containing the family UUID if found, otherwise empty
+     */
     @Query(
             """
             SELECT r.familyId
@@ -87,6 +114,17 @@ public interface RefreshTokenRepo extends CustomRepo<RefreshToken, UUID> {
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
 
+    /**
+     * Revokes all non-revoked, non-replaced refresh tokens belonging to a given user.
+     *
+     * <p>Used when an administrative action or global logout requires invalidating every active
+     * refresh token for a user. Tokens that have already been replaced by a successor ({@code
+     * replacedBy IS NOT NULL}) are excluded to avoid interfering with active rotations.
+     *
+     * @param userId the user whose tokens will be revoked
+     * @param revokedAt timestamp when the revocation was executed
+     * @param reason textual reason for revocation
+     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """

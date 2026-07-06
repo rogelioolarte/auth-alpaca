@@ -74,6 +74,16 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
         return repo.existsByEmail(email);
     }
 
+    /**
+     * Retrieves and pessimistically locks the user row for concurrency-safe updates.
+     *
+     * <p>Delegates to {@link com.alpaca.repository.UserRepo#lockFindUserById(UUID)} which acquires
+     * a {@code PESSIMISTIC_WRITE} lock on the matching row, preventing concurrent transactions from
+     * reading or modifying it until the lock is released.
+     *
+     * @param userId the user UUID to lock and retrieve
+     * @return An {@link Optional} containing the locked user if found, otherwise empty
+     */
     @Override
     public Optional<User> lockFindUserById(UUID userId) {
         return repo.lockFindUserById(userId);

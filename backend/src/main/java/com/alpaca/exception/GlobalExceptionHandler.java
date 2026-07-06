@@ -74,6 +74,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    /**
+     * Handles data integrity violations (e.g., unique constraint or duplicate key) by returning
+     * HTTP 409 Conflict.
+     *
+     * @param ex the data integrity exception
+     * @param req the current web request for context
+     * @return a 409 response indicating a resource conflict
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolationException(
             DataIntegrityViolationException ex, WebRequest req) {
@@ -81,6 +89,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT, "A resource with the same identifier already exists.", req);
     }
 
+    /**
+     * Handles cases where a query or update expected a result but found none (e.g., delete by
+     * non-existent ID), returning HTTP 404 Not Found.
+     *
+     * @param ex the empty-result exception
+     * @param req the current web request for context
+     * @return a 404 response with the exception's message
+     */
     @ExceptionHandler(EmptyResultDataAccessException.class)
     public ResponseEntity<ErrorResponseDTO> handleEmptyResultException(
             EmptyResultDataAccessException ex, WebRequest req) {
@@ -95,12 +111,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles ResponseStatusException by passing through its status and reason into a structured
+     * Handles {@link ResponseStatusException} by forwarding its status and reason into a structured
      * error payload.
      *
-     * @param exception the exception containing a predefined HTTP status
+     * <p>This is the catch-all handler for all typed exception subclasses ({@link
+     * BadRequestException}, {@link NotFoundException}, etc.) since they all extend {@link
+     * ResponseStatusException}.
+     *
+     * @param exception the exception containing a predefined HTTP status and reason
      * @param webRequest the current web request for context
-     * @return response with the appropriate HTTP status and an {@link ErrorResponseDTO}
+     * @return a response with the appropriate HTTP status and an {@link ErrorResponseDTO}
      */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponseDTO> handleResponseStatusException(
@@ -113,6 +133,13 @@ public class GlobalExceptionHandler {
                 HttpStatus.valueOf(exception.getStatusCode().value()));
     }
 
+    /**
+     * Handles rate-limit violations by returning HTTP 429 with a {@code Retry-After} header so the
+     * client knows when to retry.
+     *
+     * @param ex the rate-limit exception carrying the retry delay
+     * @return a 429 response with the {@code Retry-After} header
+     */
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<Object> handleRateLimit(RateLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)

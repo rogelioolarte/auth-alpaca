@@ -75,10 +75,10 @@ class AdvertiserDAOImplTest {
     }
 
     @Test
-    @DisplayName("findAllPageByIndexedTrue: Should return all entities by indexed true")
-    void findAllPageByIndexedTrue_Success() {
-        when(repo.findAllPageByIndexedTrue(null)).thenReturn(entitiesPage);
-        assertThat(dao.findAllPageByIndexedTrue(null)).isEqualTo(entitiesPage);
+    @DisplayName("findAllByIndexedTrue: Should return all entities by indexed true")
+    void findAllByIndexedTrue_Success() {
+        when(repo.findAllByIndexedTrue(null)).thenReturn(entitiesPage);
+        assertThat(dao.findAllByIndexedTrue(null)).isEqualTo(entitiesPage);
     }
 
     @Test

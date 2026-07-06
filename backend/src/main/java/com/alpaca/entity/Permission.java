@@ -34,6 +34,11 @@ public class Permission extends Auditable {
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
+    /**
+     * Inverse side of the many-to-many relationship with {@link Role} through the join entity
+     * {@link RolePermission}. Maintained for JPA cascade operations; typically not accessed
+     * directly.
+     */
     @Builder.Default
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolePermission> rolePermissions = new HashSet<>();

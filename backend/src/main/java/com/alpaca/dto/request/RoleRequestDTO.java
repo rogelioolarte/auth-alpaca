@@ -14,6 +14,10 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+/**
+ * Payload for creating or updating a role, including its display name, description, and the set of
+ * permission UUIDs it aggregates.
+ */
 public class RoleRequestDTO {
 
     @Size(min = 4, max = 25, message = "Role Name must be between 4 and 25 characters.")

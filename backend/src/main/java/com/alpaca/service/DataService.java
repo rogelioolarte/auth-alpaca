@@ -18,5 +18,12 @@ public interface DataService {
      */
     void initializeData();
 
+    /**
+     * Initializes the default administrator user account.
+     *
+     * <p>Creates the initial super-admin user with predefined credentials and assigns the
+     * administrative role. This method is intended to be called once during application startup and
+     * should be idempotent — subsequent invocations must not duplicate the admin user.
+     */
     void initializeAdminUser();
 }

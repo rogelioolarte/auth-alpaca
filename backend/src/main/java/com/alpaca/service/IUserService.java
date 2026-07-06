@@ -47,5 +47,15 @@ public interface IUserService extends IGenericService<User, UUID> {
      */
     boolean existsByEmail(String email);
 
+    /**
+     * Changes the password for the authenticated user.
+     *
+     * <p>Validates the current password before applying the new one. This operation also revokes
+     * existing sessions for the user, forcing re-authentication after a password change.
+     *
+     * @param principal the currently authenticated user principal
+     * @param requestDTO the DTO containing current and new password data
+     * @throws BadRequestException if the current password is null, empty, or incorrect
+     */
     void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO);
 }

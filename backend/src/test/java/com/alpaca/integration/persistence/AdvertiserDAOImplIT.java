@@ -98,9 +98,9 @@ class AdvertiserDAOImplIT {
     }
 
     @Test
-    @DisplayName("findAllPageByIndexedTrue: retrieves only indexed advertisers")
+    @DisplayName("findAllByIndexedTrue: retrieves only indexed advertisers")
     @Transactional
-    void findAllPageByIndexedTrue_ShouldFilterCorrectly() {
+    void findAllByIndexedTrue_ShouldFilterCorrectly() {
         // Arrange
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
@@ -123,7 +123,7 @@ class AdvertiserDAOImplIT {
         repo.saveAll(List.of(indexed, notIndexed));
 
         // Act
-        Page<Advertiser> page = dao.findAllPageByIndexedTrue(PageRequest.of(0, 10));
+        Page<Advertiser> page = dao.findAllByIndexedTrue(PageRequest.of(0, 10));
 
         // Assert
         assertEquals(1, page.getTotalElements());

@@ -85,6 +85,13 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.attributes = attributes;
     }
 
+    /**
+     * Constructs a principal from a {@link User} entity for non-OAuth2 authentication flows (form
+     * login, JWT, etc.).
+     *
+     * <p>OAuth2 attributes are set to {@code null} since no provider attributes are available
+     * outside the OAuth2 flow.
+     */
     public UserPrincipal(User user) {
         this.userId = user.getId();
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
@@ -121,6 +128,10 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.attributes = null;
     }
 
+    /**
+     * Safely extracts and parses a UUID from a JWT claim, returning {@code null} when the claim is
+     * absent or empty rather than failing.
+     */
     private UUID getUUIDFromClaim(Claims claims, String key) {
         String value = claims.get(key, String.class);
         return (value != null && !value.isEmpty()) ? UUID.fromString(value) : null;

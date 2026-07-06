@@ -13,5 +13,11 @@ import org.springframework.data.domain.Pageable;
  */
 public interface IAdvertiserService extends IGenericService<Advertiser, UUID> {
 
-    Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable);
+    /**
+     * Retrieves a paginated list of advertisers that are marked as indexed.
+     *
+     * @param pageable the pagination configuration — must not be null
+     * @return a {@code Page} containing the indexed advertisers
+     */
+    Page<Advertiser> findAllByIndexedTrue(Pageable pageable);
 }

@@ -52,8 +52,14 @@ public class AdvertiserDAOImpl extends GenericDAOImpl<Advertiser, UUID> implemen
         return repo.countByUserId(advertiser.getUser().getId()) > 0L;
     }
 
+    /**
+     * Returns a paginated list of advertisers whose {@code indexed} flag is {@code true}.
+     *
+     * @param pageable pagination and sorting parameters
+     * @return a {@link Page} of indexed advertisers
+     */
     @Override
-    public Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable) {
-        return repo.findAllPageByIndexedTrue(pageable);
+    public Page<Advertiser> findAllByIndexedTrue(Pageable pageable) {
+        return repo.findAllByIndexedTrue(pageable);
     }
 }

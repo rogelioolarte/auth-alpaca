@@ -13,6 +13,26 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+/**
+ * An {@link AuthenticationProvider} that validates username/password credentials against the
+ * application's user store.
+ *
+ * <p>This provider handles {@link UsernamePasswordAuthenticationToken} requests by:
+ *
+ * <ul>
+ *   <li>Loading the {@link UserDetails} via {@link IAuthService#loadUserByUsername(String)}.
+ *   <li>Verifying the raw password against the stored hash using {@link PasswordManager}.
+ *   <li>Validating account status (enabled, non-locked, non-expired, credentials non-expired).
+ *   <li>Returning a fully authenticated token with granted authorities.
+ * </ul>
+ *
+ * <p>On failure, distinct exception types are used to distinguish bad credentials from disabled
+ * accounts, allowing the caller to choose appropriate error responses.
+ *
+ * @see AuthenticationProvider
+ * @see IAuthService
+ * @see PasswordManager
+ */
 @Component
 @AllArgsConstructor
 public class CustomAuthenticationManager implements AuthenticationProvider {
@@ -20,6 +40,17 @@ public class CustomAuthenticationManager implements AuthenticationProvider {
     private final IAuthService userDetailsService;
     private final PasswordManager passwordManager;
 
+    /**
+     * Attempts to authenticate the user with the provided username and password.
+     *
+     * <p>The flow is: load user details → validate password hash match → check account status →
+     * return authenticated token.
+     *
+     * @param authentication the authentication request object containing credentials
+     * @return a fully authenticated {@link UsernamePasswordAuthenticationToken} with authorities
+     * @throws AuthenticationException if authentication fails (invalid credentials or disabled
+     *     account)
+     */
     @Override
     public Authentication authenticate(Authentication authentication)
             throws AuthenticationException {
@@ -33,6 +64,12 @@ public class CustomAuthenticationManager implements AuthenticationProvider {
                 userDetails, password, userDetails.getAuthorities());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This provider only supports {@link UsernamePasswordAuthenticationToken}. Other token types
+     * are ignored, allowing downstream providers in the chain to handle them.
+     */
     @Override
     public boolean supports(@NonNull Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);

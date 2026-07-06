@@ -195,10 +195,23 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
         return getDAO().existsByUniqueProperties(t);
     }
 
+    /**
+     * Validates that a collection is not {@code null}, not empty, and does not contain any {@code
+     * null} element.
+     *
+     * @param is the collection to validate
+     * @return {@code true} if the collection is invalid in any of the checked ways
+     */
     public boolean invalidCollection(Collection<?> is) {
         return is == null || is.isEmpty() || hasNull(is);
     }
 
+    /**
+     * Checks whether any element in the given collection is {@code null}.
+     *
+     * @param collection the collection to scan; must not be {@code null}
+     * @return {@code true} if at least one {@code null} element is found
+     */
     public boolean hasNull(Collection<?> collection) {
         for (Object element : collection) {
             if (element == null) return true;
@@ -206,18 +219,47 @@ public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> 
         return false;
     }
 
+    /**
+     * Applies a value to a setter only when the incoming value differs from the existing one and is
+     * not {@code null}. Used by {@code updateById} implementations across services to perform
+     * selective, non-null field updates without overwriting existing data with {@code null}.
+     *
+     * @param existing the current value of the field
+     * @param incoming the proposed new value; if {@code null}, no update occurs
+     * @param setter a consumer that applies the new value (typically a method reference like {@code
+     *     existing::setName})
+     * @param <V> the type of the field being updated
+     */
     public <V> void updateIfNotNull(V existing, V incoming, Consumer<V> setter) {
         if (incoming != null && !incoming.equals(existing)) {
             setter.accept(incoming);
         }
     }
 
+    /**
+     * Applies a string value to a setter only when the incoming string has actual text content
+     * (non-null, non-blank) and differs from the existing value. Prevents overwriting a stored
+     * value with empty or whitespace-only strings.
+     *
+     * @param existing the current string value
+     * @param incoming the proposed new string; if blank, no update occurs
+     * @param setter a consumer that applies the new value (typically a method reference)
+     */
     public void updateTextIfExists(String existing, String incoming, Consumer<String> setter) {
         if (StringUtils.hasText(incoming) && !incoming.equals(existing)) {
             setter.accept(incoming);
         }
     }
 
+    /**
+     * Applies a boolean value to a setter only when the incoming value differs from the existing
+     * one. Unlike the other update helpers, this intentionally accepts {@code false} as a valid
+     * update so that explicit boolean toggles are not silently skipped.
+     *
+     * @param existing the current boolean value
+     * @param incoming the proposed new value
+     * @param setter a consumer that applies the new value (typically a method reference)
+     */
     public void updateIfDifferent(boolean existing, boolean incoming, Consumer<Boolean> setter) {
         if (!Objects.equals(existing, incoming)) {
             setter.accept(incoming);

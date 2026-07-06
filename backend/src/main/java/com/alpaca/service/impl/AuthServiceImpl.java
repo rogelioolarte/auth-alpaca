@@ -42,10 +42,16 @@ public class AuthServiceImpl implements IAuthService {
     private final JJwtManager jJwtManager;
 
     /**
-     * Authenticates a user using email and password and returns a JWT token wrapped in DTO.
+     * Authenticates a user via their pre-authenticated principal and device fingerprint, creating a
+     * new session and issuing JWT tokens.
      *
-     * @return {@link AuthResponseDTO} containing the JWT token
-     * @throws NotFoundException if the email is not registered
+     * <p>This method is called after Spring Security has already validated the user's credentials.
+     * The {@link UserPrincipal} is expected to be resolved beforehand.
+     *
+     * @param userPrincipal the already-authenticated user's principal
+     * @param requestDTO the login request containing device context (user-agent, client-id,
+     *     client-ip)
+     * @return {@link AuthResponseDTO} containing the JWT access and refresh tokens
      */
     @Override
     public AuthResponseDTO login(UserPrincipal userPrincipal, AuthLoginRequestDTO requestDTO) {
@@ -58,6 +64,20 @@ public class AuthServiceImpl implements IAuthService {
                         requestDTO.clientIp()));
     }
 
+    /**
+     * Authenticates via an OAuth2 authorization code exchange (PKCE flow). Validates the code,
+     * code-verifier, redirect URI, and all device-fingerprint fields before issuing tokens.
+     *
+     * <p>Each validation failure throws a generic {@link UnauthorizedException} with the message
+     * "Code Invalid or Expired" to prevent attackers from distinguishing <em>which</em> check
+     * failed.
+     *
+     * @param authCode the authorization code request containing code, verifier, redirect URI, and
+     *     device context
+     * @return {@link AuthResponseDTO} containing the JWT access and refresh tokens
+     * @throws UnauthorizedException if any validation check fails
+     * @throws BadRequestException if the code-verifier format is invalid
+     */
     @Override
     public AuthResponseDTO login(AuthCode authCode) {
         if (authCode.getCode() == null || authCode.getCode().isEmpty()) {
@@ -116,6 +136,21 @@ public class AuthServiceImpl implements IAuthService {
         return login(new UserPrincipal(user), requestDTO);
     }
 
+    /**
+     * Logs out the user by revoking the refresh token and its entire token family, then clearing
+     * the Spring Security context.
+     *
+     * <p>The refresh token is first validated (which triggers revocation on any mismatch), then the
+     * entire token family and associated session are revoked with reason {@code "logout-session"}.
+     *
+     * @param refreshToken the raw refresh token string to revoke
+     * @param clientId the client identifier for token validation
+     * @param userAgent the HTTP User-Agent for token validation
+     * @param ipAddress the request IP for audit logging
+     * @throws BadRequestException if the refresh token is blank
+     * @throws NotFoundException if the token is not found in the database
+     * @throws UnauthorizedException if token validation fails
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void logout(String refreshToken, String clientId, String userAgent, String ipAddress) {

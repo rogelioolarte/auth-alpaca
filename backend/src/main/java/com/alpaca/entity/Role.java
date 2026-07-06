@@ -75,6 +75,12 @@ public class Role extends Auditable {
         this.rolePermissions = permissionsToRolePermissions(permissions);
     }
 
+    /**
+     * Replaces all permission assignments for this role with the given permissions.
+     *
+     * <p>Clears existing {@link RolePermission} associations and rebuilds them from the provided
+     * collection. Has no effect if the collection is null or empty.
+     */
     public void setRolePermissions(Collection<Permission> permissions) {
         if (this.rolePermissions == null) {
             this.rolePermissions = new HashSet<>();

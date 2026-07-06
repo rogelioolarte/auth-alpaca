@@ -61,10 +61,27 @@ public class SecurityConfig {
     private final CustomAuthenticationManager authenticationManager;
 
     /**
-     * Configures security filter chain with authentication and authorization settings.
+     * Builds the security filter chain with stateless session management, JWT validation, and
+     * OAuth2 login support.
      *
-     * @param http HttpSecurity configuration.
-     * @return SecurityFilterChain instance.
+     * <p>Configuration highlights:
+     *
+     * <ul>
+     *   <li>CSRF, form login, and HTTP basic are disabled (stateless JWT auth).
+     *   <li>Public endpoints: {@code /api/auth/**}, {@code /api/advertisers/**}, {@code
+     *       /oauth2/**}.
+     *   <li>Authenticated endpoints: {@code /api/sessions/**}, {@code /api/profiles/**}, {@code
+     *       /api/users/**}.
+     *   <li>Admin-only endpoints: {@code /api/roles/**}, {@code /api/permissions/**}.
+     *   <li>All other requests are denied by default.
+     *   <li>OAuth2 login is configured with cookie-based authorization request repository and a
+     *       custom token response client.
+     *   <li>A {@link JwtTokenValidatorFilter} is injected before {@link BasicAuthenticationFilter}
+     *       to validate Bearer tokens on every request.
+     * </ul>
+     *
+     * @param http the {@link HttpSecurity} to modify
+     * @return the built {@link SecurityFilterChain}
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -115,9 +132,14 @@ public class SecurityConfig {
     }
 
     /**
-     * Creates an OAuth2 access token response client.
+     * Creates the OAuth2 token response client used during the authorization code exchange.
      *
-     * @return OAuth2AccessTokenResponseClient instance.
+     * <p>A custom {@link AccessTokenResConverter} is plugged in to handle provider-specific token
+     * response shapes. The rest client is configured with a {@link FormHttpMessageConverter} for
+     * form-encoded responses and a custom {@link OAuth2ErrorResponseErrorHandler} for resilient
+     * error handling.
+     *
+     * @return a fully configured OAuth2 token response client
      */
     private OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
             authorizationCodeTokenResponseClient() {
@@ -142,9 +164,12 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures access denied handler.
+     * Returns an {@link AccessDeniedHandler} that responds with HTTP 403 and includes the access
+     * denial reason in the response body.
      *
-     * @return AccessDeniedHandler instance.
+     * <p>This provides more diagnostic information than the default Spring Security 403 page.
+     *
+     * @return a handler that writes "403 Forbidden Access: {reason}" into the response
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
@@ -156,9 +181,14 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures an authentication entry point.
+     * Returns the {@link AuthenticationEntryPoint} used when an unauthenticated request reaches a
+     * secured endpoint.
      *
-     * @return AuthenticationEntryPoint instance.
+     * <p>Delegates to Spring Security's {@link Http403ForbiddenEntryPoint}, which sends a plain 403
+     * response. A dedicated entry point is defined here so that the exception-handling
+     * configuration can be customized in one place if needed later.
+     *
+     * @return the entry point for unauthenticated access attempts
      */
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -166,16 +196,31 @@ public class SecurityConfig {
     }
 
     /**
-     * Retrieves the authentication manager from the configuration.
+     * Exposes the default {@link AuthenticationManager} from Spring Security's {@link
+     * AuthenticationConfiguration} as a bean.
      *
-     * @param configuration AuthenticationConfiguration instance.
-     * @return AuthenticationManager instance.
+     * <p>This is necessary when custom authentication providers (like {@link
+     * com.alpaca.security.manager.CustomAuthenticationManager}) are registered and the default
+     * manager still needs to be available for injection elsewhere.
+     *
+     * @param configuration Spring's authentication configuration
+     * @return the default {@link AuthenticationManager}
      */
     @Bean
     public AuthenticationManager getJwtManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 
+    /**
+     * Defines the CORS configuration allowing the frontend origin to access the API.
+     *
+     * <p>The allowed origin is read from {@code app.frontend.uri} (default: {@code
+     * http://localhost:4200}). Credentials are enabled for cookie-based flows (e.g., OAuth2 state
+     * parameter cookies), and {@code maxAge} is set to 1 hour so browsers cache the preflight
+     * result.
+     *
+     * @return a {@link CorsConfigurationSource} applied to all paths
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

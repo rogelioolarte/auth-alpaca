@@ -23,11 +23,15 @@ import org.springframework.data.repository.NoRepositoryBean;
 public interface CustomRepo<T, I> extends JpaRepository<T, I> {
 
     /**
-     * Counts the number of entities with the given IDs.
+     * Deletes an entity by its identifier, throwing an exception if no entity exists.
      *
-     * @param id The collection of entity IDs to count - must not be null.
-     * @throws IllegalStateException if the entity doesn't have an ID
-     * @throws EmptyResultDataAccessException if The entity was already deleted
+     * <p>Unlike the default {@link #deleteById(Object)} from Spring Data, this custom variant
+     * throws {@link EmptyResultDataAccessException} when no entity matches the given ID, making it
+     * suitable for callers that need to detect and handle the missing-entity case explicitly.
+     *
+     * @param id The entity ID to delete - must not be null.
+     * @throws IllegalStateException if the entity type has no ID attribute
+     * @throws EmptyResultDataAccessException if no entity exists with the given ID
      */
     void deleteById(@NonNull I id);
 

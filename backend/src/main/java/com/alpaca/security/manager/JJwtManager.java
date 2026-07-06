@@ -288,20 +288,31 @@ public class JJwtManager {
     }
 
     /**
-     * Builds a Spring Security authentication object from a validated Access token.
+     * Validates an Access token and builds a Spring Security authentication object from it.
      *
-     * @param token signed JWT
-     * @return {@code UsernamePasswordAuthenticationToken} or null if invalid
+     * <p>This is a convenience method that chains {@link #validateAccessToken(String)} and {@link
+     * #createAuthentication(Claims)}. Returns {@code null} instead of throwing when the token is
+     * invalid, making it suitable for filter-based auth where the caller decides how to handle
+     * unauthenticated requests.
+     *
+     * @param token signed JWT access token
+     * @return {@link UsernamePasswordAuthenticationToken} if valid, or {@code null} if the token is
+     *     invalid, expired, or fails signature verification
      */
     public UsernamePasswordAuthenticationToken manageAuthentication(String token) {
         return createAuthentication(validateAccessToken(token));
     }
 
     /**
-     * Creates a Spring Security authentication object based on token claims.
+     * Creates a Spring Security authentication object from validated JWT claims.
      *
-     * @param claims JWT claims to extract authorities and principal info
-     * @return authentication object or null if invalid
+     * <p>Extracts the {@link UserPrincipal} (as the principal), authorities from the {@code
+     * authorities} claim (comma-delimited string), and leaves credentials as {@code null} since
+     * token-based auth does not re-authenticate credentials on each request.
+     *
+     * @param claims validated JWT claims
+     * @return {@link UsernamePasswordAuthenticationToken} if claims pass {@link
+     *     #isValidAccessToken(Claims)}, or {@code null} if required claims are missing or expired
      */
     public UsernamePasswordAuthenticationToken createAuthentication(Claims claims) {
         return isValidAccessToken(claims)

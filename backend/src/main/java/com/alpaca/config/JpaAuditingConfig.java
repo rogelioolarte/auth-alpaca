@@ -9,6 +9,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * Enables JPA auditing and provides an {@link AuditorAware} bean that automatically populates
+ * {@code createdBy} / {@code updatedBy} fields on {@link com.alpaca.entity.Auditable} entities.
+ *
+ * <p>The auditor is resolved from the currently authenticated Spring Security principal, falling
+ * back to the authentication name when the principal is not a {@link
+ * com.alpaca.model.UserPrincipal}.
+ */
 @Configuration
 @EnableJpaAuditing
 public class JpaAuditingConfig {

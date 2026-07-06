@@ -265,13 +265,13 @@ class AdvertiserServiceImplIT extends BaseIntegrationTests {
     }
 
     // ------------------------------------------------
-    // findAllPageByIndexedTrue
+    // findAllByIndexedTrue
     // ------------------------------------------------
 
     @Test
     @Transactional
-    @DisplayName("findAllPageByIndexedTrue returns only indexed advertisers")
-    void findAllPageByIndexedTrue_ShouldReturnOnlyIndexedAdvertisers() {
+    @DisplayName("findAllByIndexedTrue returns only indexed advertisers")
+    void findAllByIndexedTrue_ShouldReturnOnlyIndexedAdvertisers() {
 
         Advertiser indexedAdvertiser = buildSingleAdvertiser();
         indexedAdvertiser.setIndexed(true);
@@ -282,7 +282,7 @@ class AdvertiserServiceImplIT extends BaseIntegrationTests {
         service.save(indexedAdvertiser);
         service.save(nonIndexedAdvertiser);
 
-        Page<Advertiser> result = service.findAllPageByIndexedTrue(Pageable.ofSize(10));
+        Page<Advertiser> result = service.findAllByIndexedTrue(Pageable.ofSize(10));
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();

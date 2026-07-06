@@ -52,6 +52,14 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
         return "Role";
     }
 
+    /**
+     * Creates a new {@link Role} after verifying that a role with the same unique properties does
+     * not already exist.
+     *
+     * @param role the role to create; must not be {@code null}
+     * @return the saved {@link Role} instance
+     * @throws BadRequestException if a role with identical unique properties already exists
+     */
     @Override
     public Role save(Role role) {
         if (dao.existsByUniqueProperties(role)) {

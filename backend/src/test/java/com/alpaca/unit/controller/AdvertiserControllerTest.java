@@ -176,14 +176,14 @@ class AdvertiserControllerTest {
         Page<AdvertiserResponseDTO> responsePage =
                 new PageImpl<>(AdvertiserProvider.listResponse(), pageable, 10);
 
-        when(service.findAllPageByIndexedTrue(any(Pageable.class))).thenReturn(entityPage);
+        when(service.findAllByIndexedTrue(any(Pageable.class))).thenReturn(entityPage);
         when(mapper.toPageResponseDTO(entityPage)).thenReturn(responsePage);
 
         mockMvc.perform(get("/api/advertisers/page").param("page", "0").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())));
 
-        verify(service).findAllPageByIndexedTrue(any(Pageable.class));
+        verify(service).findAllByIndexedTrue(any(Pageable.class));
     }
 
     @Test

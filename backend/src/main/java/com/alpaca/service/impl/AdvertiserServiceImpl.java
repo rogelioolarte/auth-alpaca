@@ -55,6 +55,14 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
         return "Advertiser";
     }
 
+    /**
+     * Creates a new {@link Advertiser} after verifying that an advertiser with the same unique
+     * properties does not already exist.
+     *
+     * @param advertiser the advertiser to create; must not be {@code null}
+     * @return the saved {@link Advertiser} instance
+     * @throws BadRequestException if an advertiser with identical unique properties already exists
+     */
     @Override
     public Advertiser save(Advertiser advertiser) {
         if (dao.existsByUniqueProperties(advertiser)) {
@@ -63,9 +71,16 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
         return super.save(advertiser);
     }
 
+    /**
+     * Retrieves a paginated subset of advertisers that are marked as indexed, useful for
+     * public-facing listings where only approved/indexed advertisers should appear.
+     *
+     * @param pageable pagination parameters; must not be {@code null}
+     * @return a paginated list of indexed advertisers
+     */
     @Override
-    public Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable) {
-        return dao.findAllPageByIndexedTrue(pageable);
+    public Page<Advertiser> findAllByIndexedTrue(Pageable pageable) {
+        return dao.findAllByIndexedTrue(pageable);
     }
 
     /**

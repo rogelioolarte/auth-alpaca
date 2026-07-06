@@ -7,21 +7,58 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Represents an OAuth2 authorization code with optional PKCE support.
+ *
+ * <p>This model (not a JPA entity) captures the parameters of an authorization code during the
+ * OAuth2 authorization code flow. The code is short-lived and may carry a PKCE challenge or
+ * verifier depending on the flow variant (S256 challenge vs. plain verifier).
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthCode {
+
+    /** The opaque authorization code value issued to the client. */
     String code;
+
+    /**
+     * PKCE code challenge (S256 hash of the verifier). Present when the client uses the
+     * authorization code flow with PKCE and the {@code code_challenge_method} is {@code S256}.
+     */
     String codeChallenge;
+
+    /**
+     * PKCE code verifier (raw secret). Present in flows where the server manages the verifier
+     * directly rather than receiving a challenge from the client.
+     */
     String codeVerifier;
+
+    /** The redirect URI that was used in the original authorization request. */
     String redirectUri;
+
+    /** OAuth2 client identifier that requested the authorization code. */
     String clientId;
+
+    /** User-agent header from the client's authorization request, for audit purposes. */
     String userAgent;
+
+    /** IP address from which the authorization request originated, for audit purposes. */
     String clientIp;
+
+    /** The authenticated user ID that approved the authorization request. */
     UUID userId;
+
+    /** Instant after which this authorization code is no longer valid. */
     Instant expiresAt;
 
+    /**
+     * Full constructor for the authorization code flow with PKCE (S256 challenge).
+     *
+     * <p>Sets the TTL to 60 seconds from now. The authenticated {@code userId} is recorded so the
+     * server can resolve the user when the code is exchanged.
+     */
     public AuthCode(
             String code,
             String codeChallenge,
@@ -40,6 +77,10 @@ public class AuthCode {
         this.expiresAt = Instant.now().plusSeconds(60);
     }
 
+    /**
+     * Constructor for flows where the server issues the code with a raw PKCE verifier rather than a
+     * challenge. No user ID or expiry is set — caller should populate those separately if needed.
+     */
     public AuthCode(
             String code,
             String codeVerifier,
@@ -55,6 +96,12 @@ public class AuthCode {
         this.clientIp = clientIp;
     }
 
+    /**
+     * Minimal constructor with just the essential authorization code fields.
+     *
+     * <p>Suitable for simple or legacy flows where PKCE is not used and audit metadata is tracked
+     * elsewhere.
+     */
     public AuthCode(String code, String codeVerifier, String redirectUri) {
         this.code = code;
         this.codeVerifier = codeVerifier;

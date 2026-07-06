@@ -17,6 +17,14 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+/**
+ * Payload for creating or updating a user account.
+ *
+ * <p>Uses {@link com.alpaca.dto.request.groups.OnCreate} and {@link
+ * com.alpaca.dto.request.groups.OnUpdate} validation groups to differentiate required fields:
+ * {@code password} is mandatory on create but optional on update, while {@code email} and {@code
+ * roles} are required in both cases.
+ */
 public class UserRequestDTO {
 
     @Email(

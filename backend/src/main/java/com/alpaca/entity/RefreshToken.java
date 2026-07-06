@@ -131,6 +131,14 @@ public class RefreshToken extends Auditable {
     @Column(name = "revoke_reason")
     private String revokeReason;
 
+    /**
+     * Constructs a new refresh token from a previous one, used when rotating tokens within a
+     * family.
+     *
+     * <p>Copies the user, family ID, and client metadata from the previous token. The new token
+     * starts with a fresh {@code tokenJti} and {@code expiresAt}. The caller is responsible for
+     * linking the old token's {@code replacedBy} field afterward to complete the rotation chain.
+     */
     public RefreshToken(
             RefreshToken previous,
             UUID tokenJti,
@@ -149,6 +157,13 @@ public class RefreshToken extends Auditable {
         this.userAgent = userAgent;
     }
 
+    /**
+     * Constructs a new refresh token from a {@link Session}, typically at initial login.
+     *
+     * <p>Copies the user, family ID, and client metadata from the session so the token is
+     * associated with the correct login context. The token starts unrevoked with no revocation
+     * timestamp.
+     */
     public RefreshToken(Session session, UUID tokenJti, Instant expiresAt, Instant lastUsedAt) {
         this.user = session.getUser();
         this.tokenJti = tokenJti;

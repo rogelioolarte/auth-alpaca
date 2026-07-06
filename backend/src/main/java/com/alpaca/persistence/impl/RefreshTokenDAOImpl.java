@@ -58,26 +58,58 @@ public class RefreshTokenDAOImpl extends GenericDAOImpl<RefreshToken, UUID>
         return repo.existsByTokenHash(refreshToken.getTokenHash());
     }
 
+    /**
+     * Retrieves a refresh token by its hash with a pessimistic write lock.
+     *
+     * @param hash the stored token hash
+     * @return An {@link Optional} containing the matching token if found
+     */
     @Override
     public Optional<RefreshToken> findByTokenHashSecure(String hash) {
         return repo.findByTokenHashSecure(hash);
     }
 
+    /**
+     * Resolves the token family ID from a single token hash.
+     *
+     * @param hash the stored token hash
+     * @return An {@link Optional} containing the family UUID if found
+     */
     @Override
     public Optional<UUID> findFamilyIdByTokenHash(String hash) {
         return repo.findFamilyIdByTokenHash(hash);
     }
 
+    /**
+     * Revokes all non-replaced tokens in a family following a detected reuse.
+     *
+     * @param familyId the token family to revoke
+     * @param revokedAt timestamp of revocation
+     * @param reason recorded reason for revocation
+     */
     @Override
     public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
         repo.revokeFamilyOnReuse(familyId, revokedAt, reason);
     }
 
+    /**
+     * Retrieves all refresh tokens belonging to a given token family.
+     *
+     * @param familyId the token family identifier
+     * @return a list of tokens in the family, empty if none
+     */
     @Override
     public List<RefreshToken> findAllByFamilyId(UUID familyId) {
         return repo.findAllByFamilyId(familyId);
     }
 
+    /**
+     * Revokes all active, non-replaced tokens for a given user.
+     *
+     * @param userId the user whose tokens to revoke
+     * @param revokedAt timestamp of revocation
+     * @param reason recorded reason for revocation
+     */
     @Override
     public void revokeTokensByUserId(UUID userId, Instant revokedAt, String reason) {
         repo.revokeTokensByUserId(userId, revokedAt, reason);

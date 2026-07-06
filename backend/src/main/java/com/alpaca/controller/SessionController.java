@@ -14,6 +14,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for managing the authenticated user's sessions.
+ *
+ * <p>Provides endpoints for listing active sessions, revoking a specific session, or revoking all
+ * sessions for the currently authenticated user. All endpoints require authentication.
+ *
+ * @see ISessionService
+ * @see ISessionMapper
+ */
 @RestController
 @RequestMapping("/api/sessions")
 @RequiredArgsConstructor
@@ -22,6 +31,16 @@ public class SessionController {
     private final ISessionService service;
     private final ISessionMapper mapper;
 
+    /**
+     * Retrieves a paginated list of sessions belonging to the currently authenticated user.
+     *
+     * @param user the currently authenticated user; if {@code null} the request is rejected with
+     *     401
+     * @param pageable the pagination parameters (page, size, sort); must not be {@code null}
+     * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link SessionResponseDTO}
+     *     with status {@link HttpStatus#OK}, or {@link HttpStatus#UNAUTHORIZED} if not
+     *     authenticated
+     */
     @IsAuthenticated
     @GetMapping("/page")
     public ResponseEntity<PagedModel<SessionResponseDTO>> findAllPageByUserId(
@@ -36,6 +55,17 @@ public class SessionController {
                                         service.findAllByUserId(user.getUserId(), pageable))));
     }
 
+    /**
+     * Revokes a specific session by its ID for the currently authenticated user.
+     *
+     * <p>Only sessions owned by the authenticated user can be revoked. This operation is idempotent
+     * — attempting to revoke an already-revoked or non-existent session succeeds silently.
+     *
+     * @param user the currently authenticated user; if {@code null} the request is rejected
+     * @param id the unique identifier of the session to revoke; must not be {@code null}
+     * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT} on success, or
+     *     {@link HttpStatus#UNAUTHORIZED} if not authenticated
+     */
     @IsAuthenticated
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> revokeSessionByUser(
@@ -47,6 +77,15 @@ public class SessionController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * Revokes all active sessions for the currently authenticated user.
+     *
+     * <p>This effectively logs the user out from all devices, including the current session.
+     *
+     * @param user the currently authenticated user; if {@code null} the request is rejected
+     * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT} on success, or
+     *     {@link HttpStatus#UNAUTHORIZED} if not authenticated
+     */
     @IsAuthenticated
     @DeleteMapping("/all")
     public ResponseEntity<Void> revokeAllSessionsByUser(

@@ -17,6 +17,15 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for refresh token rotation.
+ *
+ * <p>Provides the endpoint for exchanging an expiring refresh token for a new access and refresh
+ * token pair. Requests are IP-rate-limited to prevent abuse.
+ *
+ * @see IRefreshTokenService
+ * @see IPRateLimit
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -25,6 +34,22 @@ public class RefreshTokenController {
     private final IRefreshTokenService service;
     private final IPRateLimit rateLimit;
 
+    /**
+     * Rotates a refresh token, issuing a new access token and refresh token pair.
+     *
+     * <p>The previous refresh token is revoked and cannot be reused. This endpoint is
+     * IP-rate-limited — exceeding the limit produces HTTP 429 (see {@link
+     * RateLimitExceededException}).
+     *
+     * @param refreshToken the current refresh token, provided via {@code X-Refresh-Token} header
+     * @param clientId the client identifier, provided via {@code X-Client-Id} header
+     * @param userAgent the user agent string, provided via {@code User-Agent} header
+     * @param user the currently authenticated user; if {@code null} the request is rejected
+     * @param request the HTTP servlet request (used for client IP extraction and rate limiting)
+     * @return {@link ResponseEntity} containing a new {@link AuthResponseDTO} with status {@link
+     *     HttpStatus#OK}, or {@link HttpStatus#UNAUTHORIZED} if not authenticated
+     * @throws RateLimitExceededException when the client IP exceeds the rate limit
+     */
     @PostMapping("/rotate")
     public ResponseEntity<AuthResponseDTO> rotateRefreshToken(
             @RequestHeader("X-Refresh-Token") String refreshToken,

@@ -59,6 +59,8 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      *
      * @param repository cookie-based repository used to manage OAuth2 state cookies
      * @param redirectUri URI authorized for redirection; must not be {@code null}
+     * @param exchangeManager manager for creating and consuming exchange codes
+     * @param uuidGenerator generator for UUIDv7 exchange codes
      */
     public AuthSuccessHandler(
             CookieAuthReqRepo repository,
@@ -160,6 +162,22 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         return UriComponentsBuilder.fromUriString(target).build().toUriString();
     }
 
+    /**
+     * Resolves the PKCE code challenge value associated with the current OAuth2 authorization
+     * request.
+     *
+     * <p>Priority order:
+     *
+     * <ol>
+     *   <li>From the stored {@link OAuth2AuthorizationRequest} attributes (set during the initial
+     *       authorization request by {@link com.alpaca.security.oauth2.OAuth2ReqResolver}).
+     *   <li>From the {@code client_code_challenge} cookie (persisted by {@link CookieAuthReqRepo}
+     *       for stateless flows).
+     * </ol>
+     *
+     * @param request the incoming HTTP request
+     * @return the code challenge string, or empty string if not found
+     */
     protected String determineCodeChallenge(HttpServletRequest request) {
         OAuth2AuthorizationRequest authReq = repository.loadAuthorizationRequest(request);
         String challenge = (String) authReq.getAttributes().get(CLIENT_CODE_CHALLENGE);

@@ -31,8 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
  * Service layer implementation for managing {@link Session} entities. Inherits common CRUD
  * operations from {@link IGenericService}.
  *
- * <p>This service delegates persistence operations to the {@link ISessionDAO} and provides a clear
- * abstraction point for future business logic related to permissions.
+ * <p>This service delegates persistence operations to the {@link ISessionDAO} and enforces
+ * session-level policies such as per-user session limits and concurrent-device eviction. Session
+ * revocation cascades to the associated refresh token family.
  *
  * @see IGenericService
  * @see IRefreshTokenService
@@ -50,6 +51,15 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
     private final boolean infinityLogin;
     private static final String USER_SELF_REVOCATION = "user-self-revocation";
 
+    /**
+     * Constructs the service with DAO dependencies and session-limit configuration.
+     *
+     * @param maxSessionsPerUser maximum concurrent active sessions allowed per user (default: 10);
+     *     must be at least 1
+     * @param infinityLogin when {@code true}, exceeding the session limit evicts the oldest session
+     *     instead of rejecting the login
+     * @throws IllegalStateException if {@code maxSessionsPerUser} is less than 1
+     */
     public SessionServiceImpl(
             ISessionDAO dao,
             IUserDAO userDAO,
@@ -90,16 +100,60 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         return "Session";
     }
 
+    /**
+     * Revokes all sessions that share the given {@code familyId}. This is a bulk operation
+     * typically triggered when a refresh token in the same family is compromised or rotated.
+     *
+     * @param familyId the token family identifier to revoke
+     * @param revokedAt the timestamp marking when the revocation occurred
+     * @param reason a human-readable reason recorded for audit
+     */
     @Override
     public void revokeSessionByFamilyId(UUID familyId, Instant revokedAt, String reason) {
         dao.revokeSessionByFamilyId(familyId, revokedAt, reason);
     }
 
+    /**
+     * Finds any non-deleted session that belongs to the given token family.
+     *
+     * @param familyId the token family identifier to look up
+     * @return an {@link Optional} containing the session if one exists
+     */
     @Override
     public Optional<Session> findSessionByFamilyId(UUID familyId) {
         return dao.findSessionByFamilyId(familyId);
     }
 
+    /**
+     * Creates or reuses a session for the given user and device fingerprint.
+     *
+     * <p><b>Session reuse:</b> If an active session already exists for the same user-agent,
+     * client-id, and client-IP combination, the existing session is reused. The refresh token
+     * family is rotated — the old family is revoked and a new one is assigned.
+     *
+     * <p><b>Session limit enforcement:</b> When the user has reached the maximum allowed active
+     * sessions ({@code maxSessionsPerUser}) and no existing session matches, behavior depends on
+     * {@code infinityLogin}:
+     *
+     * <ul>
+     *   <li>If {@code infinityLogin} is {@code true}, the oldest session is evicted (revoked).
+     *   <li>If {@code infinityLogin} is {@code false}, an {@link ExceededSessionsException} is
+     *       thrown.
+     * </ul>
+     *
+     * <p>A pessimistic lock ({@code lockFindUserById}) is acquired on the user row, and the
+     * isolation level is {@link Isolation#READ_COMMITTED} to prevent dirty reads during concurrent
+     * session creation.
+     *
+     * @param userId the user for whom to create a session
+     * @param userAgent the HTTP User-Agent header identifying the client device
+     * @param clientId an identifier for the OAuth2 client application
+     * @param clientIp the IP address from which the request originated
+     * @return the created or reused {@link Session} instance
+     * @throws NotFoundException if the user does not exist
+     * @throws ExceededSessionsException if the session limit is reached and {@code infinityLogin}
+     *     is disabled
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public Session createSession(UUID userId, String userAgent, String clientId, String clientIp) {
@@ -150,6 +204,15 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         return super.save(newSession);
     }
 
+    /**
+     * Revokes a single session owned by the given user. The session is looked up by both session ID
+     * and user ID to prevent a user from revoking another user's session. Revocation cascades to
+     * the entire refresh token family associated with this session.
+     *
+     * @param userId the owner of the session to revoke
+     * @param id the unique identifier of the session to revoke
+     * @throws ForbiddenException if the session does not belong to the specified user
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void revokeSessionByUserIdAndId(UUID userId, UUID id) {
@@ -164,6 +227,12 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
                 session.getFamilyId(), Instant.now(), USER_SELF_REVOCATION);
     }
 
+    /**
+     * Revokes every active session owned by the specified user. This is a bulk operation — all
+     * sessions and their associated refresh token families are revoked simultaneously.
+     *
+     * @param userId the user whose sessions are to be revoked
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public void revokeAllSessionsByUserId(UUID userId) {
@@ -172,11 +241,24 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
         refreshTokenDAO.revokeTokensByUserId(userId, now, USER_SELF_REVOCATION);
     }
 
+    /**
+     * Retrieves a paginated list of sessions belonging to the specified user.
+     *
+     * @param userId the user whose sessions to retrieve
+     * @param pageable pagination parameters; must not be {@code null}
+     * @return a paginated list of sessions
+     */
     @Override
     public Page<Session> findAllByUserId(UUID userId, Pageable pageable) {
         return dao.findAllByUserId(userId, pageable);
     }
 
+    /**
+     * Checks whether a session with the same unique identifying properties already exists.
+     *
+     * @param s the session whose properties to check
+     * @return {@code true} if a matching session exists
+     */
     @Override
     public boolean existsByUniqueProperties(Session s) {
         return dao.existsByUniqueProperties(s);

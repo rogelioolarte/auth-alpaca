@@ -54,6 +54,16 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
 
+    /**
+     * Marks all non-revoked sessions for a given user as revoked.
+     *
+     * <p>Used when the user initiates a global logout (e.g. "log out of all devices") or when an
+     * administrative action invalidates every session belonging to that user.
+     *
+     * @param userId user whose sessions are being revoked
+     * @param revokedAt timestamp when revocation was applied
+     * @param reason reason for revocation, recorded on each revoked session
+     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
             """
@@ -69,10 +79,49 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
 
+    /**
+     * Retrieves the first session associated with a given session family identifier.
+     *
+     * <p>Session family IDs group related sessions (e.g. from the same login flow on different
+     * devices). This lookup is typically used during family-wide revocation or inspection of a
+     * related session cluster.
+     *
+     * @param familyId the session family identifier
+     * @return An {@link Optional} containing the session if found, otherwise empty
+     */
     Optional<Session> findSessionByFamilyId(UUID familyId);
 
+    /**
+     * Retrieves a session scoped to a specific user.
+     *
+     * <p>This dual-key lookup ensures the session belongs to the identified user, acting as an
+     * authorization guard at the data-access layer: callers must prove ownership of the session
+     * rather than accessing it by ID alone.
+     *
+     * @param id the session UUID
+     * @param userId the user who owns the session
+     * @return An {@link Optional} containing the session if found and owned by the user, otherwise
+     *     empty
+     */
     Optional<Session> findByIdAndUserId(UUID id, UUID userId);
 
+    /**
+     * Finds a non-revoked session matching the given composite device properties, with a
+     * pessimistic write lock.
+     *
+     * <p>During session rotation, the client provides its device fingerprint ({@code userAgent},
+     * {@code clientId}, {@code ipAddress}). This method matches an existing active session for the
+     * same user and device to support session reuse or deduplication. The {@code clientId} and
+     * {@code ipAddress} parameters are optional — when {@code null} they are excluded from the
+     * match. The pessimistic lock prevents concurrent session creation for the same device profile.
+     * A lock timeout of zero skips waiting if another transaction holds the lock.
+     *
+     * @param userId the user UUID
+     * @param userAgent the browser or client user-agent string
+     * @param clientId optional client identifier, may be null to skip matching
+     * @param ipAddress optional IP address, may be null to skip matching
+     * @return An {@link Optional} containing the matching session if found, otherwise empty
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(
@@ -91,15 +140,27 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             @Param("clientId") String clientId,
             @Param("ipAddress") String ipAddress);
 
+    /**
+     * Counts non-revoked sessions matching the given composite device properties.
+     *
+     * <p>Serves as a lighter alternative to {@link #findByUniqueProperties} when only existence or
+     * cardinality is needed, avoiding the overhead of a pessimistic lock.
+     *
+     * @param userId the user UUID
+     * @param userAgent the browser or client user-agent string
+     * @param clientId optional client identifier, may be null to skip matching
+     * @param ipAddress optional IP address, may be null to skip matching
+     * @return the count of matching non-revoked sessions
+     */
     @Query(
             """
               SELECT COUNT(s)
                 FROM Session s
                WHERE s.user.id = :userId
-                 AND s.userAgent = :userAgent
-                 AND (:clientId IS NULL OR s.clientId = :clientId)
-                 AND (:ipAddress IS NULL OR s.ipAddress = :ipAddress)
-                 AND s.revoked = false
+                  AND s.userAgent = :userAgent
+                  AND (:clientId IS NULL OR s.clientId = :clientId)
+                  AND (:ipAddress IS NULL OR s.ipAddress = :ipAddress)
+                  AND s.revoked = false
             """)
     long countByUniqueProperties(
             @Param("userId") UUID userId,
@@ -107,6 +168,18 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             @Param("clientId") String clientId,
             @Param("ipAddress") String ipAddress);
 
+    /**
+     * Retrieves the oldest active session for a user, with a pessimistic lock and lock timeout of
+     * zero.
+     *
+     * <p>Results are ordered by {@code lastSeenAt ASC NULLS FIRST} to find the least-recently-used
+     * session. This is used in session eviction or limit-enforcement scenarios where the oldest
+     * session must be identified and revoked when a user exceeds their allowed session limit.
+     *
+     * @param userId the user UUID
+     * @return An {@link Optional} containing the oldest active session if one exists, otherwise
+     *     empty
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
     @Query(
@@ -117,8 +190,24 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             """)
     Optional<Session> findFirstActiveSessionForUpdate(@Param("userId") UUID userId);
 
+    /**
+     * Counts active (non-revoked) sessions for a given user.
+     *
+     * @param userId the user UUID
+     * @return the number of non-revoked sessions belonging to the user
+     */
     long countByUserIdAndRevokedFalse(UUID userId);
 
+    /**
+     * Returns a paginated view of active sessions for a given user.
+     *
+     * <p>The explicit {@code countQuery} ensures Spring Data uses a lightweight aggregate query for
+     * page metadata rather than counting over the full result set.
+     *
+     * @param userId the user UUID
+     * @param pageable pagination and sorting parameters
+     * @return a {@link Page} of active sessions for the user
+     */
     @Query(
             value =
                     """

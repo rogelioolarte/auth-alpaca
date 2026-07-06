@@ -28,5 +28,14 @@ public interface AdvertiserRepo extends CustomRepo<Advertiser, UUID> {
     @Query("SELECT COUNT(p) FROM Advertiser p WHERE p.user.id = :userId")
     long countByUserId(@Param("userId") UUID userId);
 
-    Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable);
+    /**
+     * Returns a paginated list of advertisers that have been marked as indexed.
+     *
+     * <p>This is used by indexing jobs or search-related queries to process only advertisers whose
+     * data is ready for indexing, excluding those still pending or excluded.
+     *
+     * @param pageable pagination and sorting parameters
+     * @return a {@link Page} of indexed advertisers
+     */
+    Page<Advertiser> findAllByIndexedTrue(Pageable pageable);
 }

@@ -155,6 +155,10 @@ public class User extends Auditable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Session> sessions = new HashSet<>();
 
+    /**
+     * Prefix prepended to role names when building Spring Security {@link GrantedAuthority}
+     * entries.
+     */
     public static final String ROLE_KEY_AUTHORITY = "ROLE_";
 
     /**
@@ -202,6 +206,12 @@ public class User extends Auditable {
         this.userRoles = rolesToUserRoles(roles);
     }
 
+    /**
+     * Replaces all role assignments for this user with the given roles.
+     *
+     * <p>Clears existing {@link UserRole} associations and rebuilds them from the provided
+     * collection. Has no effect if the collection is null or empty.
+     */
     public void setRoles(Collection<Role> roles) {
         if (roles != null && !roles.isEmpty()) {
             this.userRoles.clear();
@@ -295,6 +305,13 @@ public class User extends Auditable {
                 && this.credentialNonExpired;
     }
 
+    /**
+     * Toggles all account-status flags as a group.
+     *
+     * <p>Sets {@code enabled}, {@code accountNonExpired}, {@code accountNonLocked}, and {@code
+     * credentialNonExpired} to the same value. Use this when the entire account should be
+     * universally allowed or suspended, rather than toggling individual flags.
+     */
     public void setAllowed(boolean value) {
         this.enabled = value;
         this.accountNonExpired = value;
@@ -331,6 +348,12 @@ public class User extends Auditable {
                 tokensInvalidBefore);
     }
 
+    /**
+     * Merges profile data from the given user reference into this user.
+     *
+     * <p>Only updates if the new profile is non-null and its ID differs from the current profile's
+     * ID, preventing unnecessary entity graph churn.
+     */
     public void updateProfile(User newUser) {
         if (newUser.getProfile() != null
                 && !Objects.equals(this.getProfile(), newUser.getProfile())) {
@@ -341,6 +364,12 @@ public class User extends Auditable {
         }
     }
 
+    /**
+     * Merges advertiser data from the given user reference into this user.
+     *
+     * <p>Only updates if the new advertiser is non-null and its ID differs from the current
+     * advertiser's ID, preventing unnecessary entity graph churn.
+     */
     public void updateAdvertiser(User newUser) {
         if (newUser.getAdvertiser() != null
                 && !Objects.equals(this.getAdvertiser(), newUser.getAdvertiser())) {

@@ -23,6 +23,18 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Service implementation for OAuth2 login flows. Extends Spring Security's {@link
+ * DefaultOAuth2UserService} to process user information from external OAuth2 providers (e.g.
+ * Google).
+ *
+ * <p>Handles the full OAuth2 registration-or-login flow: extracting user info from the provider's
+ * attributes, creating local user accounts for first-time OAuth2 users, linking existing accounts
+ * to the OAuth2 provider, and provisioning initial profiles.
+ *
+ * @see DefaultOAuth2UserService
+ * @see IOAuth2Service
+ */
 @Component
 @AllArgsConstructor
 public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAuth2Service {

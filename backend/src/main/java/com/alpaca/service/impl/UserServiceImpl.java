@@ -58,7 +58,8 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     }
 
     /**
-     * Registers a new {@link User} in the system.
+     * Registers a new {@link User} in the system. The provided plaintext password is encoded via
+     * {@link PasswordManager} before persisting — the raw password is never stored.
      *
      * @param user the user to register; must not be {@code null}
      * @return the saved {@link User} instance
@@ -166,6 +167,23 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
                                         "The email does not match any account"));
     }
 
+    /**
+     * Changes the password for the authenticated user identified by {@link UserPrincipal}.
+     *
+     * <p>This method enforces several business rules:
+     *
+     * <ul>
+     *   <li>The new password and confirmation must match.
+     *   <li>If the user has no password set (OAuth2-only account), a password is created only if
+     *       the account is Google-connected; otherwise the operation is rejected.
+     *   <li>If a password already exists, the current password must be provided and match.
+     *   <li>The new password must differ from the current one.
+     * </ul>
+     *
+     * @param principal the currently authenticated user
+     * @param requestDTO the request containing current, new, and confirmation passwords
+     * @throws BadRequestException if validation fails for any of the above rules
+     */
     @Override
     public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
         if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {

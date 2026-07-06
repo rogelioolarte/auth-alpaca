@@ -33,8 +33,9 @@ import org.springframework.util.StringUtils;
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD
  * operations from {@link IGenericService}.
  *
- * <p>This service delegates persistence operations to the {@link IRefreshTokenDAO} and provides a
- * clear abstraction point for future business logic related to permissions.
+ * <p>This service delegates persistence operations to the {@link IRefreshTokenDAO} and handles
+ * token rotation, refresh token validation with automatic reuse-detection revocation, and JWT
+ * issuance in coordination with {@link ISessionService} and {@link JJwtManager}.
  *
  * @see IGenericService
  * @see IRefreshTokenService
@@ -54,18 +55,60 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
     private static final String MESSAGE_REUSE_REASON = "reuse-detected";
     private static final String REVOKE_REASON_ROTATION = "rotation";
 
+    /**
+     * Provides the generic DAO used by inherited service methods.
+     *
+     * @return the {@link IGenericDAO} implementation for {@link RefreshToken}
+     */
     @Override
     @Generated
     protected IGenericDAO<RefreshToken, UUID> getDAO() {
         return dao;
     }
 
+    /**
+     * Supplies a human-readable name representing the entity, used in exception messages and
+     * logging.
+     *
+     * @return the string literal "RefreshToken"
+     */
     @Override
     @Generated
     protected String getEntityName() {
         return "RefreshToken";
     }
 
+    /**
+     * Rotates a refresh token: validates and revokes the old token, then issues a new access and
+     * refresh token pair.
+     *
+     * <p><b>Validation sequence:</b>
+     *
+     * <ol>
+     *   <li>All input parameters (token, clientId, userAgent, clientIp) are checked for blank or
+     *       null values.
+     *   <li>The incoming token is hashed and looked up in the database.
+     *   <li>The found token undergoes full validation via {@link #validateRefreshToken}, which
+     *       rejects revoked, expired, or reused tokens and revokes the entire family on detection
+     *       of reuse.
+     *   <li>The associated session is checked — revoked sessions cause rejection.
+     * </ol>
+     *
+     * <p><b>Rotation:</b> The old token is marked revoked with reason {@code "rotation"}. A new
+     * {@link RefreshToken} is created with a fresh {@code familyId} and linked back to the original
+     * via {@code replacedBy}.
+     *
+     * <p>Isolation {@link Isolation#REPEATABLE_READ} prevents phantom reads during the
+     * validate-and-rotate sequence so that concurrent reuse of the same token is reliably detected.
+     *
+     * @param oldRefreshToken the raw refresh token string to rotate
+     * @param clientId the OAuth2 client identifier for origin validation
+     * @param userAgent the HTTP User-Agent for fingerprinting
+     * @param clientIp the request IP address for audit
+     * @return an {@link AuthResponseDTO} containing the new access and refresh tokens
+     * @throws BadRequestException if any input parameter is blank
+     * @throws UnauthorizedException if the token is invalid, revoked, or failed validation
+     */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     @Override
     public AuthResponseDTO rotateRefreshToken(
@@ -131,6 +174,16 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
+    /**
+     * Generates a full JWT token pair (access + refresh) for the given user principal and session.
+     * A new {@link RefreshToken} entity is persisted with a hashed representation of the refresh
+     * JWT; the raw token string is returned only in the response DTO and is never stored.
+     *
+     * @param userPrincipal the authenticated user's principal used as the access token subject
+     * @param session the session to associate the refresh token with
+     * @return an {@link AuthResponseDTO} containing the access token and the raw refresh token
+     *     string
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public AuthResponseDTO generateJWTTokens(UserPrincipal userPrincipal, Session session) {
@@ -148,6 +201,15 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
+    /**
+     * Generates a full JWT token pair using an authorization code. This is the terminal step of the
+     * OAuth2 authorization code flow: the code is exchanged for tokens by first looking up the
+     * user, creating a session for the device fingerprint embedded in the code, and then issuing
+     * the JWT pair.
+     *
+     * @param authCode the consumed authorization code containing user and device context
+     * @return an {@link AuthResponseDTO} containing the access token and raw refresh token string
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
     public AuthResponseDTO generateJWTTokens(AuthCode authCode) {
@@ -162,6 +224,34 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         return this.generateJWTTokens(new UserPrincipal(user), session);
     }
 
+    /**
+     * Validates a refresh token against all security checks. On any failure, the entire token
+     * family is revoked as a reuse-detection measure, and the event is logged.
+     *
+     * <p><b>Validation rules (in order):</b>
+     *
+     * <ol>
+     *   <li>Token is not already revoked.
+     *   <li>Token has not been {@code replacedBy} another token (reuse indicator).
+     *   <li>Token has not expired.
+     *   <li>User's {@code tokensInvalidBefore} timestamp does not predate token creation (global
+     *       token invalidation).
+     *   <li>{@code clientId} matches the token's recorded client.
+     *   <li>{@code userAgent} matches the token's recorded user agent.
+     * </ol>
+     *
+     * <p><b>Critical side effect:</b> Each failed check revokes all tokens and sessions sharing the
+     * same {@code familyId}. This is an intentional security measure — any deviation from the
+     * expected token context is treated as potential token theft, and the entire family is
+     * invalidated immediately.
+     *
+     * @param token the refresh token entity to validate
+     * @param clientId the expected OAuth2 client identifier
+     * @param now the reference timestamp for expiry comparison
+     * @param clientIp the request IP (used for audit logging on failure)
+     * @param userAgent the expected HTTP User-Agent header value
+     * @throws UnauthorizedException if any validation check fails
+     */
     @Override
     public void validateRefreshToken(
             RefreshToken token, String clientId, Instant now, String clientIp, String userAgent)
@@ -199,22 +289,50 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
         }
     }
 
+    /**
+     * Revokes all refresh tokens sharing the given {@code familyId} and cascades the revocation to
+     * the associated session. This is the terminal operation when token theft or reuse is detected.
+     *
+     * @param familyId the token family to revoke
+     * @param now the revocation timestamp
+     * @param reason a human-readable reason recorded for audit
+     */
     @Override
     public void revokeRefreshTokensAndSessionByFamilyId(UUID familyId, Instant now, String reason) {
         revokeFamilyWithReason(familyId, now, reason);
         sessionService.revokeSessionByFamilyId(familyId, now, reason);
     }
 
+    /**
+     * Revokes every refresh token that belongs to the given family.
+     *
+     * @param familyId the token family identifier to revoke
+     * @param revokedAt the timestamp of revocation
+     * @param reason a human-readable reason for audit trail
+     */
     @Override
     public void revokeFamilyWithReason(UUID familyId, Instant revokedAt, String reason) {
         dao.revokeFamilyWithReason(familyId, revokedAt, reason);
     }
 
+    /**
+     * Finds the token family identifier associated with the given hash.
+     *
+     * @param hash the hashed refresh token value
+     * @return an {@link Optional} containing the family identifier if found
+     */
     @Override
     public Optional<UUID> findFamilyIdByTokenHash(String hash) {
         return dao.findFamilyIdByTokenHash(hash);
     }
 
+    /**
+     * Finds a refresh token by its hashed value. The lookup uses a constant-time comparison to
+     * prevent timing attacks.
+     *
+     * @param hash the hashed refresh token value
+     * @return an {@link Optional} containing the matching {@link RefreshToken} if found
+     */
     @Override
     public Optional<RefreshToken> findByTokenHashSecure(String hash) {
         return dao.findByTokenHashSecure(hash);

@@ -13,5 +13,11 @@ import org.springframework.data.domain.Pageable;
  */
 public interface IAdvertiserDAO extends IGenericDAO<Advertiser, UUID> {
 
-    Page<Advertiser> findAllPageByIndexedTrue(Pageable pageable);
+    /**
+     * Returns a paginated list of advertisers whose {@code indexed} flag is {@code true}.
+     *
+     * @param pageable pagination and sorting parameters
+     * @return a {@link Page} of indexed advertisers
+     */
+    Page<Advertiser> findAllByIndexedTrue(Pageable pageable);
 }

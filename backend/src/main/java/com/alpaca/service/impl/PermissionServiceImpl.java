@@ -52,6 +52,14 @@ public class PermissionServiceImpl extends GenericServiceImpl<Permission, UUID>
         return "Permission";
     }
 
+    /**
+     * Creates a new {@link Permission} after verifying that a permission with identical unique
+     * properties does not already exist.
+     *
+     * @param permission the permission to create; must not be {@code null}
+     * @return the saved {@link Permission} instance
+     * @throws BadRequestException if a permission with the same unique properties already exists
+     */
     @Override
     public Permission save(Permission permission) {
         if (dao.existsByUniqueProperties(permission)) {

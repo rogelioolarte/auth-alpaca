@@ -74,23 +74,23 @@ class AdvertiserServiceImplTest {
         verify(dao).save(secondAdvertiser);
     }
 
-    // --- findAllPageByIndexedTrue ---
+    // --- findAllByIndexedTrue ---
 
     @Test
-    void findAllPageByIndexedTrueShouldReturnPagedAdvertisersSuccessfully() {
+    void findAllByIndexedTrueShouldReturnPagedAdvertisersSuccessfully() {
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Advertiser> expectedPage = new PageImpl<>(List.of(firstAdvertiser, secondAdvertiser));
 
-        when(dao.findAllPageByIndexedTrue(pageable)).thenReturn(expectedPage);
+        when(dao.findAllByIndexedTrue(pageable)).thenReturn(expectedPage);
 
-        Page<Advertiser> result = service.findAllPageByIndexedTrue(pageable);
+        Page<Advertiser> result = service.findAllByIndexedTrue(pageable);
 
         assertNotNull(result);
         assertEquals(2, result.getContent().size());
         assertEquals(expectedPage, result);
 
-        verify(dao).findAllPageByIndexedTrue(pageable);
+        verify(dao).findAllByIndexedTrue(pageable);
     }
 
     // --- updateById ---

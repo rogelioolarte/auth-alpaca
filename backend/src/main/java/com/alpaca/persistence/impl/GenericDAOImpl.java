@@ -118,6 +118,15 @@ public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
         return getRepo().existsById(i);
     }
 
+    /**
+     * Checks whether every ID in the given collection corresponds to a persisted entity.
+     *
+     * <p>This is implemented as a single-query count comparison rather than loading entity proxies,
+     * making it efficient for batch existence checks over large ID collections.
+     *
+     * @param is the collection of identifiers to verify; may be {@code null} or empty
+     * @return {@code true} if all provided IDs exist in the database; {@code false} otherwise
+     */
     @Override
     public boolean existsAllByIds(Collection<I> is) {
         return (is.size()) == getRepo().countEntitiesIds(is);

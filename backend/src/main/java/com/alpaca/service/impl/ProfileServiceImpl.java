@@ -53,6 +53,14 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
         return "Profile";
     }
 
+    /**
+     * Creates a new {@link Profile} after verifying that a profile with the same unique properties
+     * does not already exist.
+     *
+     * @param profile the profile to create; must not be {@code null}
+     * @return the saved {@link Profile} instance
+     * @throws BadRequestException if a profile with identical unique properties already exists
+     */
     @Override
     public Profile save(Profile profile) {
         if (dao.existsByUniqueProperties(profile)) {

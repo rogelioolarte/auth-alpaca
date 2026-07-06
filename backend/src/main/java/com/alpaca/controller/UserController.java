@@ -132,6 +132,18 @@ public class UserController {
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
     }
 
+    /**
+     * Changes the password for the currently authenticated user.
+     *
+     * <p>Requires a valid authentication session. The request body must include the current and new
+     * passwords as defined by {@link PasswordRequestDTO}.
+     *
+     * @param user the currently authenticated user; if {@code null} the request is rejected with
+     *     401
+     * @param request the current and new password payload; must not be {@code null}
+     * @return {@link ResponseEntity} with status {@link HttpStatus#OK} on success, or {@link
+     *     HttpStatus#UNAUTHORIZED} if not authenticated
+     */
     @IsAuthenticated
     @PutMapping("/change-password")
     public ResponseEntity<UserPrincipal> changePassword(

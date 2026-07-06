@@ -46,6 +46,16 @@ public class DataServiceImpl implements DataService {
     @Value("${security.default-admin.password}")
     private String adminPassword;
 
+    /**
+     * Provisions the default administrator user and profile if no user records exist yet.
+     *
+     * <p>This is a guarded startup operation — if any users are already present in the database the
+     * method returns immediately to avoid overwriting existing data. If the admin password
+     * configuration is empty or missing, a warning is logged and the method exits without creating
+     * anything.
+     *
+     * <p>Marked {@link Transactional} to ensure atomicity of user + profile creation.
+     */
     @Transactional
     @Override
     public void initializeAdminUser() {

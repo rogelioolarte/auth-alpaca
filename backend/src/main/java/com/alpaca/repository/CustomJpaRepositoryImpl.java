@@ -10,6 +10,19 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Custom base implementation of {@link SimpleJpaRepository} that overrides the default {@link
+ * #deleteById(Object)} behavior and provides a batch-count query.
+ *
+ * <p>The standard Spring Data {@code deleteById} silently succeeds when the entity does not exist.
+ * This implementation replaces that behavior with an explicit {@link
+ * EmptyResultDataAccessException} when no matching row is found. The {@link
+ * #countEntitiesIds(Collection)} method provides a single-query batch existence check instead of
+ * loading full entity proxies.
+ *
+ * @param <T> entity type
+ * @param <I> entity identifier type
+ */
 public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
         implements CustomRepo<T, I> {
 
@@ -23,6 +36,15 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
         this.entityInformation = entityInformation;
     }
 
+    /**
+     * Deletes an entity via a bulk JPQL DELETE statement, throwing {@link
+     * EmptyResultDataAccessException} when no row is affected.
+     *
+     * <p>This differs from the default {@code SimpleJpaRepository.deleteById()} which calls {@code
+     * findById()} first and silently returns if the entity is not found. Here, the entity is
+     * deleted in a single JPQL statement and the caller is explicitly notified if nothing was
+     * deleted.
+     */
     @Override
     @Transactional
     public void deleteById(@NonNull I id) {
@@ -51,6 +73,13 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
         }
     }
 
+    /**
+     * Counts how many of the provided entity IDs actually exist in the database.
+     *
+     * <p>This is used to implement batch existence checks without loading entity proxies. It
+     * executes a single {@code SELECT COUNT} query with an {@code IN} clause and returns the count
+     * of matching rows. Returns zero for a {@code null} or empty collection.
+     */
     @Override
     public long countEntitiesIds(Collection<I> ids) {
         if (ids == null || ids.isEmpty()) {
