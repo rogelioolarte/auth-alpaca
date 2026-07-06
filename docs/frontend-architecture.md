@@ -1,5 +1,16 @@
 # Frontend Architecture
 
+> 🏠 [README](../README.md) — **Frontend Architecture**
+
+## 📑 On This Page
+- [🏗️ Angular 21 Architecture](#-angular-21-architecture)
+- [🔒 Authentication Flow & HTTP Interceptor](#-authentication-flow--http-interceptor)
+- [🛡️ Routing Guards](#-routing-guards)
+- [💾 Session State & Token Storage](#-session-state--token-storage)
+- [🚀 Run & Deployment Guides (Bun 1.3.11)](#-run--deployment-guides-bun-1311)
+
+---
+
 This document outlines the architecture, authentication integration, routing guards, and operations of the Angular 21 frontend application.
 
 ---
@@ -99,3 +110,11 @@ bun run start:dist
 > [!NOTE]
 > **No Unit Tests exist for the UI.**
 > Because this frontend is designed as a direct integration example to demonstrate the Spring Boot OAuth2/JWT authentication flow, it does not include comprehensive frontend unit test suites. The `.spec.ts` files contain only boilerplate test skeletons.
+
+---
+
+🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+
+#### Related Docs
+- [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema
+- [Testing Strategy](testing-strategy.md) — Unit, integration, and performance testing setup

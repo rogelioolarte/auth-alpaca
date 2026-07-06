@@ -1,3 +1,13 @@
+> 🏠 [README](../../README.md) — **🎓 Learning Path: 4-Pillar Journey**
+
+## 🚀 Jump to Pillar
+- [🏛️ Pillar 1: Concepts](./pillar-1-concepts/oauth2-flow.md)
+- [⚙️ Pillar 2: Architecture](./pillar-2-architecture/backend-flow.md)
+- [🔍 Pillar 3: Exploration](./pillar-3-exploration/treasure-hunt.md)
+- [🛠️ Pillar 4: Challenges](./pillar-4-challenges/build-it-tasks.md)
+
+---
+
 # 🎓 Auth Alpaca: The Masterclass in Modern Authentication
 
 Welcome, Engineer. You aren't here just to "run a project"—you are here to master the invisible machinery that secures the modern web.
@@ -50,3 +60,8 @@ To get the most out of this Masterclass, you should have a basic grasp of:
 **Ready to begin? Start with [Pillar 1: Concepts](./pillar-1-concepts/oauth2-flow.md).**
 
 > **Think Deeper**: Why is it important to learn the *concepts* before looking at the *code*? What happens to an engineer who learns the "how" (the library API) without the "why" (the protocol)?
+
+---
+
+| ← — | [↑ Learning Index](../index.md) | [Next](pillar-1-concepts/oauth2-flow.md) → |
+|:---|:---:|---:|

@@ -1,5 +1,16 @@
 # Backend Architecture
 
+> 🏠 [README](../README.md) — **Backend Architecture**
+
+## 📑 On This Page
+- [🛠️ Java 25 & Spring Boot Runtime Configuration](#-java-25--spring-boot-runtime-configuration)
+- [🔒 Spring Security 6 Integration](#-spring-security-6-integration)
+- [🔑 JWT Token Generation & Rotation](#-jwt-token-generation--rotation)
+- [🗄️ Database Schema & Flyway Migrations](#-database-schema--flyway-migrations)
+- [🔌 Core API Endpoints](#-core-api-endpoints)
+
+---
+
 This document provides a highly technical overview of the `auth-alpaca` backend API, designed for developers and system architects. The system is built on **Spring Boot 4.0.6** using **Java 25** (with preview features enabled) as the runtime.
 
 ---
@@ -224,3 +235,12 @@ All authenticated requests must include the header: `Authorization: Bearer <acce
 | **POST** | `/api/auth/rotate` | Authenticated | **Headers**: `X-Refresh-Token`, `X-Client-Id`, `User-Agent` | Rotates the refresh token. Rate limited per IP address. |
 | **GET** | `/api/auth/me` | Authenticated | — | Returns User Principal details for the current session. |
 | **GET** | `/api/auth` | Public | — | Health check API. Returns "API Online". |
+
+---
+
+🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+
+#### Related Docs
+- [Frontend Architecture](frontend-architecture.md) — Angular 21 SPA, authentication integration, and routing guards
+- [Testing Strategy](testing-strategy.md) — Unit, integration, and performance testing setup
+- [Deployment](deployment.md) — Docker Compose topology and environment configuration

@@ -1,3 +1,5 @@
+> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 2: Frontend Security**
+
 # 🛡️ Frontend Security: Guardians and Interceptors
 
 Frontend security is **not** about preventing unauthorized access to data—that's the backend's job. Frontend security is about **User Experience (UX)** and **Reducing Noise**.
@@ -9,7 +11,7 @@ We don't want to manually add the `Authorization: Bearer <token>` header to ever
 
 Instead, we use an **Interceptor**. Think of it as a middleware for outgoing requests.
 - The Interceptor catches every outgoing HTTP request.
-- It retrieves the JWT from storage (e.g., LocalStorage).
+- It retrieves the [JWT](../glossary.md#jwt-json-web-token) from storage (e.g., LocalStorage).
 - It clones the request and injects the `Authorization` header.
 - It passes the modified request back to the Angular HTTP client.
 
@@ -26,3 +28,8 @@ It is critical to remember: **Anything on the frontend can be bypassed.** A clev
 This is why the backend **must** verify the token on every request. The Frontend Guard is there to keep the UI clean; the Backend Filter is there to keep the data safe.
 
 > **Think Deeper**: If a user manually types `/admin` in the URL and bypasses the Guard, but the Backend returns a `403 Forbidden`, how should the Frontend Interceptor handle that response to provide a good user experience?
+
+---
+
+| ← [Previous](backend-flow.md) | [↑ Learning Index](../index.md) | [Next](component-map.md) → |
+|:---|:---:|---:|

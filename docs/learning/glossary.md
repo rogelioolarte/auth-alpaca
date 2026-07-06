@@ -1,3 +1,5 @@
+> 🏠 [README](../../README.md) > 🎓 [Learning Index](index.md) — **Glossary**
+
 # 📖 The Language of Authentication: Glossary
 
 To speak the language of security, you must master these terms.
@@ -27,3 +29,8 @@ To speak the language of security, you must master these terms.
 - **Principal**: The currently authenticated user.
 - **Authority/GrantedAuthority**: A permission or role granted to the Principal (e.g., `ROLE_ADMIN`).
 - **Filter Chain**: A sequence of filters that a request must pass through before reaching the controller.
+
+---
+
+| [← Back to Learning Index](index.md) |
+|:---:|

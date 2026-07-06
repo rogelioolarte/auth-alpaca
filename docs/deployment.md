@@ -1,5 +1,9 @@
 # Deployment & Operations
 
+> 🏠 [README](../README.md) — **Deployment & Operations**
+
+---
+
 This document details the Docker-based multi-service topology, network security mapping, and system environment variables configuration for the `auth-alpaca` stack.
 
 ---
@@ -92,3 +96,12 @@ The following table summarizes all environment variables required to run the ser
 | `ADMIN_PASSWORD` | `backend` | Bootstrap administrator password. | `123456789` |
 | `API_BASE_URL` | `frontend` | Absolute base HTTP URL target of the API server. | `http://localhost:8080` |
 | `RATELIMIT_MAX_RPM` | `backend` | Max requests per minute threshold allowed per client IP. | `500` |
+
+---
+
+🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+
+#### Related Docs
+- [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema
+- [Testing Strategy](testing-strategy.md) — Unit, integration, and performance testing setup
+- [Frontend Architecture](frontend-architecture.md) — Angular 21 SPA, authentication integration, and routing guards

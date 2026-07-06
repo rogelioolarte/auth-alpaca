@@ -1,5 +1,14 @@
 # Testing Strategy
 
+> 🏠 [README](../README.md) — **Testing Strategy**
+
+## 📑 On This Page
+- [🧪 Maven Test Profiles Separation](#-maven-test-profiles-separation)
+- [🐳 Integration Testing with Testcontainers](#-integration-testing-with-testcontainers)
+- [⚡ k6 Performance Testing Setup](#-k6-performance-testing-setup)
+
+---
+
 This document details the backend testing strategy, outlining the separation of Maven test profiles, integration testing with Testcontainers, and the performance testing setup using k6.
 
 ---
@@ -120,4 +129,12 @@ Each virtual user executes a sequential user journey:
    - **Get Me**: `GET /api/auth/me` (fetches authenticated user principal details).
    - **Rotate**: `POST /api/auth/rotate` (rotates the token pair using the `X-Refresh-Token` header).
    - **Logout**: `POST /api/auth/logout` (revokes the current refresh token).
-   - **Pacing**: `sleep(1)` (simulates user think time).
+    - **Pacing**: `sleep(1)` (simulates user think time).
+
+---
+
+🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+
+#### Related Docs
+- [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema
+- [Deployment](deployment.md) — Docker Compose topology and environment configuration

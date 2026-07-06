@@ -9,13 +9,24 @@
   <img src="docs/banner.png" alt="auth alpaca banner">
 </div>
 
+## 📚 Quick Navigation
+
+| Section | Description |
+|---|---|
+| [🏗️ Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API |
+| [🎨 Frontend Architecture](docs/frontend-architecture.md) | Angular, guards, interceptors |
+| [🧪 Testing Strategy](docs/testing-strategy.md) | Unit, integration, k6 perf |
+| [🚀 Deployment](docs/deployment.md) | Docker, env vars, networking |
+| [🎓 4-Pillar Learning Path](docs/learning/index.md) | Masterclass from theory to code |
+| [📖 Glossary](docs/learning/glossary.md) | Security terminology reference |
+
 > A secure, production-ready reference implementation for OAuth2 and JWT-based authentication using **Spring Boot 4.0.6** with **Java 25** and **Angular 21** with **Bun**.
 
 
 
-## 🧭 Navigation Hub (Docs-as-Code)
+## 🧭 Documentation Hub
 
-This repository follows a modular documentation structure. Use the links below to explore specific domains:
+This section maps the project's documentation tree — each link below leads to a self-contained domain doc:
 
 ```mermaid
 graph TD
@@ -40,7 +51,11 @@ graph TD
 *   **[Deployment & Operations](/docs/deployment.md)**
     *   Multi-environment properties and environment variable mappings.
     *   Docker Compose multi-service topology.
-    *   Production readiness checklist and security configurations.
+     *   Production readiness checklist and security configurations.
+
+---
+
+**← [Back to Top](#auth-alpaca)** | **📚 [Full Documentation](docs/backend-architecture.md)**
 
 ---
 
@@ -139,6 +154,24 @@ sequenceDiagram
 
 For a detailed step-by-step breakdown of endpoint operations, see **[docs/backend-architecture.md](docs/backend-architecture.md)**.
 
-# Would like to learn more about?
-## Learn About Auth Alpaca uisng The Pedagogical Framework: **[The 4-Pillar Journey](docs/learning/index.md)**
-### Learn about important concepts **[Glosary](docs/learning/glossary.md)**
+---
+
+## 🗺️ Documentation Map
+
+### Architecture & Operations
+- [Backend Architecture](docs/backend-architecture.md) — Spring Security, JWT, API, DB schema
+- [Frontend Architecture](docs/frontend-architecture.md) — Angular, guards, interceptors, state
+- [Testing Strategy](docs/testing-strategy.md) — Unit tests, integration, k6 performance
+- [Deployment & Operations](docs/deployment.md) — Docker Compose, env vars, networking
+
+### Learning Path (The 4-Pillar Journey)
+- [Start the Masterclass](docs/learning/index.md) — Begin here
+- [Glossary](docs/learning/glossary.md) — Security terms reference
+- Pillar 1 — Concepts: [OAuth2 Flow](docs/learning/pillar-1-concepts/oauth2-flow.md) → [JWT Deep Dive](docs/learning/pillar-1-concepts/jwt-deep-dive.md) → [Crypto Fundamentals](docs/learning/pillar-1-concepts/crypto-fundamentals.md)
+- Pillar 2 — Architecture: [Backend Flow](docs/learning/pillar-2-architecture/backend-flow.md) → [Frontend Security](docs/learning/pillar-2-architecture/frontend-security.md) → [Component Map](docs/learning/pillar-2-architecture/component-map.md)
+- Pillar 3 — Exploration: [Treasure Hunt](docs/learning/pillar-3-exploration/treasure-hunt.md) → [Pattern Analysis](docs/learning/pillar-3-exploration/pattern-analysis.md)
+- Pillar 4 — Challenges: [Build It](docs/learning/pillar-4-challenges/build-it-tasks.md) → [Break It](docs/learning/pillar-4-challenges/break-it-guide.md)
+
+---
+
+<sub>Auth Alpaca — Built with Spring Boot 4 + Angular 21</sub>
