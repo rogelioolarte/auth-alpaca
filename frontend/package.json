@@ -3,12 +3,10 @@
   "version": "2.0.0",
   "scripts": {
     "ng": "ng",
-    "prebuild": "node set-env.js",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "start:dist": "ng build --configuration=production && live-server dist/auth-alpaca-ui/browser --entry-file=index.html",
     "lint": "ng lint"
   },
   "private": true,
@@ -35,6 +33,7 @@
     "@angular/cli": "21.2.13",
     "@angular/compiler-cli": "21.2.15",
     "@eslint/js": "10.0.1",
+    "@ngx-env/builder": "21.0.1",
     "angular-eslint": "21.3.1",
     "eslint": "10.3.0",
     "jsdom": "28.0.0",

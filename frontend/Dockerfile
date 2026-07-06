@@ -2,11 +2,11 @@
 FROM oven/bun:alpine AS build
 WORKDIR /app
 
-ARG API_URL
-ARG UI_URL
+ARG NG_API_URL
+ARG NG_UI_URL
 
-ENV API_URL=$API_URL
-ENV UI_URL=$UI_URL
+ENV NG_API_URL=$NG_API_URL
+ENV NG_UI_URL=$NG_UI_URL
 
 # 1. Copy only the dependency files first to take advantage of the Docker cache
 COPY package.json bun.lock ./
