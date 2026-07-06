@@ -23,6 +23,18 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     }
   `,
 })
+/**
+ * Handles the OAuth2 authorization code redirect from external providers.
+ *
+ * When a user authenticates via an external OAuth2 provider (Google, GitHub, etc.),
+ * the provider redirects back to this component with an authorization code in the
+ * query parameters. This component reads the code and error params, exchanges the
+ * code for tokens using PKCE (Proof Key for Code Exchange), and navigates to the
+ * dashboard on success or back to login on error.
+ *
+ * @implements OnInit
+ * @implements OnDestroy
+ */
 export class Oauth2RedirectHandler implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -33,6 +45,16 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
   private destroy = new Subject<void>();
   private clientID = toSignal(this.authService.getClientID());
 
+  /**
+   * Reads the OAuth2 redirect parameters and processes the authorization response.
+   *
+   * Extracts the provider from the route parameter, then reads the `code` and `error`
+   * query parameters from the URL. On error: displays the error in a toast and
+   * navigates to `/login` with the error state. On success: builds an {@link AuthCode}
+   * with the PKCE code verifier and exchanges it via {@link AuthenticationService#exchangeCode},
+   * then navigates to `/dashboard`. Clears the PKCE verifier from session storage
+   * after the exchange attempt.
+   */
   ngOnInit() {
     this.route.paramMap.subscribe(
       (params) => (this.authProvider = params.get('provider') as AuthProvider),
@@ -77,6 +99,13 @@ export class Oauth2RedirectHandler implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Cleans up active subscriptions by signalling the destroy Subject.
+   *
+   * Emits a value on the destroy Subject and completes it, which triggers
+   * `takeUntil(this.destroy)` to unsubscribe from the ongoing auth exchange
+   * observable.
+   */
   ngOnDestroy() {
     this.destroy.next();
     this.destroy.complete();

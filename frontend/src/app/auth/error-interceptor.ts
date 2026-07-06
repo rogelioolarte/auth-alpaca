@@ -3,6 +3,24 @@ import { inject } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { catchError, retry, throwError, timer } from 'rxjs';
 
+/**
+ * HTTP error interceptor that retries transient failures and shows user-facing
+ * error notifications via Toastr.
+ *
+ * Automatically retries requests that fail with status 503 (Service Unavailable)
+ * or 0 (network error) up to 2 times with a 1-second backoff between attempts.
+ *
+ * Bypasses the global toast for field validation errors: when the response status
+ * is 400 and the error body is an object without a `message` key, the error is
+ * passed through to the calling component without a notification. A 401 status is
+ * also silently forwarded without a toast, as it is handled by
+ * {@link authInterceptor}. All other non-401 errors trigger a Toastr error
+ * notification with a message derived from the response status.
+ *
+ * @param req - The outgoing HTTP request.
+ * @param next - The next handler in the interceptor chain.
+ * @returns An observable of the HTTP event stream.
+ */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastService = inject(ToastrService);
 
@@ -60,6 +78,22 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
+/**
+ * Maps HTTP error status codes to user-facing, localized error messages.
+ *
+ * Handles specific statuses:
+ * - `401` — session expired
+ * - `403` — permission denied
+ * - `404` — resource not found
+ * - `500` — internal server error
+ * - `0` — network connectivity failure
+ *
+ * Falls back to `error.error.message` or a generic status-based string for any
+ * unhandled status code.
+ *
+ * @param error - The HTTP error response to evaluate.
+ * @returns A user-facing error message string.
+ */
 export const evaluateErrorStatus = (error: HttpErrorResponse): string => {
   switch (error.status) {
     case 401:

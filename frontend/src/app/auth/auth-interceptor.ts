@@ -5,6 +5,20 @@ import { environment } from '../../environments/environment';
 import { catchError, first, switchMap, take, throwError } from 'rxjs';
 import { ACCESS_TOKEN_HEADER_KEY } from '../models/constants';
 
+/**
+ * HTTP interceptor that attaches a Bearer access token to API requests.
+ *
+ * Skips requests to auth routes (`/api/auth/login`, `/api/auth/exchange`) and
+ * external hosts not matching the configured API host. When a 401 response is
+ * received (except on the `/api/auth/rotate` endpoint), attempts transparent
+ * token rotation and retries the original request once with the new access
+ * token. A 430 status triggers an immediate forced logout via
+ * {@link AuthenticationService#logout}.
+ *
+ * @param req - The outgoing HTTP request.
+ * @param next - The next handler in the interceptor chain.
+ * @returns An observable of the HTTP event stream.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthenticationService);
   const authRoutes = ['/api/auth/login', '/api/auth/exchange'];
