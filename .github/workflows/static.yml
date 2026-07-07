@@ -1,4 +1,4 @@
-# Deploy backend Javadoc to GitHub Pages
+# Deploy Javadoc and static pages to GitHub Pages
 name: Deploy Javadoc to GitHub Pages
 
 on:
@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'docs/privacy/**'
+      - 'docs/terms/**'
   workflow_dispatch:
 
 permissions:
@@ -18,9 +20,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout repository
@@ -35,6 +34,12 @@ jobs:
 
       - name: Generate Javadoc
         run: mvn -B javadoc:javadoc -q
+        working-directory: backend
+
+      - name: Copy static pages into artifact
+        run: |
+          cp -r docs/privacy backend/target/reports/apidocs/privacy
+          cp -r docs/terms backend/target/reports/apidocs/terms
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
