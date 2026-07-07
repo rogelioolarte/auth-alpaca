@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.NonNull;
@@ -184,6 +185,9 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      */
     protected String determineCodeChallenge(HttpServletRequest request) {
         OAuth2AuthorizationRequest authReq = repository.loadAuthorizationRequest(request);
+        if (Objects.isNull(authReq)) {
+            return "";
+        }
         String challenge = (String) authReq.getAttributes().get(CLIENT_CODE_CHALLENGE);
         if (challenge != null && !challenge.isBlank()) {
             return challenge;

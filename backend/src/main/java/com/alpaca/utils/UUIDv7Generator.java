@@ -54,7 +54,7 @@ public class UUIDv7Generator implements IdentifierGenerator {
     /**
      * Convenience method to generate a UUID v7 without requiring a Hibernate session or entity.
      *
-     * <p>Useful when UUIDs need to be created outside of JPA entity hydration — for example, in
+     * <p>Useful when UUIDs need to be created outside JPA entity hydration — for example, in
      * service or use-case layers that need a deterministic, time-ordered identifier before
      * persisting.
      *

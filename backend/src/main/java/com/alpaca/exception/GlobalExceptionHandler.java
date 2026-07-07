@@ -2,6 +2,7 @@ package com.alpaca.exception;
 
 import com.alpaca.dto.response.ErrorResponseDTO;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -139,7 +140,7 @@ public class GlobalExceptionHandler {
                 new ErrorResponseDTO(
                         webRequest.getDescription(false),
                         exception.getReason(),
-                        LocalDateTime.now()),
+                        LocalDateTime.now(ZoneId.systemDefault())),
                 HttpStatus.valueOf(exception.getStatusCode().value()));
     }
 
@@ -160,7 +161,10 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ErrorResponseDTO> buildResponse(
             HttpStatus status, String message, WebRequest req) {
         ErrorResponseDTO error =
-                new ErrorResponseDTO(req.getDescription(false), message, LocalDateTime.now());
+                new ErrorResponseDTO(
+                        req.getDescription(false),
+                        message,
+                        LocalDateTime.now(ZoneId.systemDefault()));
         return new ResponseEntity<>(error, status);
     }
 }

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.6</version>
+		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.alpaca</groupId>
@@ -55,12 +55,9 @@
 		<spotless.version>3.0.0</spotless.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-		<uuid-generator.version>5.1.1</uuid-generator.version>
-        <dotenv.version>3.2.0</dotenv.version>
+		<uuid-generator.version>5.2.0</uuid-generator.version>
         <bucket4j.version>8.10.1</bucket4j.version>
-		<caffeine.version>3.2.3</caffeine.version>
-		<bouncycastle.version>1.84</bouncycastle.version>
-		<sonar.version>5.6.0.6792</sonar.version>
+		<caffeine.version>3.2.4</caffeine.version>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Generated;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -51,7 +52,7 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
      */
     @Override
     @Generated
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+    public OAuth2User loadUser(@NonNull OAuth2UserRequest userRequest) {
         try {
             return processOAuth2User(userRequest, super.loadUser(userRequest));
         } catch (ResponseStatusException e) {

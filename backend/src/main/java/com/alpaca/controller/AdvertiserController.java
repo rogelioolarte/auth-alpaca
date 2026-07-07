@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing {@link Advertiser} entities at {@code /api/advertisers}.
  *
  * <p>Provides CRUD operations and pagination. Most endpoints require the {@code ADMIN} role or
- * ownership ({@code principal.getAdvertiserId() == #id}), with the exception of {@code GET
- * /api/advertisers/page} which is public (returns only indexed advertisers). See each method's
- * {@code @PreAuthorize} annotation for the exact security expression.
+ * ownership ({@code principal.getAdvertiserId() == #id}), except {@code GET /api/advertisers/page}
+ * which is public (returns only indexed advertisers). See each method's {@code @PreAuthorize}
+ * annotation for the exact security expression.
  *
  * @see IAdvertiserService
  * @see IAdvertiserMapper

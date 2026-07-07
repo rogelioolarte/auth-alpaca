@@ -220,8 +220,19 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
                         authCode.getUserAgent(),
                         authCode.getClientId(),
                         authCode.getClientIp());
-
-        return this.generateJWTTokens(new UserPrincipal(user), session);
+        RefreshToken refreshToken =
+                new RefreshToken(
+                        session,
+                        uuidv7Generator.generate(),
+                        session.getLastSeenAt().plusMillis(manager.getJwtTimeExpRefresh()),
+                        session.getLastSeenAt());
+        String jwtRefreshToken = manager.createRefreshToken(refreshToken);
+        String refreshTokenHash = manager.createTokenHash(jwtRefreshToken);
+        refreshToken.setTokenHash(refreshTokenHash);
+        super.save(refreshToken);
+        String accessToken =
+                manager.createAccessToken(new UserPrincipal(user), session.getLastSeenAt());
+        return new AuthResponseDTO(accessToken, jwtRefreshToken);
     }
 
     /**

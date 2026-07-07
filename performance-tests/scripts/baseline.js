@@ -18,8 +18,8 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 1,
       stages: [
-        { duration: '3m', target: 40 },  // realistic ceiling for 2 CPU + bcrypt cost 12
-        { duration: '2m', target: 40 },  // hold at capacity
+        { duration: '3m', target: 40 },
+        { duration: '2m', target: 40 },
       ],
       gracefulRampDown: '30s',
     },
@@ -27,8 +27,8 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 1,
       stages: [
-        { duration: '3m', target: 60 },  // 1.5x capacity — shows degradation
-        { duration: '2m', target: 60 },  // hold at stress
+        { duration: '3m', target: 60 }, 
+        { duration: '2m', target: 60 }, 
       ],
       startTime: '5m',
       gracefulRampDown: '30s',
@@ -36,11 +36,11 @@ export const options = {
   },
   thresholds: {
     // t3.micro (2 CPU, 1 GB) + bcrypt cost 12 — realistic p95 targets
-    'http_req_duration{type:login}':  ['p(95)<15000'], // 15s — bcrypt serializa en 2 cores
-    'http_req_duration{type:me}':     ['p(95)<8000'],  // 8s — hambre de CPU por bcrypt
+    'http_req_duration{type:login}':  ['p(95)<15000'], // 15s
+    'http_req_duration{type:me}':     ['p(95)<8000'],  // 8s
     'http_req_duration{type:rotate}': ['p(95)<6000'],  // 6s
     'http_req_duration{type:logout}': ['p(95)<6000'],  // 6s
-    'http_req_failed':                ['rate<0.01'],   // <1% — no negociable
+    'http_req_failed':                ['rate<0.01'],   // <1%
   },
 };
 

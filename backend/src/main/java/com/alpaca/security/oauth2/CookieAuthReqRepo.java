@@ -4,6 +4,8 @@ import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -52,7 +54,8 @@ public class CookieAuthReqRepo
      * @return the deserialized {@link OAuth2AuthorizationRequest}, or {@code null} if not found
      */
     @Override
-    public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
+    public OAuth2AuthorizationRequest loadAuthorizationRequest(
+            @NonNull HttpServletRequest request) {
         Cookie cookie = CookieManager.getCookie(request, AUTHORIZATION_COOKIE_NAME).orElse(null);
         if (cookie != null) {
             return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
@@ -73,9 +76,9 @@ public class CookieAuthReqRepo
     @Override
     public void saveAuthorizationRequest(
             OAuth2AuthorizationRequest authorizationRequest,
-            HttpServletRequest request,
-            HttpServletResponse response) {
-        if (authorizationRequest == null) {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response) {
+        if (Objects.isNull(authorizationRequest)) {
             CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
             CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
             CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
@@ -111,7 +114,7 @@ public class CookieAuthReqRepo
      */
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(
-            HttpServletRequest request, HttpServletResponse response) {
+            @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         return loadAuthorizationRequest(request);
     }
 

@@ -16,8 +16,8 @@ public class Utils {
      * Extracts the originating client IP address from an HTTP request.
      *
      * <p>If the request passed through one or more proxies, the {@code X-Forwarded-For} header is
-     * checked first and the leftmost (original client) address is returned. Otherwise falls back to
-     * {@link HttpServletRequest#getRemoteAddr()}.
+     * checked first and the leftmost (original client) address is returned. Otherwise, falls back
+     * to {@link HttpServletRequest#getRemoteAddr()}.
      *
      * @param request the incoming HTTP request
      * @return the client IP address as a string

@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -50,13 +51,13 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
     }
 
     @Override
-    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+    public OAuth2AuthorizationRequest resolve(@NonNull HttpServletRequest request) {
         return customizeAuthorizationRequest(defaultResolver.resolve(request), request);
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(
-            HttpServletRequest request, String clientRegistrationId) {
+            @NonNull HttpServletRequest request, @NonNull String clientRegistrationId) {
         return customizeAuthorizationRequest(
                 defaultResolver.resolve(request, clientRegistrationId), request);
     }

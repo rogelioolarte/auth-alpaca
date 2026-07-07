@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS public.advertisers
     verified boolean NOT NULL,
     created_at timestamp(6) with time zone NOT NULL DEFAULT now(),
     updated_at timestamp(6) with time zone,
-                                id uuid NOT NULL,
-                                user_id uuid NOT NULL,
-                                avatar_url character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    avatar_url character varying(255) COLLATE pg_catalog."default" NOT NULL,
     banner_url character varying(255) COLLATE pg_catalog."default" NOT NULL,
     created_by character varying(255) COLLATE pg_catalog."default",
     description character varying(255) COLLATE pg_catalog."default" NOT NULL,
@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS public.advertisers
 CREATE TABLE IF NOT EXISTS public.permissions
 (
     created_at timestamp(6) with time zone NOT NULL,
-                                updated_at timestamp(6) with time zone,
-                                id uuid NOT NULL,
-                                created_by character varying(255) COLLATE pg_catalog."default",
+    updated_at timestamp(6) with time zone,
+    id uuid NOT NULL,
+    created_by character varying(255) COLLATE pg_catalog."default",
     name character varying(255) COLLATE pg_catalog."default" NOT NULL,
     updated_by character varying(255) COLLATE pg_catalog."default",
     CONSTRAINT permissions_pkey PRIMARY KEY (id),
@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS public.profiles
 (
     created_at timestamp(6) with time zone NOT NULL DEFAULT now(),
     updated_at timestamp(6) with time zone,
-                                id uuid NOT NULL,
-                                user_id uuid NOT NULL,
-                                address character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    address character varying(255) COLLATE pg_catalog."default" NOT NULL,
     avatar_url character varying(255) COLLATE pg_catalog."default" NOT NULL,
     created_by character varying(255) COLLATE pg_catalog."default",
     first_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
@@ -56,16 +56,16 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens
 (
     revoked boolean NOT NULL,
     created_at timestamp(6) with time zone NOT NULL,
-                                expires_at timestamp(6) with time zone NOT NULL,
-                                last_used_at timestamp(6) with time zone,
-                                revoked_at timestamp(6) with time zone,
-                                updated_at timestamp(6) with time zone,
-                                family_id uuid NOT NULL,
-                                id uuid NOT NULL,
-                                replaced_by uuid,
-                                token_jti uuid,
-                                user_id uuid NOT NULL,
-                                client_id character varying(255) COLLATE pg_catalog."default",
+    expires_at timestamp(6) with time zone NOT NULL,
+    last_used_at timestamp(6) with time zone,
+    revoked_at timestamp(6) with time zone,
+    updated_at timestamp(6) with time zone,
+    family_id uuid NOT NULL,
+    id uuid NOT NULL,
+    replaced_by uuid,
+    token_jti uuid,
+    user_id uuid NOT NULL,
+    client_id character varying(255) COLLATE pg_catalog."default",
     created_by character varying(255) COLLATE pg_catalog."default",
     ip_address character varying(255) COLLATE pg_catalog."default",
     revoke_reason character varying(255) COLLATE pg_catalog."default",
@@ -80,18 +80,18 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens
 CREATE TABLE IF NOT EXISTS public.role_permissions
 (
     created_at timestamp(6) with time zone NOT NULL,
-                                id uuid NOT NULL,
-                                permission_id uuid NOT NULL,
-                                role_id uuid NOT NULL,
-                                CONSTRAINT role_permissions_pkey PRIMARY KEY (id)
+    id uuid NOT NULL,
+    permission_id uuid NOT NULL,
+    role_id uuid NOT NULL,
+    CONSTRAINT role_permissions_pkey PRIMARY KEY (id)
     );
 
 CREATE TABLE IF NOT EXISTS public.roles
 (
     created_at timestamp(6) with time zone NOT NULL DEFAULT now(),
     updated_at timestamp(6) with time zone,
-                                id uuid NOT NULL,
-                                created_by character varying(255) COLLATE pg_catalog."default",
+    id uuid NOT NULL,
+    created_by character varying(255) COLLATE pg_catalog."default",
     description character varying(255) COLLATE pg_catalog."default" NOT NULL,
     name character varying(255) COLLATE pg_catalog."default" NOT NULL,
     updated_by character varying(255) COLLATE pg_catalog."default",
@@ -104,13 +104,13 @@ CREATE TABLE IF NOT EXISTS public.sessions
 (
     revoked boolean NOT NULL,
     created_at timestamp(6) with time zone NOT NULL,
-                                last_seen_at timestamp(6) with time zone,
-                                revoked_at timestamp(6) with time zone,
-                                updated_at timestamp(6) with time zone,
-                                family_id uuid NOT NULL,
-                                id uuid NOT NULL,
-                                user_id uuid NOT NULL,
-                                client_id character varying(255) COLLATE pg_catalog."default",
+    last_seen_at timestamp(6) with time zone,
+    revoked_at timestamp(6) with time zone,
+    updated_at timestamp(6) with time zone,
+    family_id uuid NOT NULL,
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    client_id character varying(255) COLLATE pg_catalog."default",
     created_by character varying(255) COLLATE pg_catalog."default",
     ip_address character varying(255) COLLATE pg_catalog."default",
     revoke_reason character varying(255) COLLATE pg_catalog."default",
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS public.sessions
 CREATE TABLE IF NOT EXISTS public.user_roles
 (
     created_at timestamp(6) with time zone NOT NULL DEFAULT now(),
-    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    id uuid NOT NULL,
     role_id uuid NOT NULL,
     user_id uuid NOT NULL,
     CONSTRAINT user_roles_pkey PRIMARY KEY (id)
@@ -139,9 +139,9 @@ CREATE TABLE IF NOT EXISTS public.users
     google_connected boolean NOT NULL,
     created_at timestamp(6) with time zone NOT NULL DEFAULT now(),
     tokens_invalid_before timestamp(6) with time zone,
-                                updated_at timestamp(6) with time zone,
-                                id uuid NOT NULL,
-                                created_by character varying(255) COLLATE pg_catalog."default",
+    updated_at timestamp(6) with time zone,
+    id uuid NOT NULL,
+    created_by character varying(255) COLLATE pg_catalog."default",
     email character varying(255) COLLATE pg_catalog."default" NOT NULL,
     password character varying(255) COLLATE pg_catalog."default",
     updated_by character varying(255) COLLATE pg_catalog."default",
@@ -153,25 +153,24 @@ ALTER TABLE IF EXISTS public.advertisers
     ADD CONSTRAINT fk99a8ajxxms2g3q0hfjcpxgjdw FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-       ON DELETE NO ACTION;
-CREATE INDEX IF NOT EXISTS advertisers_user_id_key
+    ON DELETE NO ACTION;
+    CREATE INDEX IF NOT EXISTS advertisers_user_id_key
     ON public.advertisers(user_id);
 
 
-ALTER TABLE IF EXISTS public.profiles
+    ALTER TABLE IF EXISTS public.profiles
     ADD CONSTRAINT fk410q61iev7klncmpqfuo85ivh FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-       ON DELETE NO ACTION;
-CREATE INDEX IF NOT EXISTS profiles_user_id_key
+    ON DELETE NO ACTION;
+    CREATE INDEX IF NOT EXISTS profiles_user_id_key
     ON public.profiles(user_id);
 
-
-ALTER TABLE IF EXISTS public.refresh_tokens
+    ALTER TABLE IF EXISTS public.refresh_tokens
     ADD CONSTRAINT fk1lih5y2npsf8u5o3vhdb9y0os FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-       ON DELETE NO ACTION;
+    ON DELETE NO ACTION;
 
 
 ALTER TABLE IF EXISTS public.refresh_tokens

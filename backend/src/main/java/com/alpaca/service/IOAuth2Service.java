@@ -1,5 +1,6 @@
 package com.alpaca.service;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -27,5 +28,5 @@ public interface IOAuth2Service extends OAuth2UserService<OAuth2UserRequest, OAu
      * @return an {@code OAuth2User} representing the authenticated user's attributes and
      *     authorities
      */
-    OAuth2User loadUser(OAuth2UserRequest userRequest);
+    OAuth2User loadUser(@NonNull OAuth2UserRequest userRequest);
 }
