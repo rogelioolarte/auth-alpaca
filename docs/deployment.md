@@ -1,6 +1,6 @@
 # Deployment & Operations
 
-> 🏠 [README](../README.md) — **Deployment & Operations**
+> [README](../README.md) — **Deployment & Operations**
 
 ---
 
@@ -8,7 +8,7 @@ This document details the Docker-based multi-service topology, network security 
 
 ---
 
-## 🌐 Docker Compose Topology
+## Docker Compose Topology
 
 The production-ready stack is orchestrated using `docker-compose.yml`, which separates services logically into layers.
 
@@ -46,7 +46,7 @@ graph TD
 
 ---
 
-## 🔒 Service Networks Configuration
+## Service Networks Configuration
 
 To enforce a zero-trust network topology, database and backend traffic are isolated.
 
@@ -67,7 +67,7 @@ networks:
 
 ---
 
-## 📋 Environment Variables Reference
+## Environment Variables Reference
 
 The following table summarizes all environment variables required to run the services, loaded from the `.env` file at the project root.
 
@@ -99,7 +99,7 @@ The following table summarizes all environment variables required to run the ser
 
 ---
 
-🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+[Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
 - [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema

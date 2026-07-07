@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 2: Backend Flow**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 2: Backend Flow**
 
-# 🚀 The Request Odyssey: Backend Flow
+# The Request Odyssey: Backend Flow
 
 When a request hits the Auth Alpaca backend, it doesn't go straight to the Controller. It must survive a gauntlet of security checks known as the **Spring Security [Filter Chain](../glossary.md#filter-chain)**.
 

@@ -1,6 +1,6 @@
-> 🏠 [README](../../README.md) > 🎓 [Learning Index](index.md) — **Glossary**
+> [README](../../README.md) > [Learning Index](index.md) — **Glossary**
 
-# 📖 The Language of Authentication: Glossary
+# The Language of Authentication: Glossary
 
 To speak the language of security, you must master these terms.
 

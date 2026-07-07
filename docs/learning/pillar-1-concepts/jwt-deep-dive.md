@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 1: JWT Deep Dive**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 1: JWT Deep Dive**
 
-# 🔑 [JWT](../glossary.md#jwt-json-web-token) Deep Dive: The Anatomy of a Stateless Token
+# [JWT](../glossary.md#jwt-json-web-token) Deep Dive: The Anatomy of a Stateless Token
 
 A JSON Web Token (JWT) is not just a string of random characters. It is a digitally signed piece of information that allows a server to verify a user's identity without needing to look them up in a database on every single request.
 

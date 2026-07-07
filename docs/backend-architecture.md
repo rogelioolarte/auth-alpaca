@@ -1,13 +1,13 @@
 # Backend Architecture
 
-> 🏠 [README](../README.md) — **Backend Architecture**
+> [README](../README.md) — **Backend Architecture**
 
-## 📑 On This Page
-- [🛠️ Java 25 & Spring Boot Runtime Configuration](#-java-25--spring-boot-runtime-configuration)
-- [🔒 Spring Security 6 Integration](#-spring-security-6-integration)
-- [🔑 JWT Token Generation & Rotation](#-jwt-token-generation--rotation)
-- [🗄️ Database Schema & Flyway Migrations](#-database-schema--flyway-migrations)
-- [🔌 Core API Endpoints](#-core-api-endpoints)
+## On This Page
+- [Java 25 & Spring Boot Runtime Configuration](#java-25--spring-boot-runtime-configuration)
+- [Spring Security 6 Integration](#spring-security-6-integration)
+- [JWT Token Generation & Rotation](#jwt-token-generation--rotation)
+- [Database Schema & Flyway Migrations](#database-schema--flyway-migrations)
+- [Core API Endpoints](#core-api-endpoints)
 
 ---
 
@@ -15,7 +15,7 @@ This document provides a highly technical overview of the `auth-alpaca` backend 
 
 ---
 
-## 🛠️ Java 25 & Spring Boot Runtime Configuration
+## Java 25 & Spring Boot Runtime Configuration
 
 The application is compiled and executed under Java 25. Preview features are enabled to leverage cutting-edge language capabilities.
 
@@ -62,7 +62,7 @@ JVM flags are injected during test runs to allow mocks and dynamic agents on Jav
 
 ---
 
-## 🔒 Spring Security 6 Integration
+## Spring Security 6 Integration
 
 Authentication and authorization are managed by Spring Security 6, configured for stateless, token-based execution.
 
@@ -82,7 +82,7 @@ Key patterns in `SecurityConfig.java`:
 
 ---
 
-## 🔑 JWT Token Generation & Rotation
+## JWT Token Generation & Rotation
 
 The backend uses **JJWT (Java JWT)** for token operations. It utilizes an asymmetric cryptographic architecture: EC P-256 keys signed with **ES256** (ECDSA with SHA-256 / P-256).
 
@@ -119,7 +119,7 @@ To prevent unauthorized access through stolen tokens, the system implements **Re
 
 ---
 
-## 🗄️ Database Schema & Flyway Migrations
+## Database Schema & Flyway Migrations
 
 Database migration is automated using Flyway. The system defines a PostgreSQL schema divided into 2 default migrations:
 
@@ -223,7 +223,7 @@ erDiagram
 
 ---
 
-## 🔌 Core API Endpoints
+## Core API Endpoints
 
 All authenticated requests must include the header: `Authorization: Bearer <accessToken>`. Token rotation requests additionally require the `X-Refresh-Token` header containing the current refresh token (see `/api/auth/rotate` below).
 
@@ -239,7 +239,7 @@ All authenticated requests must include the header: `Authorization: Bearer <acce
 
 ---
 
-🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+[Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
 - [Frontend Architecture](frontend-architecture.md) — Angular 21 SPA, authentication integration, and routing guards

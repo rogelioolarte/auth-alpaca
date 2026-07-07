@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 1: OAuth2 Flow**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 1: OAuth2 Flow**
 
-# 🔄 The [OAuth2](../glossary.md#oauth2-open-authorization) Narrative: The Dance of Delegation
+# The [OAuth2](../glossary.md#oauth2-open-authorization) Narrative: The Dance of Delegation
 
 Most people think OAuth2 is about "logging in". It isn't. OAuth2 is about **Delegation**.
 

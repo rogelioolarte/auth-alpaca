@@ -1,13 +1,13 @@
 # Frontend Architecture
 
-> 🏠 [README](../README.md) — **Frontend Architecture**
+> [README](../README.md) — **Frontend Architecture**
 
-## 📑 On This Page
-- [🏗️ Angular 21 Architecture](#-angular-21-architecture)
-- [🔒 Authentication Flow & HTTP Interceptor](#-authentication-flow--http-interceptor)
-- [🛡️ Routing Guards](#-routing-guards)
-- [💾 Session State & Token Storage](#-session-state--token-storage)
-- [🚀 Run & Deployment Guides (Bun 1.3.11)](#-run--deployment-guides-bun-1311)
+## On This Page
+- [Angular 21 Architecture](#angular-21-architecture)
+- [Authentication Flow & HTTP Interceptor](#authentication-flow--http-interceptor)
+- [Routing Guards](#routing-guards)
+- [Session State & Token Storage](#session-state--token-storage)
+- [Run & Deployment Guides (Bun 1.3.11)](#run--deployment-guides-bun-1311)
 
 ---
 
@@ -15,7 +15,7 @@ This document outlines the architecture, authentication integration, routing gua
 
 ---
 
-## 🏗️ Angular 21 Architecture
+## Angular 21 Architecture
 
 The frontend is a single-page application built on **Angular 21** using standalone components. It manages async states and data streams with RxJS observables.
 
@@ -27,7 +27,7 @@ The frontend is a single-page application built on **Angular 21** using standalo
 
 ---
 
-## 🔒 Authentication Flow & HTTP Interceptor
+## Authentication Flow & HTTP Interceptor
 
 Authentication is handled transparently across all HTTP requests using an Angular functional interceptor (`authInterceptor`).
 
@@ -43,7 +43,7 @@ The interceptor intercepts outgoing HTTP client requests and applies the followi
 
 ---
 
-## 🛡️ Routing Guards
+## Routing Guards
 
 Route access is protected by functional router guards defined under `src/app/auth/`:
 
@@ -54,7 +54,7 @@ Route access is protected by functional router guards defined under `src/app/aut
 
 ---
 
-## 💾 Session State & Token Storage
+## Session State & Token Storage
 
 The application stores session tokens on the client side using cookies.
 
@@ -76,7 +76,7 @@ The `AuthenticationService` tracks token expiration using a reactive model:
 
 ---
 
-## 🚀 Run & Deployment Guides (Bun 1.3.11)
+## Run & Deployment Guides (Bun 1.3.11)
 
 The frontend project utilizes **Bun 1.3.11** as its package manager and runtime environment, providing extremely fast installation and build execution.
 
@@ -115,7 +115,7 @@ bunx http-server dist/auth-alpaca-ui/browser -p 4200 -o
 
 ---
 
-🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+[Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
 - [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema

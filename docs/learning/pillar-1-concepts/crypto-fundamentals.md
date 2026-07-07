@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 1: Crypto Fundamentals**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 1: Crypto Fundamentals**
 
-# 🛡️ Crypto Fundamentals: [Asymmetric](../glossary.md#asymmetric-encryption-rsa) Encryption
+# Crypto Fundamentals: [Asymmetric](../glossary.md#asymmetric-encryption-rsa) Encryption
 
 To understand how the [Resource Server](../glossary.md#resource-server) (Auth Alpaca) trusts a token issued by the [Identity Provider](../glossary.md#idp-identity-provider) (Google), you must understand the difference between Symmetric and Asymmetric cryptography.
 

@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 3: Pattern Analysis**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 3: Pattern Analysis**
 
-# 🏗️ Pattern Analysis: Clean Architecture in Auth
+# Pattern Analysis: Clean Architecture in Auth
 
 The `auth-alpaca` project isn't just about security; it's a study in professional software engineering. Let's analyze the patterns used to keep the security logic maintainable.
 

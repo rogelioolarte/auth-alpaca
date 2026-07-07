@@ -3,6 +3,7 @@
 [![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
 [![release badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver)](https://github.com/rogelioolarte/auth-alpaca/releases)
 [![codecov badge](https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg)](https://codecov.io/gh/rogelioolarte/auth-alpaca)
+[![ci badge](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml/badge.svg)](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml)
 [![license badge](https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue)](LICENSE)
 
 <div align="center">
@@ -15,21 +16,22 @@ The frontend is a functional integration example; the backend is the core — ha
 
 ---
 
-## 🧭 Navigation
+## Navigation
 
 | Category | Document | Description |
 |---|---|---|
-| **🏗️ Architecture** | [Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API, database schema |
+| **Architecture** | [Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API, database schema |
 | | [Frontend Architecture](docs/frontend-architecture.md) | Angular guards, interceptors, token lifecycle |
-| **🧪 Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, CI profiles |
+| **Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, CI profiles |
 | | [Performance Tests](performance-tests/README.md) | k6 suite, thresholds, scenarios, baseline calibration |
 | | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
-| **🎓 Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Masterclass from theory to code |
-| | [📖 Glossary](docs/learning/glossary.md) | Security terminology reference |
+| **Help** | [Troubleshooting](TROUBLESHOOTING.md) | Common issues, fixes, and diagnostics |
+| **Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Masterclass from theory to code |
+| | [Glossary](docs/learning/glossary.md) | Security terminology reference |
 
 ---
 
-## 🚀 Quick Deploy (Docker)
+## Quick Deploy (Docker)
 
 You need **Docker**, **Docker Compose**, and a **bash terminal**. That's it.
 
@@ -61,7 +63,7 @@ Once the stack is up:
 
 ---
 
-## 🛠️ Local Development (Without Docker)
+## Local Development (Without Docker)
 
 You can run the backend directly via Maven for faster iteration:
 
@@ -97,7 +99,7 @@ The frontend dev server runs on `http://localhost:4200`.
 
 ---
 
-## 🔐 Authentication Flow (OAuth2 + PKCE)
+## Authentication Flow (OAuth2 + PKCE)
 
 Auth Alpaca implements the **Authorization Code flow with PKCE** — the industry standard for secure public-client authentication. Here is the high-level handshake:
 
@@ -124,7 +126,7 @@ The backend signs access tokens (5 min) and refresh tokens (12 h) with **separat
 
 ---
 
-## 🛠️ Stack
+## Stack
 
 | Layer | Technology | Key Libraries |
 |---|---|---|
@@ -135,4 +137,33 @@ The backend signs access tokens (5 min) and refresh tokens (12 h) with **separat
 
 ---
 
-<sub>Auth Alpaca — Built with Spring Boot 4 + Java 25 + Angular 21</sub>
+## Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Read the docs** — check the [Navigation](#navigation) table above for architecture and testing guides.
+2. **Run tests before submitting**:
+   ```bash
+   ./backend/mvnw verify -Punit-tests
+   ```
+3. **Follow the commit style** — we use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.).
+4. **Open a pull request** — keep changes focused and rebased on `main`.
+
+For bugs or feature requests, [open an issue](https://github.com/rogelioolarte/auth-alpaca/issues/new).
+
+---
+
+## Acknowledgements
+
+This project was inspired by the work of **Anita Lakhadze**:
+
+- [Implementing Authentication with Spring Boot Security 6, OAuth2 and Angular 17](https://blog.devgenius.io/implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-multiple-4144075e5fef)
+- [multiple-auth-api](https://github.com/anitalakhadze/multiple-auth-api)
+
+---
+
+## License
+
+Auth Alpaca is released under the [MIT License](LICENSE).
+
+---

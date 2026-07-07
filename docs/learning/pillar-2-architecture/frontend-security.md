@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 2: Frontend Security**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 2: Frontend Security**
 
-# 🛡️ Frontend Security: Guardians and Interceptors
+# Frontend Security: Guardians and Interceptors
 
 Frontend security is **not** about preventing unauthorized access to data—that's the backend's job. Frontend security is about **User Experience (UX)** and **Reducing Noise**.
 

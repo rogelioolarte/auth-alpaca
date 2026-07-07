@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 4: Build It Tasks**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 4: Build It Tasks**
 
-# 🛠️ The Forge: Building the SUPER_ADMIN
+# The Forge: Building the SUPER_ADMIN
 
 Now that you can break the system, it's time to extend it. You are tasked with implementing a "God Mode" for the application.
 

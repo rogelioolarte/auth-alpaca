@@ -1,16 +1,16 @@
 # Performance Test Suite
 
-> 🏠 [README](../README.md) — **Performance Test Suite**
+> [README](../README.md) — **Performance Test Suite**
 
-## 📑 On This Page
-- [⚙️ Prerequisites](#-prerequisites)
-- [🚀 Quick Start](#-quick-start)
-- [📋 Test Suite](#-test-suite)
-- [🎯 Thresholds](#-thresholds)
-- [🔀 User Selection](#-user-selection)
-- [🗃️ Data](#-data)
-- [🔧 OS Tuning](#-os-tuning)
-- [🌐 Environment](#-environment)
+## On This Page
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Test Suite](#test-suite)
+- [Thresholds](#thresholds)
+- [User Selection](#user-selection)
+- [Data](#data)
+- [OS Tuning](#os-tuning)
+- [Environment](#environment)
 
 ---
 
@@ -18,7 +18,7 @@ Validates the performance, stability, and capacity of the `auth-alpaca` auth sys
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) installed
 - Docker Compose stack running (backend + PostgreSQL) with the minimum resources below
@@ -41,7 +41,7 @@ Running with **more** resources will pass all thresholds easily. Running with **
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Tune OS for concurrent connections
@@ -58,7 +58,7 @@ The test outputs: `summary.html` (rich report), `summary.json` (raw data), and s
 
 ---
 
-## 📋 Test Suite
+## Test Suite
 
 | Script | Type | Duration | VUs | What it measures |
 |--------|------|----------|-----|-----------------|
@@ -95,7 +95,7 @@ Metrics are tagged by endpoint (`type:login`, `type:me`, `type:rotate`, `type:lo
 
 ---
 
-## 🎯 Thresholds
+## Thresholds
 
 Calibrated for **2 CPU + bcrypt cost 12**:
 
@@ -116,7 +116,7 @@ Calibrated for **2 CPU + bcrypt cost 12**:
 
 ---
 
-## 🔀 User Selection
+## User Selection
 
 All tests use a **deterministic VU-offset formula** to pick users:
 
@@ -128,7 +128,7 @@ This guarantees no two VUs collide on the same user concurrently, eliminating fa
 
 ---
 
-## 🗃️ Data
+## Data
 
 Everything is **already committed** — one command to seed, then run:
 
@@ -146,7 +146,7 @@ psql -h 127.0.0.1 -U postgres -d auth-alpaca -f data/seeding-users.sql
 
 ---
 
-## 🔧 OS Tuning
+## OS Tuning
 
 ```bash
 ulimit -n 65535
@@ -156,7 +156,7 @@ Increases the maximum open file descriptors limit to prevent socket exhaustion d
 
 ---
 
-## 🌐 Environment
+## Environment
 
 `performance-tests/.env` contains:
 
@@ -165,7 +165,7 @@ Increases the maximum open file descriptors limit to prevent socket exhaustion d
 
 ---
 
-🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+[Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
 - [Backend Architecture](../docs/backend-architecture.md) — Spring Boot API, JWT token system, and database schema

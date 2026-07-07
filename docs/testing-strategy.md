@@ -1,11 +1,11 @@
 # Testing Strategy
 
-> 🏠 [README](../README.md) — **Testing Strategy**
+> [README](../README.md) — **Testing Strategy**
 
-## 📑 On This Page
-- [🧪 Maven Test Profiles Separation](#-maven-test-profiles-separation)
-- [🐳 Integration Testing with Testcontainers](#-integration-testing-with-testcontainers)
-- [⚡ k6 Performance Testing Suite](#-k6-performance-testing-suite)
+## On This Page
+- [Maven Test Profiles Separation](#maven-test-profiles-separation)
+- [Integration Testing with Testcontainers](#integration-testing-with-testcontainers)
+- [k6 Performance Testing Suite](#k6-performance-testing-suite)
 
 ---
 
@@ -13,7 +13,7 @@ This document details the backend testing strategy, outlining the separation of 
 
 ---
 
-## 🧪 Maven Test Profiles Separation
+## Maven Test Profiles Separation
 
 To ensure fast feedback loops during development and comprehensive validation in CI/CD pipelines, tests are separated into two distinct Maven profiles.
 
@@ -52,7 +52,7 @@ Focuses on end-to-end functionality, HTTP request mapping, and database interact
 
 ---
 
-## 🐳 Integration Testing with Testcontainers
+## Integration Testing with Testcontainers
 
 Integration tests verify component interaction by launching real, lightweight instances of PostgreSQL in Docker containers before running tests.
 
@@ -98,7 +98,7 @@ This approach avoids `@DynamicPropertySource` boilerplate and keeps container li
 
 ---
 
-## ⚡ k6 Performance Testing Suite
+## k6 Performance Testing Suite
 
 The full k6 test suite, including thresholds, scenarios, environment setup, and calibration details, lives in **[`performance-tests/README.md`](../performance-tests/README.md)**.
 
@@ -115,7 +115,7 @@ See the [performance test docs](../performance-tests/README.md) for the full tes
 
 ---
 
-🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+[Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
 - [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema

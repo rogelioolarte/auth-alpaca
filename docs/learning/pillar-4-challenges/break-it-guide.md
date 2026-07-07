@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 4: Break It Guide**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 4: Break It Guide**
 
-# 🔨 The Break-it Guide: Learning through Destruction
+# The Break-it Guide: Learning through Destruction
 
 The best way to understand a security system is to see how it fails. In these challenges, your goal is to intentionally sabotage the system to observe the "failure modes".
 

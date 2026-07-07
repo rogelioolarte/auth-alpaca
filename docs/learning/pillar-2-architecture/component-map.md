@@ -1,6 +1,6 @@
-> 🏠 [README](../../../README.md) > 🎓 [Learning Index](../index.md) > **Pillar 2: Component Map**
+> [README](../../../README.md) > [Learning Index](../index.md) > **Pillar 2: Component Map**
 
-# 🗺️ The Component Map: Theory to Code
+# The Component Map: Theory to Code
 
 To master the project, you must be able to map the abstract concepts of the [OAuth2](../glossary.md#oauth2-open-authorization)/[JWT](../glossary.md#jwt-json-web-token) world to the actual classes and configurations in the `auth-alpaca` codebase.
 
