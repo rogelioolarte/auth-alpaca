@@ -91,5 +91,4 @@ jobs:
 
             chmod 600 /home/${{ secrets.VM_USER }}/app/.env
             chmod 600 /home/${{ secrets.VM_USER }}/app/keys/*.pem
-            
             sudo systemctl restart alpaca.service
