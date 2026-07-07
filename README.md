@@ -9,7 +9,7 @@
   <img src="docs/banner.png" alt="auth alpaca banner">
 </div>
 
-**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 21 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric RS512 signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
+**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 21 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric ES256 (ECDSA P-256) signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
 
 The frontend is a functional integration example; the backend is the core — hardened, tested, and ready for real-world adoption.
 
@@ -37,7 +37,7 @@ You need **Docker**, **Docker Compose**, and a **bash terminal**. That's it.
 git clone https://github.com/rogelioolarte/auth-alpaca.git
 cd auth-alpaca
 
-# 2. Generate JWT RSA key pairs
+# 2. Generate JWT EC P-256 key pairs
 ./generate_keys.sh -L secrets/
 
 # 3. Configure environment
@@ -119,7 +119,7 @@ sequenceDiagram
     UI->>You: Authenticated dashboard
 ```
 
-The backend signs access tokens (5 min) and refresh tokens (12 h) with **separate RS512 key pairs**. Refresh tokens rotate on every use — if an old token is replayed, the entire family is revoked immediately.
+The backend signs access tokens (5 min) and refresh tokens (12 h) with **separate EC P-256 key pairs (ES256)**. Refresh tokens rotate on every use — if an old token is replayed, the entire family is revoked immediately.
 
 ---
 

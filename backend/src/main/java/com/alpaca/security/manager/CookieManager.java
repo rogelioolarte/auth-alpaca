@@ -77,6 +77,7 @@ public class CookieManager {
             HttpServletResponse response, String name, String value, int maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setSecure(true);
+        cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);

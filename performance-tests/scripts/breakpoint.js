@@ -1,32 +1,32 @@
-import { check, sleep, metrics } from 'k6';
+import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
-import { userJourney, warmup } from '../lib/user-journey.ts';
+import { userJourney } from '../lib/user-journey.ts';
 
-const users = new SharedArray('users', function () {
-  return open('../data/users.csv').split('\n').slice(1).map(line => {
-    const parts = line.split(',');
-    if (parts.length < 2) return null;
-    return { email: parts[0].trim(), pass: parts[1].trim() };
-  }).filter(Boolean);
+const USERS = new SharedArray('users', function () {
+  return open('../data/users.csv').split('\n').slice(1).filter(Boolean).map(line => {
+    const [email, pass] = line.split(',');
+    return { email: email.trim(), pass: pass.trim() };
+  });
 });
+
+function pickUser() {
+  // VU-offset deterministic — no collisions
+  return USERS[(__VU - 1 + __ITER * 5) % USERS.length];
+}
 
 export const options = {
   stages: [
-    { duration: '30s', target: 50 },   // Warm-up
-    { duration: '1m', target: 500 },   // Ramp to starting point
-    { duration: '10m', target: 2000 }, // Linear ramp to breakpoint
+    { duration: '5m', target: 120 },   // slow ramp to find the knee (2 CPU + cost 12)
   ],
   thresholds: {
-    // We don't put strict limits here because we WANT to find the breakpoint.
-    // But we can monitor them.
-    'http_req_duration': ['p(95)<1000'], // Alert if we pass 1s
-    'http_req_failed': ['rate<0.05'],     // Alert if we pass 5%
+    // Lenient — we WANT to find where it breaks
+    // 5% failure rate signals the breakpoint
+    'http_req_failed': ['rate<0.05'],
   },
 };
 
 export default function () {
-  const user = users[Math.floor(Math.random() * users.length)];
-  
+  const user = pickUser();
   const result = userJourney(user);
   check(result, {
     'journey success': (r) => r.success,

@@ -34,7 +34,7 @@ services:
         condition: service_healthy
     environment:
       TZ: UTC
-      JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Duser.timezone=UTC"
+      JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2 -XX:CICompilerCount=2 -Duser.timezone=UTC"
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -62,7 +62,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '2'
           memory: 1G
     volumes:
       - ./secrets:/keys:ro

@@ -15,8 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
- * Central manager for issuing, validating, and parsing JSON Web Tokens (JWT) using RSA keys.
+ * Central manager for issuing, validating, and parsing JSON Web Tokens (JWT) using EC keys.
  *
- * <p>This Spring component handles both Access and Refresh tokens. Tokens are signed with RSA
- * private keys and verified using RSA public keys and the RS512 signature algorithm. It builds
+ * <p>This Spring component handles both Access and Refresh tokens. Tokens are signed with EC
+ * private keys and verified using EC public keys and the ES256 signature algorithm. It builds
  * {@code JwtParser} instances to ensure tokens are validated with the correct issuer and signature.
  *
  * <p>Typical use cases include creating tokens upon authentication, hashing refresh tokens for
@@ -51,11 +51,11 @@ import org.springframework.util.StringUtils;
 @Component
 public class JJwtManager {
 
-    /** The signature algorithm used for token signing (RSA with SHA-512). */
-    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.RS512;
+    /** The signature algorithm used for token signing (ECDSA with SHA-256 / P-256). */
+    private static final SignatureAlgorithm SIGNATURE_ALGORITHM = Jwts.SIG.ES256;
 
-    /** RSA private key used to sign Access Tokens. */
-    private final RSAPrivateKey privateKeyAccess;
+    /** EC private key used to sign Access Tokens. */
+    private final ECPrivateKey privateKeyAccess;
 
     /** Expiration time in milliseconds configured for Access Tokens. */
     @Getter private final Long jwtTimeExpAccess;
@@ -63,8 +63,8 @@ public class JJwtManager {
     /** Expiration time in milliseconds configured for Refresh Tokens. */
     @Getter private final Long jwtTimeExpRefresh;
 
-    /** RSA private key used to sign Refresh Tokens. */
-    private final RSAPrivateKey privateKeyRefresh;
+    /** EC private key used to sign Refresh Tokens. */
+    private final ECPrivateKey privateKeyRefresh;
 
     /** Issuer identifier included in the "iss" claim of tokens. */
     private final String jwtIssuer;
@@ -95,20 +95,20 @@ public class JJwtManager {
     private static final Base64.Encoder BASE64_URL = Base64.getUrlEncoder().withoutPadding();
 
     /**
-     * Constructs a new {@code JJwtManager}, loading RSA key pairs and configuring expiration and
-     * issuer information from Spring properties.
+     * Constructs a new {@code JJwtManager}, loading EC P-256 key pairs and configuring expiration
+     * and issuer information from Spring properties.
      *
      * <p>Keys must be provided as Base64-encoded PEM resources. Access and Refresh token parsers
      * are built to verify signature and issuer.
      *
-     * @param accessPrivateKR resource for the Access Token RSA private key
-     * @param accessPublicKR resource for the Access Token RSA public key
+     * @param accessPrivateKR resource for the Access Token EC private key
+     * @param accessPublicKR resource for the Access Token EC public key
      * @param jwtTimeExpAccess expiration duration in ms for Access Tokens
-     * @param refreshPrivateKR resource for the Refresh Token RSA private key
-     * @param refreshPublicKR resource for the Refresh Token RSA public key
+     * @param refreshPrivateKR resource for the Refresh Token EC private key
+     * @param refreshPublicKR resource for the Refresh Token EC public key
      * @param jwtTimeExpRefresh expiration duration in ms for Refresh Tokens
      * @param jwtIssuer the token issuer identifier applied to both token types
-     * @throws NoSuchAlgorithmException if RSA algorithm is not supported
+     * @throws NoSuchAlgorithmException if EC algorithm is not supported
      * @throws IOException if any key resource cannot be read
      * @throws InvalidKeySpecException if key spec cannot be converted into a key
      */
@@ -122,13 +122,13 @@ public class JJwtManager {
             @Value("${security.jwt.issuer}") @NotNull String jwtIssuer)
             throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
 
         this.privateKeyAccess = createPrivateKey(accessPrivateKR, keyFactory);
-        RSAPublicKey publicKeyAccess = createPublicKey(accessPublicKR, keyFactory);
+        ECPublicKey publicKeyAccess = createPublicKey(accessPublicKR, keyFactory);
 
         this.privateKeyRefresh = createPrivateKey(refreshPrivateKR, keyFactory);
-        RSAPublicKey publicKeyRefresh = createPublicKey(refreshPublicKR, keyFactory);
+        ECPublicKey publicKeyRefresh = createPublicKey(refreshPublicKR, keyFactory);
 
         this.jwtIssuer = jwtIssuer;
         this.jwtTimeExpAccess = Long.parseLong(jwtTimeExpAccess);
@@ -325,17 +325,17 @@ public class JJwtManager {
     }
 
     /** Internal helper to generate a private key from a PEM resource. */
-    private RSAPrivateKey createPrivateKey(Resource keyResource, KeyFactory keyfactory)
+    private ECPrivateKey createPrivateKey(Resource keyResource, KeyFactory keyfactory)
             throws IOException, InvalidKeySpecException {
-        return (RSAPrivateKey)
+        return (ECPrivateKey)
                 keyfactory.generatePrivate(
                         new PKCS8EncodedKeySpec(Decoders.BASE64.decode(readPEM(keyResource))));
     }
 
     /** Internal helper to generate a public key from a PEM resource. */
-    private RSAPublicKey createPublicKey(Resource keyResource, KeyFactory keyfactory)
+    private ECPublicKey createPublicKey(Resource keyResource, KeyFactory keyfactory)
             throws IOException, InvalidKeySpecException {
-        return (RSAPublicKey)
+        return (ECPublicKey)
                 keyfactory.generatePublic(
                         new X509EncodedKeySpec(Decoders.BASE64.decode(readPEM(keyResource))));
     }

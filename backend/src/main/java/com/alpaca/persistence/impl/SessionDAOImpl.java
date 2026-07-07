@@ -126,7 +126,7 @@ public class SessionDAOImpl extends GenericDAOImpl<Session, UUID> implements ISe
      */
     @Override
     public Optional<Session> findFirstActiveSessionForUpdate(UUID userId) {
-        return repo.findFirstActiveSessionForUpdate(userId);
+        return repo.findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(userId);
     }
 
     /**

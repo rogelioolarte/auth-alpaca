@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# Generate RSA 4096-bit keys for authentication resources.
-# 
+# Generate EC P-256 (ES256) key pairs for authentication resources.
+#
 # Usage:
 #   ./generate_keys.sh -L <location>
 #
@@ -17,9 +17,9 @@ LOCATION=""
 while getopts "L:" opt; do
   case "$opt" in
     L) LOCATION="$OPTARG" ;;
-    *) 
+    *)
       echo "Usage: $0 -L <location>"
-      exit 1 
+      exit 1
       ;;
   esac
 done
@@ -44,9 +44,9 @@ create_pem_pair() {
   local priv_pem="${out_dir}/${prefix}_private.pem"
   local pub_pem="${out_dir}/${prefix}_public.pem"
 
-  echo "Generating RSA 4096 key pair for $prefix..."
-  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out "$priv_pem"
-  openssl rsa -in "$priv_pem" -pubout -out "$pub_pem"
+  echo "Generating EC P-256 key pair for $prefix..."
+  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$priv_pem"
+  openssl pkey -in "$priv_pem" -pubout -out "$pub_pem"
 
   echo "  -> $priv_pem"
   echo "  -> $pub_pem"
@@ -55,7 +55,6 @@ create_pem_pair() {
 echo "Generating keys in: $LOCATION"
 echo "----------------------------------------------------------------------------"
 
-# Generate the four requested PEM keys
 create_pem_pair "$ACCESS_NAME" "$LOCATION"
 create_pem_pair "$REFRESH_NAME" "$LOCATION"
 

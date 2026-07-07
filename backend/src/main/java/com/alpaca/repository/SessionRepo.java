@@ -169,26 +169,19 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
             @Param("ipAddress") String ipAddress);
 
     /**
-     * Retrieves the oldest active session for a user, with a pessimistic lock and lock timeout of
-     * zero.
+     * Returns the session with the oldest {@code lastSeenAt} for a user, used when the user exceeds
+     * their session limit and one must be evicted.
      *
-     * <p>Results are ordered by {@code lastSeenAt ASC NULLS FIRST} to find the least-recently-used
-     * session. This is used in session eviction or limit-enforcement scenarios where the oldest
-     * session must be identified and revoked when a user exceeds their allowed session limit.
+     * <p>The lock timeout of zero makes the query fail fast instead of waiting for another
+     * transaction — if the oldest session is already being evicted, this caller skips it rather
+     * than contending.
      *
-     * @param userId the user UUID
-     * @return An {@link Optional} containing the oldest active session if one exists, otherwise
-     *     empty
+     * @param userId the user to find sessions for
+     * @return the least-recently-used active session, or empty if none
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "0"))
-    @Query(
-            """
-                SELECT s FROM Session s
-                WHERE s.user.id = :userId AND s.revoked = false
-                ORDER BY s.lastSeenAt ASC NULLS FIRST
-            """)
-    Optional<Session> findFirstActiveSessionForUpdate(@Param("userId") UUID userId);
+    Optional<Session> findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(UUID userId);
 
     /**
      * Counts active (non-revoked) sessions for a given user.

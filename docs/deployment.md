@@ -81,10 +81,10 @@ The following table summarizes all environment variables required to run the ser
 | `JWT_ISSUER` | `backend` | Issuer identifier claim inserted into tokens (`iss`). | `auth-alpaca.com` |
 | `JWT_ACCESS_TOKEN_EXPIRATION` | `backend` | Access token duration in milliseconds (5 min). | `300000` |
 | `JWT_REFRESH_TOKEN_EXPIRATION` | `backend` | Refresh token duration in milliseconds (12 hours). | `43200000` |
-| `JWT_ACCESS_PRIVATE_KEY_PATH` | `backend` | File path mapping the RSA private key for Access tokens. | `file:/keys/access_private.pem` |
-| `JWT_ACCESS_PUBLIC_KEY_PATH` | `backend` | File path mapping the RSA public key for Access tokens. | `file:/keys/access_public.pem` |
-| `JWT_REFRESH_PRIVATE_KEY_PATH` | `backend` | File path mapping the RSA private key for Refresh tokens. | `file:/keys/refresh_private.pem` |
-| `JWT_REFRESH_PUBLIC_KEY_PATH` | `backend` | File path mapping the RSA public key for Refresh tokens. | `file:/keys/refresh_public.pem` |
+| `JWT_ACCESS_PRIVATE_KEY_PATH` | `backend` | File path mapping the EC P-256 private key for Access tokens. | `file:/keys/access_private.pem` |
+| `JWT_ACCESS_PUBLIC_KEY_PATH` | `backend` | File path mapping the EC P-256 public key for Access tokens. | `file:/keys/access_public.pem` |
+| `JWT_REFRESH_PRIVATE_KEY_PATH` | `backend` | File path mapping the EC P-256 private key for Refresh tokens. | `file:/keys/refresh_private.pem` |
+| `JWT_REFRESH_PUBLIC_KEY_PATH` | `backend` | File path mapping the EC P-256 public key for Refresh tokens. | `file:/keys/refresh_public.pem` |
 | `APP_OAUTH2_REDIRECT_URI` | `backend` | Callback landing URI registered with Google IDP. | `http://localhost:80/oauth2/redirect` |
 | `APP_FRONTEND_URI` | `backend` | Target frontend path to redirect after successful login. | `http://localhost:80/login` |
 | `GOOGLE_CLIENT_ID` | `backend` | Google Cloud Console OAuth2 Client Identifier. | `your_google_client_id` |

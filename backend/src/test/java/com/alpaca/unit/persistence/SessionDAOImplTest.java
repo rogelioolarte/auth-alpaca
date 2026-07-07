@@ -214,25 +214,27 @@ class SessionDAOImplTest {
 
     @Test
     void findFirstActiveSessionForUpdate_WhenSessionExists_ReturnsSession() {
-        when(repo.findFirstActiveSessionForUpdate(userId)).thenReturn(Optional.of(session));
+        when(repo.findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(userId))
+                .thenReturn(Optional.of(session));
 
         Optional<Session> result = dao.findFirstActiveSessionForUpdate(userId);
 
         assertTrue(result.isPresent());
         assertEquals(session, result.get());
 
-        verify(repo).findFirstActiveSessionForUpdate(userId);
+        verify(repo).findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(userId);
     }
 
     @Test
     void findFirstActiveSessionForUpdate_WhenSessionDoesNotExist_ReturnsEmptyOptional() {
-        when(repo.findFirstActiveSessionForUpdate(userId)).thenReturn(Optional.empty());
+        when(repo.findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(userId))
+                .thenReturn(Optional.empty());
 
         Optional<Session> result = dao.findFirstActiveSessionForUpdate(userId);
 
         assertTrue(result.isEmpty());
 
-        verify(repo).findFirstActiveSessionForUpdate(userId);
+        verify(repo).findFirstByUserIdAndRevokedFalseOrderByLastSeenAtAsc(userId);
     }
 
     @Test

@@ -84,10 +84,10 @@ Key patterns in `SecurityConfig.java`:
 
 ## 🔑 JWT Token Generation & Rotation
 
-The backend uses **JJWT (Java JWT)** for token operations. It utilizes an asymmetric cryptographic architecture: RSA keys signed with **RS512** (RSA with SHA-512).
+The backend uses **JJWT (Java JWT)** for token operations. It utilizes an asymmetric cryptographic architecture: EC P-256 keys signed with **ES256** (ECDSA with SHA-256 / P-256).
 
 ### Key Architecture
-The access token and refresh token use **separate RSA key pairs** to limit exposure:
+The access token and refresh token use **separate EC P-256 key pairs** to limit exposure:
 1. **Access Key Pair**: Used to sign and verify ephemeral access tokens (default expiration: 5 minutes).
 2. **Refresh Key Pair**: Used to sign and verify long-lived refresh tokens (default expiration: 12 hours).
 
