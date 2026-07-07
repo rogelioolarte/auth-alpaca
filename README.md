@@ -130,7 +130,7 @@ The backend signs access tokens (5 min) and refresh tokens (12 h) with **separat
 
 | Layer | Technology | Key Libraries |
 |---|---|---|
-| **Backend** | Java 25 | Spring Boot 4.0.6, Spring Security 6, Spring Data JPA, JJWT, Flyway |
+| **Backend** | Java 25 | Spring Boot 4.1.0, Spring Security 6, Spring Data JPA, JJWT, Flyway |
 | **Frontend** | Angular 21 | RxJS, JWT-Decode, ngx-cookie-service |
 | **Database** | PostgreSQL 18 | Dockerized, Flyway-migrated |
 | **Infra** | Docker Compose | Multi-stage builds, isolated networks |

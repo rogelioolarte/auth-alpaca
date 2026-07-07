@@ -11,7 +11,7 @@
 
 ---
 
-This document provides a highly technical overview of the `auth-alpaca` backend API, designed for developers and system architects. The system is built on **Spring Boot 4.0.6** using **Java 25** (with preview features enabled) as the runtime.
+This document provides a highly technical overview of the `auth-alpaca` backend API, designed for developers and system architects. The system is built on **Spring Boot 4.1.0** using **Java 25** (with preview features enabled) as the runtime.
 
 ---
 
