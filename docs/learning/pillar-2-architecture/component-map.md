@@ -9,7 +9,7 @@ To master the project, you must be able to map the abstract concepts of the [OAu
 | [**Identity Provider (IdP)**](../glossary.md#idp-identity-provider) | `application.yml` (issuer-uri) | `auth.service.ts` (loginUrl) | The source of truth for user identity (e.g., Google). |
 | [**Resource Server**](../glossary.md#resource-server) | `@SpringBootApplication` | N/A | The server protecting the data (Auth Alpaca). |
 | [**Access Token**](../glossary.md#access-token) | `Jwt` / `JwtClaimsSet` | `accessToken` (string) | The "Key" used to access protected resources. |
-| **Token Validator** | `NimbusJwtDecoder` | N/A | Verifies the signature and expiration of the JWT. |
+| **Token Validator** | `JJwtManager` | N/A | Creates and validates JWTs with JJWT using ECDSA P-256 (ES256). |
 | **Security Context** | `SecurityContextHolder` | `AuthService.currentUser` | The "Session" state for the current request. |
 | [**Authority/Role**](../glossary.md#authoritygrantedauthority) | `GrantedAuthority` | `userRoles` (array) | The permissions assigned to the user. |
 | **Authorization Logic** | `@PreAuthorize` | `AdminGuard` | The logic that decides if a user can access a resource. |

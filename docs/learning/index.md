@@ -8,11 +8,11 @@
 
 ---
 
-# Auth Alpaca: The Masterclass in Modern Authentication
+# Auth Alpaca: A Learning Path for Modern Authentication
 
-Welcome, Engineer. You aren't here just to "run a project"—you are here to master the invisible machinery that secures the modern web.
+This learning path takes you from OAuth2 concepts to a working implementation. No black boxes, no magic — just clear explanations and real code.
 
-Authentication and Authorization are often treated as "black boxes" provided by libraries. In this Masterclass, we crack those boxes open. We will move from the mathematical foundations of cryptography to the intricate dance of OAuth2, and finally into the guts of a production-ready Spring Boot and Angular implementation.
+Authentication and Authorization are often treated as "black boxes" provided by libraries. In this learning path, we crack those boxes open. We move from the foundations of cryptography to the intricate dance of OAuth2, and finally into the guts of a production-ready Spring Boot and Angular implementation.
 
 ## The Course Map
 
@@ -52,10 +52,19 @@ The final test. To truly understand a system, you must be able to break it and e
 
 ## Prerequisites
 
-To get the most out of this Masterclass, you should have a basic grasp of:
+To get the most out of this learning path, you should have a basic grasp of:
 - **Java 17+**: Understanding of Classes, Interfaces, and Annotations.
 - **Angular**: Basic knowledge of Components, Services, and Dependency Injection.
 - **HTTP Basics**: Knowledge of Verbs (GET, POST), Headers, and Status Codes (200, 401, 403).
+
+### Additional Resources
+
+Pillar 4 (Challenges) assumes some familiarity with Spring Boot annotations and Angular templates. If you get stuck there:
+
+| Topic | Resource |
+|---|---|
+| Spring Boot annotations (`@RestController`, `@PreAuthorize`) | [Spring Boot Reference](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/) |
+| Angular structural directives (`*ngIf`) and routing guards | [Angular Documentation](https://angular.dev/guide/templates) |
 
 **Ready to begin? Start with [Pillar 1: Concepts](./pillar-1-concepts/oauth2-flow.md).**
 
@@ -63,5 +72,5 @@ To get the most out of this Masterclass, you should have a basic grasp of:
 
 ---
 
-| ← — | [↑ Learning Index](../index.md) | [Next](pillar-1-concepts/oauth2-flow.md) → |
-|:---|:---:|---:|
+| Start with [Pillar 1: Concepts](pillar-1-concepts/oauth2-flow.md) → |
+|:---|

@@ -18,7 +18,7 @@ To speak the language of security, you must master these terms.
 
 ### Cryptography
 - **Symmetric Encryption**: Encryption where the same key is used for both encryption and decryption.
-- **Asymmetric Encryption (RSA)**: Encryption using a public key for encryption/verification and a private key for decryption/signing.
+- **Asymmetric Encryption (e.g., RSA, ECDSA)**: Encryption using a public key for encryption/verification and a private key for decryption/signing.
 - **Digital Signature**: A mathematical scheme for demonstrating the authenticity of a digital message.
 - **Public Key**: A key that can be shared with anyone; used to verify signatures.
 - **Private Key**: A secret key that must be guarded; used to create signatures.

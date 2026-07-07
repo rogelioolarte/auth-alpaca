@@ -33,5 +33,5 @@ Prove your implementation works by performing these four tests:
 
 ---
 
-| ← [Previous](../pillar-3-exploration/pattern-analysis.md) | [↑ Learning Index](../index.md) | [Next](break-it-guide.md) → |
+| ← [Previous](break-it-guide.md) | [↑ Learning Index](../index.md) | — |
 |:---|:---:|---:|

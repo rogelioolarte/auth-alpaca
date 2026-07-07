@@ -18,8 +18,8 @@ Stop reading the documentation. It's time to find the evidence. Use your IDE's s
 
 ### Mission 3: The Token Vault
 **The Goal**: Find where the frontend stores the [JWT](../glossary.md#jwt-json-web-token) and how it retrieves it.
-- **Clue**: Search for `localStorage` or `sessionStorage` within the `src/app/core/services` folder.
-- **Question**: Why did the developers choose this storage method instead of a simple variable in a service? What happens to the token when the user refreshes the page?
+- **Clue**: Search for the `storage` variable and the `CookieService` within the `src/app/auth` folder. Trace how the JWT is persisted between page refreshes.
+- **Question**: Why did the developers choose HTTP-only cookies instead of `localStorage`? What security advantage does this provide against XSS attacks? What happens to the token when the user refreshes the page?
 
 ### Mission 4: The Request Interceptor
 **The Goal**: Find the logic that automatically attaches the token to every outgoing request.

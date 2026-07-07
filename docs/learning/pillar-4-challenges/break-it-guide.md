@@ -27,5 +27,5 @@ The best way to understand a security system is to see how it fails. In these ch
 
 ---
 
-| ← [Previous](build-it-tasks.md) | [↑ Learning Index](../index.md) | — → |
+| ← [Previous](../pillar-3-exploration/pattern-analysis.md) | [↑ Learning Index](../index.md) | [Next](build-it-tasks.md) → |
 |:---|:---:|---:|

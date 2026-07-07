@@ -11,7 +11,7 @@ We don't want to manually add the `Authorization: Bearer <token>` header to ever
 
 Instead, we use an **Interceptor**. Think of it as a middleware for outgoing requests.
 - The Interceptor catches every outgoing HTTP request.
-- It retrieves the [JWT](../glossary.md#jwt-json-web-token) from storage (e.g., LocalStorage).
+- It retrieves the [JWT](../glossary.md#jwt-json-web-token) from HTTP-only cookies via the `CookieService`, not from `localStorage`.
 - It clones the request and injects the `Authorization` header.
 - It passes the modified request back to the Angular HTTP client.
 

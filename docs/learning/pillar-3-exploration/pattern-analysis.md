@@ -25,5 +25,5 @@ The security configuration doesn't depend on a specific User database. It depend
 
 ---
 
-| ← [Previous](treasure-hunt.md) | [↑ Learning Index](../index.md) | [Next](../pillar-4-challenges/build-it-tasks.md) → |
+| ← [Previous](treasure-hunt.md) | [↑ Learning Index](../index.md) | [Next](../pillar-4-challenges/break-it-guide.md) → |
 |:---|:---:|---:|

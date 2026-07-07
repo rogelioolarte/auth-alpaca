@@ -1,7 +1,7 @@
 # AUTH ALPACA
 
-[![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
 [![release badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver)](https://github.com/rogelioolarte/auth-alpaca/releases)
+[![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
 [![codecov badge](https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg)](https://codecov.io/gh/rogelioolarte/auth-alpaca)
 [![ci badge](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml/badge.svg)](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml)
 [![license badge](https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue)](LICENSE)
@@ -26,7 +26,7 @@ The frontend is a functional integration example; the backend is the core — ha
 | | [Performance Tests](performance-tests/README.md) | k6 suite, thresholds, scenarios, baseline calibration |
 | | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
 | **Help** | [Troubleshooting](TROUBLESHOOTING.md) | Common issues, fixes, and diagnostics |
-| **Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Masterclass from theory to code |
+| **Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Guided learning path from concepts to code |
 | | [Glossary](docs/learning/glossary.md) | Security terminology reference |
 
 ---
