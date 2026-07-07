@@ -60,6 +60,42 @@ Once the stack is up:
 
 ---
 
+## 🛠️ Local Development (Without Docker)
+
+You can run the backend directly via Maven for faster iteration:
+
+### Prerequisites
+- **Java 25** (with preview features enabled)
+- **PostgreSQL 18** running locally on port 5432
+- **Bun 1.3.11** (for the frontend)
+
+### Backend
+
+```bash
+# From project root:
+./backend/mvnw clean compile -Punit-tests   # compile + run unit tests
+
+# Run integration tests (requires Docker for Testcontainers):
+./backend/mvnw clean verify -Pintegration-tests
+
+# Start the application:
+cd backend && ./mvnw spring-boot:run
+```
+
+The backend starts on `http://localhost:8080` by default. See [Testing Strategy](docs/testing-strategy.md) for the full test suite documentation.
+
+### Frontend
+
+```bash
+cd frontend && bun install && bun run start
+```
+
+The frontend dev server runs on `http://localhost:4200`.
+
+> The default `application.properties` uses `postgres-db:5432` as the DB host (Docker Compose DNS). For local development, override with your own `SPRING_DATASOURCE_URL` — for example by copying `backend/.env.example` to `backend/.env` and setting `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/auth-alpaca`.
+
+---
+
 ## 🔐 Authentication Flow (OAuth2 + PKCE)
 
 Auth Alpaca implements the **Authorization Code flow with PKCE** — the industry standard for secure public-client authentication. Here is the high-level handshake:

@@ -73,6 +73,7 @@ Key patterns in `SecurityConfig.java`:
 - **Stateless Session**: `SessionCreationPolicy.STATELESS` ensures no server-side HTTP session storage.
 - **Access Rule Mapping**:
   - `/api/auth/**` and `/oauth2/**` are public (`permitAll()`).
+  - `/api/advertisers/**` — read-only endpoints (`GET`) are public; write endpoints (`POST`, `PUT`, `DELETE`) are secured via `@PreAuthorize` at the controller level.
   - `/api/sessions/**`, `/api/profiles/**`, and `/api/users/**` require authentication.
   - `/api/roles/**` and `/api/permissions/**` require the `ADMIN` role.
   - All other routes are denied by default.
@@ -110,11 +111,11 @@ The access token and refresh token use **separate RSA key pairs** to limit expos
 ### Refresh Token Rotation (RTR) & Security
 To prevent unauthorized access through stolen tokens, the system implements **Refresh Token Rotation (RTR)**:
 1. When a client requests a token rotation (`POST /api/auth/rotate`), the server validates the incoming token and extracts the `jti` and `familyId`.
-2. The database stores a SHA-256 hash of the active refresh tokens (`token_hash`) for verification. Raw tokens are never stored.
-3. **Breach Detection**: If a client attempts to reuse a revoked or already rotated refresh token (detected by checking if a token with the same `familyId` was already marked as revoked or replaced):
-   - The entire token family is immediately invalidated.
-   - All active tokens under the same `familyId` are revoked.
-   - The user is logged out, mitigating replay attacks.
+2. The database stores a SHA-256 hash of each refresh token's `jti` claim (`token_hash`) for lookup and verification. Raw tokens are never stored.
+3. **Breach Detection**: When a token is rotated, its hash is deleted and a new one is inserted. If a client attempts to reuse an older, already-rotated token, the lookup fails to find a matching active hash — but the `familyId` still exists in the `sessions` table. This mismatch triggers:
+   - Immediate invalidation of the entire token family.
+   - Revocation of all active tokens under the same `familyId`.
+   - Forced logout, mitigating replay attacks.
 
 ---
 
@@ -224,7 +225,7 @@ erDiagram
 
 ## 🔌 Core API Endpoints
 
-All authenticated requests must include the header: `Authorization: Bearer <accessToken>` (configured via `X-Access-Token` mapper header depending on the client).
+All authenticated requests must include the header: `Authorization: Bearer <accessToken>`. Token rotation requests additionally require the `X-Refresh-Token` header containing the current refresh token (see `/api/auth/rotate` below).
 
 | Method | Endpoint | Auth | Request Headers / Body | Description |
 | :--- | :--- | :--- | :--- | :--- |

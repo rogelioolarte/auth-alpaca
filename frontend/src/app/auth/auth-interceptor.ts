@@ -12,7 +12,7 @@ import { ACCESS_TOKEN_HEADER_KEY } from '../models/constants';
  * external hosts not matching the configured API host. When a 401 response is
  * received (except on the `/api/auth/rotate` endpoint), attempts transparent
  * token rotation and retries the original request once with the new access
- * token. A 430 status triggers an immediate forced logout via
+ * token. A 429 status triggers an immediate forced logout via
  * {@link AuthenticationService#logout}.
  *
  * @param req - The outgoing HTTP request.
@@ -54,7 +54,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               )
             );
           }
-          if (err.status === 430) {
+          if (err.status === 429) {
             auth.logout();
           }
           return throwError(() => err);

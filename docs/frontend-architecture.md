@@ -31,7 +31,7 @@ The frontend is a single-page application built on **Angular 21** using standalo
 
 Authentication is handled transparently across all HTTP requests using an Angular functional interceptor (`authInterceptor`).
 
-### Interceptor Logic (`auth-interceptor.ts`)
+### Interceptor Logic (`src/app/auth/auth-interceptor.ts`)
 The interceptor intercepts outgoing HTTP client requests and applies the following rules:
 1. **Pass-through Rules**: Requests targeting authentication endpoints (`/api/auth/login`, `/api/auth/exchange`) or external hosts (e.g. Google APIs) bypass token injection.
 2. **Token Injection**: Attaches the current active access token as a bearer token in the `Authorization` header (or configured header key).
@@ -39,7 +39,7 @@ The interceptor intercepts outgoing HTTP client requests and applies the followi
    - If an API call fails with status `401 Unauthorized`, the interceptor halts the pipeline.
    - It triggers a token rotation request (`auth.rotateTokens()`) using the refresh token.
    - Upon successful rotation, the new access token is cached, the failed request is cloned with the updated token, and the request is retried.
-4. **Session Invalidation**: If the API responds with a `430` error (typically signifying rate limit exhaustion or absolute session expiration), the client immediately invokes `auth.logout()` to clear client state.
+4. **Session Invalidation**: If the API responds with a `429 Too Many Requests` (signifying rate limit exhaustion or absolute session expiration), the client immediately invokes `auth.logout()` to clear client state.
 
 ---
 
