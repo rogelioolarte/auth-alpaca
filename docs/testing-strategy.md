@@ -5,7 +5,7 @@
 ## 📑 On This Page
 - [🧪 Maven Test Profiles Separation](#-maven-test-profiles-separation)
 - [🐳 Integration Testing with Testcontainers](#-integration-testing-with-testcontainers)
-- [⚡ k6 Performance Testing Setup](#-k6-performance-testing-setup)
+- [⚡ k6 Performance Testing Suite](#-k6-performance-testing-suite)
 
 ---
 
@@ -98,62 +98,20 @@ This approach avoids `@DynamicPropertySource` boilerplate and keeps container li
 
 ---
 
-## ⚡ k6 Performance Testing Setup
+## ⚡ k6 Performance Testing Suite
 
-The k6 test suite validates system capacity, API latency, and token rotation efficiency under concurrent loads.
+The full k6 test suite, including thresholds, scenarios, environment setup, and calibration details, lives in **[`performance-tests/README.md`](../performance-tests/README.md)**.
 
-### 1. OS Kernel Tuning
-Before running high-load scenarios, the execution OS must be tuned to prevent socket exhaustion and limit issues:
+Quick-start summary:
 
 ```bash
-# Increase maximum open file descriptors limit (connections count)
-ulimit -n 65535
+ulimit -n 65535                                           # OS tuning
+psql -h 127.0.0.1 -U postgres -d auth-alpaca -f           # seed 2000 users
+  performance-tests/data/seeding-users.sql
+k6 run performance-tests/scripts/baseline.js               # capacity + stress
 ```
 
-### 2. Database Seeding
-To simulate real-world conditions and avoid database locking/contention on a single account, the database is pre-seeded with 2,000 unique users.
-
-Seeding script run:
-```bash
-# Seed postgres container (adjust -h if the container is on a different host)
-psql -h 127.0.0.1 -U postgres -d auth-alpaca -f performance-tests/data/seeding-users.sql
-```
-
-A mapping file (`performance-tests/data/users.csv`) containing these pre-seeded credentials is used in the k6 scripts via `SharedArray` to distribute credentials across virtual users (VUs).
-
-### 3. Baseline Load Scenario (`baseline.js`)
-The baseline test runs a typical production load scenario to measure latency characteristics.
-
-* **Execution Command**:
-  ```bash
-  k6 run performance-tests/scripts/baseline.js
-  ```
-
-#### Virtual User (VU) Profile Configuration
-The baseline script implements a 3-stage load curve:
-```javascript
-export const options = {
-  stages: [
-    { duration: '30s', target: 50 },   // Stage 1: Warm-up phase
-    { duration: '30s', target: 500 },  // Stage 2: Ramp up to baseline load
-    { duration: '5m', target: 500 },   // Stage 3: Hold baseline load
-  ],
-  thresholds: {
-    'http_req_duration': ['p(95)<300'], // 95% of requests must complete under 300ms
-    'http_req_failed': ['rate<0.001'],  // Error rate must be less than 0.1%
-  },
-};
-```
-
-#### User Journey Execution Flow
-Each virtual user executes a sequential user journey:
-1. **Warm-up** (in warm-up stage): Performs basic login and profile fetch actions to prime the Spring Boot JIT compiler and Hikari Connection Pool.
-2. **Standard Flow**:
-   - **Login**: `POST /api/auth/login` (exchanges credentials for access/refresh token pair).
-   - **Get Me**: `GET /api/auth/me` (fetches authenticated user principal details).
-   - **Rotate**: `POST /api/auth/rotate` (rotates the token pair using the `X-Refresh-Token` header).
-   - **Logout**: `POST /api/auth/logout` (revokes the current refresh token).
-    - **Pacing**: `sleep(1)` (simulates user think time).
+See the [performance test docs](../performance-tests/README.md) for the full test matrix, calibrated thresholds (2 CPU + bcrypt cost 12), and when to run each script.
 
 ---
 

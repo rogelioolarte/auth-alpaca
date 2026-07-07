@@ -1,35 +1,53 @@
 # Performance Test Suite
 
+> 🏠 [README](../README.md) — **Performance Test Suite**
+
+## 📑 On This Page
+- [⚙️ Prerequisites](#-prerequisites)
+- [🚀 Quick Start](#-quick-start)
+- [📋 Test Suite](#-test-suite)
+- [🎯 Thresholds](#-thresholds)
+- [🔀 User Selection](#-user-selection)
+- [🗃️ Data](#-data)
+- [🔧 OS Tuning](#-os-tuning)
+- [🌐 Environment](#-environment)
+
+---
+
 Validates the performance, stability, and capacity of the `auth-alpaca` auth system under resource-constrained conditions.
 
-## Minimum Deployment Requirements
+---
+
+## ⚙️ Prerequisites
+
+- [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) installed
+- Docker Compose stack running (backend + PostgreSQL) with the minimum resources below
+- Database seeded with test users
+
+### Minimum Deployment Requirements
 
 **The test suite and thresholds are calibrated for this minimum configuration:**
 
 | Resource | Value | Notes |
 |----------|-------|-------|
 | CPU | **2 cores** | t3.micro / equivalent |
-| RAM | **1 GB** | 750 MB heap (MaxRAMPercentage=75) |
+| RAM | **1 GB** | 750 MB heap (`MaxRAMPercentage=75`) |
 | bcrypt cost | **12** | ~400 ms per hash on 2 cores |
 | Tomcat threads | **8** | `server.tomcat.threads.max=8` |
 
 See `docker-compose.yml` for the exact resource limits (`cpus: '2'`, `memory: 1G`) and JVM flags.
 
-Running with more resources will pass all thresholds easily. Running with **less** will cause timeouts and false positives.
+Running with **more** resources will pass all thresholds easily. Running with **less** will cause timeouts and false positives.
 
-## Prerequisites
+---
 
-- [k6](https://k6.io/docs/getting-started/installation/) installed
-- Docker Compose stack running (backend + PostgreSQL) with the minimum resources above
-- Database seeded with test users (see below)
-
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # 1. Tune OS for concurrent connections
 ulimit -n 65535
 
-# 2. Seed 2000 test users into the database
+# 2. Seed test users into the database (data files are already committed)
 psql -h 127.0.0.1 -U postgres -d auth-alpaca -f data/seeding-users.sql
 
 # 3. Run a test (see Test Suite below for options)
@@ -38,7 +56,9 @@ k6 run scripts/baseline.js
 
 The test outputs: `summary.html` (rich report), `summary.json` (raw data), and stdout (text summary).
 
-## Test Suite
+---
+
+## 📋 Test Suite
 
 | Script | Type | Duration | VUs | What it measures |
 |--------|------|----------|-----|-----------------|
@@ -60,7 +80,22 @@ The primary test, run after every meaningful change. Two sequential scenarios:
 
 Metrics are tagged by endpoint (`type:login`, `type:me`, `type:rotate`, `type:logout`).
 
-### Thresholds
+### When to run each test
+
+| You want to... | Run |
+|----------------|-----|
+| Verify nothing is broken | `smoke-test.js` (CI) |
+| Quick performance check | `low-load-test.js` (CI) |
+| Full performance validation | `baseline.js` (pre-deploy) |
+| Find the system's limit | `breakpoint.js` (capacity planning) |
+| Test burst resilience | `spike.js` |
+| Verify rate limiter | `rate-limit.js` |
+| Test registration flow | `registration.js` |
+| Debug a specific endpoint | `isolated/login.js`, etc. |
+
+---
+
+## 🎯 Thresholds
 
 Calibrated for **2 CPU + bcrypt cost 12**:
 
@@ -79,20 +114,9 @@ Calibrated for **2 CPU + bcrypt cost 12**:
 | **rate-limit** `http_req_failed` | 10% ≤ rate ≤ 95% | Must hit 429 (rate-limited), not all requests blocked |
 | **registration** `http_req_failed` | < 5% | Each reg = 2 bcrypt ops (~800ms CPU) |
 
-### When to run each test
+---
 
-| You want to... | Run |
-|----------------|-----|
-| Verify nothing is broken | `smoke-test.js` (CI) |
-| Quick performance check | `low-load-test.js` (CI) |
-| Full performance validation | `baseline.js` (pre-deploy) |
-| Find the system's limit | `breakpoint.js` (capacity planning) |
-| Test burst resilience | `spike.js` |
-| Verify rate limiter | `rate-limit.js` |
-| Test registration flow | `registration.js` |
-| Debug a specific endpoint | `isolated/login.js`, etc. |
-
-## User Selection
+## 🔀 User Selection
 
 All tests use a **deterministic VU-offset formula** to pick users:
 
@@ -102,20 +126,48 @@ USERS[(__VU - 1 + __ITER * 5) % USERS.length]
 
 This guarantees no two VUs collide on the same user concurrently, eliminating false login failures from session limits.
 
-## Data
+---
 
-- `data/users.csv` — 2000 performance test users (email, password)
-- `data/seeding-users.sql` — auto-generated SQL with bcrypt hashes for all 2000 users
-- Users are distributed across VUs by the deterministic formula above. The 2000-user pool supports up to 200 VUs without wraparound collisions.
+## 🗃️ Data
 
-## OS Tuning
+Everything is **already committed** — one command to seed, then run:
+
+```bash
+psql -h 127.0.0.1 -U postgres -d auth-alpaca -f data/seeding-users.sql
+```
+
+| File | Description |
+|------|-------------|
+| `data/users.csv` | 2000 test users (`perf_user_1@example.com` … `perf_user_2000@example.com`). Password: `123456789`. |
+| `data/seeding-users.sql` | Pre-computed bcrypt hashes, roles, profiles, and advertisers for the 2000 users. |
+| `data/generate-data.py` | Regenerates all data files from scratch. Only needed if you change user count or password. |
+
+> **Warning**: regenerating bcrypt hashes at cost 12 takes ~800 seconds of CPU on 2 cores. You don't need to run it unless you change the data source.
+
+---
+
+## 🔧 OS Tuning
 
 ```bash
 ulimit -n 65535
 ```
 
-## Environment
+Increases the maximum open file descriptors limit to prevent socket exhaustion during high-concurrency tests.
+
+---
+
+## 🌐 Environment
 
 `performance-tests/.env` contains:
+
 - `BASE_URL` — backend URL (default: `http://localhost:8080`)
 - `CLIENT_ID` — registered client UUID for auth headers
+
+---
+
+🏠 [Back to README](../README.md) | 📚 [Full Documentation](../README.md#-navigation-hub-docs-as-code)
+
+#### Related Docs
+- [Backend Architecture](../docs/backend-architecture.md) — Spring Boot API, JWT token system, and database schema
+- [Testing Strategy](../docs/testing-strategy.md) — Unit tests, Testcontainers, CI profiles
+- [Deployment](../docs/deployment.md) — Docker Compose topology and environment configuration

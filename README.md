@@ -21,7 +21,8 @@ The frontend is a functional integration example; the backend is the core — ha
 |---|---|---|
 | **🏗️ Architecture** | [Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API, database schema |
 | | [Frontend Architecture](docs/frontend-architecture.md) | Angular guards, interceptors, token lifecycle |
-| **🧪 Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, k6 performance |
+| **🧪 Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, CI profiles |
+| | [Performance Tests](performance-tests/README.md) | k6 suite, thresholds, scenarios, baseline calibration |
 | | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
 | **🎓 Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Masterclass from theory to code |
 | | [📖 Glossary](docs/learning/glossary.md) | Security terminology reference |
