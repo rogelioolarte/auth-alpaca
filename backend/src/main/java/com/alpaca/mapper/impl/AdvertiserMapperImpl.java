@@ -60,8 +60,8 @@ public class AdvertiserMapperImpl implements IAdvertiserMapper {
                 entity.isIndexed(),
                 entity.isPaid(),
                 entity.isVerified(),
-                entity.getUser().getId(),
-                entity.getUser().getEmail());
+                (entity.getUser() != null ? entity.getUser().getId() : null),
+                (entity.getUser() != null ? entity.getUser().getEmail() : null));
     }
 
     /**
@@ -75,17 +75,18 @@ public class AdvertiserMapperImpl implements IAdvertiserMapper {
     @Override
     public Advertiser toEntity(AdvertiserRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new Advertiser(
-                requestDTO.getTitle(),
-                requestDTO.getDescription(),
-                requestDTO.getBannerUrl(),
-                requestDTO.getAvatarUrl(),
-                requestDTO.getPublicLocation(),
-                requestDTO.getPublicUrlLocation(),
-                true, // default indexed
-                false, // default paid
-                false, // default verified
-                userService.findById(UUID.fromString(requestDTO.getUserId())));
+        Advertiser entity = new Advertiser();
+        entity.setTitle(requestDTO.getTitle());
+        entity.setDescription(requestDTO.getDescription());
+        entity.setBannerUrl(requestDTO.getBannerUrl());
+        entity.setAvatarUrl(requestDTO.getAvatarUrl());
+        entity.setPublicLocation(requestDTO.getPublicLocation());
+        entity.setPublicUrlLocation(requestDTO.getPublicUrlLocation());
+        entity.setIndexed(requestDTO.isIndexed());
+        entity.setPaid(false);
+        entity.setVerified(false);
+        entity.setUser(userService.findById(UUID.fromString(requestDTO.getUserId())));
+        return entity;
     }
 
     /**

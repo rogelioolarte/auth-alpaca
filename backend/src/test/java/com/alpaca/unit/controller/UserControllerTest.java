@@ -4,15 +4,20 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.alpaca.controller.UserController;
+import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.mapper.IUserMapper;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.model.UserPrincipal;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.ControllerUnitTest;
+import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.IUserService;
 import java.util.Collections;
 import java.util.List;
@@ -21,10 +26,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,9 +36,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
-@WebMvcTest(UserController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@AutoConfigureJsonTesters
+@ControllerUnitTest
+@WebMvcTest(controllers = UserController.class)
 class UserControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -44,6 +46,7 @@ class UserControllerTest {
 
     @MockitoBean private IUserService service;
     @MockitoBean private IUserMapper mapper;
+    @MockitoBean private UserPrincipal userPrincipal;
 
     private static final List<User> listEntities = UserProvider.listEntities();
     private static final UserResponseDTO firstResponse = UserProvider.singleResponse();
@@ -78,6 +81,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("findById returns 200 and correct object")
+    @WithMockCustomUser
     void findByIdReturnsUser() throws Exception {
         when(service.findById(firstResponse.id())).thenReturn(listEntities.getFirst());
         when(mapper.toResponseDTO(listEntities.getFirst())).thenReturn(firstResponse);
@@ -100,6 +104,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("findById returns 404 Not Found when object does not exist")
+    @WithMockCustomUser
     void findByIdNotFound() throws Exception {
         UUID id = firstResponse.id();
         when(service.findById(id))
@@ -114,6 +119,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("save returns 201 when Object is created")
+    @WithMockCustomUser
     void saveCreatesUser() throws Exception {
         mockMapperAndServiceForSave();
 
@@ -140,6 +146,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("save returns 409 Conflict when object already exists")
+    @WithMockCustomUser
     void saveConflictWhenAlreadyExists() throws Exception {
         mockMapperAndServiceForSave();
         doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Already exists"))
@@ -158,6 +165,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("updateById returns 200 OK and updated object")
+    @WithMockCustomUser
     void updateByIdUpdatesUser() throws Exception {
         UUID id = firstResponse.id();
         mockMapperAndServiceForUpdate(id);
@@ -182,6 +190,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("updateById returns 404 Not Found when object to modify does not exist")
+    @WithMockCustomUser
     void updateByIdNotFound() throws Exception {
         UUID id = firstResponse.id();
         when(mapper.toEntity(argThat(r -> r.getEmail().equals(singleRequest.getEmail()))))
@@ -202,6 +211,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("delete returns 204 No Content when object exists")
+    @WithMockCustomUser
     void deleteDeletesUser() throws Exception {
         UUID id = firstResponse.id();
         doNothing().when(service).deleteById(id);
@@ -213,6 +223,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("delete returns 400 Bad Request when object does not exist")
+    @WithMockCustomUser
     void deleteReturnsBadRequestWhenNotExist() throws Exception {
         UUID id = firstResponse.id();
 
@@ -229,6 +240,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("findAll returns an empty list when no persisted entities")
+    @WithMockCustomUser
     void findAllReturnsEmptyList() throws Exception {
         when(service.findAll()).thenReturn(Collections.emptyList());
         when(mapper.toListResponseDTO(Collections.emptyList())).thenReturn(Collections.emptyList());
@@ -244,6 +256,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("findAll returns all persisted entities")
+    @WithMockCustomUser
     void findAllReturnsPersistedList() throws Exception {
         var altResponse = UserProvider.alternativeResponse();
         when(service.findAll()).thenReturn(listEntities);
@@ -264,9 +277,10 @@ class UserControllerTest {
 
     @Test
     @DisplayName("findAllPage returns a paged list")
+    @WithMockCustomUser
     void findAllPageReturnsPagedList() throws Exception {
         when(service.findAllPage(isA(Pageable.class))).thenReturn(new PageImpl<>(listEntities));
-        when(mapper.toPageResponseDTO(argThat(r -> r instanceof PageImpl)))
+        when(mapper.toPageResponseDTO(argThat(PageImpl.class::isInstance)))
                 .thenReturn(UserProvider.pageResponse());
 
         mockMvc.perform(get("/api/users/page?page=0&size=10").accept(MediaType.APPLICATION_JSON))
@@ -276,6 +290,54 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.content[0].email", is(firstResponse.email())));
 
         verify(service).findAllPage(isA(Pageable.class));
-        verify(mapper).toPageResponseDTO(argThat(r -> r instanceof PageImpl));
+        verify(mapper).toPageResponseDTO(argThat(PageImpl.class::isInstance));
+    }
+
+    @Test
+    @WithMockCustomUser
+    @DisplayName("changePassword returns 200 OK when authenticated user changes password")
+    void changePasswordReturnsOk() throws Exception {
+        PasswordRequestDTO request = new PasswordRequestDTO();
+        request.setCurrentPassword("current-password");
+        request.setNewPassword("new-password");
+        request.setReNewPassword("new-password");
+
+        doNothing().when(service).changePassword(userPrincipal, request);
+
+        mockMvc.perform(
+                        put("/api/users/change-password")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "currentPassword":"current-password",
+                                          "newPassword":"new-password",
+                                          "reNewPassword":"new-password"
+                                        }
+                                        """))
+                .andExpect(status().isOk());
+
+        verify(service).changePassword(any(UserPrincipal.class), any(PasswordRequestDTO.class));
+    }
+
+    @Test
+    @DisplayName("changePassword returns 401 Unauthorized when user is null")
+    void changePasswordReturnsUnauthorizedWhenUserIsNull() throws Exception {
+        mockMvc.perform(
+                        put("/api/users/change-password")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "currentPassword":"current-password",
+                                          "newPassword":"new-password",
+                                          "reNewPassword":"new-password"
+                                        }
+                                        """))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(service);
     }
 }

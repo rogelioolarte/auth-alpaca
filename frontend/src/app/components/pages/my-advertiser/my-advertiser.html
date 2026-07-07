@@ -1,0 +1,102 @@
+<div class="page-container">
+  <h1>My Advertiser</h1>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <mat-card class="advertiser-card">
+      <mat-card-header>
+        <mat-card-title>Advertiser Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="advertiserForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" />
+            @if (advertiserForm.get('title')?.hasError('required')) {
+              <mat-error> Title is required </mat-error>
+            }
+            @if (advertiserForm.get('title')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('title')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="5"></textarea>
+            @if (advertiserForm.get('description')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('description')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Public Location</mat-label>
+            <input matInput formControlName="publicLocation" />
+            @if (advertiserForm.get('publicLocation')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('publicLocation')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Public URL Location</mat-label>
+            <input matInput formControlName="publicUrlLocation" />
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('publicUrlLocation')" >
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+            @if (advertiserForm.get('publicUrlLocation')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('publicUrlLocation')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Avatar URL</mat-label>
+            <input matInput formControlName="avatarUrl" />
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('avatarUrl')">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+            @if (advertiserForm.get('avatarUrl')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('avatarUrl')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Banner URL</mat-label>
+            <input matInput formControlName="bannerUrl" />
+            <button mat-icon-button matSuffix type="button" 
+              (click)="openExternalURL('bannerUrl')">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+            @if (advertiserForm.get('bannerUrl')?.hasError('serverError')) {
+              <mat-error>{{ advertiserForm.get('bannerUrl')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="indexed" color="primary">
+              Index for Public Search
+            </mat-slide-toggle>
+          </div>
+
+          <div class="form-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="advertiserForm.invalid || saving()"
+            >
+              @if (saving()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

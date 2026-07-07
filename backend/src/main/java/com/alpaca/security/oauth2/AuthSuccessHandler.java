@@ -1,113 +1,226 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.RedirectCookieName;
-
+import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.InternalErrorException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.CookieManager;
-import com.alpaca.security.manager.JJwtManager;
+import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.service.IAuthService;
+import com.alpaca.utils.UUIDv7Generator;
+import com.alpaca.utils.Utils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Authentication success handler for OAuth2 login flows.
+ * Handles successful authentication for OAuth2 login flows.
  *
- * <p>Upon successful authentication, this handler issues a JWT access token and redirects the
- * user's browser to a previously stored or default redirect URI. It ensures that only authorized
- * redirect URIs are used to prevent open redirect vulnerabilities.
+ * <p>When a user successfully logs in using OAuth2, this handler constructs a JSON response that
+ * includes an access token, a refresh token, and the target URL to which the client should navigate
+ * next. The handler also ensures that only authorized redirect URIs are accepted, preventing open
+ * redirect vulnerabilities.
  *
- * <p>It also cleans up the related cookies used during the OAuth flow (authorization request and
- * redirect URI cookies) via {@link CookieAuthReqRepo}.
+ * <p>This class extends {@code SimpleUrlAuthenticationSuccessHandler} to integrate with Spring
+ * Security, but overrides behavior to produce a JSON response rather than performing a redirect
+ * directly.
+ *
+ * <p>OAuth2 authorization request-related cookies are cleaned up after successful login using
+ * {@code CookieAuthReqRepo}.
  *
  * @see SimpleUrlAuthenticationSuccessHandler
- * @see JJwtManager
- * @see CookieAuthReqRepo
+ * @see IAuthService
+ * @see CookieManager
  */
 @Component
 public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JJwtManager jwtManager;
+    /** Query parameter and cookie name for the post-login redirect URI. */
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+
+    /** Attribute key and cookie name for the PKCE code challenge passed from the client. */
+    public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
+
     private final CookieAuthReqRepo repository;
     private final Set<URI> authorizedRedirectUris;
+    private final TokenExchangeManager exchangeManager;
+    private final UUIDv7Generator uuidGenerator;
 
     /**
-     * Constructs the handler with required dependencies and a list of authorized redirect URIs.
+     * Constructs an {@code AuthSuccessHandler}.
      *
-     * @param jwtManager JWT manager used to create tokens
-     * @param repository cookie-based authorization request repository
-     * @param redirectUris list of allowed redirect URIs (must not be {@code null})
+     * @param repository cookie-based repository used to manage OAuth2 state cookies
+     * @param redirectUri URI authorized for redirection; must not be {@code null}
+     * @param exchangeManager manager for creating and consuming exchange codes
+     * @param uuidGenerator generator for UUIDv7 exchange codes
      */
     public AuthSuccessHandler(
-            JJwtManager jwtManager,
             CookieAuthReqRepo repository,
-            @Value("${app.oauth2AuthorizedRedirectURI}") @NonNull List<URI> redirectUris) {
-        this.jwtManager = jwtManager;
+            @Value("${app.frontend.uri}") URI redirectUri,
+            TokenExchangeManager exchangeManager,
+            UUIDv7Generator uuidGenerator) {
         this.repository = repository;
-        this.authorizedRedirectUris = Set.copyOf(redirectUris);
-    }
-
-    @Override
-    public void onAuthenticationSuccess(
-            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException {
-        String targetUrl = determineTargetUrl(request, response, authentication);
-        if (response.isCommitted()) {
-            logger.debug(
-                    String.format("Response already committed; cannot redirect to: %s", targetUrl));
-            return;
-        }
-        clearAuthenticationAttributes(request, response);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
-    }
-
-    @Override
-    protected String determineTargetUrl(
-            HttpServletRequest request, HttpServletResponse response, Authentication auth) {
-        Optional<Cookie> redirectCookie = CookieManager.getCookie(request, RedirectCookieName);
-        String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
-
-        if (!authorizedRedirectUris.isEmpty() && !isAuthorizedRedirectURI(URI.create(target))) {
-            throw new UnauthorizedException("Unauthorized Redirect URI");
-        }
-        return UriComponentsBuilder.fromUriString(target)
-                .queryParam("token", jwtManager.createToken((UserPrincipal) auth.getPrincipal()))
-                .build()
-                .toUriString();
+        this.authorizedRedirectUris = Set.of(redirectUri);
+        this.exchangeManager = exchangeManager;
+        this.uuidGenerator = uuidGenerator;
     }
 
     /**
-     * Clears authentication-related cookies and attributes post-login.
+     * Called when authentication is successful.
+     *
+     * <p>This method builds a Redirect URL containing the code to exchange the tokens, and the
+     * target URL to navigate to after login. It first determines the target URI, clears any OAuth2
+     * state cookies, and then writes the JSON body to the response.
      *
      * @param request the current HTTP request
      * @param response the current HTTP response
+     * @param authentication the authentication result containing the authenticated principal
+     * @throws IOException if writing the JSON response fails
      */
-    protected void clearAuthenticationAttributes(
-            HttpServletRequest request, HttpServletResponse response) {
-        super.clearAuthenticationAttributes(request);
+    @Override
+    public void onAuthenticationSuccess(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull Authentication authentication)
+            throws IOException {
+        if (response.isCommitted()) {
+            logger.debug("Response already committed; cannot redirect");
+            return;
+        }
+        String targetUrl = determineTargetUrl(request, response, authentication);
+        String codeChallenge = determineCodeChallenge(request);
+        if (codeChallenge.isBlank()) {
+            throw new BadRequestException("Invalid Code Challenge");
+        }
         repository.removeAuthorizationRequestCookies(request, response);
+
+        clearAuthenticationAttributes(request, response);
+
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        if (userPrincipal == null) {
+            throw new UnauthorizedException("Invalid Credentials");
+        }
+        String code = uuidGenerator.generate().toString();
+        String clientId = Optional.ofNullable(request.getHeader("X-Client-Id")).orElse("");
+        String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
+        String clientIp = Optional.ofNullable(Utils.extractClientIP(request)).orElse("");
+        AuthCode authCode =
+                new AuthCode(
+                        code,
+                        codeChallenge,
+                        clientId,
+                        userAgent,
+                        clientIp,
+                        userPrincipal.getUserId(),
+                        targetUrl);
+
+        this.exchangeManager.createExchangeCode(code, authCode);
+        String finalRedirectURL =
+                UriComponentsBuilder.fromUriString(targetUrl)
+                        .queryParam("code", code)
+                        .build()
+                        .toUriString();
+
+        getRedirectStrategy().sendRedirect(request, response, finalRedirectURL);
     }
 
     /**
-     * Validates whether the given redirect URI is among the authorized list. Only the host is
-     * matched to allow flexibility in paths.
+     * Determines the target URL to which the client should navigate after login.
      *
-     * @param clientUri the URI requested for redirection
-     * @return {@code true} if the host matches any authorized redirect URI; {@code false} otherwise
+     * <p>This method retrieves a stored redirect URI from a cookie if present, or uses a configured
+     * default if not. It verifies that the resulting URI's host is in the configured whitelist of
+     * authorized redirect URIs.
+     *
+     * @param request the current HTTP request
+     * @param response the current HTTP response
+     * @param auth the authentication result
+     * @return a valid URI string for redirecting the client
+     * @throws InternalErrorException if no authorized redirect URIs are configured
+     * @throws UnauthorizedException if the requested redirect URI is not authorized
+     */
+    @Override
+    @NonNull
+    protected String determineTargetUrl(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            Authentication auth) {
+
+        Optional<Cookie> redirectCookie = CookieManager.getCookie(request, REDIRECT_PARAM_NAME);
+        String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
+        if (isAuthorizedRedirectURI(URI.create(target))) {
+            throw new UnauthorizedException("Unauthorized redirect URI");
+        }
+
+        return UriComponentsBuilder.fromUriString(target).build().toUriString();
+    }
+
+    /**
+     * Resolves the PKCE code challenge value associated with the current OAuth2 authorization
+     * request.
+     *
+     * <p>Priority order:
+     *
+     * <ol>
+     *   <li>From the stored {@link OAuth2AuthorizationRequest} attributes (set during the initial
+     *       authorization request by {@link com.alpaca.security.oauth2.OAuth2ReqResolver}).
+     *   <li>From the {@code client_code_challenge} cookie (persisted by {@link CookieAuthReqRepo}
+     *       for stateless flows).
+     * </ol>
+     *
+     * @param request the incoming HTTP request
+     * @return the code challenge string, or empty string if not found
+     */
+    protected String determineCodeChallenge(HttpServletRequest request) {
+        OAuth2AuthorizationRequest authReq = repository.loadAuthorizationRequest(request);
+        if (Objects.isNull(authReq)) {
+            return "";
+        }
+        String challenge = (String) authReq.getAttributes().get(CLIENT_CODE_CHALLENGE);
+        if (challenge != null && !challenge.isBlank()) {
+            return challenge;
+        }
+        Optional<Cookie> cookie = CookieManager.getCookie(request, CLIENT_CODE_CHALLENGE);
+        return cookie.map(Cookie::getValue).orElse("");
+    }
+
+    /**
+     * Removes temporary authentication-related cookies after login.
+     *
+     * <p>This clears any stored OAuth2 authorization request cookies to avoid lingering state after
+     * a successful authentication flow.
+     *
+     * @param request the current HTTP request
+     * @param ignoredResponse the current HTTP response
+     */
+    protected void clearAuthenticationAttributes(
+            HttpServletRequest request, HttpServletResponse ignoredResponse) {
+        super.clearAuthenticationAttributes(request);
+    }
+
+    /**
+     * Checks if the provided redirect URI belongs to the configured set of authorized hosts.
+     *
+     * <p>Only the host component is compared to allow flexibility in varying paths. A match
+     * indicates that the redirect is permitted.
+     *
+     * @param clientUri the URI that the client intends to redirect to
+     * @return {@code true} if the host of the {@code clientUri} matches any authorized host
      */
     private boolean isAuthorizedRedirectURI(URI clientUri) {
         return authorizedRedirectUris.stream()
-                .anyMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
+                .noneMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
     }
 }

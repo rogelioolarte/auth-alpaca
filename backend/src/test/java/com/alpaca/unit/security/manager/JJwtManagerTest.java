@@ -1,319 +1,374 @@
 package com.alpaca.unit.security.manager;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.alpaca.entity.RefreshToken;
+import com.alpaca.entity.User;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-/** Unit tests for {@link JJwtManager} */
+/** Unit tests for {@link JJwtManager}. */
 @DisplayName("JJwtManager Unit Tests")
 class JJwtManagerTest {
 
-    private static final String ISSUER = "testIssuer";
-    private static final long EXPIRATION_MILLIS = 2_000; // 2s
+    private static final String ISSUER = "alpaca-auth-service";
+
     private JJwtManager jwtManager;
 
     @BeforeEach
     void setUp() throws Exception {
-        // Generate an RSA key pair for signing/verifying
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
-        KeyPair keyPair = kpg.generateKeyPair();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
 
-        String base64PrivateKey = Base64.getEncoder().encodeToString(privateKey.getEncoded());
-        String base64PublicKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        String accessExpiration = "3600000";
+        String refreshExpiration = "86400000";
 
-        // Instantiate JJwtManager with our generated keys, issuer, and expiration
         jwtManager =
                 new JJwtManager(
-                        base64PrivateKey,
-                        base64PublicKey,
-                        ISSUER,
-                        String.valueOf(EXPIRATION_MILLIS));
+                        new ClassPathResource("keys/access_private.pem"),
+                        new ClassPathResource("keys/access_public.pem"),
+                        accessExpiration,
+                        new ClassPathResource("keys/refresh_private.pem"),
+                        new ClassPathResource("keys/refresh_public.pem"),
+                        refreshExpiration,
+                        ISSUER);
     }
 
     @Test
-    @DisplayName("createToken should produce a valid JWT containing the expected claims")
-    void createTokenProducesValidJwt() {
+    @DisplayName("createAccessToken should create valid access token")
+    void createAccessToken_ShouldCreateValidAccessToken() {
+
+        UserPrincipal principal = mock(UserPrincipal.class);
+
         UUID userId = UUID.randomUUID();
         UUID profileId = UUID.randomUUID();
         UUID advertiserId = UUID.randomUUID();
-        String username = "testUser";
-        List<GrantedAuthority> authorities =
-                AuthorityUtils.createAuthorityList("ROLE_USER", "ROLE_ADMIN");
 
-        UserPrincipal principal =
-                new UserPrincipal(
-                        userId, profileId, advertiserId, username, null, authorities, null);
+        when(principal.getUsername()).thenReturn("rogelio.olarte");
+        when(principal.getUserId()).thenReturn(userId);
+        when(principal.getProfileId()).thenReturn(profileId);
+        when(principal.getAdvertiserId()).thenReturn(advertiserId);
+        when(principal.getAuthorities())
+                .thenReturn(AuthorityUtils.createAuthorityList("ROLE_ADMIN", "ROLE_USER"));
 
-        String token = jwtManager.createToken(principal);
-        assertNotNull(token, "Token should not be null or empty");
-        assertFalse(token.isBlank(), "Token should not be blank");
+        Instant now = Instant.now();
 
-        // Parse the token directly to inspect claims
-        Claims claims = jwtManager.validateToken(token).getPayload();
+        String token = jwtManager.createAccessToken(principal, now);
 
-        assertEquals(ISSUER, claims.getIssuer(), "Issuer claim must match");
-        assertEquals(username, claims.getSubject(), "Subject must be the username");
-        assertEquals(
-                userId.toString(), claims.get("userId", String.class), "userId claim must match");
-        assertEquals(
-                profileId.toString(),
-                claims.get("profileId", String.class),
-                "profileId claim must match");
-        assertEquals(
-                advertiserId.toString(),
-                claims.get("advertiserId", String.class),
-                "advertiserId claim must match");
+        Claims claims = jwtManager.validateAccessToken(token);
 
-        // The authorities claim is a comma-separated string
-        String authClaim = claims.get("authorities", String.class);
-        assertNotNull(authClaim);
-        assertTrue(authClaim.contains("ROLE_USER"));
-        assertTrue(authClaim.contains("ROLE_ADMIN"));
-
-        Date now = new Date();
-        assertTrue(
-                claims.getIssuedAt().before(new Date(now.getTime() + 100)),
-                "IssuedAt should be very close to now");
-        assertTrue(
-                claims.getNotBefore().before(new Date(now.getTime() + 100)),
-                "NotBefore should be very close to now");
-        assertTrue(claims.getExpiration().after(now), "Expiration must be in the future");
+        assertAll(
+                () -> assertEquals(ISSUER, claims.getIssuer()),
+                () -> assertEquals("rogelio.olarte", claims.getSubject()),
+                () -> assertEquals(userId.toString(), claims.get("userId")),
+                () -> assertEquals(profileId.toString(), claims.get("profileId")),
+                () -> assertEquals(advertiserId.toString(), claims.get("advertiserId")),
+                () -> assertTrue(claims.get("authorities", String.class).contains("ROLE_ADMIN")),
+                () -> assertTrue(jwtManager.isValidAccessToken(claims)));
     }
 
     @Test
-    @DisplayName("validateToken should throw UnauthorizedException on invalid token")
-    void validateTokenThrowsOnInvalidToken() {
-        String badToken = "this.is.not.a.valid.jwt";
-        assertThrows(UnauthorizedException.class, () -> jwtManager.validateToken(badToken));
-    }
+    @DisplayName("createAccessToken should handle null optional identifiers")
+    void createAccessToken_ShouldHandleNullOptionalIdentifiers() {
 
-    @Test
-    @DisplayName("manageAuthentication should return a valid Authentication when token is valid")
-    void manageAuthenticationReturnsValidAuthentication() {
+        UserPrincipal principal = mock(UserPrincipal.class);
+
         UUID userId = UUID.randomUUID();
-        UUID profileId = null;
-        UUID advertiserId = null;
-        String username = "anotherUser";
-        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_X", "ROLE_Y");
 
-        // allow advertiserId to be null in this test
-        UserPrincipal principal =
-                new UserPrincipal(
-                        userId, profileId, advertiserId, username, null, authorities, null);
+        when(principal.getUsername()).thenReturn("no-optionals");
+        when(principal.getUserId()).thenReturn(userId);
+        when(principal.getProfileId()).thenReturn(null);
+        when(principal.getAdvertiserId()).thenReturn(null);
+        when(principal.getAuthorities()).thenReturn(Collections.emptyList());
 
-        String token = jwtManager.createToken(principal);
-        UsernamePasswordAuthenticationToken auth = jwtManager.manageAuthentication(token);
+        String token = jwtManager.createAccessToken(principal, Instant.now());
 
-        assertNotNull(auth, "Authentication token should not be null");
-        assertTrue(
-                auth.isAuthenticated(),
-                "Authentication should be marked as authenticated by default");
+        Claims claims = jwtManager.validateAccessToken(token);
 
-        // The principal inside Authentication should be a UserPrincipal with same values
-        Object authPrincipal = auth.getPrincipal();
-        assertInstanceOf(UserPrincipal.class, authPrincipal, "Principal should be a UserPrincipal");
-        UserPrincipal up = (UserPrincipal) authPrincipal;
-
-        assertEquals(userId, up.getId(), "UserPrincipal.id must match");
-        assertNull(up.getProfileId(), "UserPrincipal.profileId should be null");
-        assertNull(up.getAdvertiserId(), "UserPrincipal.advertiserId should be null");
-        assertEquals(username, up.getUsername(), "UserPrincipal.username must match");
-
-        // Authorities in the Authentication should match those in UserPrincipal
-        Collection<? extends GrantedAuthority> authList = auth.getAuthorities();
-        assertEquals(2, authList.size(), "Should have two authorities");
-        assertTrue(authList.stream().anyMatch(a -> a.getAuthority().equals("ROLE_X")));
-        assertTrue(authList.stream().anyMatch(a -> a.getAuthority().equals("ROLE_Y")));
+        assertAll(
+                () -> assertEquals("", claims.get("profileId")),
+                () -> assertEquals("", claims.get("advertiserId")));
     }
 
     @Test
-    @DisplayName("createAuthentication returns null for claims with expired expiration")
-    void createAuthenticationReturnsNullWhenExpired() {
-        // Build a Claims object manually
+    @DisplayName("createRefreshToken should create valid refresh token")
+    void createRefreshToken_ShouldCreateValidRefreshToken() {
+
+        RefreshToken refreshToken = mock(RefreshToken.class);
+        User user = mock(User.class);
+
+        UUID userId = UUID.randomUUID();
+        UUID tokenJti = UUID.randomUUID();
+        UUID familyId = UUID.randomUUID();
+
+        Instant lastUsedAt = Instant.now();
+        Instant expiresAt = lastUsedAt.plus(1, ChronoUnit.DAYS);
+
+        String clientId = "web-client";
+
+        when(refreshToken.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(userId);
+        when(refreshToken.getTokenJti()).thenReturn(tokenJti);
+        when(refreshToken.getFamilyId()).thenReturn(familyId);
+        when(refreshToken.getLastUsedAt()).thenReturn(lastUsedAt);
+        when(refreshToken.getExpiresAt()).thenReturn(expiresAt);
+        when(refreshToken.getClientId()).thenReturn(clientId);
+
+        String token = jwtManager.createRefreshToken(refreshToken);
+
+        Claims claims = jwtManager.validateRefreshToken(token);
+
+        assertAll(
+                () -> assertEquals(ISSUER, claims.getIssuer()),
+                () -> assertEquals(userId.toString(), claims.getSubject()),
+                () -> assertEquals(userId.toString(), claims.get("userId")),
+                () -> assertEquals(tokenJti.toString(), claims.get("jti")),
+                () -> assertEquals(familyId.toString(), claims.get("familyId")),
+                () -> assertEquals(clientId, claims.get("clientId")),
+                () -> assertTrue(jwtManager.isValidRefreshToken(claims)));
+    }
+
+    @Test
+    @DisplayName("createRefreshToken should handle null values")
+    void createRefreshToken_ShouldHandleNullValues() {
+
+        RefreshToken refreshToken = mock(RefreshToken.class);
+
+        Instant lastUsedAt = Instant.now();
+        Instant expiresAt = lastUsedAt.plus(1, ChronoUnit.DAYS);
+
+        when(refreshToken.getUser()).thenReturn(null);
+        when(refreshToken.getTokenJti()).thenReturn(null);
+        when(refreshToken.getFamilyId()).thenReturn(null);
+        when(refreshToken.getLastUsedAt()).thenReturn(lastUsedAt);
+        when(refreshToken.getExpiresAt()).thenReturn(expiresAt);
+        when(refreshToken.getClientId()).thenReturn(null);
+
+        String token = jwtManager.createRefreshToken(refreshToken);
+
+        Claims claims = jwtManager.validateRefreshToken(token);
+
+        assertAll(
+                () -> assertEquals("", claims.get("userId")),
+                () -> assertEquals("", claims.get("familyId")),
+                () -> assertNull(claims.getSubject()),
+                () -> assertNull(claims.get("jti")),
+                () -> assertNull(claims.get("clientId")));
+    }
+
+    @Test
+    @DisplayName("createTokenHash should create deterministic hash")
+    void createTokenHash_ShouldCreateDeterministicHash() {
+
+        String value = "refresh-token-value";
+
+        String hashOne = jwtManager.createTokenHash(value);
+
+        String hashTwo = jwtManager.createTokenHash(value);
+
+        assertAll(
+                () -> assertNotNull(hashOne),
+                () -> assertEquals(hashOne, hashTwo),
+                () -> assertFalse(hashOne.isBlank()),
+                () -> assertFalse(hashOne.contains("=")));
+    }
+
+    @Test
+    @DisplayName("createTokenHash should throw exception for invalid value")
+    void createTokenHash_ShouldThrowExceptionForInvalidValue() {
+
+        assertAll(
+                () ->
+                        assertThrows(
+                                IllegalArgumentException.class,
+                                () -> jwtManager.createTokenHash(null)),
+                () ->
+                        assertThrows(
+                                IllegalArgumentException.class,
+                                () -> jwtManager.createTokenHash("")),
+                () ->
+                        assertThrows(
+                                IllegalArgumentException.class,
+                                () -> jwtManager.createTokenHash(" ")));
+    }
+
+    @Test
+    @DisplayName("validateAccessToken should throw unauthorized exception for invalid token")
+    void validateAccessToken_ShouldThrowUnauthorizedException() {
+
+        assertAll(
+                () ->
+                        assertThrows(
+                                UnauthorizedException.class,
+                                () -> jwtManager.validateAccessToken("invalid.token")),
+                () ->
+                        assertThrows(
+                                UnauthorizedException.class,
+                                () -> jwtManager.validateAccessToken(null)));
+    }
+
+    @Test
+    @DisplayName("validateRefreshToken should throw unauthorized exception for invalid token")
+    void validateRefreshToken_ShouldThrowUnauthorizedException() {
+
+        assertAll(
+                () ->
+                        assertThrows(
+                                UnauthorizedException.class,
+                                () -> jwtManager.validateRefreshToken("invalid.token")),
+                () ->
+                        assertThrows(
+                                UnauthorizedException.class,
+                                () -> jwtManager.validateRefreshToken(null)));
+    }
+
+    @Test
+    @DisplayName("isValidAccessToken should validate claims correctly")
+    void isValidAccessToken_ShouldValidateClaimsCorrectly() {
+
+        Claims validClaims =
+                Jwts.claims()
+                        .subject("user")
+                        .expiration(new Date(System.currentTimeMillis() + 10_000))
+                        .add("userId", UUID.randomUUID().toString())
+                        .add("authorities", "ROLE_USER")
+                        .build();
+
         Claims expiredClaims =
                 Jwts.claims()
-                        .subject("ghostUser")
-                        .expiration(new Date(System.currentTimeMillis() - 1_000))
-                        .add("authorities", "ROLE_GHOST")
+                        .subject("user")
+                        .expiration(new Date(System.currentTimeMillis() - 10_000))
                         .add("userId", UUID.randomUUID().toString())
-                        .add("profileId", "")
-                        .add("advertiserId", "")
+                        .add("authorities", "ROLE_USER")
                         .build();
 
-        // createAuthentication should detect expiration and return null
-        UsernamePasswordAuthenticationToken auth = jwtManager.createAuthentication(expiredClaims);
-        assertNull(auth, "Authentication should be null for expired claims");
-    }
-
-    @Test
-    @DisplayName("authoritiesToString should join authority names with commas")
-    void authoritiesToStringJoinsCorrectly() {
-        List<GrantedAuthority> list = AuthorityUtils.createAuthorityList("A", "B", "C");
-        String joined = jwtManager.authoritiesToString(list);
-        assertEquals("A,B,C", joined);
-    }
-
-    @Test
-    @DisplayName("existString returns false for null or blank, true otherwise")
-    void existStringBehaviour() {
-        assertFalse(jwtManager.existString(null), "null should return false");
-        assertFalse(jwtManager.existString(""), "empty string should return false");
-        assertFalse(jwtManager.existString("   "), "blank string should return false");
-        assertTrue(jwtManager.existString("hello"), "non-empty non-blank should return true");
-    }
-
-    @Test
-    @DisplayName("getSpecificClaim retrieves the correct value from Claims")
-    void getSpecificClaimRetrievesCorrectly() {
-        Claims claims = Jwts.claims().add("foo", 12345).build();
-        Integer val = jwtManager.getSpecificClaim(claims, "foo", Integer.class);
-        assertEquals(12345, val);
-    }
-
-    @Test
-    @DisplayName("isValidToken returns false when expiration is null")
-    void isValidTokenFalseWhenExpirationNull() {
-        Claims claims =
+        Claims blankSubjectClaims =
                 Jwts.claims()
-                        .subject("validUser")
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-
-        assertFalse(jwtManager.isValidToken(claims), "Should return false if expiration is null");
-    }
-
-    @Test
-    @DisplayName("isValidToken returns false when expiration is in the past")
-    void isValidTokenFalseWhenExpirationInPast() {
-        Claims claims =
-                Jwts.claims()
-                        .subject("validUser")
-                        .expiration(new Date(System.currentTimeMillis() - 10_000)) // expired
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-
-        assertFalse(
-                jwtManager.isValidToken(claims),
-                "Should return false if the expiration is in the past");
-    }
-
-    @Test
-    @DisplayName("isValidToken returns false when subject (username) is blank or null")
-    void isValidTokenFalseWhenSubjectBlankOrNull() {
-        // Case: subject null
-        Claims noSub =
-                Jwts.claims()
+                        .subject("")
                         .expiration(new Date(System.currentTimeMillis() + 10_000))
                         .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
+                        .add("authorities", "ROLE_USER")
                         .build();
 
-        assertFalse(
-                jwtManager.isValidToken(noSub),
-                "Must return false if the subject (username) is null");
-
-        // Case: subject blank
-        Claims blankSub =
+        Claims missingAuthoritiesClaims =
                 Jwts.claims()
-                        .subject("   ")
+                        .subject("user")
                         .expiration(new Date(System.currentTimeMillis() + 10_000))
                         .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_TEST")
                         .build();
 
-        assertFalse(
-                jwtManager.isValidToken(blankSub),
-                "Should return false if the subject (username) is blank");
+        assertAll(
+                () -> assertTrue(jwtManager.isValidAccessToken(validClaims)),
+                () -> assertFalse(jwtManager.isValidAccessToken(expiredClaims)),
+                () -> assertFalse(jwtManager.isValidAccessToken(blankSubjectClaims)),
+                () -> assertFalse(jwtManager.isValidAccessToken(missingAuthoritiesClaims)));
     }
 
     @Test
-    @DisplayName("isValidToken returns false when userId claim is blank or null")
-    void isValidTokenFalseWhenUserIdBlankOrNull() {
-        // userId null
-        Claims noUserId =
-                Jwts.claims()
-                        .subject("someUser")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", null)
-                        .add("authorities", "ROLE_TEST")
-                        .build();
-        assertFalse(jwtManager.isValidToken(noUserId), "Must return false if userId is null");
+    @DisplayName("isValidRefreshToken should validate claims correctly")
+    void isValidRefreshToken_ShouldValidateClaimsCorrectly() {
 
-        // userId is blank
-        Claims blankUserId =
+        Claims validClaims =
                 Jwts.claims()
-                        .subject("someUser")
+                        .subject("user")
                         .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", "   ")
-                        .add("authorities", "ROLE_TEST")
+                        .add("userId", UUID.randomUUID().toString())
+                        .add("jti", UUID.randomUUID().toString())
+                        .add("familyId", UUID.randomUUID().toString())
+                        .add("clientId", "web-client")
                         .build();
 
-        assertFalse(jwtManager.isValidToken(blankUserId), "Should return false if userId is blank");
+        Claims invalidClaims =
+                Jwts.claims()
+                        .subject("user")
+                        .expiration(new Date(System.currentTimeMillis() + 10_000))
+                        .add("userId", UUID.randomUUID().toString())
+                        .build();
+
+        assertAll(
+                () -> assertTrue(jwtManager.isValidRefreshToken(validClaims)),
+                () -> assertFalse(jwtManager.isValidRefreshToken(invalidClaims)));
     }
 
     @Test
-    @DisplayName("isValidToken returns false when authorities claim is blank or null")
-    void isValidTokenFalseWhenAuthoritiesBlankOrNull() {
-        // authorities null
-        Claims noAuth =
-                Jwts.claims()
-                        .subject("someUser")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", null)
-                        .build();
+    @DisplayName("manageAuthentication should create authentication from token")
+    void manageAuthentication_ShouldCreateAuthenticationFromToken() {
 
-        assertFalse(jwtManager.isValidToken(noAuth), "Should return false if authorities is null");
+        UserPrincipal principal = mock(UserPrincipal.class);
 
-        // authorities are blank
-        Claims blankAuth =
-                Jwts.claims()
-                        .subject("someUser")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000))
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "   ")
-                        .build();
+        UUID userId = UUID.randomUUID();
 
-        assertFalse(
-                jwtManager.isValidToken(blankAuth), "Should return false if authorities is blank");
+        when(principal.getUsername()).thenReturn("tester");
+        when(principal.getUserId()).thenReturn(userId);
+        when(principal.getAuthorities())
+                .thenReturn(AuthorityUtils.createAuthorityList("ROLE_USER"));
+
+        String token = jwtManager.createAccessToken(principal, Instant.now());
+
+        UsernamePasswordAuthenticationToken authentication = jwtManager.manageAuthentication(token);
+
+        UserPrincipal authenticatedPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        assertNotNull(authenticatedPrincipal);
+        assertAll(
+                () -> assertNotNull(authentication),
+                () -> assertEquals("tester", authenticatedPrincipal.getUsername()),
+                () -> assertEquals(userId, authenticatedPrincipal.getUserId()));
     }
 
     @Test
-    @DisplayName(
-            "isValidToken returns true when all required fields are set and expiration is in the"
-                    + " future")
-    void isValidTokenTrueForValidClaims() {
-        Claims valid =
-                Jwts.claims()
-                        .subject("goodUser")
-                        .expiration(new Date(System.currentTimeMillis() + 10_000)) // futuro
-                        .add("userId", UUID.randomUUID().toString())
-                        .add("authorities", "ROLE_ONE,ROLE_TWO")
-                        .build();
+    @DisplayName("createAuthentication should return null for invalid claims")
+    void createAuthentication_ShouldReturnNullForInvalidClaims() {
 
-        assertTrue(
-                jwtManager.isValidToken(valid),
-                "Should return true if expiration > now, subject, userId and authorities are"
-                        + " correctly set");
+        Claims claims = Jwts.claims().subject("user").build();
+
+        UsernamePasswordAuthenticationToken authentication =
+                jwtManager.createAuthentication(claims);
+
+        assertNull(authentication);
+    }
+
+    @Test
+    @DisplayName("constructor should expose configured expiration values")
+    void constructor_ShouldExposeConfiguredExpirationValues() {
+
+        assertAll(
+                () -> assertEquals(3600000L, jwtManager.getJwtTimeExpAccess()),
+                () -> assertEquals(86400000L, jwtManager.getJwtTimeExpRefresh()));
+    }
+
+    @Test
+    @DisplayName("constructor should throw exception for invalid key content")
+    void constructor_ShouldThrowExceptionForInvalidKeyContent() {
+
+        Resource invalidResource = new ByteArrayResource("invalid-key".getBytes());
+
+        assertThrows(
+                Exception.class,
+                () ->
+                        new JJwtManager(
+                                invalidResource,
+                                invalidResource,
+                                "1000",
+                                invalidResource,
+                                invalidResource,
+                                "1000",
+                                ISSUER));
     }
 }

@@ -1,11 +1,13 @@
 package com.alpaca.service.impl;
 
 import com.alpaca.service.DataService;
+import java.util.Arrays;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,18 +16,16 @@ import org.springframework.stereotype.Component;
  * <p>This component implements {@link ApplicationRunner}, making it execute startup logic once the
  * Spring application context is fully initialized.
  *
- * <p>Annotated with {@code @Profile("dev")}, this initializer only runs in development mode,
- * executing custom initialization logic via {@link DataService}.
- *
  * @see ApplicationRunner
  * @see DataService
  */
+@Generated
 @Component
-@Profile("dev")
 @RequiredArgsConstructor
 public class InitializerServiceImpl implements ApplicationRunner {
 
     private final DataService dataService;
+    private final Environment environment;
 
     /**
      * Called automatically after application startup to initialize application data.
@@ -33,8 +33,15 @@ public class InitializerServiceImpl implements ApplicationRunner {
      * @param args the {@link ApplicationArguments} passed to the application
      */
     @Override
-    @Generated
-    public void run(ApplicationArguments args) {
-        dataService.initializeData();
+    public void run(@NonNull ApplicationArguments args) {
+        dataService.initializeAdminUser();
+        if (isDevProfileActive()) {
+            dataService.initializeData();
+        }
+    }
+
+    /** Helper method to check if the "dev" profile is currently active. */
+    private boolean isDevProfileActive() {
+        return Arrays.asList(environment.getActiveProfiles()).contains("dev");
     }
 }

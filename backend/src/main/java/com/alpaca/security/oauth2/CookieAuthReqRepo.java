@@ -4,6 +4,8 @@ import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
@@ -33,9 +35,17 @@ import org.springframework.stereotype.Component;
 public class CookieAuthReqRepo
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
-    public static final String AuthorizationCookieName = "oauth2_auth_request";
-    public static final String RedirectCookieName = "redirect_uri";
-    public static final int cookieExpiredSeconds = 180;
+    /** Cookie name holding the serialized {@link OAuth2AuthorizationRequest}. */
+    public static final String AUTHORIZATION_COOKIE_NAME = "oauth2_auth_request";
+
+    /** Cookie name for the post-login redirect URI. */
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+
+    /** Cookie name for the PKCE code challenge provided by the client. */
+    public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
+
+    /** Lifetime in seconds after which the authorization cookies expire. */
+    public static final int COOKIE_EXPIRED_SECONDS = 180;
 
     /**
      * Loads the {@link OAuth2AuthorizationRequest} from the cookie if present.
@@ -44,8 +54,9 @@ public class CookieAuthReqRepo
      * @return the deserialized {@link OAuth2AuthorizationRequest}, or {@code null} if not found
      */
     @Override
-    public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        Cookie cookie = CookieManager.getCookie(request, AuthorizationCookieName).orElse(null);
+    public OAuth2AuthorizationRequest loadAuthorizationRequest(
+            @NonNull HttpServletRequest request) {
+        Cookie cookie = CookieManager.getCookie(request, AUTHORIZATION_COOKIE_NAME).orElse(null);
         if (cookie != null) {
             return CookieManager.deserialize(cookie, OAuth2AuthorizationRequest.class);
         }
@@ -65,23 +76,30 @@ public class CookieAuthReqRepo
     @Override
     public void saveAuthorizationRequest(
             OAuth2AuthorizationRequest authorizationRequest,
-            HttpServletRequest request,
-            HttpServletResponse response) {
-        if (authorizationRequest == null) {
-            CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-            CookieManager.deleteCookie(request, response, RedirectCookieName);
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response) {
+        if (Objects.isNull(authorizationRequest)) {
+            CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
+            CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
+            CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
             return;
         }
         CookieManager.addCookie(
                 response,
-                AuthorizationCookieName,
+                AUTHORIZATION_COOKIE_NAME,
                 CookieManager.serialize(authorizationRequest),
-                cookieExpiredSeconds);
+                COOKIE_EXPIRED_SECONDS);
 
-        String redirectURIAfterLogin = request.getParameter(RedirectCookieName);
+        String redirectURIAfterLogin = request.getParameter(REDIRECT_PARAM_NAME);
         if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
             CookieManager.addCookie(
-                    response, RedirectCookieName, redirectURIAfterLogin, cookieExpiredSeconds);
+                    response, REDIRECT_PARAM_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
+        }
+        String clientCodeChallenge =
+                (String) authorizationRequest.getAttributes().get(CLIENT_CODE_CHALLENGE);
+        if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
+            CookieManager.addCookie(
+                    response, CLIENT_CODE_CHALLENGE, clientCodeChallenge, COOKIE_EXPIRED_SECONDS);
         }
     }
 
@@ -96,7 +114,7 @@ public class CookieAuthReqRepo
      */
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(
-            HttpServletRequest request, HttpServletResponse response) {
+            @NonNull HttpServletRequest request, @NonNull HttpServletResponse response) {
         return loadAuthorizationRequest(request);
     }
 
@@ -108,7 +126,8 @@ public class CookieAuthReqRepo
      */
     public void removeAuthorizationRequestCookies(
             HttpServletRequest request, HttpServletResponse response) {
-        CookieManager.deleteCookie(request, response, AuthorizationCookieName);
-        CookieManager.deleteCookie(request, response, RedirectCookieName);
+        CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
+        CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
+        CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
     }
 }

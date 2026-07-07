@@ -1,0 +1,45 @@
+/* ========================================
+   USERS PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.content {
+  margin: var(--space-8) var(--space-4) 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--sys-color-on-surface);
+  }
+}
+
+.search-field {
+  width: 100%;
+  max-width: var(--space-20);
+  margin-bottom: var(--space-4);
+}
+
+.users-table {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+mat-paginator {
+  background: transparent;
+}
+
+mat-chip {
+  margin: var(--space-0);
+}
+
+.empty-field {
+  color: var(--sys-color-outline-variant);
+}

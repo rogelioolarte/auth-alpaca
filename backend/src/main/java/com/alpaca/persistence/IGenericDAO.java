@@ -10,34 +10,25 @@ import org.springframework.data.domain.Pageable;
  * Generic Data Access Object (DAO) interface providing common CRUD operations.
  *
  * @param <T> The type of entity.
- * @param <ID> The type of the entity's identifier.
+ * @param <I> The type of the entity's identifier.
  */
-public interface IGenericDAO<T, ID> {
+public interface IGenericDAO<T, I> {
 
     /**
      * Finds an entity by its identifier.
      *
-     * @param id The identifier of the entity - must not be null.
+     * @param i The identifier of the entity - must not be null.
      * @return An {@code Optional} containing the entity if found, otherwise empty.
      */
-    Optional<T> findById(ID id);
+    Optional<T> findById(I i);
 
     /**
      * Finds all entities by their identifiers.
      *
-     * @param ids A collection of entity identifiers - must not be null.
+     * @param is A collection of entity identifiers - must not be null.
      * @return A list of entities found.
      */
-    List<T> findAllByIds(Collection<ID> ids);
-
-    /**
-     * Updates an entity by its identifier.
-     *
-     * @param t The updated entity data - must not be null.
-     * @param id The identifier of the entity to update - must not be null.
-     * @return The updated entity.
-     */
-    T updateById(T t, ID id);
+    List<T> findAllByIds(Collection<I> is);
 
     /**
      * Saves a new entity.
@@ -58,9 +49,9 @@ public interface IGenericDAO<T, ID> {
     /**
      * Deletes an entity by its identifier - must not be null.
      *
-     * @param id The identifier of the entity to delete.
+     * @param i The identifier of the entity to delete.
      */
-    void deleteById(ID id);
+    void deleteById(I i);
 
     /**
      * Retrieves all entities.
@@ -80,18 +71,18 @@ public interface IGenericDAO<T, ID> {
     /**
      * Checks if an entity exists by its identifier.
      *
-     * @param id The identifier of the entity - must not be null.
+     * @param i The identifier of the entity - must not be null.
      * @return {@code true} if the entity exists, otherwise {@code false}.
      */
-    boolean existsById(ID id);
+    boolean existsById(I i);
 
     /**
      * Checks if multiple entities exist by their identifiers.
      *
-     * @param ids A collection of entity identifiers - must not be null.
+     * @param is A collection of entity identifiers - must not be null.
      * @return {@code true} if all entities exist, otherwise {@code false}.
      */
-    boolean existsAllByIds(Collection<ID> ids);
+    boolean existsAllByIds(Collection<I> is);
 
     /**
      * Checks if an entity exists based on its unique properties.

@@ -1,7 +1,5 @@
 package com.alpaca.security.oauth2;
 
-import static com.alpaca.security.oauth2.CookieAuthReqRepo.RedirectCookieName;
-
 import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -41,8 +40,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private final CookieAuthReqRepo repository;
-    private final String frontendUri;
+    private final String frontendUriFallback;
     private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
+
+    /** Query parameter and cookie name for the post-authentication redirect URI. */
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
     /**
      * Constructs the handler with required dependencies.
@@ -52,16 +54,16 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
      */
     public AuthFailureHandler(
             CookieAuthReqRepo repository,
-            @Value("${app.frontendURI}") @NotNull String frontendUri) {
+            @Value("${app.frontend.uri}") @NotNull String frontendUri) {
         this.repository = repository;
-        this.frontendUri = frontendUri;
+        this.frontendUriFallback = String.format("%s/%s", frontendUri, "login");
     }
 
     @Override
     public void onAuthenticationFailure(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            AuthenticationException exception)
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull AuthenticationException exception)
             throws IOException {
         if (response.isCommitted()) {
             logger.debug("Response already committed, cannot redirect");
@@ -86,12 +88,12 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
      * @return the redirection URL
      */
     private String resolveTargetUrl(HttpServletRequest request) {
-        return Optional.ofNullable(request.getParameter("redirect_uri"))
+        return Optional.ofNullable(request.getParameter(REDIRECT_PARAM_NAME))
                 .or(
                         () ->
-                                CookieManager.getCookie(request, RedirectCookieName)
+                                CookieManager.getCookie(request, REDIRECT_PARAM_NAME)
                                         .map(Cookie::getValue))
-                .orElse(frontendUri);
+                .orElse(frontendUriFallback);
     }
 
     /**

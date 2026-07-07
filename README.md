@@ -1,144 +1,169 @@
-# Auth Alpaca
+# AUTH ALPACA
 
-[![javadoc badge]][javadoc]
-[![release badge]][release]
-[![codecov badge]][codecov]
-[![license badge]][license]
+[![release badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver)](https://github.com/rogelioolarte/auth-alpaca/releases)
+[![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
+[![codecov badge](https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg)](https://codecov.io/gh/rogelioolarte/auth-alpaca)
+[![ci badge](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml/badge.svg)](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml)
+[![license badge](https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue)](LICENSE)
 
-[javadoc]: https://rogelioolarte.github.io/auth-alpaca/
-[javadoc badge]: https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen
-[release]: https://github.com/rogelioolarte/auth-alpaca/releases
-[release badge]: https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver
-[codecov]: https://codecov.io/gh/rogelioolarte/auth-alpaca
-[codecov badge]: https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg
-[license]: LICENSE
-[license badge]: https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue
-
-- [Auth Alpaca](#auth-alpaca)
-  - [What is Auth Alpaca?](#what-is-auth-alpaca)
-  - [Introduction to the project](#introduction-to-the-project)
-  - [Dependencies](#dependencies)
-  - [How it works the process of login with OAuth2?](#how-it-works-the-process-of-login-with-oauth2)
-- [Before to start to run the applications](#before-to-start-to-run-the-applications)
-- [1. **Start up the database and environment variables:**](#1-start-up-the-database-and-environment-variables)
-- [2. **Start up the auth-alpaca (Backend):**](#2-start-up-the-auth-alpaca-backend)
-- [3. **Start up the auth-alpaca-ui (Frontend):**](#3-start-up-the-auth-alpaca-ui-frontend)
-- [Are you curious about the Development Process?](#are-you-curious-about-the-development-process)
-- [Are you curious about OAuth2 Process?](#are-you-curious-about-oauth2-process)
-
-## What is Auth Alpaca?
-Spring Boot Application that focuses on implementing multiple authentication methods using OAuhth2 and JWT.
-
-## Introduction to the project
-The repository contains a Springboot application for users to **login and register** using email and password or using OAuth2 (Google).
-The backend app is meant to be run together with the frontend Angular application.
-
-## Dependencies 
-  * Backend:
-    * Java 21
-    * Spring Boot 3.4
-    * PostgreSQL
-    * [JJWT 0.12.6](https://github.com/jwtk/jjwt)
-  * Frontend:
-    * Angular 18
-    * [JWT-Decode](https://github.com/auth0/jwt-decode)
-
-## How it works the process of login with OAuth2? 
-<details>
-  <ul>
-    <li>First, The user visits our Frontend application and logs in with "Google" and is redirected to our Backend application where he is then redirected to the Google consent page with our OAuth2 API information for Google</li>
-    <li>Second, If he accepts the consent, he is redirected to our Backend application with the authorization code, where it is resolved, where he will first be redirected to our Backend application, but at the end to our Frontend application.</li>
-    <li>Third, The received authorization code is processed and resolved in our Backend application, then the received authorization code is exchanged for a Token.</li>
-    <li>Fourth, The Token response is received by our Backend application and converted to a Token response with our JWT configuration, then he is redirected to our Frontend application with the new Token.</li>
-    <li>Fifth, The user can access our Backend application to use any of our services.</li>
-  </ul>
-</details>
-<div align="center" >
-  <img src="ouath2-diagram.png" alt="google oauth2 diagram">
+<div align="center">
+  <img src="docs/banner.png" alt="auth alpaca banner">
 </div>
-<a href="https://developers.google.com/identity/protocols/oauth2" target="_blank" >Source</a> - 
-<a href="https://developers.google.com/static/identity/protocols/oauth2/images/flows/authorization-code.png" target="_blank" >Base Image Source</a>
 
-# Before to start to run the applications
- - **Note: Use a terminal with bash to run the scripts.**
+**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 21 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric ES256 (ECDSA P-256) signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
 
-# 1. **Start up the database and environment variables:**
- 1. Run the following script to create the security variables:
- 
-```console
-bash backend/generate_keys.sh
-```
+The frontend is a functional integration example; the backend is the core — hardened, tested, and ready for real-world adoption.
 
- 2. Create your credentials for using oauth2 in the google cloud console or follow the steps detailed [here](https://blog.devgenius.io/part-3-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-8716646ed062).
+---
 
-  3. Run Postgresql docker container with the following command (replace _{PASSWORD}_ with your own password):
+## Navigation
 
-```console
-docker run --name auth-alpaca-app-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD={PASSWORD}  -e POSTGRES_DB=auth-alpaca -d -p 127.0.0.1:5432:5432 postgres
-```
+| Category | Document | Description |
+|---|---|---|
+| **Architecture** | [Backend Architecture](docs/backend-architecture.md) | Spring Security, JWT, API, database schema |
+| | [Frontend Architecture](docs/frontend-architecture.md) | Angular guards, interceptors, token lifecycle |
+| **Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, CI profiles |
+| | [Performance Tests](performance-tests/README.md) | k6 suite, thresholds, scenarios, baseline calibration |
+| | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
+| **Help** | [Troubleshooting](docs/troubleshooting.md) | Common issues, fixes, and diagnostics |
+| **Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Guided learning path from concepts to code |
+| | [Glossary](docs/learning/glossary.md) | Security terminology reference |
 
- - Don't change the port configuration when running in a local environment. The syntax of the mapping is for extra security, so that the database is not accessible from outside the container.
+---
 
- - If you change the password to the postgresql database, make sure to update the password in the application.properties file of the **_auth-alpaca-api_** project.
- - If you need to connect to the postgresql database container, run the following command:
+## Quick Deploy (Docker)
 
-```console
-docker exec -it auth-alpaca-app-postgres bash
-```
-
- - Connect to postgresql database, once inside the container:
-```console
-psql -U postgres
-```
-
-# 2. **Start up the auth-alpaca (Backend):**
-  - Note: Currently, [dotenv-java](https://github.com/cdimascio/dotenv-java) is used to load environment variables. Please note that this library should not be used in a production environment.
-  
-  1. Make sure to create a _.env_ file in the root of the project, and list all the required properties there as key-value pairs (don't forget to exclude this file from version control):
-
-```
- SPRING_DATASOURCE_USERNAME=postgres
- SPRING_DATASOURCE_PASSWORD=K29r8Dhc79n2gPG86CRhoVt9NBxTa0Gk
- ......
-```
-
- 2. Run the following command from the root directory of the project or just press the start button in your IDE:
+You need **Docker**, **Docker Compose**, and a **bash terminal**. That's it.
 
 ```bash
-./mvnw spring-boot:run
+# 1. Clone
+git clone https://github.com/rogelioolarte/auth-alpaca.git
+cd auth-alpaca
+
+# 2. Generate JWT EC P-256 key pairs
+./generate_keys.sh -L secrets/
+
+# 3. Configure environment
+cp .env.example .env
 ```
 
-  - Default port for the _auth-alpaca-api_ is 8080. If you want to change the port, set the "server.port" property in the _application.properties_ file. If you change the port, make sure to update the port in the auth-alpaca-ui project as well (_constants.ts_ file, "API_BASE_URL" parameter).
-  
- - As this project uses OAuth2, make sure to update the redirect-uri in the _application.properties_ file and in configurations at OAuth2 providers (Google, GitHub, Twitter, etc.) too.
-  
- - If you checked out from _main_ branch, you will see that _application.properties_ contains references to environment variables.
+Edit `.env` and set your **Google OAuth2 credentials** (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) and a secure database password (`SPRING_DATASOURCE_PASSWORD`). The rest of the defaults work out of the box.
 
-# 3. **Start up the auth-alpaca-ui (Frontend):**
-  1. Run the following command from the root directory of the project:
-
-```console
-npm install
-```
-  2. Run the following command from the root directory of the project:
-
-```console
-npm run start
+```bash
+# 4. Launch everything
+docker compose up -d --build
 ```
 
-  - Default port for the auth-alpaca-ui is 4200. If you want to change the port, update the port in the angular.json file. On the following path: _auth-alpaca-ui -> architect -> serve_ add this:
-  
+Once the stack is up:
+- **Frontend**: `http://localhost:80`
+- **Backend API**: `http://localhost:8080`
+- **Health check**: `GET http://localhost:8080/api/auth`
+
+> Log in with `admin@admin.com` / `123456789` or click "Login with Google" if you configured OAuth2 credentials.
+
+---
+
+## Local Development (Without Docker)
+
+You can run the backend directly via Maven for faster iteration:
+
+### Prerequisites
+- **Java 25** (with preview features enabled)
+- **PostgreSQL 18** running locally on port 5432
+- **Bun 1.3.11** (for the frontend)
+
+### Backend
+
+```bash
+# From project root:
+./backend/mvnw clean compile -Punit-tests   # compile + run unit tests
+
+# Run integration tests (requires Docker for Testcontainers):
+./backend/mvnw clean verify -Pintegration-tests
+
+# Start the application:
+cd backend && ./mvnw spring-boot:run
 ```
-"options": {
-  "port": [desired-port]
-}
+
+The backend starts on `http://localhost:8080` by default. See [Testing Strategy](docs/testing-strategy.md) for the full test suite documentation.
+
+### Frontend
+
+```bash
+cd frontend && bun install && bun run start
 ```
 
-  - Make sure to update authorized redirect uri usage places in the _auth-alpaca-api_ too.
+The frontend dev server runs on `http://localhost:4200`.
 
-# Are you curious about the Development Process? 
-The Use of OAuth2 has been implemented according to the following repository, if you find this project useful, please visit the following repository and follow the step-by-step creation articles [here](https://blog.devgenius.io/part-4-implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-df3fbb003946).
-You can find the corresponding repository [here](https://github.com/anitalakhadze/auth-alpaca-ui).
+> The default `application.properties` uses `postgres-db:5432` as the DB host (Docker Compose DNS). For local development, override with your own `SPRING_DATASOURCE_URL` — for example by copying `backend/.env.example` to `backend/.env` and setting `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/auth-alpaca`.
 
-# Are you curious about OAuth2 Process?
-Visit the documentation and explanation of Google OAuth2 [here](https://developers.google.com/identity/protocols/oauth2).
+---
+
+## Authentication Flow (OAuth2 + PKCE)
+
+Auth Alpaca implements the **Authorization Code flow with PKCE** — the industry standard for secure public-client authentication. Here is the high-level handshake:
+
+```mermaid
+sequenceDiagram
+    actor You as You (Browser)
+    participant UI as Angular (Frontend)
+    participant API as Spring Boot (Backend)
+    participant Google as Google (Identity Provider)
+
+    You->>UI: Click "Login"
+    UI->>API: Request OAuth2 login URL
+    API-->>You: Redirect to Google consent page
+    You->>Google: Authenticate & grant access
+    Google-->>API: Redirect back with auth code
+    API->>Google: Exchange code + PKCE secret for tokens
+    Google-->>API: Return access + ID tokens
+    API->>API: Validate, resolve identity, issue JWT pair
+    API-->>UI: Set tokens (access + refresh)
+    UI->>You: Authenticated dashboard
+```
+
+The backend signs access tokens (5 min) and refresh tokens (12 h) with **separate EC P-256 key pairs (ES256)**. Refresh tokens rotate on every use — if an old token is replayed, the entire family is revoked immediately.
+
+---
+
+## Stack
+
+| Layer | Technology | Key Libraries |
+|---|---|---|
+| **Backend** | Java 25 | Spring Boot 4.1.0, Spring Security 6, Spring Data JPA, JJWT, Flyway |
+| **Frontend** | Angular 21 | RxJS, JWT-Decode, ngx-cookie-service |
+| **Database** | PostgreSQL 18 | Dockerized, Flyway-migrated |
+| **Infra** | Docker Compose | Multi-stage builds, isolated networks |
+
+---
+
+## Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Read the docs** — check the [Navigation](#navigation) table above for architecture and testing guides.
+2. **Run tests before submitting**:
+   ```bash
+   ./backend/mvnw verify -Punit-tests
+   ```
+3. **Follow the commit style** — we use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.).
+4. **Open a pull request** — keep changes focused and rebased on `main`.
+
+For bugs or feature requests, [open an issue](https://github.com/rogelioolarte/auth-alpaca/issues/new).
+
+---
+
+## Acknowledgements
+
+This project was inspired by the work of **Anita Lakhadze**:
+
+- [Implementing Authentication with Spring Boot Security 6, OAuth2 and Angular 17](https://blog.devgenius.io/implementing-authentication-with-spring-boot-security-6-oauth2-and-angular-17-via-multiple-4144075e5fef)
+- [multiple-auth-api](https://github.com/anitalakhadze/multiple-auth-api)
+
+---
+
+## License
+
+Auth Alpaca is released under the [MIT License](LICENSE).
+
+---

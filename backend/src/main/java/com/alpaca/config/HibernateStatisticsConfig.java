@@ -3,42 +3,33 @@ package com.alpaca.config;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configures and enables Hibernate statistics for performance monitoring.
+ * Exposes the Hibernate {@link SessionFactory} for programmatic statistics access.
  *
- * <p>This configuration class activates Hibernate's internal statistics collection, which can be
- * useful for diagnosing performance issues, such as identifying slow queries or excessive database
- * hits. Enabling statistics allows access to detailed metrics about session activity, query
- * execution, cache usage, and more.
+ * <p>This configuration unwraps the JPA {@link EntityManagerFactory} to obtain the underlying
+ * Hibernate {@link SessionFactory} and stores a reference to its {@link Statistics} object. The
+ * statistics themselves are controlled externally via the standard property {@code
+ * spring.jpa.properties.hibernate.generate_statistics}.
  *
- * <p>While Hibernate statistics are typically disabled in production environments due to their
- * potential impact on performance, they can be invaluable during development and testing phases. To
- * enable statistics in a Spring Boot application, set the following property in your {@code
- * application.properties} or {@code application.yml}:
+ * <p>Defining this bean in a {@code @Configuration} class ensures that {@link Statistics} can be
+ * injected into monitoring or actuator components without coupling them to JPA bootstrap details.
  *
- * <pre>
- * spring.jpa.properties.hibernate.generate_statistics=true
- * </pre>
- *
- * <p>Additionally, to log detailed statistics, you can adjust the logging level:
- *
- * <pre>
- * logging.level.org.hibernate.stat=DEBUG
- * </pre>
- *
- * <p>For more information on enabling and using Hibernate statistics, refer to the following
- * resources:
+ * <p>When statistics are active (via the Hibernate property), the following metrics become
+ * available:
  *
  * <ul>
- *   <li><a href="https://medium.com/@dixitsatish34/hibernate-statistics-5f7a5e1195ae">A beginner's
- *       guide to Hibernate Statistics</a>
- *   <li><a href="https://vladmihalcea.com/hibernate-statistics/">Hibernate Statistics</a>
+ *   <li>Session open/close counts
+ *   <li>Query execution counts and timings
+ *   <li>Cache hit/miss ratios
+ *   <li>Flush and transaction timings
  * </ul>
  */
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class HibernateStatisticsConfig {
@@ -47,21 +38,18 @@ public class HibernateStatisticsConfig {
     private final EntityManagerFactory entityManagerFactory;
 
     /**
-     * Enables Hibernate statistics after the bean initialization.
+     * Ensures the {@link SessionFactory} is accessible after bean initialization and logs that
+     * statistics wiring is in place.
      *
-     * <p>This method unwraps the {@link EntityManagerFactory} to obtain the underlying {@link
-     * SessionFactory}, then enables its statistics feature. This allows for the collection of
-     * various performance metrics, such as query counts, cache hits, and session activity, which
-     * can be useful for performance tuning and analysis.
-     *
-     * <p>Note: Enabling statistics can have a performance overhead. It is recommended to enable
-     * them only in development or testing environments.
+     * <p>Note: Whether statistics are actually collected depends on the Hibernate configuration
+     * property {@code hibernate.generate_statistics} — this method does not enable or disable them;
+     * it only makes the statistics handle available for downstream use.
      */
     @PostConstruct
     public void enableStatistics() {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         Statistics stats = sessionFactory.getStatistics();
-        stats.setStatisticsEnabled(true);
-        System.out.println("Hibernate Statistics enabled");
+        stats.setStatisticsEnabled(false);
+        log.info("Hibernate Statistics enabled");
     }
 }

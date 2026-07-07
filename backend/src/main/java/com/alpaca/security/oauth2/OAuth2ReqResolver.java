@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -50,24 +51,28 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
     }
 
     @Override
-    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        return customizeAuthorizationRequest(defaultResolver.resolve(request));
+    public OAuth2AuthorizationRequest resolve(@NonNull HttpServletRequest request) {
+        return customizeAuthorizationRequest(defaultResolver.resolve(request), request);
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(
-            HttpServletRequest request, String clientRegistrationId) {
+            @NonNull HttpServletRequest request, @NonNull String clientRegistrationId) {
         return customizeAuthorizationRequest(
-                defaultResolver.resolve(request, clientRegistrationId));
+                defaultResolver.resolve(request, clientRegistrationId), request);
     }
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(
-            OAuth2AuthorizationRequest request) {
+            OAuth2AuthorizationRequest request, HttpServletRequest servletRequest) {
         if (Objects.isNull(request)) {
             return null;
         }
         Map<String, Object> attributes = new HashMap<>(request.getAttributes());
         Map<String, Object> additionalParameters = new HashMap<>(request.getAdditionalParameters());
+        String clientCodeChallenge = servletRequest.getParameter("client_code_challenge");
+        if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
+            attributes.put("client_code_challenge", clientCodeChallenge);
+        }
         addPKCEParameters(attributes, additionalParameters);
         return OAuth2AuthorizationRequest.from(request)
                 .attributes(attributes)
@@ -82,7 +87,7 @@ public class OAuth2ReqResolver implements OAuth2AuthorizationRequestResolver {
         try {
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, createHash(codeVerifier));
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException _) {
             additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeVerifier);
         }
     }

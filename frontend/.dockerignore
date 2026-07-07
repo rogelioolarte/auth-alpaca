@@ -1,0 +1,27 @@
+node_modules/
+
+.angular/
+dist/
+.tmp/
+.sass-cache/
+
+.git/
+.gitignore
+
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+
+# Docker mismos
+Dockerfile
+docker-compose.yml

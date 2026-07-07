@@ -18,10 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST controller for managing {@link Role} entities.
+ * REST controller for managing {@link Role} entities at {@code /api/roles}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of roles. Utilizes {@link IRoleService}
- * for business logic and {@link IRoleMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination for roles. Note: this controller has no method-level
+ * security annotations — access control is expected to be handled by Spring Security's global
+ * filter chain or at the service layer.
  *
  * @see IRoleService
  * @see IRoleMapper

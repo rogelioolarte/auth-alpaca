@@ -12,5 +12,11 @@ import java.util.UUID;
  */
 public interface IPermissionDAO extends IGenericDAO<Permission, UUID> {
 
+    /**
+     * Looks up a permission by its unique name.
+     *
+     * @param permissionName the permission name - must not be null
+     * @return An {@link Optional} containing the matching permission if found, otherwise empty
+     */
     Optional<Permission> findByPermissionName(String permissionName);
 }

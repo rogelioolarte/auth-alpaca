@@ -1,0 +1,147 @@
+/* ========================================
+   BASE - Dashboard Layout Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.dashboard-container {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+
+.dashboard-sidenav {
+    width: 16rem;
+    background: var(--sys-color-surface-variant);
+    border-right: 1px solid var(--sys-color-outline-variant);
+    overflow: hidden;
+
+    .sidenav-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .sidenav-header {
+        padding: var(--space-4) var(--space-4);
+        border-bottom: 1px solid var(--sys-color-outline-variant);
+        flex-shrink: 0;
+
+        h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--sys-color-on-surface);
+        }
+    }
+
+    .sidenav-nav {
+        padding: var(--space-2) 0;
+        flex: 1;
+        overflow-y: auto;
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin: 0 var(--space-2);
+            padding: var(--space-3) var(--space-1);
+            border-radius: var(--radius-md);
+            height: auto;
+            color: var(--sys-color-on-surface-variant);
+            transition: all 0.15s ease;
+            max-width: 85%;
+
+            mat-icon {
+                font-size: 1.25rem;
+                width: var(--space-4);
+                height: var(--space-4);
+                color: inherit;
+            }
+
+            span {
+                font-size: 0.9375rem;
+                font-weight: 500;
+            }
+
+            &:hover {
+                background: var(--sys-color-surface-variant);
+                color: var(--sys-color-on-surface);
+            }
+
+            &.active {
+                background: var(--sys-color-primary-container);
+                color: var(--sys-color-on-primary-container);
+
+                mat-icon {
+                    color: var(--sys-color-on-primary-container);
+                }
+            }
+
+            &.logout {
+                color: var(--sys-color-error);
+
+                mat-icon {
+                    color: var(--sys-color-error);
+                }
+
+                &:hover {
+                    background: var(--sys-color-error-container);
+                    color: var(--sys-color-on-error-container);
+
+                    mat-icon {
+                        color: var(--sys-color-on-error-container);
+                    }
+                }
+            }
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--sys-color-outline-variant);
+            margin: var(--space-3) var(--space-4);
+        }
+
+        .nav-section-label {
+            display: block;
+            padding: var(--space-2) var(--space-4) var(--space-1);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sys-color-on-surface-variant);
+        }
+    }
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--sys-color-surface);
+}
+
+.page-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 48rem) {
+    .dashboard-sidenav {
+        width: 14rem;
+    }
+}

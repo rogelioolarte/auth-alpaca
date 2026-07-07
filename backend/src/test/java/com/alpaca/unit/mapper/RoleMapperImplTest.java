@@ -9,10 +9,13 @@ import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
 import com.alpaca.mapper.impl.PermissionMapperImpl;
 import com.alpaca.mapper.impl.RoleMapperImpl;
-import com.alpaca.resources.PermissionProvider;
-import com.alpaca.resources.RoleProvider;
+import com.alpaca.resources.provider.PermissionProvider;
+import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -50,19 +53,19 @@ class RoleMapperImplTest {
         assertEquals(
                 RoleProvider.listEntities().getFirst().getId(), page.getContent().getFirst().id());
         assertEquals(
-                RoleProvider.listEntities().getFirst().getRoleName(),
-                page.getContent().getFirst().roleName());
+                RoleProvider.listEntities().getFirst().getName(),
+                page.getContent().getFirst().name());
         assertEquals(
-                RoleProvider.listEntities().getFirst().getRoleDescription(),
-                page.getContent().getFirst().roleDescription());
+                RoleProvider.listEntities().getFirst().getDescription(),
+                page.getContent().getFirst().description());
         assertEquals(
                 RoleProvider.listEntities().getLast().getId(), page.getContent().getLast().id());
         assertEquals(
-                RoleProvider.listEntities().getLast().getRoleName(),
-                page.getContent().getLast().roleName());
+                RoleProvider.listEntities().getLast().getName(),
+                page.getContent().getLast().name());
         assertEquals(
-                RoleProvider.listEntities().getLast().getRoleDescription(),
-                page.getContent().getLast().roleDescription());
+                RoleProvider.listEntities().getLast().getDescription(),
+                page.getContent().getLast().description());
     }
 
     @Test
@@ -76,8 +79,8 @@ class RoleMapperImplTest {
         RoleResponseDTO responseDTO = mapper.toResponseDTO(role);
         assertNotNull(responseDTO);
         assertEquals(role.getId(), responseDTO.id());
-        assertEquals(role.getRoleName(), responseDTO.roleName());
-        assertEquals(role.getRoleDescription(), responseDTO.roleDescription());
+        assertEquals(role.getName(), responseDTO.name());
+        assertEquals(role.getDescription(), responseDTO.description());
         assertEquals(
                 role.getRolePermissions().iterator().next().getPermission().getId(),
                 responseDTO.permissions().getFirst().id());
@@ -88,18 +91,16 @@ class RoleMapperImplTest {
     void toEntity() {
         assertNull(mapper.toEntity(null));
 
-        when(permissionService.findAllByIdsToSet(Set.of(PermissionProvider.singleEntity().getId())))
-                .thenReturn(new HashSet<>(Set.of(PermissionProvider.singleEntity())));
+        when(permissionService.findAllByIds(Set.of(PermissionProvider.singleEntity().getId())))
+                .thenReturn(new ArrayList<>(List.of(PermissionProvider.singleEntity())));
         Role entity = mapper.toEntity(RoleProvider.singleRequest());
         assertNotNull(entity);
-        assertEquals(RoleProvider.singleRequest().getRoleName(), entity.getRoleName());
-        assertEquals(
-                RoleProvider.singleRequest().getRoleDescription(), entity.getRoleDescription());
+        assertEquals(RoleProvider.singleRequest().getName(), entity.getName());
+        assertEquals(RoleProvider.singleRequest().getDescription(), entity.getDescription());
         assertEquals(
                 RoleProvider.singleRequest().getPermissions().iterator().next(),
                 entity.getRolePermissions().iterator().next().getPermission().getId());
-        verify(permissionService)
-                .findAllByIdsToSet(Set.of(PermissionProvider.singleEntity().getId()));
+        verify(permissionService).findAllByIds(Set.of(PermissionProvider.singleEntity().getId()));
     }
 
     @Test
@@ -113,17 +114,15 @@ class RoleMapperImplTest {
         List<RoleResponseDTO> responseDTOes = mapper.toListResponseDTO(List.of(roles.getFirst()));
         assertNotNull(responseDTOes);
         assertEquals(roles.getFirst().getId(), responseDTOes.getFirst().id());
-        assertEquals(roles.getFirst().getRoleName(), responseDTOes.getFirst().roleName());
+        assertEquals(roles.getFirst().getName(), responseDTOes.getFirst().name());
 
         List<RoleResponseDTO> responseDTOS = mapper.toListResponseDTO(roles);
         assertNotNull(responseDTOS);
         assertEquals(roles.getFirst().getId(), responseDTOS.getFirst().id());
-        assertEquals(roles.getFirst().getRoleName(), responseDTOS.getFirst().roleName());
-        assertEquals(
-                roles.getFirst().getRoleDescription(), responseDTOS.getFirst().roleDescription());
+        assertEquals(roles.getFirst().getName(), responseDTOS.getFirst().name());
+        assertEquals(roles.getFirst().getDescription(), responseDTOS.getFirst().description());
         assertEquals(roles.getLast().getId(), responseDTOS.getLast().id());
-        assertEquals(roles.getLast().getRoleName(), responseDTOS.getLast().roleName());
-        assertEquals(
-                roles.getLast().getRoleDescription(), responseDTOS.getLast().roleDescription());
+        assertEquals(roles.getLast().getName(), responseDTOS.getLast().name());
+        assertEquals(roles.getLast().getDescription(), responseDTOS.getLast().description());
     }
 }

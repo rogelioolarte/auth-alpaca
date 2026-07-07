@@ -1,0 +1,247 @@
+/* ========================================
+   REGISTER PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.login-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sys-color-surface);
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+.brand-logo {
+  display: flex;
+  height: var(--space-6);
+  width: var(--space-6);
+}
+
+.login-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--space-12));
+  opacity: 0.2;
+}
+
+.bg-shape-1 {
+  width: var(--space-32);
+  height: var(--space-32);
+  background: var(--sys-color-primary);
+  top: calc(var(--space-32) * -0.5);
+  right: calc(var(--space-12) * -0.5);
+}
+
+.bg-shape-2 {
+  width: 31.25rem;
+  height: 31.25rem;
+  background: var(--sys-color-tertiary);
+  bottom: -12.5rem;
+  left: -6.25rem;
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 30rem;
+  padding: var(--space-8);
+}
+
+.login-brand {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--sys-color-on-surface);
+  font-size: 1.5rem;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: var(--space-8);
+    width: var(--space-8);
+    height: var(--space-8);
+    color: var(--sys-color-primary);
+  }
+}
+
+/* Register Card */
+.login-card {
+  background: var(--sys-color-surface-container-high);
+  border-radius: var(--radius-xl);
+  padding: var(--space-12) var(--space-8);
+   box-shadow: var(--shadow-xl);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.brand-decoration {
+  width: var(--space-16);
+  height: var(--space-16);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-6);
+
+  mat-icon {
+    font-size: var(--space-8);
+    width: var(--space-8);
+    height: var(--space-8);
+    color: var(--sys-color-primary);
+  }
+}
+
+.card-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--sys-color-on-surface);
+  margin: 0 0 var(--space-2);
+}
+
+.card-header p {
+  font-size: 0.9375rem;
+  color: var(--sys-color-on-surface-variant);
+  margin: 0;
+}
+
+/* Form Fields */
+.form-field {
+  width: 100%;
+  margin-bottom: var(--space-4);
+
+  mat-icon[matPrefix] {
+    margin-right: var(--space-3);
+    color: var(--sys-color-on-surface-variant);
+  }
+}
+
+/* Error Alert */
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--sys-color-error-container);
+  color: var(--sys-color-on-error-container);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  font-size: 0.875rem;
+
+  mat-icon {
+    font-size: var(--space-4);
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+}
+
+/* Submit Button */
+.submit-btn {
+  width: 100%;
+  height: var(--space-12);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  border: none;
+  background: var(--sys-color-primary);
+  color: var(--sys-color-on-primary);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--sys-color-primary-container);
+    color: var(--sys-color-on-primary-container);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* Card Footer */
+.card-footer {
+  text-align: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--sys-color-outline-variant);
+
+  p {
+    font-size: 0.875rem;
+    color: var(--sys-color-on-surface-variant);
+    margin: 0;
+  }
+
+  a {
+    color: var(--sys-color-primary);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Register Info */
+.login-info {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--sys-color-on-surface-variant);
+
+  mat-icon {
+    font-size: var(--space-4);
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@container (max-width: 30rem) {
+  .login-content {
+    padding: var(--space-6);
+  }
+
+  .login-card {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .login-info {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+  }
+}

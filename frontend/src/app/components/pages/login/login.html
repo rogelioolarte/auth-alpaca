@@ -1,0 +1,138 @@
+<div class="login-container">
+  <div class="login-background">
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+  </div>
+
+  <div class="login-content">
+    <div class="login-brand">
+      <a routerLink="/" class="brand-link">
+        <img src="logo.svg" alt="logo" class="brand-logo">
+        <span>Auth Alpaca</span>
+      </a>
+    </div>
+
+    <div class="login-card">
+      <div class="card-header">
+        <div class="brand-decoration">
+          <mat-icon>lock</mat-icon>
+        </div>
+        <h1>Welcome back</h1>
+        <p>Sign in to access your account</p>
+      </div>
+
+      <mat-card-content>
+        <!-- Social Login -->
+        <div class="social-section">
+          <button class="social-btn" (click)="loginWithProvider(ProviderGoogle)">
+            <div class="social-icon">
+              <app-google-icon />
+            </div>
+            <span>Continue with Google</span>
+          </button>
+        </div>
+
+        <div class="divider-section">
+          <span>or continue with email</span>
+        </div>
+
+        <!-- Email Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="you@example.com" />
+              <mat-icon matPrefix>email</mat-icon>
+              @if (loginForm.get('email')?.hasError('required') && loginForm.get('email')?.touched) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (loginForm.get('email')?.hasError('email') && loginForm.get('email')?.touched) {
+                <mat-error>Please enter a valid email</mat-error>
+              }
+              @if (loginForm.get('email')?.hasError('serverError')) {
+                <mat-error> {{ loginForm.get('email')?.getError('serverError') }} </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+              />
+              <mat-icon matPrefix>lock</mat-icon>
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="hidePassword.set(!hidePassword())"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+                [attr.aria-pressed]="!hidePassword()"
+              >
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (
+                loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched
+              ) {
+                <mat-error>Password is required</mat-error>
+              }
+              @if (
+                loginForm.get('password')?.hasError('minlength') &&
+                loginForm.get('password')?.touched
+              ) {
+                <mat-error>Password must be at least 8 characters</mat-error>
+              }
+              @if (
+                loginForm.get('password')?.hasError('maxlength') &&
+                loginForm.get('password')?.touched
+              ) {
+                <mat-error>The password must have a maximum of 200 characters</mat-error>
+              }
+              @if (loginForm.get('password')?.hasError('serverError')) {
+                <mat-error> {{ loginForm.get('password')?.getError('serverError') }} </mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              class="submit-btn"
+              [disabled]="loginForm.invalid || submitting()"
+            >
+            @if (submitting()) {
+              <div class="btn-content">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Signing in...</span>
+              </div>
+            } @else {
+              <div class="btn-content">
+                <mat-icon>arrow_forward</mat-icon>
+                <span>Sign In</span>
+              </div>
+            }
+          </button>
+        </form>
+      </mat-card-content>
+
+      <div class="card-footer">
+        <p>Don't have an account? <a routerLink="/register">Create Account</a></p>
+      </div>
+    </div>
+
+    <div class="login-info">
+      <div class="info-item">
+        <mat-icon>security</mat-icon>
+        <span>Secure Authentication</span>
+      </div>
+      <div class="info-item">
+        <mat-icon>shield</mat-icon>
+        <span>Role-Based Access</span>
+      </div>
+      <div class="info-item">
+        <mat-icon>verified_user</mat-icon>
+        <span>OAuth2 Providers</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,109 +1,180 @@
 package com.alpaca.service.impl;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.entity.Profile;
+import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
-import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
-import com.alpaca.service.IAuthService;
-import com.alpaca.service.IProfileService;
-import com.alpaca.service.IRoleService;
-import com.alpaca.service.IUserService;
-import java.util.Map;
-import java.util.UUID;
-import lombok.Generated;
+import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.service.*;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
  * login flows within a Spring Security context.
  *
- * <p>Extends {@link DefaultOAuth2UserService} to support custom OAuth2 user processing, JWT token
- * generation, and security context management.
- *
- * @see DefaultOAuth2UserService
  * @see IAuthService
  */
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthService {
+public class AuthServiceImpl implements IAuthService {
 
     private final IRoleService roleService;
     private final IUserService userService;
-    private final IProfileService profileService;
+    private final ISessionService sessionService;
+    private final IRefreshTokenService refreshTokenService;
     private final JJwtManager manager;
-    private final PasswordManager passwordManager;
+    private final TokenExchangeManager exchangeManager;
+    private final JJwtManager jJwtManager;
 
     /**
-     * Sets the Spring Security context with the provided authentication object.
+     * Authenticates a user via their pre-authenticated principal and device fingerprint, creating a
+     * new session and issuing JWT tokens.
      *
-     * @param authentication the authentication object; must not be {@code null}
-     * @return the authenticated user's principal
-     * @throws UnauthorizedException if the authentication object is {@code null}
+     * <p>This method is called after Spring Security has already validated the user's credentials.
+     * The {@link UserPrincipal} is expected to be resolved beforehand.
+     *
+     * @param userPrincipal the already-authenticated user's principal
+     * @param requestDTO the login request containing device context (user-agent, client-id,
+     *     client-ip)
+     * @return {@link AuthResponseDTO} containing the JWT access and refresh tokens
      */
-    public Object setSecurityContextBefore(Authentication authentication) {
-        if (authentication == null) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        SecurityContext context = SecurityContextHolder.getContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        return authentication.getPrincipal();
+    @Override
+    public AuthResponseDTO login(UserPrincipal userPrincipal, AuthLoginRequestDTO requestDTO) {
+        return refreshTokenService.generateJWTTokens(
+                userPrincipal,
+                sessionService.createSession(
+                        userPrincipal.getUserId(),
+                        requestDTO.userAgent(),
+                        requestDTO.clientId(),
+                        requestDTO.clientIp()));
     }
 
     /**
-     * Authenticates a user using email and password and returns a JWT token wrapped in DTO.
+     * Authenticates via an OAuth2 authorization code exchange (PKCE flow). Validates the code,
+     * code-verifier, redirect URI, and all device-fingerprint fields before issuing tokens.
      *
-     * @param email user's email
-     * @param password raw password
-     * @return {@link AuthResponseDTO} containing the JWT token
-     * @throws NotFoundException if the email is not registered
+     * <p>Each validation failure throws a generic {@link UnauthorizedException} with the message
+     * "Code Invalid or Expired" to prevent attackers from distinguishing <em>which</em> check
+     * failed.
+     *
+     * @param authCode the authorization code request containing code, verifier, redirect URI, and
+     *     device context
+     * @return {@link AuthResponseDTO} containing the JWT access and refresh tokens
+     * @throws UnauthorizedException if any validation check fails
+     * @throws BadRequestException if the code-verifier format is invalid
      */
     @Override
-    public AuthResponseDTO login(String email, String password) {
-        return new AuthResponseDTO(
-                manager.createToken(
-                        (UserPrincipal) setSecurityContextBefore(authenticate(email, password))));
+    public AuthResponseDTO login(AuthCode authCode) {
+        if (authCode.getCode() == null || authCode.getCode().isEmpty()) {
+            throw new UnauthorizedException("Exchange code is required");
+        }
+        if (!authCode.getCodeVerifier().matches("^[A-Za-z0-9\\-._~]{43,128}$")) {
+            throw new BadRequestException("Invalid code-verifier format");
+        }
+        AuthCode savedAuthCode = exchangeManager.consumeCode(authCode.getCode()).orElse(null);
+
+        if (savedAuthCode == null) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        String newCodeChallenge = jJwtManager.createTokenHash(authCode.getCodeVerifier());
+        if (!savedAuthCode.getCodeChallenge().equals(newCodeChallenge)) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (savedAuthCode.getExpiresAt().isBefore(Instant.now())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getRedirectUri().equals(authCode.getRedirectUri())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+
+        // Optional additional validation userAgent, clientId, ClientIp
+        if (!savedAuthCode.getClientId().equals(authCode.getClientId())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getUserAgent().equals(authCode.getUserAgent())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+        if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
+            throw new UnauthorizedException("Code Invalid or Expired");
+        }
+
+        return refreshTokenService.generateJWTTokens(savedAuthCode);
     }
 
     /**
      * Registers a new user, assigns default role, and logs them in returning a JWT token.
      *
-     * @param email new user's email
-     * @param password raw password
+     * <p>Before persisting, validates that no user exists with the same email address. A session is
+     * created for the device fingerprint embedded in the request DTO, and JWT tokens are issued.
+     *
+     * @param requestDTO the registration request containing email, password, and device context —
+     *     must not be null
      * @return {@link AuthResponseDTO} for the newly registered user
      * @throws BadRequestException if the email is already registered
      */
     @Override
-    public AuthResponseDTO register(String email, String password) {
-        if (userService.existsByEmail(email)) {
+    public AuthResponseDTO register(AuthLoginRequestDTO requestDTO) {
+        if (userService.existsByEmail(requestDTO.email())) {
             throw new BadRequestException("Email already registered");
         }
-        userService.register(
-                new User(
-                        email,
-                        passwordManager.encodePassword(password),
-                        roleService.getUserRoles()));
-        return login(email, password);
+        User user =
+                userService.save(
+                        new User(
+                                requestDTO.email(),
+                                requestDTO.password(),
+                                roleService.getUserRoles()));
+        return login(new UserPrincipal(user), requestDTO);
+    }
+
+    /**
+     * Logs out the user by revoking the refresh token and its entire token family, then clearing
+     * the Spring Security context.
+     *
+     * <p>The refresh token is first validated (which triggers revocation on any mismatch), then the
+     * entire token family and associated session are revoked with reason {@code "logout-session"}.
+     *
+     * @param refreshToken the raw refresh token string to revoke
+     * @param clientId the client identifier for token validation
+     * @param userAgent the HTTP User-Agent for token validation
+     * @param ipAddress the request IP for audit logging
+     * @throws BadRequestException if the refresh token is blank
+     * @throws NotFoundException if the token is not found in the database
+     * @throws UnauthorizedException if token validation fails
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Override
+    public void logout(String refreshToken, String clientId, String userAgent, String ipAddress) {
+        if (!StringUtils.hasText(refreshToken)) {
+            throw new BadRequestException("Invalid Refresh Token");
+        }
+        Instant now = Instant.now();
+
+        RefreshToken actualrefreshToken =
+                refreshTokenService
+                        .findByTokenHashSecure(manager.createTokenHash(refreshToken))
+                        .orElseThrow(() -> new NotFoundException("Refresh Token Not Found"));
+
+        refreshTokenService.validateRefreshToken(
+                actualrefreshToken, clientId, now, ipAddress, userAgent);
+
+        refreshTokenService.revokeRefreshTokensAndSessionByFamilyId(
+                actualrefreshToken.getFamilyId(), now, "logout-session");
+        SecurityContextHolder.clearContext();
     }
 
     /**
@@ -114,191 +185,8 @@ public class AuthServiceImpl extends DefaultOAuth2UserService implements IAuthSe
      * @throws UsernameNotFoundException if user is not found
      */
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        return new UserPrincipal(userService.findByEmail(username), null);
-    }
-
-    /**
-     * Validates raw password against stored user details and enforces account status checks.
-     *
-     * @param rawPassword the entered password
-     * @param userDetails stored user details
-     * @return authenticated {@link UserDetails}
-     * @throws BadRequestException if validation fails
-     * @throws UnauthorizedException if account is disabled or locked
-     */
-    public UserDetails validateUserDetails(String rawPassword, UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BadRequestException("Invalid Username or Password");
-        }
-        if (rawPassword == null
-                || rawPassword.isBlank()
-                || !passwordManager.matches(rawPassword, userDetails.getPassword())) {
-            throw new BadRequestException("Invalid Password");
-        }
-        if (!(userDetails.isEnabled()
-                && userDetails.isAccountNonLocked()
-                && userDetails.isAccountNonExpired()
-                && userDetails.isCredentialsNonExpired())) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        return userDetails;
-    }
-
-    /**
-     * Performs authentication using Spring's authentication token model.
-     *
-     * @param username user's email
-     * @param password raw password
-     * @return an {@link Authentication} object
-     */
-    public Authentication authenticate(String username, String password) {
-        return new UsernamePasswordAuthenticationToken(
-                validateUserDetails(password, loadUserByUsername(username)), null);
-    }
-
-    /**
-     * Handles OAuth2 login by processing the provider's user data and delegating logic.
-     *
-     * @param userRequest the OAuth2 user request
-     * @return an authenticated {@link OAuth2User}
-     */
-    @Override
-    @Generated
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        try {
-            return processOAuth2User(userRequest, super.loadUser(userRequest));
-        } catch (ResponseStatusException e) {
-            throw new InternalAuthenticationServiceException(e.getReason());
-        } catch (Exception e) {
-            throw new InternalAuthenticationServiceException(
-                    "Error during authentication", e.getCause());
-        }
-    }
-
-    /**
-     * Processes OAuth2 user data: registers or connects existing user based on attributes.
-     *
-     * @param request the OAuth2 user request
-     * @param user the authenticated OAuth2 user
-     * @return an {@link OAuth2User}
-     * @throws OAuth2AuthenticationProcessingException if required attributes are missing
-     */
-    @Generated
-    public OAuth2User processOAuth2User(OAuth2UserRequest request, OAuth2User user) {
-        OAuth2UserInfo userInfo =
-                OAuth2UserInfoFactory.getOAuth2UserInfo(
-                        request.getClientRegistration().getRegistrationId(), user.getAttributes());
-        if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
-            throw new OAuth2AuthenticationProcessingException(
-                    "Email not found from OAuth2 Provider");
-        }
-        return registerOrLoginOAuth2(
-                userInfo.getEmail(),
-                userInfo.getFirstName(),
-                userInfo.getLastName(),
-                userInfo.getImageUrl(),
-                userInfo.getEmailVerified(),
-                user.getAttributes());
-    }
-
-    /**
-     * Registers or logs in a user based on OAuth2 information. Sets up profile as needed.
-     *
-     * @param email user's email
-     * @param firstName user's first name
-     * @param lastName user's last name
-     * @param imageURL profile image URL
-     * @param emailVerified email verification status
-     * @param attributes other OAuth2 attributes
-     * @return a new or existing {@link UserPrincipal}
-     * @throws BadRequestException if required fields are missing
-     */
-    public UserPrincipal registerOrLoginOAuth2(
-            String email,
-            String firstName,
-            String lastName,
-            String imageURL,
-            boolean emailVerified,
-            Map<String, Object> attributes) {
-        if (email == null
-                || email.isBlank()
-                || firstName == null
-                || firstName.isBlank()
-                || lastName == null
-                || lastName.isBlank()
-                || imageURL == null
-                || imageURL.isBlank()) {
-            throw new BadRequestException("The account does not have enough information");
-        }
-
-        if (!userService.existsByEmail(email)) {
-            return new UserPrincipal(
-                    registerProfile(
-                            userService.register(
-                                    new User(
-                                            email,
-                                            passwordManager.encodePassword(
-                                                    UUID.randomUUID().toString()),
-                                            true,
-                                            true,
-                                            true,
-                                            true,
-                                            emailVerified,
-                                            true,
-                                            roleService.getUserRoles())),
-                            firstName,
-                            lastName,
-                            imageURL),
-                    attributes);
-        } else {
-            return new UserPrincipal(
-                    checkExistingUser(userService.findByEmail(email), emailVerified), attributes);
-        }
-    }
-
-    /**
-     * Creates or updates a user's profile.
-     *
-     * @param user the user entity
-     * @param firstName user’s first name
-     * @param lastName user’s last name
-     * @param imageURL user's avatar URL
-     * @return updated {@link User} with profile
-     * @throws BadRequestException if the user or mandatory fields are invalid
-     */
-    public User registerProfile(User user, String firstName, String lastName, String imageURL) {
-        if (user == null
-                || user.getId() == null
-                || firstName == null
-                || lastName == null
-                || imageURL == null) {
-            throw new BadRequestException("Invalid credentials from OAuth2 Provider");
-        }
-        user.setProfile(profileService.save(new Profile(firstName, lastName, "", imageURL, user)));
-        return user;
-    }
-
-    /**
-     * Updates an existing user's OAuth2 connection status and email verification flag.
-     *
-     * @param user the existing user
-     * @param emailVerified OAuth2-provided email verification status
-     * @return updated {@link User}
-     * @throws UnauthorizedException if the user account is disabled or locked
-     */
-    public User checkExistingUser(User user, boolean emailVerified) {
-        if (!user.isAllowUser()) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        if (!user.isGoogleConnected()) {
-            user.setGoogleConnected(true);
-            return userService.register(user);
-        }
-        if (user.isEmailVerified() != emailVerified) {
-            user.setEmailVerified(emailVerified);
-            return userService.register(user);
-        }
-        return user;
+    @NonNull
+    public UserDetails loadUserByUsername(@NonNull String username) {
+        return new UserPrincipal(userService.findByEmail(username));
     }
 }

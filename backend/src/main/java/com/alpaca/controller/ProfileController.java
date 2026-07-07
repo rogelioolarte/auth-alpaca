@@ -15,13 +15,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST controller for managing {@link Profile} entities.
+ * REST controller for managing {@link Profile} entities at {@code /api/profiles}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of profiles. Utilizes {@link
- * IProfileService} for business logic and {@link IProfileMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination. Endpoints require the {@code ADMIN} role or
+ * self-ownership ({@code principal.getProfileId() == #id}), except for {@code POST /} which permits
+ * creation when the authenticated user has no profile yet ({@code principal.getProfileId() ==
+ * null}).
  *
  * @see IProfileService
  * @see IProfileMapper
@@ -42,6 +45,7 @@ public class ProfileController {
      *     HttpStatus#OK}
      * @throws NotFoundException if no profile is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<ProfileResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
@@ -56,6 +60,7 @@ public class ProfileController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == null")
     @PostMapping
     public ResponseEntity<ProfileResponseDTO> save(@Valid @RequestBody ProfileRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,6 +78,7 @@ public class ProfileController {
      * @throws NotFoundException if no profile is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @PutMapping("/{id}")
     public ResponseEntity<ProfileResponseDTO> updateById(
             @Valid @RequestBody ProfileRequestDTO request, @PathVariable UUID id) {
@@ -87,6 +93,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no profile is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getProfileId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
@@ -99,6 +106,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} containing a list of {@link ProfileResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ProfileResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -112,6 +120,7 @@ public class ProfileController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link ProfileResponseDTO}
      *     with status {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/page")
     public ResponseEntity<PagedModel<ProfileResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)

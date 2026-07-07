@@ -1,0 +1,136 @@
+/* ========================================
+   ADVERTISERS PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.page-container {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.search-section {
+  text-align: center;
+  margin-bottom: var(--space-8);
+
+  h1 {
+    margin-bottom: var(--space-6);
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--sys-color-on-surface);
+  }
+}
+
+.search-field {
+  width: 100%;
+  max-width: 31.25rem;
+}
+
+.advertisers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--space-48), 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.advertiser-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-0.25rem);
+     box-shadow: var(--shadow-xl);
+  }
+}
+
+.card-image {
+  height: 10rem;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--sys-color-surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .placeholder-icon {
+    font-size: var(--space-16);
+    width: var(--space-16);
+    height: var(--space-16);
+    color: var(--sys-color-outline-variant);
+  }
+}
+
+mat-card-content {
+  padding: var(--space-4);
+
+  h3 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .location {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0 0 var(--space-2);
+    font-size: 0.875rem;
+    color: var(--sys-color-on-surface-variant);
+
+    mat-icon {
+      font-size: var(--space-4);
+      width: var(--space-4);
+      height: var(--space-4);
+    }
+  }
+
+  .description {
+    margin: 0 0 var(--space-3);
+    font-size: 0.875rem;
+    color: var(--sys-color-on-surface);
+    line-height: 1.5;
+  }
+
+  .badges {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .verified-chip {
+    background: var(--sys-color-tertiary-container);
+    color: var(--sys-color-on-tertiary-container);
+  }
+
+  .paid-chip {
+    background: var(--sys-color-secondary-container);
+    color: var(--sys-color-on-secondary-container);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-12);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-12);
+  color: var(--sys-color-outline-variant);
+
+  mat-icon {
+    font-size: var(--space-16);
+    width: var(--space-16);
+    height: var(--space-16);
+  }
+
+  p {
+    margin-top: var(--space-4);
+    font-size: 1.125rem;
+  }
+}
+
+mat-paginator {
+  background: transparent;
+}

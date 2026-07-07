@@ -1,12 +1,15 @@
 package com.alpaca.model;
 
 import com.alpaca.entity.User;
+import io.jsonwebtoken.Claims;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -22,7 +25,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 public class UserPrincipal implements OAuth2User, UserDetails {
 
     /** Unique identifier for the user. */
-    private UUID id;
+    private UUID userId;
 
     /** Unique identifier for the associated profile, if available. */
     private UUID profileId;
@@ -40,19 +43,25 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private boolean enabled = true;
 
     /** Indicates whether the User's entity is not expired. Defaults to {@code true}. */
-    private boolean accountNoExpired = true;
+    private boolean accountNonExpired = true;
 
     /** Indicates whether the User's entity is not locked. Defaults to {@code true}. */
-    private boolean accountNoLocked = true;
+    private boolean accountNonLocked = true;
 
     /** Indicates whether the User's credentials are not expired. Defaults to {@code true}. */
-    private boolean credentialNoExpired = true;
+    private boolean credentialsNonExpired = true;
 
     /** The authorities granted to the user for authorization purposes. */
-    private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
+    private Collection<GrantedAuthority> authorities = new HashSet<>();
 
-    /** Additional attributes provided by an OAuth2 authentication provider. */
-    private Map<String, Object> attributes = new HashMap<>();
+    /**
+     * Additional attributes provided by the OAuth2 authentication provider.
+     *
+     * <p>These attributes are used only during the OAuth2 authentication flow and are marked as
+     * {@code transient} to prevent serialization or persistence in the security context or HTTP
+     * session.
+     */
+    private transient Map<String, Object> attributes = new HashMap<>();
 
     /**
      * Constructs a new {@code UserPrincipal} instance using a {@link User} entity. This constructor
@@ -63,47 +72,71 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @param attributes additional attributes obtained from an OAuth2 authentication provider.
      */
     public UserPrincipal(User user, Map<String, Object> attributes) {
-        this.id = user.getId();
+        this.userId = user.getId();
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
         this.username = user.getEmail();
         this.password = user.getPassword();
         this.enabled = user.isEnabled();
-        this.accountNoLocked = user.isAccountNoLocked();
-        this.accountNoExpired = user.isAccountNoExpired();
-        this.credentialNoExpired = user.isCredentialNoExpired();
+        this.accountNonLocked = user.isAccountNonLocked();
+        this.accountNonExpired = user.isAccountNonExpired();
+        this.credentialsNonExpired = user.isCredentialNonExpired();
         this.authorities = user.getAuthorities();
         this.attributes = attributes;
     }
 
     /**
-     * Constructs a new {@code UserPrincipal} instance using a decoded JWT token values. This
-     * constructor extracts relevant information from the {@code User} object and assigns it to the
-     * corresponding fields in {@code UserPrincipal}.
+     * Constructs a principal from a {@link User} entity for non-OAuth2 authentication flows (form
+     * login, JWT, etc.).
      *
-     * @param userId the {@link UUID} id of the User.
-     * @param profileId the {@link UUID} id of the Profile.
-     * @param advertiserId the {@link UUID} id of the Advertiser.
-     * @param username the username of the User.
-     * @param password the encoded password of the User.
-     * @param authoritiesList the list of authorities of the User.
-     * @param attributes additional attributes obtained from an OAuth2 authentication provider.
+     * <p>OAuth2 attributes are set to {@code null} since no provider attributes are available
+     * outside the OAuth2 flow.
+     *
+     * @param user the {@link User} entity containing user details; must not be {@code null}
      */
-    public UserPrincipal(
-            UUID userId,
-            UUID profileId,
-            UUID advertiserId,
-            String username,
-            String password,
-            Collection<? extends GrantedAuthority> authoritiesList,
-            Map<String, Object> attributes) {
-        this.id = userId;
-        this.profileId = profileId;
-        this.advertiserId = advertiserId;
-        this.username = username;
-        this.password = password;
-        this.authorities = authoritiesList;
-        this.attributes = attributes;
+    public UserPrincipal(User user) {
+        this.userId = user.getId();
+        this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
+        this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
+        this.username = user.getEmail();
+        this.password = user.getPassword();
+        this.enabled = user.isEnabled();
+        this.accountNonLocked = user.isAccountNonLocked();
+        this.accountNonExpired = user.isAccountNonExpired();
+        this.credentialsNonExpired = user.isCredentialNonExpired();
+        this.authorities = user.getAuthorities();
+        this.attributes = null;
+    }
+
+    /**
+     * Builds a {@link UserPrincipal} from JWT claims.
+     *
+     * @param claims the token claims
+     */
+    public UserPrincipal(Claims claims) {
+        if (claims == null) {
+            this.username = "anonymous";
+            this.authorities = Collections.emptyList();
+            return;
+        }
+        this.userId = getUUIDFromClaim(claims, "userId");
+        this.profileId = getUUIDFromClaim(claims, "profileId");
+        this.advertiserId = getUUIDFromClaim(claims, "advertiserId");
+        this.username = claims.getSubject() != null ? claims.getSubject() : "";
+        this.password = null;
+        this.authorities =
+                AuthorityUtils.commaSeparatedStringToAuthorityList(
+                        claims.get("authorities", String.class));
+        this.attributes = null;
+    }
+
+    /**
+     * Safely extracts and parses a UUID from a JWT claim, returning {@code null} when the claim is
+     * absent or empty rather than failing.
+     */
+    private UUID getUUIDFromClaim(Claims claims, String key) {
+        String value = claims.get(key, String.class);
+        return (value != null && !value.isEmpty()) ? UUID.fromString(value) : null;
     }
 
     /**
@@ -122,23 +155,24 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @return the username of the user.
      */
     @Override
+    @NonNull
     public String getName() {
         return username;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return accountNoExpired;
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return accountNoLocked;
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return credentialNoExpired;
+        return credentialsNonExpired;
     }
 
     @Override
@@ -148,15 +182,15 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
+        int result = userId.hashCode();
         result = 31 * result + (profileId != null ? profileId.hashCode() : 0);
         result = 31 * result + (advertiserId != null ? advertiserId.hashCode() : 0);
         result = 31 * result + username.hashCode();
         result = 31 * result + password.hashCode();
         result = 31 * result + Boolean.hashCode(enabled);
-        result = 31 * result + Boolean.hashCode(accountNoExpired);
-        result = 31 * result + Boolean.hashCode(accountNoLocked);
-        result = 31 * result + Boolean.hashCode(credentialNoExpired);
+        result = 31 * result + Boolean.hashCode(accountNonExpired);
+        result = 31 * result + Boolean.hashCode(accountNonLocked);
+        result = 31 * result + Boolean.hashCode(credentialsNonExpired);
         result = 31 * result + (authorities != null ? authorities.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;
@@ -167,9 +201,9 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         if (this == o) return true;
         if (!(o instanceof UserPrincipal that)) return false;
         return enabled == that.enabled
-                && accountNoExpired == that.accountNoExpired
-                && accountNoLocked == that.accountNoLocked
-                && credentialNoExpired == that.credentialNoExpired
+                && accountNonExpired == that.accountNonExpired
+                && accountNonLocked == that.accountNonLocked
+                && credentialsNonExpired == that.credentialsNonExpired
                 && username != null
                 && username.equals(that.username)
                 && password != null

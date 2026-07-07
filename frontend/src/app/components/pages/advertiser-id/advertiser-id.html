@@ -1,0 +1,111 @@
+<div class="page-container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (advertiser()) {
+    <div class="advertiser-header">
+      <div
+        class="banner"
+        [style.backgroundImage]="
+          advertiser()!.bannerUrl ? 'url(' + advertiser()!.bannerUrl + ')' : 'none'
+        "
+      >
+        @if (!advertiser()!.bannerUrl) {
+          <mat-icon class="placeholder-banner">business</mat-icon>
+        }
+      </div>
+      <div class="header-content">
+        <div
+          class="avatar"
+          [style.backgroundImage]="
+            advertiser()!.avatarUrl ? 'url(' + advertiser()!.avatarUrl + ')' : 'none'
+          "
+        >
+          @if (!advertiser()!.avatarUrl) {
+            <mat-icon class="placeholder-avatar">person</mat-icon>
+          }
+        </div>
+        <div class="header-info">
+          <h1>{{ advertiser()!.title }}</h1>
+          <div class="badges">
+            @if (advertiser()!.verified) {
+              <mat-chip class="verified-chip">Verified</mat-chip>
+            }
+            @if (advertiser()!.paid) {
+              <mat-chip class="paid-chip">Premium</mat-chip>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <mat-card class="detail-card">
+      <mat-card-content>
+        <div class="info-section">
+          <h2>About</h2>
+          <p>{{ advertiser()!.description || 'No description available.' }}</p>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="info-section">
+          <h2>Location</h2>
+          <p>
+            <mat-icon>location_on</mat-icon>
+            {{ advertiser()!.publicLocation || 'No location specified' }}
+          </p>
+          @if (advertiser()!.publicUrlLocation) {
+            <a
+              mat-stroked-button
+              [href]="advertiser()!.publicUrlLocation"
+              target="_blank"
+              matTooltip="Visit website"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              Visit Website
+            </a>
+          }
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="info-section">
+          <h2>Contact</h2>
+          <p>
+            <mat-icon>email</mat-icon>
+            {{ advertiser()!.email }}
+          </p>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="info-section">
+          <h2>Status</h2>
+          <p>
+            <mat-icon>{{ advertiser()!.indexed ? 'visibility' : 'visibility_off' }}</mat-icon>
+            {{ advertiser()!.indexed ? 'Listed in public search' : 'Not listed in public search' }}
+          </p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a routerLink="/advertisers">
+          <button mat-button color="primary">
+            <mat-icon>arrow_back</mat-icon>
+            Back to List
+          </button>
+        </a>
+      </mat-card-actions>
+    </mat-card>
+  } @else {
+    <div class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <h2>Advertiser not found</h2>
+      <p>The advertiser you're looking for doesn't exist or has been removed.</p>
+      <button mat-raised-button color="primary" routerLink="/advertisers">
+        <mat-icon>arrow_back</mat-icon>
+        Back to List
+      </button>
+    </div>
+  }
+</div>

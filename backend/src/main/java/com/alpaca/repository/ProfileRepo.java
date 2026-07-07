@@ -9,20 +9,20 @@ import org.springframework.stereotype.Repository;
 /**
  * Repository interface for managing {@link Profile} entities.
  *
- * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
+ * <p>Extends {@link CustomRepo} to inherit common CRUD operations and defines additional queries
  * for profile-specific operations.
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface ProfileRepo extends GenericRepo<Profile, UUID> {
+public interface ProfileRepo extends CustomRepo<Profile, UUID> {
 
     /**
      * Counts the number of profiles associated with a specific user ID.
      *
-     * @param userId The ID of the user - must not be null.
+     * @param email The email of the user - must not be null.
      * @return The number of profiles linked to the given user.
      */
-    @Query("SELECT COUNT(p) FROM Profile p WHERE p.user.id = :userId")
-    long countByUserId(@Param("userId") UUID userId);
+    @Query("SELECT COUNT(p) FROM Profile p WHERE p.user.email = :email")
+    long countByUserEmail(@Param("email") String email);
 }

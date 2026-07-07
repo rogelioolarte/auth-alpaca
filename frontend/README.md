@@ -1,27 +1,81 @@
-# AuthAlpacaUI
+# AuthAlpacaUi
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.2.
+Example frontend for the OAuth2 + JWT authentication flow. Built with **Angular 21**, managed with **Bun 1.3.11**.
+
+---
+
+## Prerequisites
+
+- **Bun 1.3.11** — [Install Bun](https://bun.sh/docs/installation)
+
+---
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+# From project root:
+cd frontend && bun install && bun run start
+
+# Or from frontend/ directly:
+bun install
+bun run start
+```
+
+The dev server runs at `http://localhost:4200/` and auto-reloads on source changes.
+
+---
 
 ## Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Angular CLI is available via Bun:
 
-## Build
+```bash
+bun run ng generate component component-name
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+To see all available schematics:
+
+```bash
+bun run ng generate --help
+```
+
+---
+
+## Building
+
+```bash
+bun run build
+```
+
+Compiled assets are written to `dist/auth-alpaca-ui/browser`.
+
+---
+
+## Local Production Build Preview
+
+```bash
+# Build + serve via http-server
+bun run build
+bunx http-server dist/auth-alpaca-ui/browser -p 4200 -o
+```
+
+---
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+bun run test
+```
 
-## Running end-to-end tests
+Unit tests use [Vitest](https://vitest.dev/) as the test runner.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+> [!NOTE]
+> **No Unit Tests exist for the UI.**
+> Because this frontend is designed as a direct integration example to demonstrate the Spring Boot OAuth2/JWT authentication flow, it does not include comprehensive frontend unit test suites. The `.spec.ts` files contain only boilerplate test skeletons.
 
-## Further help
+---
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Additional Resources
+
+- [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli)
+- [Frontend Architecture](../docs/frontend-architecture.md)

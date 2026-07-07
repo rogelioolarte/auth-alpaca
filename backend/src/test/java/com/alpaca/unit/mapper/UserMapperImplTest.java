@@ -11,10 +11,10 @@ import com.alpaca.mapper.impl.AdvertiserMapperImpl;
 import com.alpaca.mapper.impl.ProfileMapperImpl;
 import com.alpaca.mapper.impl.RoleMapperImpl;
 import com.alpaca.mapper.impl.UserMapperImpl;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.provider.ProfileProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.RoleServiceImpl;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ class UserMapperImplTest {
         assertNull(mapper.toResponseDTO(null));
 
         User entity = UserProvider.singleEntity();
-        entity.setUserRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
+        entity.setRoles(new HashSet<>(Set.of(RoleProvider.singleEntity())));
         when(roleMapper.toListResponseDTO(entity.getRoles()))
                 .thenReturn(new ArrayList<>(List.of(RoleProvider.singleResponse())));
         when(profileMapper.toResponseDTO(null)).thenReturn(ProfileProvider.singleResponse());
@@ -90,13 +90,13 @@ class UserMapperImplTest {
         assertNull(mapper.toEntity(null));
 
         UserRequestDTO request = UserProvider.singleRequest();
-        when(roleService.findAllByIdsToSet(request.getRoles()))
-                .thenReturn(new HashSet<>(Set.of(RoleProvider.singleEntity())));
+        when(roleService.findAllByIds(request.getRoles()))
+                .thenReturn(new ArrayList<>(List.of(RoleProvider.singleEntity())));
         User entity = mapper.toEntity(request);
         assertNotNull(entity);
         assertEquals(request.getEmail(), entity.getEmail());
         assertEquals(request.getRoles().iterator().next(), entity.getRoles().getFirst().getId());
-        verify(roleService).findAllByIdsToSet(request.getRoles());
+        verify(roleService).findAllByIds(request.getRoles());
     }
 
     @Test

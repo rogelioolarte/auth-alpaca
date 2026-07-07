@@ -1,19 +1,17 @@
 package com.alpaca.security.oauth2;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Custom Jackson deserializer for {@link OAuth2AuthorizationRequest}, enabling reconstruction of
@@ -24,7 +22,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
  * <p>The deserializer reads a JSON object, extracts essential fields (clientId, authorizationUri,
  * redirectUri, state), and also handles optional arrays (scopes) and maps (attributes,
  * additionalParameters). It validates that required fields are present, and throws a {@link
- * JsonMappingException} if any are missing.
+ * JacksonException} if any are missing.
  *
  * <p>By extending {@link StdDeserializer}, this class integrates smoothly with Jackson's
  * deserialization pipeline. It meticulously reconstructs a fully functional {@link
@@ -39,8 +37,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
  */
 public class AuthRequestDeserializer extends StdDeserializer<OAuth2AuthorizationRequest> {
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
-    private static final ObjectReader MAP_READER = new ObjectMapper().readerFor(MAP_TYPE);
+    private static final JsonMapper OBJECT_MAPPER = new JsonMapper();
+    private static final JavaType MAP_JAVA_TYPE =
+            OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Object.class);
+    private static final JavaType OA2R_MAPPER =
+            OBJECT_MAPPER.getTypeFactory().constructType(OAuth2AuthorizationRequest.class);
 
     /** Default constructor, informing Jackson of the handled type. */
     public AuthRequestDeserializer() {
@@ -49,17 +50,24 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
 
     @Override
     public OAuth2AuthorizationRequest deserialize(JsonParser p, DeserializationContext ct)
-            throws IOException {
+            throws JacksonException {
 
         if (p.currentToken() == null) {
             p.nextToken();
         }
         if (p.currentToken() != JsonToken.START_OBJECT) {
-            throw JsonMappingException.from(
-                    p, "Expected JSON object for OAuth2AuthorizationRequest");
+            return (OAuth2AuthorizationRequest)
+                    ct.handleUnexpectedToken(
+                            OA2R_MAPPER,
+                            JsonToken.START_OBJECT,
+                            p,
+                            "Expected JSON object for OAuth2AuthorizationRequest");
         }
 
-        String clientId = null, authorizationUri = null, redirectUri = null, state = null;
+        String clientId = null;
+        String authorizationUri = null;
+        String redirectUri = null;
+        String state = null;
         Set<String> scopes = Collections.emptySet();
         Map<String, Object> attributes = Collections.emptyMap();
         Map<String, Object> additionalParameters = Collections.emptyMap();
@@ -73,16 +81,17 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
                 case "redirectUri" -> redirectUri = p.getValueAsString();
                 case "state" -> state = p.getValueAsString();
                 case "scopes" -> scopes = parseScopes(p);
-                case "attributes" -> attributes = MAP_READER.readValue(p);
-                case "additionalParameters" -> additionalParameters = MAP_READER.readValue(p);
+                case "attributes" -> attributes = ct.readValue(p, MAP_JAVA_TYPE);
+                case "additionalParameters" ->
+                        additionalParameters = ct.readValue(p, MAP_JAVA_TYPE);
                 default -> p.skipChildren();
             }
         }
 
-        clientId = requireField(clientId, "clientId", p);
-        authorizationUri = requireField(authorizationUri, "authorizationUri", p);
-        redirectUri = requireField(redirectUri, "redirectUri", p);
-        state = requireField(state, "state", p);
+        clientId = requireField(clientId, "clientId", p, ct);
+        authorizationUri = requireField(authorizationUri, "authorizationUri", p, ct);
+        redirectUri = requireField(redirectUri, "redirectUri", p, ct);
+        state = requireField(state, "state", p, ct);
 
         return OAuth2AuthorizationRequest.authorizationCode()
                 .clientId(clientId)
@@ -102,12 +111,19 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
      * @param name field name
      * @param p current JsonParser instance
      * @return the value if valid
-     * @throws JsonMappingException if value is null
+     * @throws JacksonException if value is null
      */
-    private static String requireField(String value, String name, JsonParser p)
-            throws JsonMappingException {
+    private static String requireField(
+            String value, String name, JsonParser p, DeserializationContext ct)
+            throws JacksonException {
         if (value == null) {
-            throw JsonMappingException.from(p, "Missing required field '" + name + "'");
+            return (String)
+                    ct.handleUnexpectedToken(
+                            OA2R_MAPPER,
+                            JsonToken.NOT_AVAILABLE,
+                            p,
+                            "Missing required field %s",
+                            name);
         }
         return value;
     }
@@ -118,9 +134,8 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
      *
      * @param p current JsonParser
      * @return a Set of scope strings
-     * @throws IOException on parse error
      */
-    private static Set<String> parseScopes(JsonParser p) throws IOException {
+    private static Set<String> parseScopes(JsonParser p) {
         if (p.currentToken() != JsonToken.START_ARRAY) {
             p.skipChildren();
             return Collections.emptySet();
@@ -129,7 +144,7 @@ public class AuthRequestDeserializer extends StdDeserializer<OAuth2Authorization
         Set<String> temp = new LinkedHashSet<>();
         while (p.nextToken() != JsonToken.END_ARRAY) {
             if (p.currentToken() == JsonToken.VALUE_STRING) {
-                temp.add(p.getText());
+                temp.add(p.getString());
             } else {
                 p.skipChildren();
             }

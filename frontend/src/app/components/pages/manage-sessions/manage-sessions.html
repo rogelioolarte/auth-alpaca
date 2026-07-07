@@ -1,0 +1,73 @@
+<div class="content">
+  <div class="page-header">
+    <h1>Manage Sessions</h1>
+    <button mat-raised-button color="warn" (click)="revokeAllOtherSessions()">
+      <mat-icon>delete_sweep</mat-icon>
+      Revoke all other sessions
+    </button>
+  </div>
+
+  @if(isLoading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <div class="table-container">
+    @if (sessions().length > 0) {
+      <table mat-table [dataSource]="sessions()" class="sessions-table">
+        
+        <ng-container matColumnDef="ipAddress">
+          <th mat-header-cell *matHeaderCellDef>IP Address</th>
+          <td mat-cell *matCellDef="let session">
+            {{ session.ipAddress }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="userAgent">
+          <th mat-header-cell *matHeaderCellDef>User Agent</th>
+          <td mat-cell *matCellDef="let session">
+            @if (session.userAgent.length > 20) {
+              <span>{{ truncateString(session.userAgent) }}</span>
+              <mat-icon matTooltip="{{ session.userAgent }}" class="info-icon">info</mat-icon>
+            } @else {
+              <span>{{ session.userAgent }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastSeenAt">
+          <th mat-header-cell *matHeaderCellDef>Last Seen</th>
+          <td mat-cell *matCellDef="let session">
+            {{ session.lastSeenAt | date: 'medium' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let session">
+            <button mat-icon-button color="warn" (click)="revokeSession(session.id)" matTooltip="Revoke">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalItems()"
+        [pageSize]="pageSize()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    } @else if (!isLoading()) {
+      <div class="empty-state">
+        <mat-icon>history_toggle_off</mat-icon>
+        <p>No sessions found</p>
+      </div>
+    }
+  </div>
+</div>

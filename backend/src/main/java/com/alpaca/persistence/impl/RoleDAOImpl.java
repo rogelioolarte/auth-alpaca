@@ -1,13 +1,12 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.Role;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IRoleDAO;
-import com.alpaca.repository.GenericRepo;
-import com.alpaca.repository.RolePermissionRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.RoleRepo;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,26 +20,16 @@ import org.springframework.stereotype.Component;
 public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO {
 
     private final RoleRepo repo;
-    private final RolePermissionRepo rolePermissionRepo;
 
     /**
      * Provides the specific repository used by the generic DAO system.
      *
-     * @return the {@link GenericRepo} implementation for {@link Role}
+     * @return the {@link CustomRepo} implementation for {@link Role}
      */
     @Override
-    protected GenericRepo<Role, UUID> getRepo() {
+    @Generated
+    protected CustomRepo<Role, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the class object representing the entity managed by this DAO.
-     *
-     * @return {@code Role.class}
-     */
-    @Override
-    protected Class<Role> getEntity() {
-        return Role.class;
     }
 
     /**
@@ -54,40 +43,7 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
         if (roleName == null || roleName.isBlank()) {
             return Optional.empty();
         }
-        return repo.findByRoleName(roleName);
-    }
-
-    /**
-     * Updates an existing {@link Role} identified by the given ID with the non-null, non-blank
-     * properties from the supplied {@code role} object. Only changed fields are applied. Throws
-     * {@link NotFoundException} if no existing entity is found.
-     *
-     * @param role the role object containing updated values
-     * @param id the unique identifier of the role to update
-     * @return the updated and saved {@link Role} instance
-     * @throws NotFoundException if no role exists with the specified ID
-     */
-    @Override
-    public Role updateById(Role role, UUID id) {
-        Role existingRole =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-
-        if (role.getRoleName() != null && !role.getRoleName().isBlank()) {
-            existingRole.setRoleName(role.getRoleName());
-        }
-        if (role.getRoleDescription() != null && !role.getRoleDescription().isBlank()) {
-            existingRole.setRoleDescription(role.getRoleDescription());
-        }
-        if (role.getRolePermissions() != null && !role.getRolePermissions().isEmpty()) {
-            existingRole.setRolePermissions(role.getPermissions());
-        }
-        return save(existingRole);
+        return repo.findByName(roleName);
     }
 
     /**
@@ -100,12 +56,13 @@ public class RoleDAOImpl extends GenericDAOImpl<Role, UUID> implements IRoleDAO 
      */
     @Override
     public boolean existsByUniqueProperties(Role role) {
-        if (role.getRoleName() == null
-                || role.getRoleName().isBlank()
-                || role.getRoleDescription() == null
-                || role.getRoleDescription().isBlank()) {
+        if (role == null
+                || role.getName() == null
+                || role.getName().isBlank()
+                || role.getDescription() == null
+                || role.getDescription().isBlank()) {
             return false;
         }
-        return repo.existsByRoleName(role.getRoleName());
+        return repo.existsByName(role.getName());
     }
 }

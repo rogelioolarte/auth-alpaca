@@ -7,71 +7,78 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link PasswordManager} */
-@DisplayName("PasswordManager Unit Tests")
+/** Unit tests for {@link PasswordManager}. */
+@DisplayName("Unit Tests for PasswordManager")
 class PasswordManagerTest {
 
     private PasswordManager passwordManager;
-
-    private static final String SECRET_KEY = "TestSecretKey";
-    private static final String rawPassword = "password123";
+    private final String rawPassword = "AlpacaSecurePassword2026!";
+    private final String blankInput = "   ";
 
     @BeforeEach
     void setUp() {
-        passwordManager = new PasswordManager(SECRET_KEY);
+        passwordManager = new PasswordManager(12);
     }
 
     @Test
-    @DisplayName("encodePassword returns a string different from the raw password")
-    void encodePasswordReturnsDifferentString() {
+    @DisplayName("encodePassword: Should return a non-null hashed string distinct from raw input")
+    void encodePassword_ShouldReturnValidHash() {
         String encoded = passwordManager.encodePassword(rawPassword);
 
-        assertNotNull(encoded, "The result should not be null");
-        assertNotEquals(
-                rawPassword,
-                encoded,
-                "The encoded password should not be equal to the raw password");
-    }
-
-    @Test
-    @DisplayName("matches should return true when raw matches encoded")
-    void matchesReturnsTrueForValidPair() {
-        String encoded = passwordManager.encodePassword(rawPassword);
-
+        assertNotNull(encoded);
+        assertNotEquals(rawPassword, encoded);
         assertTrue(
-                passwordManager.matches(rawPassword, encoded),
-                "matches should return true if the password matches");
+                encoded.startsWith("$2a$") || encoded.startsWith("$2b$"),
+                "Hash should follow BCrypt format");
     }
 
     @Test
-    @DisplayName("matches should return false when raw does not match encoded")
-    void matchesReturnsFalseForInvalidPair() {
+    @DisplayName("matches: Should return true when credentials are valid")
+    void matches_ShouldReturnTrue_WhenPasswordsMatch() {
         String encoded = passwordManager.encodePassword(rawPassword);
 
-        String wrongAttempt = rawPassword + "_wrong";
-        assertFalse(
-                passwordManager.matches(wrongAttempt, encoded),
-                "matches should return false if the password does not match");
+        boolean result = passwordManager.matches(rawPassword, encoded);
+
+        assertTrue(result);
     }
 
     @Test
-    @DisplayName("Encoding the same raw twice produces different values (random salt)")
-    void encodeProducesDifferentValuesEachTime() {
-        String firstEncoded = passwordManager.encodePassword(rawPassword);
-        String secondEncoded = passwordManager.encodePassword(rawPassword);
+    @DisplayName("matches: Should return false when raw password does not match stored hash")
+    void matches_ShouldReturnFalse_WhenPasswordsDoNotMatch() {
+        String encoded = passwordManager.encodePassword(rawPassword);
 
-        assertNotEquals(
-                firstEncoded,
-                secondEncoded,
-                "Two calls to encodePassword with the same raw should yield different strings");
+        String wrongPassword = "IncorrectPassword123";
+        boolean result = passwordManager.matches(wrongPassword, encoded);
+
+        assertFalse(result);
     }
 
     @Test
-    @DisplayName("passwordEncoder() returns the same PasswordEncoder instance internally")
-    void passwordEncoderReturnsSameInstance() {
-        assertSame(
-                passwordManager.passwordEncoder(),
-                passwordManager.passwordEncoder(),
-                "passwordEncoder() should always return the same instance");
+    @DisplayName("matches: Should return false when raw password input is null or blank")
+    void matches_ShouldReturnFalse_WhenRawPasswordIsInvalid() {
+        String encoded = passwordManager.encodePassword(rawPassword);
+
+        assertFalse(passwordManager.matches(null, encoded));
+        assertFalse(passwordManager.matches(blankInput, encoded));
+    }
+
+    @Test
+    @DisplayName("matches: Should return false when encoded password input is null or blank")
+    void matches_ShouldReturnFalse_WhenEncodedPasswordIsInvalid() {
+        assertFalse(passwordManager.matches(rawPassword, null));
+        assertFalse(passwordManager.matches(rawPassword, blankInput));
+    }
+
+    @Test
+    @DisplayName(
+            "Encoding consistency: Two hashes of the same password should differ but both remain"
+                    + " valid")
+    void encodePassword_ShouldUseRandomSalt() {
+        String firstHash = passwordManager.encodePassword(rawPassword);
+        String secondHash = passwordManager.encodePassword(rawPassword);
+
+        assertNotEquals(firstHash, secondHash);
+        assertTrue(passwordManager.matches(rawPassword, firstHash));
+        assertTrue(passwordManager.matches(rawPassword, secondHash));
     }
 }

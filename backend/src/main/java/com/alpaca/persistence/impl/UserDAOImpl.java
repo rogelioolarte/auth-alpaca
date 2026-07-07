@@ -1,9 +1,8 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import com.alpaca.repository.UserRepo;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,23 +24,12 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     /**
      * Provides the repository used by the generic DAO operations.
      *
-     * @return the {@link GenericRepo} implementation specific to {@link User}
+     * @return the {@link CustomRepo} implementation specific to {@link User}
      */
     @Override
     @Generated
-    protected GenericRepo<User, UUID> getRepo() {
+    protected CustomRepo<User, UUID> getRepo() {
         return repo;
-    }
-
-    /**
-     * Returns the entity class managed by this DAO.
-     *
-     * @return the {@code Class} object for {@link User}
-     */
-    @Override
-    @Generated
-    protected Class<User> getEntity() {
-        return User.class;
     }
 
     /**
@@ -59,63 +47,6 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
     }
 
     /**
-     * Updates an existing {@link User} identified by the given ID with the non-null and non-blank
-     * properties provided in the supplied {@code user} object. Only fields that are different,
-     * non-null, and non-blank are updated. Throws a {@link NotFoundException} if no user with the
-     * specified ID exists.
-     *
-     * @param user user object containing updated values
-     * @param id the unique identifier of the user to update
-     * @return the updated and saved {@link User} instance
-     * @throws NotFoundException if no existing user is found with the given ID
-     */
-    @Override
-    public User updateById(User user, UUID id) {
-        User existingUser =
-                findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new NotFoundException(
-                                                String.format(
-                                                        "%s with ID %s not found",
-                                                        getEntity().getName(), id.toString())));
-        if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            existingUser.setEmail(user.getEmail());
-        }
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            existingUser.setPassword(user.getPassword());
-        }
-        if (user.getUserRoles() != null && !user.getUserRoles().isEmpty()) {
-            existingUser.setUserRoles(user.getRoles());
-        }
-        if (user.getProfile() != null && user.getProfile().getId() != null) {
-            existingUser.setProfile(user.getProfile());
-        }
-        if (user.getAdvertiser() != null && user.getAdvertiser().getId() != null) {
-            existingUser.setAdvertiser(user.getAdvertiser());
-        }
-        if (existingUser.isEnabled() != user.isEnabled()) {
-            existingUser.setEnabled(user.isEnabled());
-        }
-        if (existingUser.isAccountNoLocked() != user.isAccountNoLocked()) {
-            existingUser.setAccountNoLocked(user.isAccountNoLocked());
-        }
-        if (existingUser.isAccountNoExpired() != user.isAccountNoExpired()) {
-            existingUser.setAccountNoExpired(user.isAccountNoExpired());
-        }
-        if (existingUser.isCredentialNoExpired() != user.isCredentialNoExpired()) {
-            existingUser.setCredentialNoExpired(user.isCredentialNoExpired());
-        }
-        if (existingUser.isEmailVerified() != user.isEmailVerified()) {
-            existingUser.setEmailVerified(user.isEmailVerified());
-        }
-        if (existingUser.isGoogleConnected() != user.isGoogleConnected()) {
-            existingUser.setGoogleConnected(user.isGoogleConnected());
-        }
-        return save(existingUser);
-    }
-
-    /**
      * Determines whether a user already exists in the database based on its unique properties.
      *
      * @param user the user to check; uses its email as the unique property
@@ -123,6 +54,9 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
      */
     @Override
     public boolean existsByUniqueProperties(User user) {
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+            return false;
+        }
         return existsByEmail(user.getEmail());
     }
 
@@ -138,5 +72,20 @@ public class UserDAOImpl extends GenericDAOImpl<User, UUID> implements IUserDAO 
             return false;
         }
         return repo.existsByEmail(email);
+    }
+
+    /**
+     * Retrieves and pessimistically locks the user row for concurrency-safe updates.
+     *
+     * <p>Delegates to {@link com.alpaca.repository.UserRepo#lockFindUserById(UUID)} which acquires
+     * a {@code PESSIMISTIC_WRITE} lock on the matching row, preventing concurrent transactions from
+     * reading or modifying it until the lock is released.
+     *
+     * @param userId the user UUID to lock and retrieve
+     * @return An {@link Optional} containing the locked user if found, otherwise empty
+     */
+    @Override
+    public Optional<User> lockFindUserById(UUID userId) {
+        return repo.lockFindUserById(userId);
     }
 }

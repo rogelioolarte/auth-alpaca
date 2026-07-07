@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.UUID;
 
+/**
+ * Payload for creating or updating a user's personal profile, including names, address, avatar URL,
+ * and the owning user ID.
+ */
 @Setter
 @Getter
 @AllArgsConstructor
@@ -32,7 +36,10 @@ public class ProfileRequestDTO {
     @NotBlank(message = "Avatar URL is required.")
     private String avatarUrl;
 
-    @UUID(message = "UUID format is required.")
+    @UUID(
+            message = "UUID format is required.",
+            allowNil = false,
+            version = {7})
     @NotBlank(message = "User is required.")
     private String userId;
 }

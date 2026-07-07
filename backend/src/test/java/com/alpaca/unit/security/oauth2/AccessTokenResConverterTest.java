@@ -5,24 +5,28 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.alpaca.security.oauth2.AccessTokenResConverter;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 
 /** Unit tests for {@link AccessTokenResConverter} */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AccessTokenResConverter Unit Tests")
 class AccessTokenResConverterTest {
 
     private AccessTokenResConverter converter;
 
-    private static final String accessToken = "token123";
-    private static final String refreshToken = "refresh456";
-    private static final Long expiresIn = 1800L;
-    private static final String scope = "read write";
-    private static final Set<String> scopes = Set.of("read", "write");
+    private static final String ACCESS_TOKEN = "token123";
+    private static final String REFRESH_TOKEN = "refresh456";
+    private static final Long EXPIRES_IN = 1800L;
+    private static final String SCOPE = "read write";
+    private static final Set<String> SCOPES = Set.of("read", "write");
     private static final long DEFAULT_EXPIRES_IN = 7200L;
 
     @BeforeEach
@@ -33,24 +37,24 @@ class AccessTokenResConverterTest {
     @Test
     void convert_WithAllParameters_ShouldMapCorrectly() {
         Map<String, Object> source = new LinkedHashMap<>();
-        source.put(OAuth2ParameterNames.ACCESS_TOKEN, accessToken);
-        source.put(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
-        source.put(OAuth2ParameterNames.EXPIRES_IN, expiresIn);
-        source.put(OAuth2ParameterNames.SCOPE, scope);
+        source.put(OAuth2ParameterNames.ACCESS_TOKEN, ACCESS_TOKEN);
+        source.put(OAuth2ParameterNames.REFRESH_TOKEN, REFRESH_TOKEN);
+        source.put(OAuth2ParameterNames.EXPIRES_IN, EXPIRES_IN);
+        source.put(OAuth2ParameterNames.SCOPE, SCOPE);
         source.put("extra", "value");
         OAuth2AccessTokenResponse response = converter.convert(source);
         assertNotNull(response);
-        assertEquals(accessToken, response.getAccessToken().getTokenValue());
+        assertEquals(ACCESS_TOKEN, response.getAccessToken().getTokenValue());
         assertEquals(OAuth2AccessToken.TokenType.BEARER, response.getAccessToken().getTokenType());
         assertNotNull(response.getAccessToken().getIssuedAt());
         assertNotNull(response.getAccessToken().getExpiresAt());
         assertEquals(
-                expiresIn,
+                EXPIRES_IN,
                 response.getAccessToken().getExpiresAt().getEpochSecond()
                         - response.getAccessToken().getIssuedAt().getEpochSecond());
-        assertEquals(scopes, response.getAccessToken().getScopes());
+        assertEquals(SCOPES, response.getAccessToken().getScopes());
         assertNotNull(response.getRefreshToken());
-        assertEquals(refreshToken, response.getRefreshToken().getTokenValue());
+        assertEquals(REFRESH_TOKEN, response.getRefreshToken().getTokenValue());
         assertEquals(Map.of("extra", "value"), response.getAdditionalParameters());
     }
 
@@ -94,14 +98,14 @@ class AccessTokenResConverterTest {
     void convert_WithMultipleAdditionalParameters_PreservesAllInOrder() {
         // Prepare the source with LinkedHashMap to control the order
         Map<String, Object> source = new LinkedHashMap<>();
-        source.put(OAuth2ParameterNames.ACCESS_TOKEN, accessToken);
+        source.put(OAuth2ParameterNames.ACCESS_TOKEN, ACCESS_TOKEN);
         source.put("first_extra", "value1");
-        source.put(OAuth2ParameterNames.SCOPE, scope); // standard, it is filtered
+        source.put(OAuth2ParameterNames.SCOPE, SCOPE); // standard, it is filtered
         source.put("second_extra", 123);
         source.put("third_extra", List.of("a", "b"));
         source.put("fourth_extra", true);
         // standard expires_in parameter: does not enter additional
-        source.put(OAuth2ParameterNames.EXPIRES_IN, expiresIn);
+        source.put(OAuth2ParameterNames.EXPIRES_IN, EXPIRES_IN);
 
         OAuth2AccessTokenResponse response = converter.convert(source);
         assertNotNull(response);
@@ -119,8 +123,6 @@ class AccessTokenResConverterTest {
     @Test
     @DisplayName("extractAdditionalParameters merges duplicate keys using last-value-wins")
     void extractAdditionalParameters_mergeBehavior() throws Exception {
-        AccessTokenResConverter converter = new AccessTokenResConverter();
-
         // We create a test Map where entrySet() returns duplicates
         Map<String, Object> fakeSource =
                 new AbstractMap<>() {
@@ -131,6 +133,7 @@ class AccessTokenResConverterTest {
                                     Map.entry("other", 42));
 
                     @Override
+                    @NonNull
                     public Set<Entry<String, Object>> entrySet() {
                         // LinkedHashSet to preserve insertion order in the test
                         return new LinkedHashSet<>(entries);

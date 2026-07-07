@@ -1,11 +1,11 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
@@ -13,65 +13,108 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  * database and stores authentication and authorization details. It includes information about
  * roles, entity status, and authentication settings.
  */
+@NamedEntityGraph(
+        name = "User.withAuthorities",
+        attributeNodes = {
+            @NamedAttributeNode("profile"),
+            @NamedAttributeNode("advertiser"),
+            @NamedAttributeNode(value = "userRoles", subgraph = "userRoles-subgraph")
+        },
+        subgraphs = {
+            @NamedSubgraph(
+                    name = "userRoles-subgraph",
+                    attributeNodes = {
+                        @NamedAttributeNode(value = "role", subgraph = "role-subgraph")
+                    }),
+            @NamedSubgraph(
+                    name = "role-subgraph",
+                    attributeNodes = {
+                        @NamedAttributeNode(
+                                value = "rolePermissions",
+                                subgraph = "permission-subgraph")
+                    }),
+            @NamedSubgraph(
+                    name = "permission-subgraph",
+                    attributeNodes = {@NamedAttributeNode("permission")})
+        })
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends Auditable {
 
     /**
      * Unique identifier for the User. This value is automatically generated using a UUID strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_id")
+    @GeneratorUUIDv7
+    @Column(name = "id")
     private UUID id;
 
     /** The User's email address. This field is unique and cannot be null. */
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    /** The User's encrypted password. This field cannot be null. */
-    @Column(name = "password", nullable = false)
+    /** The User's encrypted password. This field can be null. */
+    @Column(name = "password")
     private String password;
 
     /** Indicates whether the User's entity is enabled. Defaults to {@code true}. */
+    @Builder.Default
     @Column(name = "enable", nullable = false)
     private boolean enabled = true;
 
     /** Indicates whether the User's entity is not expired. Defaults to {@code true}. */
-    @Column(name = "account_no_expired", nullable = false)
-    private boolean accountNoExpired = true;
+    @Builder.Default
+    @Column(name = "account_non_expired", nullable = false)
+    private boolean accountNonExpired = true;
 
     /** Indicates whether the User's entity is not locked. Defaults to {@code true}. */
-    @Column(name = "account_no_locked", nullable = false)
-    private boolean accountNoLocked = true;
+    @Builder.Default
+    @Column(name = "account_non_locked", nullable = false)
+    private boolean accountNonLocked = true;
 
     /** Indicates whether the User's credentials are not expired. Defaults to {@code true}. */
-    @Column(name = "credential_no_expired", nullable = false)
-    private boolean credentialNoExpired = true;
+    @Builder.Default
+    @Column(name = "credential_non_expired", nullable = false)
+    private boolean credentialNonExpired = true;
 
     /** Indicates whether the User's email has been verified. Defaults to {@code false}. */
+    @Builder.Default
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
     /**
      * Indicates whether the User has connected their account to Google. Defaults to {@code false}.
      */
+    @Builder.Default
     @Column(name = "google_connected", nullable = false)
     private boolean googleConnected = false;
+
+    /**
+     * Timestamp before which all issued tokens (access or refresh) for this user should be
+     * considered invalid.
+     *
+     * <p>Useful for enforcing global logout or invalidating all sessions/tokens when a critical
+     * change happens, such as password reset, role changes or security incident. Any token created
+     * before this instant should be rejected.
+     */
+    @Column(name = "tokens_invalid_before")
+    private Instant tokensInvalidBefore;
 
     /**
      * Indicates the set of Role has the User.
      *
      * <p>A User has a many-to-many relationship with an {@link Role} through {@link UserRole}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER,
+            fetch = FetchType.LAZY,
             orphanRemoval = true)
     private Set<UserRole> userRoles = new HashSet<>();
 
@@ -80,11 +123,7 @@ public class User {
      *
      * <p>A User has a one-to-one relationship with a {@link Profile}.
      */
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.MERGE,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     private Profile profile;
 
     /**
@@ -92,12 +131,35 @@ public class User {
      *
      * <p>A User has a one-to-one relationship with an {@link Advertiser}.
      */
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.MERGE,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     private Advertiser advertiser;
+
+    /**
+     * The set of refresh tokens associated with this user across sessions/families.
+     *
+     * <p>Used for managing, revoking or auditing refresh tokens when implementing rotation and
+     * reuse-detection.
+     */
+    @Builder.Default
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RefreshToken> refreshTokens = new HashSet<>();
+
+    /**
+     * The set of session / token-family records associated with this user.
+     *
+     * <p>Each session typically represents a logical login context (device, client, browser, etc.).
+     * This allows tracking active sessions, revoking an entire session (all its tokens), and
+     * auditing session metadata.
+     */
+    @Builder.Default
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Session> sessions = new HashSet<>();
+
+    /**
+     * Prefix prepended to role names when building Spring Security {@link GrantedAuthority}
+     * entries.
+     */
+    public static final String ROLE_KEY_AUTHORITY = "ROLE_";
 
     /**
      * Constructs an instance of a new User object with the specified attributes. The generated
@@ -111,6 +173,10 @@ public class User {
         this.email = email;
         this.password = password;
         this.userRoles = rolesToUserRoles(roles);
+        this.enabled = true;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialNonExpired = true;
     }
 
     /**
@@ -119,10 +185,6 @@ public class User {
      *
      * @param email the User's email - must not be null
      * @param password the User's encrypted password - must not be null
-     * @param enabled indicates whether the entity is enabled
-     * @param accountNoExpired indicates whether the entity is not expired
-     * @param accountNoLocked indicates whether the entity is not locked
-     * @param credentialNoExpired indicates whether the credentials are not expired
      * @param emailVerified indicates whether the email has been verified
      * @param googleConnected indicates whether the User has connected with Google
      * @param roles Set of Roles assigned to the User
@@ -130,29 +192,33 @@ public class User {
     public User(
             String email,
             String password,
-            boolean enabled,
-            boolean accountNoExpired,
-            boolean accountNoLocked,
-            boolean credentialNoExpired,
             boolean emailVerified,
             boolean googleConnected,
             Set<Role> roles) {
         this.email = email;
         this.password = password;
-        this.enabled = enabled;
-        this.accountNoExpired = accountNoExpired;
-        this.accountNoLocked = accountNoLocked;
-        this.credentialNoExpired = credentialNoExpired;
+        this.enabled = true;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialNonExpired = true;
         this.emailVerified = emailVerified;
         this.googleConnected = googleConnected;
         this.userRoles = rolesToUserRoles(roles);
     }
 
-    public void setUserRoles(Collection<Role> roles) {
+    /**
+     * Replaces all role assignments for this user with the given roles.
+     *
+     * <p>Clears existing {@link UserRole} associations and rebuilds them from the provided
+     * collection. Has no effect if the collection is null or empty.
+     *
+     * @param roles the collection of roles to assign; may be empty or {@code null} (no-op)
+     */
+    public void setRoles(Collection<Role> roles) {
         if (roles != null && !roles.isEmpty()) {
-            this.userRoles = rolesToUserRoles(roles);
-        } else {
-            this.userRoles = new HashSet<>();
+            this.userRoles.clear();
+            Set<UserRole> newUserRoles = rolesToUserRoles(roles);
+            this.userRoles.addAll(newUserRoles);
         }
     }
 
@@ -164,16 +230,12 @@ public class User {
      * @return a set of {@link UserRole} objects associated with the User.
      */
     private Set<UserRole> rolesToUserRoles(Collection<Role> roles) {
-        if (roles.isEmpty()) return Collections.emptySet();
-        Set<UserRole> userRoles = new HashSet<>(roles.size());
-        if (roles.size() == 1) {
-            userRoles.add(new UserRole(this, roles.iterator().next()));
-        } else {
-            for (Role role : roles) {
-                userRoles.add(new UserRole(this, role));
-            }
+        if (roles == null || roles.isEmpty()) return Collections.emptySet();
+        Set<UserRole> newUserRoles = HashSet.newHashSet(roles.size());
+        for (Role role : roles) {
+            newUserRoles.add(new UserRole(this, role));
         }
-        return userRoles;
+        return newUserRoles;
     }
 
     /**
@@ -195,50 +257,27 @@ public class User {
     }
 
     /**
-     * Retrieves the authorities granted to the User based on their assigned roles. Each role is
-     * prefixed with "ROLE_" as per Spring Security conventions.
+     * Retrieves the authorities granted and Permissions to the User based on their assigned roles
+     * and permissions. Each role is prefixed with "ROLE_" as per Spring Security conventions. Each
+     * role is prefixed with "PERMISSION_" as per Spring Security conventions.
      *
-     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
+     * @return List of {@link SimpleGrantedAuthority} representing the User's permissions and roles.
      */
-    public Set<SimpleGrantedAuthority> getAuthorities() {
-        if (userRoles.isEmpty()) return Collections.emptySet();
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
-        if (userRoles.size() == 1) {
-            authorities.add(
-                    new SimpleGrantedAuthority(
-                            "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
-        } else {
-            for (UserRole userRole : userRoles) {
-                authorities.add(
-                        new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-            }
+    public List<GrantedAuthority> getAuthorities() {
+        if (userRoles == null || userRoles.isEmpty()) {
+            return Collections.emptyList();
         }
-        return authorities;
-    }
-
-    /**
-     * Retrieves the authorities granted and Permissions to the User based on their assigned roles.
-     * Each role is prefixed with "ROLE_" as per Spring Security conventions.
-     *
-     * @return Set of {@link SimpleGrantedAuthority} representing the User's permissions.
-     */
-    public Set<SimpleGrantedAuthority> getAuthoritiesWithPermissions() {
-        if (userRoles.isEmpty()) return Collections.emptySet();
-        Set<SimpleGrantedAuthority> authorities = new HashSet<>(userRoles.size());
-        if (userRoles.size() == 1) {
-            authorities.add(
-                    new SimpleGrantedAuthority(
-                            "ROLE_" + userRoles.iterator().next().getRole().getRoleName()));
-        } else {
-            for (UserRole userRole : userRoles) {
-                authorities.add(
-                        new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()));
-                // Uncomment the following code if permissions should be included in
-                // authorities
-                // If we add this for cycle to the function it will have a time complexity of
-                // O(n^2)
-                for (Permission permission : userRole.getRole().getPermissions()) {
-                    authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+        Set<String> seen = new HashSet<>();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (UserRole userRole : userRoles) {
+            String roleKey = ROLE_KEY_AUTHORITY + userRole.getRole().getName();
+            if (seen.add(roleKey)) {
+                authorities.add(new SimpleGrantedAuthority(roleKey));
+            }
+            for (Permission permission : userRole.getRole().getPermissions()) {
+                String permKey = permission.getName();
+                if (seen.add(permKey)) {
+                    authorities.add(new SimpleGrantedAuthority(permKey));
                 }
             }
         }
@@ -263,44 +302,90 @@ public class User {
      */
     public boolean isAllowUser() {
         return this.enabled
-                && this.accountNoExpired
-                && this.accountNoLocked
-                && this.credentialNoExpired;
+                && this.accountNonExpired
+                && this.accountNonLocked
+                && this.credentialNonExpired;
+    }
+
+    /**
+     * Toggles all account-status flags as a group.
+     *
+     * <p>Sets {@code enabled}, {@code accountNonExpired}, {@code accountNonLocked}, and {@code
+     * credentialNonExpired} to the same value. Use this when the entire account should be
+     * universally allowed or suspended, rather than toggling individual flags.
+     *
+     * @param value the common value for all account-status flags
+     */
+    public void setAllowed(boolean value) {
+        this.enabled = value;
+        this.accountNonExpired = value;
+        this.accountNonLocked = value;
+        this.credentialNonExpired = value;
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof User user)) return false;
         return enabled == user.enabled
-                && accountNoExpired == user.accountNoExpired
-                && accountNoLocked == user.accountNoLocked
-                && credentialNoExpired == user.credentialNoExpired
+                && accountNonExpired == user.accountNonExpired
+                && accountNonLocked == user.accountNonLocked
+                && credentialNonExpired == user.credentialNonExpired
                 && emailVerified == user.emailVerified
                 && googleConnected == user.googleConnected
-                && email != null
-                && email.equals(user.email)
-                && password != null
-                && password.equals(user.password)
-                && (userRoles == user.userRoles || userRoles.equals(user.userRoles))
-                && (profile == user.profile || profile.equals(user.profile))
-                && (advertiser == user.advertiser || advertiser.equals(user.advertiser));
+                && Objects.equals(email, user.email)
+                && Objects.equals(password, user.password)
+                && Objects.equals(tokensInvalidBefore, user.tokensInvalidBefore);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(email);
-        result = 31 * result + Objects.hashCode(password);
-        result = 31 * result + Boolean.hashCode(enabled);
-        result = 31 * result + Boolean.hashCode(accountNoExpired);
-        result = 31 * result + Boolean.hashCode(accountNoLocked);
-        result = 31 * result + Boolean.hashCode(credentialNoExpired);
-        result = 31 * result + Boolean.hashCode(emailVerified);
-        result = 31 * result + Boolean.hashCode(googleConnected);
-        result = 31 * result + Objects.hashCode(userRoles);
-        result = 31 * result + Objects.hashCode(profile);
-        result = 31 * result + Objects.hashCode(advertiser);
-        return result;
+        return Objects.hash(
+                email,
+                password,
+                enabled,
+                accountNonExpired,
+                accountNonLocked,
+                credentialNonExpired,
+                emailVerified,
+                googleConnected,
+                tokensInvalidBefore);
+    }
+
+    /**
+     * Merges profile data from the given user reference into this user.
+     *
+     * <p>Only updates if the new profile is non-null and its ID differs from the current profile's
+     * ID, preventing unnecessary entity graph churn.
+     *
+     * @param newUser the reference user whose profile may be merged into this user
+     */
+    public void updateProfile(User newUser) {
+        if (newUser.getProfile() != null
+                && !Objects.equals(this.getProfile(), newUser.getProfile())) {
+            UUID currProfileId = this.getProfile() != null ? this.getProfile().getId() : null;
+            if (!Objects.equals(newUser.getProfile().getId(), currProfileId)) {
+                this.setProfile(newUser.getProfile());
+            }
+        }
+    }
+
+    /**
+     * Merges advertiser data from the given user reference into this user.
+     *
+     * <p>Only updates if the new advertiser is non-null and its ID differs from the current
+     * advertiser's ID, preventing unnecessary entity graph churn.
+     *
+     * @param newUser the reference user whose advertiser may be merged into this user
+     */
+    public void updateAdvertiser(User newUser) {
+        if (newUser.getAdvertiser() != null
+                && !Objects.equals(this.getAdvertiser(), newUser.getAdvertiser())) {
+            UUID currAdvertiserId =
+                    this.getAdvertiser() != null ? this.getAdvertiser().getId() : null;
+            if (!Objects.equals(newUser.getAdvertiser().getId(), currAdvertiserId)) {
+                this.setAdvertiser(newUser.getAdvertiser());
+            }
+        }
     }
 }

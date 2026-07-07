@@ -23,8 +23,12 @@ import org.springframework.data.domain.Pageable;
  *
  * By standardizing these operations, implementations can reduce boilerplate code and ensure
  * consistency across data transformation layers.
+ *
+ * @param <T> the entity type
+ * @param <R> the response DTO type
+ * @param <D> the request DTO type
  */
-public interface GenericMapper<T, ResponseDTO, RequestDTO> {
+public interface GenericMapper<T, R, D> {
 
     /**
      * Converts an entity instance to its corresponding response DTO.
@@ -32,7 +36,7 @@ public interface GenericMapper<T, ResponseDTO, RequestDTO> {
      * @param entity the domain entity
      * @return a response DTO representing the entity
      */
-    ResponseDTO toResponseDTO(T entity);
+    R toResponseDTO(T entity);
 
     /**
      * Converts a request DTO into an entity instance.
@@ -40,7 +44,7 @@ public interface GenericMapper<T, ResponseDTO, RequestDTO> {
      * @param requestDTO the incoming request data
      * @return a domain entity constructed from the request DTO
      */
-    T toEntity(RequestDTO requestDTO);
+    T toEntity(D requestDTO);
 
     /**
      * Converts a collection of entities into a list of response DTOs.
@@ -48,7 +52,7 @@ public interface GenericMapper<T, ResponseDTO, RequestDTO> {
      * @param entities a collection of domain entities
      * @return a list of corresponding response DTOs
      */
-    List<ResponseDTO> toListResponseDTO(Collection<T> entities);
+    List<R> toListResponseDTO(Collection<T> entities);
 
     /**
      * Converts a paginated list of entities into a paginated list of response DTOs. If the source
@@ -57,7 +61,7 @@ public interface GenericMapper<T, ResponseDTO, RequestDTO> {
      * @param entities a {@link Page} of domain entities
      * @return a {@link Page} of response DTOs preserving paging metadata
      */
-    default Page<ResponseDTO> toPageResponseDTO(Page<T> entities) {
+    default Page<R> toPageResponseDTO(Page<T> entities) {
         if (entities == null || entities.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0);
         }

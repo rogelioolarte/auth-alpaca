@@ -1,15 +1,18 @@
 package com.alpaca.service.impl;
 
-import com.alpaca.entity.Permission;
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
-import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.service.*;
+import com.alpaca.service.DataService;
+import com.alpaca.service.IProfileService;
+import com.alpaca.service.IRoleService;
+import com.alpaca.service.IUserService;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -27,116 +30,103 @@ import org.springframework.transaction.annotation.Transactional;
  * @see DataService
  * @see ApplicationReadyEvent
  */
+@Generated
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataServiceImpl implements DataService {
 
-    private final IPermissionService permissionService;
     private final IRoleService roleService;
     private final IUserService userService;
     private final IProfileService profileService;
-    private final PasswordManager passwordManager;
+
+    @Value("${security.default-admin.email}")
+    private String adminEmail;
+
+    @Value("${security.default-admin.password}")
+    private String adminPassword;
 
     /**
-     * Seeds the database with default permissions, roles, users, and profiles, only if no user
-     * records already exist.
+     * Provisions the default administrator user and profile if no user records exist yet.
+     *
+     * <p>This is a guarded startup operation — if any users are already present in the database the
+     * method returns immediately to avoid overwriting existing data. If the admin password
+     * configuration is empty or missing, a warning is logged and the method exits without creating
+     * anything.
+     *
+     * <p>Marked {@link Transactional} to ensure atomicity of user + profile creation.
+     */
+    @Transactional
+    @Override
+    public void initializeAdminUser() {
+        if (!userService.findAll().isEmpty()) {
+            return;
+        }
+
+        if (adminPassword == null || adminPassword.isBlank()) {
+            log.warn("ADMIN USER NOT PROVISIONED: The ADMIN_PASSWORD variable is empty.");
+            return;
+        }
+
+        log.info("Provisioning initial administrator user...");
+        Role adminRole = roleService.findByRoleName("ADMIN");
+
+        User adminUser =
+                userService.save(
+                        new User(adminEmail, adminPassword, new HashSet<>(Set.of(adminRole))));
+
+        profileService.save(
+                Profile.builder()
+                        .firstName("Admin")
+                        .lastName("Last")
+                        .address("")
+                        .avatarUrl("")
+                        .user(adminUser)
+                        .build());
+    }
+
+    /**
+     * Seeds the database with default users, and profiles, only if no user records already exist.
      *
      * <p>Marked {@link Transactional} to ensure atomicity and rollback safety.
      */
     @Transactional
     @Override
     public void initializeData() {
-        if (!userService.findAll().isEmpty()) {
+        if (userService.findAll().size() > 1) {
             return;
         }
+        String commonPass = "123456789";
 
-        Permission readPermission = permissionService.save(new Permission("READ"));
-        Permission updatePermission = permissionService.save(new Permission("UPDATE"));
-        Permission deletePermission = permissionService.save(new Permission("DELETE"));
-        Permission createPermission = permissionService.save(new Permission("CREATE"));
+        Role userRole = roleService.findByRoleName("USER");
+        Role managerRole = roleService.findByRoleName("MANAGER");
 
-        Role adminRole =
-                roleService.save(
-                        new Role(
-                                "ADMIN",
-                                "It's an admin",
-                                new HashSet<>(
-                                        Set.of(
-                                                readPermission,
-                                                updatePermission,
-                                                deletePermission,
-                                                createPermission))));
-        Role userRole =
-                roleService.save(
-                        new Role(
-                                "USER",
-                                "It's a user",
-                                new HashSet<>(Set.of(readPermission, createPermission))));
-        Role managerRole =
-                roleService.save(
-                        new Role(
-                                "MANAGER",
-                                "It's a manager",
-                                new HashSet<>(
-                                        Set.of(
-                                                readPermission,
-                                                updatePermission,
-                                                createPermission))));
-
-        User testGoogleUser =
-                userService.save(
-                        new User(
-                                "mcqueenrayo104@gmail.com",
-                                passwordManager.encodePassword("123456789"),
-                                new HashSet<>(Set.of(userRole))));
-        User adminUser =
-                userService.save(
-                        new User(
-                                "admin@admin.com",
-                                passwordManager.encodePassword("123456789"),
-                                new HashSet<>(Set.of(adminRole))));
         User managerUser =
                 userService.save(
                         new User(
                                 "manager@manager.com",
-                                passwordManager.encodePassword("123456789"),
+                                commonPass,
                                 new HashSet<>(Set.of(managerRole))));
         User userUser =
                 userService.save(
-                        new User(
-                                "user@user.com",
-                                passwordManager.encodePassword("123456789"),
-                                new HashSet<>(Set.of(userRole))));
+                        new User("user@user.com", commonPass, new HashSet<>(Set.of(userRole))));
 
-        Profile adminProfile =
-                profileService.save(
-                        new Profile(
-                                "Admin",
-                                "Last",
-                                "https://foto.admin.com",
-                                "av admin 01",
-                                adminUser));
-        Profile userProfile =
-                profileService.save(
-                        new Profile(
-                                "User", "Last", "https://foto.user.com", "av user 01", userUser));
-        Profile managerProfile =
-                profileService.save(
-                        new Profile(
-                                "Manager",
-                                "Last",
-                                "https://foto.invited.com",
-                                "av manager 01",
-                                managerUser));
-        Profile testingGoogleProfile =
-                profileService.save(
-                        new Profile(
-                                "Testing Profile",
-                                "Last",
-                                "https://foto.testing.com",
-                                "av testing 01",
-                                testGoogleUser));
+        profileService.save(
+                Profile.builder()
+                        .firstName("User")
+                        .lastName("Last")
+                        .address("")
+                        .avatarUrl("")
+                        .user(userUser)
+                        .build());
+        profileService.save(
+                Profile.builder()
+                        .firstName("Manager")
+                        .lastName("Last")
+                        .address("")
+                        .avatarUrl("")
+                        .user(managerUser)
+                        .build());
     }
 
     /**

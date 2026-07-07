@@ -8,13 +8,13 @@ import org.springframework.stereotype.Repository;
 /**
  * Repository interface for managing {@link Role} entities.
  *
- * <p>Extends {@link GenericRepo} to inherit common CRUD operations and defines additional queries
+ * <p>Extends {@link CustomRepo} to inherit common CRUD operations and defines additional queries
  * for role-specific operations.
  *
- * @see GenericRepo
+ * @see CustomRepo
  */
 @Repository
-public interface RoleRepo extends GenericRepo<Role, UUID> {
+public interface RoleRepo extends CustomRepo<Role, UUID> {
 
     /**
      * Retrieves a role by its name.
@@ -22,7 +22,7 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
      * @param roleName The name of the role.
      * @return An {@link Optional} containing the role if found, otherwise empty.
      */
-    Optional<Role> findByRoleName(String roleName);
+    Optional<Role> findByName(String roleName);
 
     /**
      * Checks whether a role with the specified name exists.
@@ -30,5 +30,5 @@ public interface RoleRepo extends GenericRepo<Role, UUID> {
      * @param roleName The name of the role to check - must not be null.
      * @return {@code true} if a role with the given name exists, {@code false} otherwise.
      */
-    boolean existsByRoleName(String roleName);
+    boolean existsByName(String roleName);
 }

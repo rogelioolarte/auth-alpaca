@@ -62,8 +62,8 @@ public class RoleMapperImpl implements IRoleMapper {
         if (entity == null) return null;
         return new RoleResponseDTO(
                 entity.getId(),
-                entity.getRoleName(),
-                entity.getRoleDescription(),
+                entity.getName(),
+                entity.getDescription(),
                 permissionMapper.toListResponseDTO(entity.getPermissions()));
     }
 
@@ -79,10 +79,11 @@ public class RoleMapperImpl implements IRoleMapper {
     @Override
     public Role toEntity(RoleRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new Role(
-                requestDTO.getRoleName(),
-                requestDTO.getRoleDescription(),
-                permissionService.findAllByIdsToSet(requestDTO.getPermissions()));
+        Role entity = new Role();
+        entity.setName(requestDTO.getName());
+        entity.setDescription(requestDTO.getDescription());
+        entity.setRolePermissions((permissionService.findAllByIds(requestDTO.getPermissions())));
+        return entity;
     }
 
     /**

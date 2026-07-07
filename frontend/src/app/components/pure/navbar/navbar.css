@@ -1,0 +1,264 @@
+/* ========================================
+   NAVBAR - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.app-header {
+  container-type: inline-size;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--sys-color-surface);
+  border-bottom: 1px solid var(--sys-color-outline-variant);
+  padding: 0 var(--space-4);
+  height: var(--space-16);
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(var(--space-2));
+}
+
+/* ========================================
+   BRAND
+   ======================================== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--sys-color-on-surface);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  transition: all 0.2s ease;
+
+  .brand-icon {
+    width: var(--space-3);
+    height: var(--space-3);
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--sys-color-primary) 0%, var(--sys-color-tertiary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+
+    .brand-logo {
+      display: flex;
+      height: var(--space-6);
+      width: var(--space-6);
+    }
+  }
+
+  .brand-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.03125rem;
+    background: linear-gradient(135deg, var(--sys-color-on-surface) 0%, var(--sys-color-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ========================================
+   SPACER
+   ======================================== */
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* ========================================
+   SHARED BUTTON PATTERN
+   All navbar buttons follow the same layout:
+   inline-flex + icon centered in its box + text
+   ======================================== */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nav-link,
+.btn-register,
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  /* Every icon inside a button: font-size defines the glyph, box centers it */
+  mat-icon {
+    font-size: 1.25rem;
+    width: var(--space-6);
+    height: var(--space-6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover mat-icon {
+    transform: scale(1.1);
+  }
+}
+
+.nav-link {
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--sys-color-on-surface-variant);
+
+  &:hover {
+    background: var(--sys-color-surface-variant);
+    color: var(--sys-color-on-surface);
+  }
+}
+
+.nav-divider {
+  width: 1px;
+  height: var(--space-3);
+  background: var(--sys-color-outline-variant);
+  margin: 0 var(--space-3);
+}
+
+/* ========================================
+   AUTH BUTTONS
+   ======================================== */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-register {
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--sys-color-on-surface-variant);
+
+  &:hover {
+    background: var(--sys-color-surface-variant);
+    color: var(--sys-color-on-surface);
+  }
+}
+
+.btn-login {
+  padding: var(--space-1) var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--sys-color-primary);
+  color: var(--sys-color-on-primary);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: var(--sys-color-primary-container);
+    color: var(--sys-color-on-primary-container);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-0.0625rem);
+  }
+}
+
+/* ========================================
+   USER MENU TRIGGER
+   ======================================== */
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--sys-color-outline-variant);
+  background: var(--sys-color-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--sys-color-surface-variant);
+    border-color: var(--sys-color-primary);
+  }
+
+  .user-avatar {
+    width: var(--space-8);
+    height: var(--space-8);
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sys-color-primary) 0%, var(--sys-color-tertiary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 1.25rem;
+      width: var(--space-6);
+      height: var(--space-6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      color: var(--sys-color-on-primary);
+    }
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+
+    .user-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--sys-color-on-surface);
+    }
+
+    .dropdown-icon {
+      font-size: 1.25rem;
+      width: var(--space-6);
+      height: var(--space-6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      color: var(--sys-color-on-surface-variant);
+      transition: transform 0.2s ease;
+    }
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@container (max-width: 48rem) {
+  .app-header {
+    padding: 0 var(--space-4);
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .nav-link span,
+  .btn-register span,
+  .btn-login span {
+    display: none;
+  }
+
+  .nav-link {
+    padding: var(--space-1) var(--space-1);
+  }
+
+  .btn-register {
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .btn-login {
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .user-info .user-name {
+    display: none;
+  }
+}

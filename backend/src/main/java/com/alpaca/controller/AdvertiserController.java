@@ -15,13 +15,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST controller for managing {@link Advertiser} entities.
+ * REST controller for managing {@link Advertiser} entities at {@code /api/advertisers}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of advertisers. Utilizes {@link
- * IAdvertiserService} for business logic and {@link IAdvertiserMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination. Most endpoints require the {@code ADMIN} role or
+ * ownership ({@code principal.getAdvertiserId() == #id}), except {@code GET /api/advertisers/page}
+ * which is public (returns only indexed advertisers). See each method's {@code @PreAuthorize}
+ * annotation for the exact security expression.
  *
  * @see IAdvertiserService
  * @see IAdvertiserMapper
@@ -56,6 +59,7 @@ public class AdvertiserController {
      *     status {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == null")
     @PostMapping
     public ResponseEntity<AdvertiserResponseDTO> save(
             @Valid @RequestBody AdvertiserRequestDTO request) {
@@ -74,6 +78,7 @@ public class AdvertiserController {
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @PutMapping("/{id}")
     public ResponseEntity<AdvertiserResponseDTO> updateById(
             @Valid @RequestBody AdvertiserRequestDTO request, @PathVariable UUID id) {
@@ -88,6 +93,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no advertiser is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getAdvertiserId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
@@ -100,6 +106,7 @@ public class AdvertiserController {
      * @return {@link ResponseEntity} containing a list of {@link AdvertiserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<AdvertiserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -107,15 +114,40 @@ public class AdvertiserController {
     }
 
     /**
-     * Retrieves a paginated list of advertisers.
+     * Retrieves a paginated list of <em>all</em> advertisers (including unindexed ones) for admin
+     * use.
      *
-     * @param pageable the pagination information; must not be {@code null}
+     * <p>Returns every advertiser regardless of indexed status. Compare with {@link
+     * #findAllPage(Pageable)} which only returns indexed advertisers (public-facing view).
+     *
+     * @param pageable the pagination parameters (page, size, sort); must not be {@code null}
+     * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
+     *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/page-admin")
+    public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPageForAdmin(
+            Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+    }
+
+    /**
+     * Retrieves a paginated list of indexed advertisers (public-facing view).
+     *
+     * <p>Only returns advertisers where {@code indexed = true}. This is the public listing. Compare
+     * with {@link #findAllPageForAdmin(Pageable)} which includes all advertisers regardless of
+     * indexed status.
+     *
+     * @param pageable the pagination parameters (page, size, sort); must not be {@code null}
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link
      *     AdvertiserResponseDTO} with status {@link HttpStatus#OK}
      */
     @GetMapping("/page")
     public ResponseEntity<PagedModel<AdvertiserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+                .body(
+                        new PagedModel<>(
+                                mapper.toPageResponseDTO(service.findAllByIndexedTrue(pageable))));
     }
 }

@@ -13,32 +13,38 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.RedirectStrategy;
 
 /** Unit tests for {@link AuthFailureHandler} */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthFailureHandler Unit Tests")
 class AuthFailureHandlerTest {
 
-    private static final String FRONTEND_URI = "http://frontend.app/";
-    private AuthFailureHandler handler;
-    private CookieAuthReqRepo repository;
+    private static final String FRONTEND_URI = "http://test.test";
+    public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+
+    @Mock private CookieAuthReqRepo repository;
+    @Mock private RedirectStrategy redirectStrategy;
+
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
-    private RedirectStrategy redirectStrategy;
+    private AuthFailureHandler handler;
     private AuthenticationException exception;
 
     @BeforeEach
     void setUp() {
-        repository = mock(CookieAuthReqRepo.class);
-        handler = new AuthFailureHandler(repository, FRONTEND_URI);
-        redirectStrategy = mock(RedirectStrategy.class);
-        handler.setRedirectStrategy(redirectStrategy);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
+
+        handler = new AuthFailureHandler(repository, FRONTEND_URI);
+        handler.setRedirectStrategy(redirectStrategy);
         exception = new AuthenticationException("orig|error[]{}") {};
     }
 
@@ -64,13 +70,13 @@ class AuthFailureHandlerTest {
         @Test
         @DisplayName("Given request parameter 'redirect_uri', uses it and error param from request")
         void paramRedirectUri_andParamError() throws IOException {
-            request.setParameter("redirect_uri", "http://app/next");
+            request.setParameter("redirect_uri", "http://test/next");
             request.setParameter("error", "bad|input[]");
 
             handler.onAuthenticationFailure(request, response, exception);
 
             verify(repository).removeAuthorizationRequestCookies(request, response);
-            String expected = "http://app/next?error=bad input";
+            String expected = "http://test/next?error=bad input";
             verify(redirectStrategy).sendRedirect(request, response, expected);
         }
 
@@ -78,18 +84,15 @@ class AuthFailureHandlerTest {
         @DisplayName("Given cookie 'redirect_uri' if param absent")
         void cookieRedirectUri_andExceptionMessage() throws IOException {
             try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-                Cookie c = new Cookie(CookieAuthReqRepo.RedirectCookieName, "http://cookie/uri");
-                cm.when(
-                                () ->
-                                        CookieManager.getCookie(
-                                                request, CookieAuthReqRepo.RedirectCookieName))
+                Cookie c = new Cookie(REDIRECT_PARAM_NAME, "http://test/uri");
+                cm.when(() -> CookieManager.getCookie(request, REDIRECT_PARAM_NAME))
                         .thenReturn(Optional.of(c));
 
                 handler.onAuthenticationFailure(request, response, exception);
 
                 verify(repository).removeAuthorizationRequestCookies(request, response);
                 String sanitized = "orig error"; // from exception.getMessage()
-                String expected = "http://cookie/uri?error=" + sanitized;
+                String expected = "http://test/uri?error=" + sanitized;
                 verify(redirectStrategy).sendRedirect(request, response, expected);
             }
         }
@@ -101,7 +104,7 @@ class AuthFailureHandlerTest {
             handler.onAuthenticationFailure(request, response, exception);
 
             verify(repository).removeAuthorizationRequestCookies(request, response);
-            String expected = FRONTEND_URI + "?error=orig error";
+            String expected = FRONTEND_URI + "/login" + "?error=orig error";
             verify(redirectStrategy).sendRedirect(request, response, expected);
         }
     }

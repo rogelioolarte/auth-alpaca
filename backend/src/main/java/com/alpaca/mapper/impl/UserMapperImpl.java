@@ -56,7 +56,7 @@ public class UserMapperImpl implements IUserMapper {
 
     private final IRoleMapper roleMapper;
     private final IProfileMapper profileMapper;
-    private final IAdvertiserMapper IAdvertiserMapper;
+    private final IAdvertiserMapper advertiserMapper;
     private final IRoleService roleService;
 
     /**
@@ -73,7 +73,7 @@ public class UserMapperImpl implements IUserMapper {
                 entity.getEmail(),
                 roleMapper.toListResponseDTO(entity.getRoles()),
                 profileMapper.toResponseDTO(entity.getProfile()),
-                IAdvertiserMapper.toResponseDTO(entity.getAdvertiser()));
+                advertiserMapper.toResponseDTO(entity.getAdvertiser()));
     }
 
     /**
@@ -87,10 +87,11 @@ public class UserMapperImpl implements IUserMapper {
     @Override
     public User toEntity(UserRequestDTO requestDTO) {
         if (requestDTO == null) return null;
-        return new User(
-                requestDTO.getEmail(),
-                requestDTO.getPassword(),
-                roleService.findAllByIdsToSet(requestDTO.getRoles()));
+        User entity = new User();
+        entity.setEmail(requestDTO.getEmail());
+        entity.setPassword(requestDTO.getPassword());
+        entity.setRoles(roleService.findAllByIds(requestDTO.getRoles()));
+        return entity;
     }
 
     /**

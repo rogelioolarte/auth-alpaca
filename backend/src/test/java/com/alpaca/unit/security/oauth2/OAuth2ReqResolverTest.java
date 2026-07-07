@@ -1,7 +1,8 @@
 package com.alpaca.unit.security.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.security.oauth2.OAuth2ReqResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -22,8 +24,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.test.util.ReflectionTestUtils;
 
-/** Unit tests for {@link OAuth2ReqResolver} */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("OAuth2ReqResolver Unit Tests")
 class OAuth2ReqResolverTest {
 
     @Mock private ClientRegistrationRepository clientRegRepo;
@@ -31,7 +33,6 @@ class OAuth2ReqResolverTest {
     @Mock private OAuth2AuthorizationRequestResolver defaultResolver;
 
     private OAuth2ReqResolver resolver;
-
     private final String clientId = "clientABC";
     private final OAuth2AuthorizationRequest baseRequest =
             OAuth2AuthorizationRequest.authorizationCode()
@@ -48,93 +49,82 @@ class OAuth2ReqResolverTest {
     }
 
     @Test
-    void resolveDelegatesToDefaultAndAddsPKCE() {
+    @DisplayName("resolve(request): Should delegate and add PKCE + custom challenge when present")
+    void resolve_ShouldAddPKCEAndCustomChallenge_WhenDefaultReturnsRequest() {
+        String clientChallenge = "custom-client-challenge";
         when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
-        OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
-        assertNotNull(custom, "The resolver must not return null");
-        assertNotNull(
-                custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER),
-                "Must contain code_verifier");
-        assertNotNull(
-                custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE),
-                "Must contain code_challenge");
+        when(servletRequest.getParameter("client_code_challenge")).thenReturn(clientChallenge);
+
+        OAuth2AuthorizationRequest result = resolver.resolve(servletRequest);
+
+        assertNotNull(result);
+        assertEquals(clientChallenge, result.getAttributes().get("client_code_challenge"));
+        assertNotNull(result.getAttributes().get(PkceParameterNames.CODE_VERIFIER));
         assertEquals(
                 "S256",
-                custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD),
-                "The PKCE method must be S256");
+                result.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD));
     }
 
     @Test
-    void resolveWithClientIdDelegatesToDefaultAndAddsPKCE() {
+    @DisplayName("resolve(request, id): Should delegate and add PKCE")
+    void resolveWithId_ShouldAddPKCE_WhenDefaultReturnsRequest() {
         when(defaultResolver.resolve(servletRequest, clientId)).thenReturn(baseRequest);
-        OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest, clientId);
-        assertNotNull(custom, "The resolver must not return null");
-        assertTrue(custom.getAttributes().containsKey(PkceParameterNames.CODE_VERIFIER));
-        assertTrue(custom.getAdditionalParameters().containsKey(PkceParameterNames.CODE_CHALLENGE));
+
+        OAuth2AuthorizationRequest result = resolver.resolve(servletRequest, clientId);
+
+        assertNotNull(result);
+        assertTrue(result.getAttributes().containsKey(PkceParameterNames.CODE_VERIFIER));
         assertEquals(
                 "S256",
-                custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD));
+                result.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD));
     }
 
     @Test
-    void resolveAddsPKCEParameters_whenDefaultReturnsRequest() {
-        when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
-        OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
-        assertNotNull(custom);
-        String codeVerifier = (String) custom.getAttributes().get(PkceParameterNames.CODE_VERIFIER);
-        assertNotNull(codeVerifier, "Must contain code_verifier");
-        String codeChallenge =
-                (String) custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE);
-        assertNotNull(codeChallenge, "Must contain code_challenge");
-        String method =
-                (String)
-                        custom.getAdditionalParameters()
-                                .get(PkceParameterNames.CODE_CHALLENGE_METHOD);
-        assertEquals("S256", method, "The PKCE method must be S256");
-    }
-
-    @Test
-    void resolveWithClientIdAddsPKCEParameters_whenDefaultReturnsRequest() {
-        when(defaultResolver.resolve(servletRequest, clientId)).thenReturn(baseRequest);
-        OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest, clientId);
-        assertNotNull(custom);
-        assertTrue(custom.getAttributes().containsKey(PkceParameterNames.CODE_VERIFIER));
-        assertTrue(custom.getAdditionalParameters().containsKey(PkceParameterNames.CODE_CHALLENGE));
-        assertEquals(
-                "S256",
-                custom.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD));
-    }
-
-    @Test
-    void customizeAuthorizationRequest_withNullInput_returnsNull() {
+    @DisplayName("resolve: Should return null when default resolver returns null")
+    void resolve_ShouldReturnNull_WhenDefaultReturnsNull() {
         when(defaultResolver.resolve(servletRequest)).thenReturn(null);
-        OAuth2AuthorizationRequest custom = resolver.resolve(servletRequest);
-        assertNull(custom, "Expected null when input request is null");
+
+        OAuth2AuthorizationRequest result = resolver.resolve(servletRequest);
+
+        assertNull(result);
     }
 
     @Test
-    void addPKCEParameters_whenNoSuchAlgorithmException_thenFallbackToVerifier() {
-        OAuth2ReqResolver real = new OAuth2ReqResolver(clientRegRepo, "/oauth2/authorize-client");
-        OAuth2ReqResolver spy = spy(real);
-        StringKeyGenerator fixedGen = () -> "fixed-verifier";
-        ReflectionTestUtils.setField(spy, "securityKeyGenerator", fixedGen);
+    @DisplayName("addPKCEParameters: Should handle NoSuchAlgorithmException and fallback")
+    void addPKCEParameters_ShouldFallback_WhenHashAlgorithmMissing() {
+        StringKeyGenerator fixedGenerator = () -> "plain-text-verifier";
+        ReflectionTestUtils.setField(resolver, "securityKeyGenerator", fixedGenerator);
+
         Map<String, Object> attributes = new HashMap<>();
-        Map<String, Object> additional = new HashMap<>();
-        try (MockedStatic<MessageDigest> md = mockStatic(MessageDigest.class)) {
-            md.when(() -> MessageDigest.getInstance("SHA-256"))
-                    .thenThrow(new NoSuchAlgorithmException("SHA-256 not available"));
-            ReflectionTestUtils.invokeMethod(spy, "addPKCEParameters", attributes, additional);
+        Map<String, Object> additionalParameters = new HashMap<>();
+
+        try (MockedStatic<MessageDigest> mockedDigest = mockStatic(MessageDigest.class)) {
+            mockedDigest
+                    .when(() -> MessageDigest.getInstance("SHA-256"))
+                    .thenThrow(new NoSuchAlgorithmException());
+
+            ReflectionTestUtils.invokeMethod(
+                    resolver, "addPKCEParameters", attributes, additionalParameters);
+
+            assertEquals(
+                    fixedGenerator.generateKey(), attributes.get(PkceParameterNames.CODE_VERIFIER));
+            assertEquals(
+                    fixedGenerator.generateKey(),
+                    additionalParameters.get(PkceParameterNames.CODE_CHALLENGE));
+            assertNull(additionalParameters.get(PkceParameterNames.CODE_CHALLENGE_METHOD));
         }
-        assertEquals(
-                "fixed-verifier",
-                attributes.get(PkceParameterNames.CODE_VERIFIER),
-                "You must have put the generated code_verifier");
-        assertEquals(
-                "fixed-verifier",
-                additional.get(PkceParameterNames.CODE_CHALLENGE),
-                "If the hash fails, code_challenge must equal code_verifier");
-        assertFalse(
-                additional.containsKey(PkceParameterNames.CODE_CHALLENGE_METHOD),
-                "There should be no code_challenge_method when SHA-256 fails");
+    }
+
+    @Test
+    @DisplayName(
+            "customizeAuthorizationRequest: Should skip custom challenge when parameter is blank")
+    void customizeAuthorizationRequest_ShouldSkipCustomChallenge_WhenParameterIsBlank() {
+        when(defaultResolver.resolve(servletRequest)).thenReturn(baseRequest);
+        when(servletRequest.getParameter("client_code_challenge")).thenReturn("");
+
+        OAuth2AuthorizationRequest result = resolver.resolve(servletRequest);
+
+        assertNotNull(result);
+        assertFalse(result.getAttributes().containsKey("client_code_challenge"));
     }
 }

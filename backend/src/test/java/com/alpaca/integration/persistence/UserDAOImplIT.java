@@ -2,131 +2,112 @@ package com.alpaca.integration.persistence;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.alpaca.entity.Advertiser;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
-import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.repository.AdvertiserRepo;
-import com.alpaca.repository.ProfileRepo;
+import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.repository.UserRepo;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.UserProvider;
-import java.util.Collections;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.DataJpaIntegrationTest;
+import com.alpaca.security.manager.PasswordManager;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link com.alpaca.persistence.impl.UserDAOImpl} */
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
+/** Integration tests for {@link UserDAOImpl} */
+@DataJpaIntegrationTest
+@Import({UserDAOImpl.class})
+@DisplayName("UserDAOImpl Integration Tests")
 class UserDAOImplIT {
 
     @Autowired private IUserDAO dao;
-
     @Autowired private UserRepo userRepo;
+    @MockitoBean private PasswordManager passwordManager;
 
-    @Autowired private ProfileRepo profileRepo;
-
-    @Autowired private AdvertiserRepo advertiserRepo;
-
-    private User persisted;
+    private User user;
 
     @BeforeEach
-    void setUp() {
-        // prepare a user for update and findByEmail
-        User template = UserProvider.singleTemplate();
-        persisted = userRepo.save(template);
+    void setup() {
+        Instant now = Instant.now();
+        user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
     }
 
     @Test
-    @DisplayName("findByEmail returns empty for null or blank and finds existing user by email")
+    @DisplayName("findByEmail: returns user when email matches and handles invalid inputs")
     @Transactional
-    void findByEmail() {
-        // null email
+    void findByEmail_ShouldReturnCorrectResults() {
+        userRepo.save(user);
+
         assertTrue(dao.findByEmail(null).isEmpty());
-        // blank email
-        assertTrue(dao.findByEmail("  ").isEmpty());
-        // existing
-        Optional<User> found = dao.findByEmail(persisted.getEmail());
+        assertTrue(dao.findByEmail("").isEmpty());
+
+        Optional<User> found = dao.findByEmail(user.getEmail());
         assertTrue(found.isPresent());
-        assertEquals(persisted.getId(), found.get().getId());
+        assertEquals(user.getEmail(), found.get().getEmail());
     }
 
     @Test
-    @DisplayName("updateById updates non-null fields, toggles booleans, and throws if not found")
+    @DisplayName("existsByEmail: returns true only for existing records")
     @Transactional
-    void updateById() {
-        UUID id = persisted.getId();
-        // prepare related entities
-        Profile templateProfile = ProfileProvider.singleTemplate();
-        Advertiser templateAdvertiser = AdvertiserProvider.singleTemplate();
-        templateProfile.setUser(persisted);
-        templateAdvertiser.setUser(persisted);
-        Profile profile = profileRepo.save(templateProfile);
-        Advertiser adv = advertiserRepo.save(templateAdvertiser);
+    void existsByEmail_ShouldValidateCorrectly() {
+        userRepo.save(user);
 
-        User update = getUser(profile, adv);
-
-        User out = dao.updateById(update, id);
-        assertEquals(id, out.getId());
-        assertEquals("new@example.com", out.getEmail());
-        assertEquals("newPass", out.getPassword());
-        assertEquals(profile.getId(), out.getProfile().getId());
-        assertEquals(adv.getId(), out.getAdvertiser().getId());
-        assertEquals(update.isEnabled(), out.isEnabled());
-        assertEquals(update.isAccountNoLocked(), out.isAccountNoLocked());
-        assertEquals(update.isAccountNoExpired(), out.isAccountNoExpired());
-        assertEquals(update.isCredentialNoExpired(), out.isCredentialNoExpired());
-        assertEquals(update.isEmailVerified(), out.isEmailVerified());
-        assertEquals(update.isGoogleConnected(), out.isGoogleConnected());
-
-        // partial update: null or blank should not override
-        User partial = new User();
-        partial.setEmail("partial@example.com");
-        // leave password blank
-        User outPartial = dao.updateById(partial, id);
-        assertEquals("partial@example.com", outPartial.getEmail());
-        assertEquals(out.getPassword(), outPartial.getPassword());
-
-        // non-existing id
-        assertThrows(NotFoundException.class, () -> dao.updateById(update, UUID.randomUUID()));
-    }
-
-    private User getUser(Profile profile, Advertiser adv) {
-        User update = new User();
-        update.setEmail("new@example.com");
-        update.setPassword("newPass");
-        update.setUserRoles(Collections.emptySet());
-        update.setProfile(profile);
-        update.setAdvertiser(adv);
-        update.setEnabled(!persisted.isEnabled());
-        update.setAccountNoLocked(!persisted.isAccountNoLocked());
-        update.setAccountNoExpired(!persisted.isAccountNoExpired());
-        update.setCredentialNoExpired(!persisted.isCredentialNoExpired());
-        update.setEmailVerified(!persisted.isEmailVerified());
-        update.setGoogleConnected(!persisted.isGoogleConnected());
-        return update;
-    }
-
-    @Test
-    @DisplayName("existsByEmail and existsByUniqueProperties behave correctly")
-    @Transactional
-    void existsByEmailAndUnique() {
-        // null or blank
+        assertTrue(dao.existsByEmail(user.getEmail()));
+        assertFalse(dao.existsByEmail("non-existent@alpaca.com"));
         assertFalse(dao.existsByEmail(null));
-        assertFalse(dao.existsByEmail("  "));
-        // existing
-        assertTrue(dao.existsByEmail(persisted.getEmail()));
-        // uniqueProperties same as email
-        assertTrue(dao.existsByUniqueProperties(persisted));
+    }
+
+    @Test
+    @DisplayName("existsByUniqueProperties: uses email to check existence")
+    @Transactional
+    void existsByUniqueProperties_ShouldCheckEmail() {
+        userRepo.save(user);
+
+        User probe = new User();
+        probe.setEmail(user.getEmail());
+
+        assertTrue(dao.existsByUniqueProperties(probe));
+    }
+
+    @Test
+    @DisplayName("lockFindUserById: retrieves user with pessimistic lock")
+    @Transactional
+    void lockFindUserById_ShouldRetrieveUser() {
+        userRepo.save(user);
+
+        Optional<User> lockedUser = dao.lockFindUserById(user.getId());
+
+        assertTrue(lockedUser.isPresent());
+        assertEquals(user.getId(), lockedUser.get().getId());
+    }
+
+    @Test
+    @DisplayName("existsAllByIds: verifies multiple IDs correctly")
+    @Transactional
+    void existsAllByIds_ShouldVerifyCount() {
+        Instant now = Instant.now();
+        User user1 = UserProvider.singleTemplate();
+        user1.setEmail("u1@test.com");
+        user1.setCreatedAt(now);
+        User user2 = UserProvider.singleTemplate();
+        user2.setEmail("u2@test.com");
+        user2.setCreatedAt(now);
+
+        userRepo.save(user1);
+        userRepo.save(user2);
+
+        List<UUID> ids = List.of(user1.getId(), user2.getId());
+        assertTrue(dao.existsAllByIds(ids));
+
+        List<UUID> invalidIds = List.of(user1.getId(), UUID.randomUUID());
+        assertFalse(dao.existsAllByIds(invalidIds));
     }
 }

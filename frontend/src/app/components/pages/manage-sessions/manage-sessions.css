@@ -1,0 +1,53 @@
+/* ========================================
+   MANAGE SESSIONS PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--sys-color-surface);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sessions-table {
+  width: 100%;
+}
+
+.info-icon {
+  font-size: var(--space-4);
+  height: var(--space-4);
+  width: var(--space-4);
+  margin-left: var(--space-1);
+  cursor: help;
+  vertical-align: middle;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--sys-color-on-surface-variant);
+  gap: var(--space-3);
+}
+
+.empty-state mat-icon {
+  font-size: var(--space-12);
+  width: var(--space-12);
+  height: var(--space-12);
+}

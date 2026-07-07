@@ -1,5 +1,6 @@
 package com.alpaca.security.filter;
 
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.security.manager.JJwtManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,8 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,7 +37,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
-    private final JJwtManager manager;
+    private final JJwtManager jwtManager;
 
     /**
      * Filters the HTTP request to extract and validate a JWT token if present. If the token is
@@ -54,17 +55,23 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String jwtToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (isAToken(jwtToken)) {
+            UsernamePasswordAuthenticationToken userToken =
+                    jwtManager.manageAuthentication(jwtToken.substring(7));
+            if (userToken == null) {
+                throw new UnauthorizedException("Invalid Access Token");
+            }
+            userToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContext context = SecurityContextHolder.getContext();
-            UsernamePasswordAuthenticationToken authentication =
-                    manager.manageAuthentication(jwtToken.substring(7));
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            context.setAuthentication(authentication);
+            context.setAuthentication(userToken);
             SecurityContextHolder.setContext(context);
         }
-
         filterChain.doFilter(request, response);
     }
 

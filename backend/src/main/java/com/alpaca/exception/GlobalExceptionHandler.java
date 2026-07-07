@@ -2,7 +2,12 @@ package com.alpaca.exception;
 
 import com.alpaca.dto.response.ErrorResponseDTO;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -37,6 +42,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @see RestControllerAdvice
  * @see ExceptionHandler
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -70,31 +76,62 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Catches all unhandled exceptions and returns a structured error response with details
-     * including the request path, error message, and timestamp.
+     * Handles data integrity violations (e.g., unique constraint or duplicate key) by returning
+     * HTTP 409 Conflict.
      *
-     * @param exception the uncaught exception
-     * @param webRequest the current web request to extract context
-     * @return an INTERNAL_SERVER_ERROR response with an {@link ErrorResponseDTO}
+     * @param ex the data integrity exception
+     * @param req the current web request for context
+     * @return a 409 response indicating a resource conflict
      */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGlobalException(
-            Exception exception, WebRequest webRequest) {
-        return new ResponseEntity<>(
-                new ErrorResponseDTO(
-                        webRequest.getDescription(false),
-                        exception.getMessage(),
-                        LocalDateTime.now()),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex, WebRequest req) {
+        return buildResponse(
+                HttpStatus.CONFLICT, "A resource with the same identifier already exists.", req);
     }
 
     /**
-     * Handles ResponseStatusException by passing through its status and reason into a structured
+     * Handles cases where a query or update expected a result but found none (e.g., delete by
+     * non-existent ID), returning HTTP 404 Not Found.
+     *
+     * @param ex the empty-result exception
+     * @param req the current web request for context
+     * @return a 404 response with the exception's message
+     */
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<ErrorResponseDTO> handleEmptyResultException(
+            EmptyResultDataAccessException ex, WebRequest req) {
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    /**
+     * Handles any uncaught exception not handled by more specific exception handlers.
+     *
+     * <p>Logs the full error at ERROR level and returns a generic HTTP 500 response, avoiding
+     * leakage of internal implementation details to the client.
+     *
+     * @param ex the unexpected exception
+     * @param req the current web request for context
+     * @return a 500 response with a generic error message wrapped in an {@link ErrorResponseDTO}
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleGlobalException(Exception ex, WebRequest req) {
+        log.error("Unexpected error occurred: ", ex);
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", req);
+    }
+
+    /**
+     * Handles {@link ResponseStatusException} by forwarding its status and reason into a structured
      * error payload.
      *
-     * @param exception the exception containing a predefined HTTP status
+     * <p>This is the catch-all handler for all typed exception subclasses ({@link
+     * BadRequestException}, {@link NotFoundException}, etc.) since they all extend {@link
+     * ResponseStatusException}.
+     *
+     * @param exception the exception containing a predefined HTTP status and reason
      * @param webRequest the current web request for context
-     * @return response with the appropriate HTTP status and an {@link ErrorResponseDTO}
+     * @return a response with the appropriate HTTP status and an {@link ErrorResponseDTO}
      */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponseDTO> handleResponseStatusException(
@@ -103,7 +140,31 @@ public class GlobalExceptionHandler {
                 new ErrorResponseDTO(
                         webRequest.getDescription(false),
                         exception.getReason(),
-                        LocalDateTime.now()),
+                        LocalDateTime.now(ZoneId.systemDefault())),
                 HttpStatus.valueOf(exception.getStatusCode().value()));
+    }
+
+    /**
+     * Handles rate-limit violations by returning HTTP 429 with a {@code Retry-After} header so the
+     * client knows when to retry.
+     *
+     * @param ex the rate-limit exception carrying the retry delay
+     * @return a 429 response with the {@code Retry-After} header
+     */
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Object> handleRateLimit(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body("Too many requests, try again later");
+    }
+
+    private ResponseEntity<ErrorResponseDTO> buildResponse(
+            HttpStatus status, String message, WebRequest req) {
+        ErrorResponseDTO error =
+                new ErrorResponseDTO(
+                        req.getDescription(false),
+                        message,
+                        LocalDateTime.now(ZoneId.systemDefault()));
+        return new ResponseEntity<>(error, status);
     }
 }

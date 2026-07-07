@@ -1,0 +1,115 @@
+<mat-toolbar class="app-header">
+  @if (isInDashboard()) {
+  <button mat-icon-button (click)="toggleSidenav()" matTooltip="Toggle menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  }
+  <!-- Logo / Brand -->
+  <a class="brand" routerLink="/">
+    <div class="brand-icon">
+      <img src="logo.svg" alt="logo" class="brand-logo">
+    </div>
+    <span class="brand-text">Auth Alpaca</span>
+  </a>
+
+  <!-- Spacer -->
+  <span class="toolbar-spacer"></span>
+
+  <!-- Navigation Links -->
+  <nav class="nav-links">
+    <a class="nav-link" routerLink="/advertisers">
+      <mat-icon>store_mall_directory</mat-icon>
+      <span>Browse Advertisers</span>
+    </a>
+  </nav>
+
+  <!-- Divider -->
+  <div class="nav-divider"></div>
+
+  <!-- User Menu -->
+  @if (!user()) {
+  <div class="auth-buttons">
+    <a class="btn-register" routerLink="/register">
+      <mat-icon>person_add</mat-icon>
+      <span>Create Account</span>
+    </a>
+    <a class="btn-login" routerLink="/login">
+      <mat-icon>login</mat-icon>
+      <span>Sign In</span>
+    </a>
+  </div>
+  } @else {
+  <button class="user-menu-trigger" [matMenuTriggerFor]="userMenu">
+    <div class="user-avatar">
+      <mat-icon>person</mat-icon>
+    </div>
+    <div class="user-info">
+      <span class="user-name">{{ user()?.username }}</span>
+      <mat-icon class="dropdown-icon">expand_more</mat-icon>
+    </div>
+  </button>
+  <div class="menu-divider"></div>
+  <mat-menu #userMenu="matMenu" class="user-dropdown" [overlapTrigger]="false">
+    <!-- User Header Section -->
+    <div class="menu-header" mat-menu-item disabled>
+      <div class="user-avatar-large">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="user-details">
+        <span class="user-name-text">{{ user()?.username }}</span>
+      </div>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <!-- Quick Access Section -->
+    <div class="menu-section">
+      <span class="section-label">Quick Access</span>
+      <button mat-menu-item routerLink="/dashboard" class="menu-item">
+        <mat-icon class="item-icon">dashboard</mat-icon>
+        <span class="item-text">Dashboard</span>
+      </button>
+      <button mat-menu-item routerLink="/dashboard/profile" class="menu-item">
+        <mat-icon class="item-icon">manage_accounts</mat-icon>
+        <span class="item-text">My Profile</span>
+      </button>
+      <button mat-menu-item routerLink="/dashboard/sessions" class="menu-item">
+        <mat-icon class="item-icon">key</mat-icon>
+        <span class="item-text">My Sessions</span>
+      </button>
+      <button mat-menu-item routerLink="/dashboard/advertiser" class="menu-item">
+        <mat-icon class="item-icon">store</mat-icon>
+        <span class="item-text">My Advertiser</span>
+      </button>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <!-- Admin Section (if admin) -->
+    @if (isAdmin()) {
+    <div class="menu-section">
+      <span class="section-label">Administration</span>
+      <button mat-menu-item routerLink="/dashboard/users" class="menu-item">
+        <mat-icon class="item-icon">group</mat-icon>
+        <span class="item-text">Manage Users</span>
+      </button>
+      <button mat-menu-item routerLink="/dashboard/roles" class="menu-item">
+        <mat-icon class="item-icon">admin_panel_settings</mat-icon>
+        <span class="item-text">Manage Roles</span>
+      </button>
+      <button mat-menu-item routerLink="/dashboard/permissions" class="menu-item">
+        <mat-icon class="item-icon">key</mat-icon>
+        <span class="item-text">Manage Permissions</span>
+      </button>
+    </div>
+    <div class="menu-divider"></div>
+    }
+
+    <!-- Logout -->
+    <button mat-menu-item (click)="logout()" class="menu-item logout">
+      <mat-icon class="item-icon">logout</mat-icon>
+      <span class="item-text">Sign Out</span>
+    </button>
+  </mat-menu>
+  }
+</mat-toolbar>

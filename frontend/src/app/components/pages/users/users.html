@@ -1,0 +1,92 @@
+<div class="content">
+  <div class="page-header">
+    <h1>Users</h1>
+    <button mat-raised-button color="primary" (click)="openDialog()">
+      <mat-icon>add</mat-icon>
+      Add User
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput (input)="applyFilter($event)" placeholder="Search users..." />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <table mat-table [dataSource]="users()" class="users-table">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="profile">
+      <th mat-header-cell *matHeaderCellDef>Profile</th>
+      <td mat-cell *matCellDef="let element">
+        @if (element.profile) {
+          <span matTooltip="{{ element.profile.firstName }} {{ element.profile.lastName }}">
+            {{ element.profile.firstName }}
+          </span>
+        } @else {
+          <span class="empty-field">-</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="advertiser">
+      <th mat-header-cell *matHeaderCellDef>Advertiser</th>
+      <td mat-cell *matCellDef="let element">
+        @if (element.advertiser) {
+          <span matTooltip="{{ element.advertiser.title }}">
+            {{ element.advertiser.title }}
+          </span>
+        } @else {
+          <span class="empty-field">-</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="roles">
+      <th mat-header-cell *matHeaderCellDef>Roles</th>
+      <td mat-cell *matCellDef="let element">
+        @if (element.roles && element.roles.length > 0) {
+          <button mat-button color="primary" (click)="openRolesDialog(element)">
+            <mat-icon>visibility</mat-icon>
+            {{ element.roles.length }} roles
+          </button>
+        } @else {
+          <span class="empty-field">No roles</span>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button color="primary" (click)="openDialog(element)" matTooltip="Edit">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteUser(element.id)" matTooltip="Delete">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="totalItems()"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons
+  >
+  </mat-paginator>
+</div>

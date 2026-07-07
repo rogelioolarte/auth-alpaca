@@ -24,10 +24,12 @@ class OAuth2UserInfoFactoryTest {
 
     @Test
     void shouldThrowBadRequestException_WhenRegistrationIdIsNotSupported() {
+        String registrationId = "facebook";
+        Map<String, Object> attr = Map.of();
         BadRequestException ex =
                 assertThrows(
                         BadRequestException.class,
-                        () -> OAuth2UserInfoFactory.getOAuth2UserInfo("facebook", Map.of()));
+                        () -> OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attr));
         assertEquals("Login with facebook is not supported", ex.getReason());
     }
 }

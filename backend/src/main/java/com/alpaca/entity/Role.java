@@ -1,39 +1,38 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Represents a Role entity in the system. This entity is mapped to the "roles" table in the
  * database and defines user roles with specific permissions.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "roles")
-public class Role {
+public class Role extends Auditable {
 
     /**
      * Unique identifier for the Role. This value is automatically generated using a UUID strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "role_id")
+    @GeneratorUUIDv7
+    @Column(name = "id")
     private UUID id;
 
     /** The name of the Role. This field is unique and cannot be null. */
-    @Column(name = "role_name", nullable = false, unique = true)
-    private String roleName;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
     /** A brief description of the Role. This field is unique and cannot be null. */
-    @Column(name = "role_description", nullable = false, unique = true)
-    private String roleDescription;
+    @Column(name = "description", nullable = false, unique = true)
+    private String description;
 
     /**
      * Indicates the set of Permission has the Role.
@@ -41,11 +40,12 @@ public class Role {
      * <p>A Role has a many-to-many relationship with an {@link Permission} through {@link
      * RolePermission}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "role",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     private Set<RolePermission> rolePermissions = new HashSet<>();
 
     /**
@@ -53,32 +53,45 @@ public class Role {
      *
      * <p>A Role has a many-to-many relationship with an {@link User} through {@link UserRole}
      */
+    @Builder.Default
     @OneToMany(
             mappedBy = "role",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * Constructs an instance of a new Role object with the specified attributes. The generated
      * object is ready to be used and stored in the database.
      *
-     * @param roleName Name of the Role - must not be null
-     * @param roleDescription Short description of the Role - must not be null
+     * @param name Name of the Role - must not be null
+     * @param description Short description of the Role - must not be null
      * @param permissions Set of permissions associated with this Role
      */
-    public Role(String roleName, String roleDescription, Set<Permission> permissions) {
-        this.roleName = roleName;
-        this.roleDescription = roleDescription;
+    public Role(String name, String description, Set<Permission> permissions) {
+        this.name = name;
+        this.description = description;
         this.rolePermissions = permissionsToRolePermissions(permissions);
     }
 
+    /**
+     * Replaces all permission assignments for this role with the given permissions.
+     *
+     * <p>Clears existing {@link RolePermission} associations and rebuilds them from the provided
+     * collection. Has no effect if the collection is null or empty.
+     *
+     * @param permissions the collection of permissions to assign; may be empty or {@code null}
+     *     (no-op)
+     */
     public void setRolePermissions(Collection<Permission> permissions) {
-        if (permissions != null && !permissions.isEmpty()) {
-            this.rolePermissions = permissionsToRolePermissions(permissions);
-        } else {
+        if (this.rolePermissions == null) {
             this.rolePermissions = new HashSet<>();
+        }
+        if (permissions != null && !permissions.isEmpty()) {
+            this.rolePermissions.clear();
+            Set<RolePermission> newRolePermissions = permissionsToRolePermissions(permissions);
+            this.rolePermissions.addAll(newRolePermissions);
         }
     }
 
@@ -90,12 +103,12 @@ public class Role {
      * @return a set of {@link RolePermission} objects associated with this Role.
      */
     public Set<RolePermission> permissionsToRolePermissions(Collection<Permission> permissions) {
-        if (permissions.isEmpty()) return Collections.emptySet();
-        Set<RolePermission> rolePermissions = new HashSet<>(permissions.size());
+        if (permissions == null || permissions.isEmpty()) return Collections.emptySet();
+        Set<RolePermission> rolePermissionSet = HashSet.newHashSet(permissions.size());
         for (Permission permission : permissions) {
-            rolePermissions.add(new RolePermission(this, permission));
+            rolePermissionSet.add(new RolePermission(this, permission));
         }
-        return rolePermissions;
+        return rolePermissionSet;
     }
 
     /**
@@ -113,25 +126,14 @@ public class Role {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Role role)) return false;
-        return roleName != null
-                && roleName.equals(role.roleName)
-                && roleDescription != null
-                && roleDescription.equals(role.roleDescription)
-                && (rolePermissions == role.rolePermissions
-                        || rolePermissions.equals(role.rolePermissions))
-                && (userRoles == role.userRoles || userRoles.equals(role.userRoles));
+        return Objects.equals(name, role.name) && Objects.equals(description, role.description);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(roleName);
-        result = 31 * result + Objects.hashCode(roleDescription);
-        result = 31 * result + Objects.hashCode(rolePermissions);
-        result = 31 * result + Objects.hashCode(userRoles);
-        return result;
+        return Objects.hash(name, description);
     }
 }

@@ -1,10 +1,11 @@
 package com.alpaca.persistence.impl;
 
 import com.alpaca.persistence.IGenericDAO;
-import com.alpaca.repository.GenericRepo;
+import com.alpaca.repository.CustomRepo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import lombok.Generated;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,61 +13,55 @@ import org.springframework.data.domain.Pageable;
  * Abstract base implementation of {@link IGenericDAO}, providing generic CRUD and pagination
  * operations for any entity type {@code T} with identifier type {@code ID}.
  *
- * <p>Concrete DAO implementations must supply the specific {@link GenericRepo} and entity class by
- * implementing the abstract {@link #getRepo()} and {@link #getEntity()} methods.
+ * <p>Concrete DAO implementations must supply the specific {@link CustomRepo} and entity class by
+ * implementing the abstract {@link #getRepo()} method.
  *
  * <p>This class leverages Spring Data repositories to delegate standard persistence operations in a
  * type-safe, reusable fashion.
  *
  * @param <T> entity type managed by this DAO
- * @param <ID> type of the entity's identifier
+ * @param <I> type of the entity's identifier
  */
-public abstract class GenericDAOImpl<T, ID> implements IGenericDAO<T, ID> {
+public abstract class GenericDAOImpl<T, I> implements IGenericDAO<T, I> {
 
     /**
      * Supplies the Spring Data repository for the specific entity type.
      *
      * @return the repository instance for {@code T}
      */
-    protected abstract GenericRepo<T, ID> getRepo();
-
-    /**
-     * Provides the entity class handled by this DAO implementation.
-     *
-     * @return the {@code Class} object representing {@code T}
-     */
-    protected abstract Class<T> getEntity();
+    @Generated
+    protected abstract CustomRepo<T, I> getRepo();
 
     /**
      * Finds an entity by its identifier.
      *
-     * @param id the identifier of the entity to find; may be {@code null}
+     * @param i the identifier of the entity to find; may be {@code null}
      * @return an {@link Optional} containing the entity if found, otherwise empty
      */
     @Override
-    public Optional<T> findById(ID id) {
-        return getRepo().findById(id);
+    public Optional<T> findById(I i) {
+        return getRepo().findById(i);
     }
 
     /**
      * Retrieves all entities matching the provided collection of identifiers.
      *
-     * @param ids the collection of identifiers; may be {@code null} or empty
+     * @param is the collection of identifiers; may be {@code null} or empty
      * @return a {@link List} of entities found; empty if none match
      */
     @Override
-    public List<T> findAllByIds(Collection<ID> ids) {
-        return getRepo().findAllById(ids);
+    public List<T> findAllByIds(Collection<I> is) {
+        return getRepo().findAllById(is);
     }
 
     /**
      * Deletes the entity identified by the given ID, if it exists.
      *
-     * @param id the identifier of the entity to delete; may be {@code null}
+     * @param i the identifier of the entity to delete; may be {@code null}
      */
     @Override
-    public void deleteById(ID id) {
-        getRepo().deleteById(id);
+    public void deleteById(I i) {
+        getRepo().deleteById(i);
     }
 
     /**
@@ -115,23 +110,25 @@ public abstract class GenericDAOImpl<T, ID> implements IGenericDAO<T, ID> {
     /**
      * Checks whether an entity exists with the given identifier.
      *
-     * @param id the identifier to check; may be {@code null}
+     * @param i the identifier to check; may be {@code null}
      * @return {@code true} if an entity exists with the specified ID; {@code false} otherwise
      */
     @Override
-    public boolean existsById(ID id) {
-        return getRepo().existsById(id);
+    public boolean existsById(I i) {
+        return getRepo().existsById(i);
     }
 
     /**
-     * Verifies whether all entities corresponding to the provided identifiers exist.
+     * Checks whether every ID in the given collection corresponds to a persisted entity.
      *
-     * @param ids the collection of IDs to check; may be {@code null}
-     * @return {@code true} if the count of matching entities equals the number of IDs provided;
-     *     {@code false} otherwise
+     * <p>This is implemented as a single-query count comparison rather than loading entity proxies,
+     * making it efficient for batch existence checks over large ID collections.
+     *
+     * @param is the collection of identifiers to verify; may be {@code null} or empty
+     * @return {@code true} if all provided IDs exist in the database; {@code false} otherwise
      */
     @Override
-    public boolean existsAllByIds(Collection<ID> ids) {
-        return ((long) ids.size()) == getRepo().countByIds(ids);
+    public boolean existsAllByIds(Collection<I> is) {
+        return (is.size()) == getRepo().countEntitiesIds(is);
     }
 }

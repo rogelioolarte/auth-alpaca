@@ -13,7 +13,6 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Role} entities and encapsulating business logic
@@ -54,6 +53,22 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
     }
 
     /**
+     * Creates a new {@link Role} after verifying that a role with the same unique properties does
+     * not already exist.
+     *
+     * @param role the role to create; must not be {@code null}
+     * @return the saved {@link Role} instance
+     * @throws BadRequestException if a role with identical unique properties already exists
+     */
+    @Override
+    public Role save(Role role) {
+        if (dao.existsByUniqueProperties(role)) {
+            throw new BadRequestException(String.format("%s already exists", getEntityName()));
+        }
+        return super.save(role);
+    }
+
+    /**
      * Retrieves the default set of roles assigned to users. Currently configured to always return a
      * set containing the "USER" role.
      *
@@ -62,8 +77,16 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      */
     @Override
     public Set<Role> getUserRoles() {
-        Set<Role> roles = new HashSet<>();
-        roles.add(findByRoleName("USER"));
+        Set<Role> roles = HashSet.newHashSet(1);
+        Role userRole =
+                dao.findByRoleName("USER")
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with Name %s not found",
+                                                        getEntityName(), "USER")));
+        roles.add(userRole);
         return roles;
     }
 
@@ -75,7 +98,6 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      * @throws BadRequestException if the provided role name is {@code null} or blank
      * @throws NotFoundException if no role is found with the given name
      */
-    @Transactional
     @Override
     public Role findByRoleName(String roleName) {
         if (roleName == null || roleName.isBlank()) {
@@ -88,5 +110,40 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
                                         String.format(
                                                 "%s with Name %s not found",
                                                 getEntityName(), roleName)));
+    }
+
+    /**
+     * Updates an existing {@link Role} identified by the given ID with the non-null, non-blank
+     * properties from the supplied {@code role} object. Only changed fields are applied. Throws
+     * {@link NotFoundException} if no existing entity is found.
+     *
+     * @param role the role object containing updated values
+     * @param id the unique identifier of the role to update
+     * @return the updated and saved {@link Role} instance
+     * @throws NotFoundException if no role exists with the specified ID
+     */
+    @Override
+    public Role updateById(Role role, UUID id) {
+        if (role == null || id == null)
+            throw new BadRequestException(
+                    String.format("%s with ID %s cannot be updated", getEntityName(), id));
+
+        Role existingRole =
+                dao.findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with ID %s not found",
+                                                        getEntityName(), id)));
+
+        updateTextIfExists(existingRole.getName(), role.getName(), existingRole::setName);
+        updateTextIfExists(
+                existingRole.getDescription(), role.getDescription(), existingRole::setDescription);
+        if (role.getRolePermissions() != null
+                && !role.getRolePermissions().equals(existingRole.getRolePermissions())) {
+            existingRole.setRolePermissions(role.getPermissions());
+        }
+        return super.save(existingRole);
     }
 }

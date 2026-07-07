@@ -1,13 +1,17 @@
 package com.alpaca.controller;
 
+import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.dto.request.UserRequestDTO;
+import com.alpaca.dto.request.groups.OnCreate;
+import com.alpaca.dto.request.groups.OnUpdate;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IUserMapper;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IUserService;
-import jakarta.validation.Valid;
+import com.alpaca.utils.IsAuthenticated;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +19,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST controller for managing {@link User} entities.
+ * REST controller for managing {@link User} entities at {@code /api/users}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of users. Utilizes {@link IUserService}
- * for business logic and {@link IUserMapper} for DTO conversions.
+ * <p>Provides CRUD operations, pagination, and password changes. Endpoints require the {@code
+ * ADMIN} role or, where applicable, self-ownership ({@code principal.getUserId() == #id}). The
+ * {@code PUT /change-password} endpoint requires authentication via {@code @IsAuthenticated}.
  *
  * @see IUserService
  * @see IUserMapper
@@ -42,6 +50,7 @@ public class UserController {
      *     HttpStatus#OK}
      * @throws NotFoundException if no user is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(mapper.toResponseDTO(service.findById(id)));
@@ -56,8 +65,10 @@ public class UserController {
      *     {@link HttpStatus#CREATED}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<UserResponseDTO> save(@Valid @RequestBody UserRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> save(
+            @Validated(OnCreate.class) @RequestBody UserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(mapper.toResponseDTO(service.save(mapper.toEntity(request))));
     }
@@ -73,9 +84,10 @@ public class UserController {
      * @throws NotFoundException if no user is found with the given {@code id}
      * @throws BadRequestException if the {@code request} is {@code null} or contains invalid data
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateById(
-            @Valid @RequestBody UserRequestDTO request, @PathVariable UUID id) {
+            @Validated(OnUpdate.class) @RequestBody UserRequestDTO request, @PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(mapper.toResponseDTO(service.updateById(mapper.toEntity(request), id)));
     }
@@ -87,6 +99,7 @@ public class UserController {
      * @return {@link ResponseEntity} with status {@link HttpStatus#NO_CONTENT}
      * @throws NotFoundException if no user is found with the given {@code id}
      */
+    @PreAuthorize("hasRole('ADMIN') or principal.getUserId() == #id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.deleteById(id);
@@ -99,6 +112,7 @@ public class UserController {
      * @return {@link ResponseEntity} containing a list of {@link UserResponseDTO} with status
      *     {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> findAll() {
         return ResponseEntity.status(HttpStatus.OK)
@@ -112,9 +126,33 @@ public class UserController {
      * @return {@link ResponseEntity} containing a {@link PagedModel} of {@link UserResponseDTO}
      *     with status {@link HttpStatus#OK}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/page")
     public ResponseEntity<PagedModel<UserResponseDTO>> findAllPage(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new PagedModel<>(mapper.toPageResponseDTO(service.findAllPage(pageable))));
+    }
+
+    /**
+     * Changes the password for the currently authenticated user.
+     *
+     * <p>Requires a valid authentication session. The request body must include the current and new
+     * passwords as defined by {@link PasswordRequestDTO}.
+     *
+     * @param user the currently authenticated user; if {@code null} the request is rejected with
+     *     401
+     * @param request the current and new password payload; must not be {@code null}
+     * @return {@link ResponseEntity} with status {@link HttpStatus#OK} on success, or {@link
+     *     HttpStatus#UNAUTHORIZED} if not authenticated
+     */
+    @IsAuthenticated
+    @PutMapping("/change-password")
+    public ResponseEntity<UserPrincipal> changePassword(
+            @AuthenticationPrincipal UserPrincipal user, @RequestBody PasswordRequestDTO request) {
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        service.changePassword(user, request);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

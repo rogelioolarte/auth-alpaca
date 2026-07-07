@@ -8,6 +8,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Carries login credentials (email + password) for authentication requests.
+ *
+ * <p>Both fields are validated for basic format constraints before reaching the authentication
+ * service.
+ */
 @Setter
 @Getter
 @AllArgsConstructor

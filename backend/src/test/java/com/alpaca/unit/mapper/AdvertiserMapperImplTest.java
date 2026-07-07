@@ -8,8 +8,8 @@ import com.alpaca.dto.request.AdvertiserRequestDTO;
 import com.alpaca.dto.response.AdvertiserResponseDTO;
 import com.alpaca.entity.Advertiser;
 import com.alpaca.mapper.impl.AdvertiserMapperImpl;
-import com.alpaca.resources.AdvertiserProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.AdvertiserProvider;
+import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +63,16 @@ class AdvertiserMapperImplTest {
         assertEquals(entity.getTitle(), responseDTO.title());
         assertEquals(entity.getDescription(), responseDTO.description());
         assertEquals(entity.getUser().getId(), responseDTO.userId());
+        assertEquals(entity.getUser().getEmail(), responseDTO.email());
+
+        Advertiser altEntity = AdvertiserProvider.alternativeEntity();
+        altEntity.setUser(null);
+        AdvertiserResponseDTO altResponseDTO = mapper.toResponseDTO(altEntity);
+        assertNotNull(altResponseDTO);
+        assertEquals(altEntity.getId(), altResponseDTO.id());
+        assertEquals(altEntity.getTitle(), altResponseDTO.title());
+        assertEquals(altEntity.getDescription(), altResponseDTO.description());
+        assertNull(altEntity.getUser());
     }
 
     @Test

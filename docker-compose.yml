@@ -1,0 +1,102 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres-db:
+    image: postgres:18-alpine
+    container_name: auth-alpaca-db
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      POSTGRES_DB: auth-alpaca
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SPRING_DATASOURCE_USERNAME} -d auth-alpaca"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  backend:
+    build: ./backend
+    container_name: auth-alpaca-api
+    restart: unless-stopped
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      TZ: UTC
+      JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2 -XX:CICompilerCount=2 -Duser.timezone=UTC"
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${SPRING_DATASOURCE_MINIMUM_IDLE}
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 30000
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION}
+      JWT_ACCESS_PRIVATE_KEY_PATH: ${JWT_ACCESS_PRIVATE_KEY_PATH}
+      JWT_ACCESS_PUBLIC_KEY_PATH: ${JWT_ACCESS_PUBLIC_KEY_PATH}
+      JWT_REFRESH_PRIVATE_KEY_PATH: ${JWT_REFRESH_PRIVATE_KEY_PATH}
+      JWT_REFRESH_PUBLIC_KEY_PATH: ${JWT_REFRESH_PUBLIC_KEY_PATH}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      APP_FRONTEND_URI: ${APP_FRONTEND_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      MAX_SESSIONS_PER_USER: ${MAX_SESSIONS_PER_USER}
+      INFINITY_LOGIN: ${INFINITY_LOGIN}
+      BCRYPT_COST_FACTOR: ${BCRYPT_COST_FACTOR}
+    ports:
+      - "8080:8080" 
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+    volumes:
+      - ./secrets:/keys:ro
+    networks:
+      - backend-net
+      - frontend-net
+    logging: *default-logging
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NG_API_URL: ${NG_API_URL}
+        NG_UI_URL: ${NG_UI_URL}
+        NG_INFINITY_LOGIN: ${NG_INFINITY_LOGIN}
+    container_name: auth-alpaca-ui
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:8080" 
+    environment:
+      TZ: UTC
+      NG_API_URL: ${NG_API_URL}
+      NG_UI_URL: ${NG_UI_URL}
+      NG_INFINITY_LOGIN: ${NG_INFINITY_LOGIN}
+    networks:
+      - frontend-net
+    logging: *default-logging
+
+networks:
+  backend-net:
+    internal: true
+  frontend-net:
+
+volumes:
+  postgres_data:

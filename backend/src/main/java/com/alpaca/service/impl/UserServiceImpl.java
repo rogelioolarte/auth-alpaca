@@ -1,17 +1,21 @@
 package com.alpaca.service.impl;
 
+import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.persistence.IUserDAO;
+import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic
@@ -28,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {
 
     private final IUserDAO dao;
+    private final PasswordManager passwordManager;
+    private static final String ERROR_CREATED_MESS = "%s cannot be created";
 
     /**
      * Provides the DAO component used by inherited service operations.
@@ -52,18 +58,82 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
     }
 
     /**
-     * Registers a new {@link User} in the system.
+     * Registers a new {@link User} in the system. The provided plaintext password is encoded via
+     * {@link PasswordManager} before persisting — the raw password is never stored.
      *
      * @param user the user to register; must not be {@code null}
      * @return the saved {@link User} instance
      * @throws BadRequestException if the provided user is {@code null}
      */
-    @Transactional
     @Override
-    public User register(User user) {
+    public User save(User user) {
         if (user == null)
-            throw new BadRequestException(String.format("%s cannot be created", getEntityName()));
-        return dao.save(user);
+            throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
+        user.setPassword(passwordManager.encodePassword(user.getPassword()));
+        return super.save(user);
+    }
+
+    /**
+     * Updates an existing {@link User} identified by the given ID with the non-null and non-blank
+     * properties provided in the supplied {@code user} object. Only fields that are different,
+     * non-null, and non-blank are updated. Throws a {@link NotFoundException} if no user with the
+     * specified ID exists.
+     *
+     * @param user user object containing updated values
+     * @param id the unique identifier of the user to update
+     * @return the updated and saved {@link User} instance
+     * @throws NotFoundException if no existing user is found with the given ID
+     */
+    @Override
+    public User updateById(User user, UUID id) {
+        if (user == null || id == null)
+            throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
+
+        User existingUser =
+                dao.findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new NotFoundException(
+                                                String.format(
+                                                        "%s with ID %s not found",
+                                                        getEntityName(), id)));
+
+        if (existingUser.getPassword() != null
+                && StringUtils.hasText(user.getPassword())
+                && !passwordManager.matches(user.getPassword(), existingUser.getPassword())) {
+            existingUser.setPassword(user.getPassword());
+        }
+
+        if (user.getRoles() != null && !user.getRoles().equals(existingUser.getRoles())) {
+            existingUser.setRoles(user.getRoles());
+        }
+
+        existingUser.updateProfile(user);
+        existingUser.updateAdvertiser(user);
+
+        updateTextIfExists(existingUser.getEmail(), user.getEmail(), existingUser::setEmail);
+        updateIfDifferent(existingUser.isEnabled(), user.isEnabled(), existingUser::setEnabled);
+        updateIfDifferent(
+                existingUser.isAccountNonLocked(),
+                user.isAccountNonLocked(),
+                existingUser::setAccountNonLocked);
+        updateIfDifferent(
+                existingUser.isAccountNonExpired(),
+                user.isAccountNonExpired(),
+                existingUser::setAccountNonExpired);
+        updateIfDifferent(
+                existingUser.isCredentialNonExpired(),
+                user.isCredentialNonExpired(),
+                existingUser::setCredentialNonExpired);
+        updateIfDifferent(
+                existingUser.isEmailVerified(),
+                user.isEmailVerified(),
+                existingUser::setEmailVerified);
+        updateIfDifferent(
+                existingUser.isGoogleConnected(),
+                user.isGoogleConnected(),
+                existingUser::setGoogleConnected);
+        return super.save(existingUser);
     }
 
     /**
@@ -72,7 +142,6 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @param email the email to check; may be {@code null} or blank
      * @return {@code true} if a user with the specified email exists; {@code false} otherwise
      */
-    @Transactional
     @Override
     public boolean existsByEmail(String email) {
         return dao.existsByEmail(email);
@@ -86,12 +155,66 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if the email is {@code null} or blank
      * @throws NotFoundException if no user is found with the given email
      */
-    @Transactional
     @Override
     public User findByEmail(String email) {
         if (email == null || email.isBlank())
-            throw new BadRequestException(String.format("%s cannot be found", getEntityName()));
+            throw new BadRequestException("Email must not be null or blank");
+        // Retrieves a User with Roles and Permissions
         return dao.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("The email does not match any account"));
+                .orElseThrow(
+                        () ->
+                                new UsernameNotFoundException(
+                                        "The email does not match any account"));
+    }
+
+    /**
+     * Changes the password for the authenticated user identified by {@link UserPrincipal}.
+     *
+     * <p>This method enforces several business rules:
+     *
+     * <ul>
+     *   <li>The new password and confirmation must match.
+     *   <li>If the user has no password set (OAuth2-only account), a password is created only if
+     *       the account is Google-connected; otherwise the operation is rejected.
+     *   <li>If a password already exists, the current password must be provided and match.
+     *   <li>The new password must differ from the current one.
+     * </ul>
+     *
+     * @param principal the currently authenticated user
+     * @param requestDTO the request containing current, new, and confirmation passwords
+     * @throws BadRequestException if validation fails for any of the above rules
+     */
+    @Override
+    public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
+        if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {
+            throw new BadRequestException("New password mismatch the ReType password");
+        }
+
+        User user =
+                dao.findById(principal.getUserId())
+                        .orElseThrow(
+                                () -> new UsernameNotFoundException("The User does not exist."));
+
+        if (user.getPassword() == null) {
+            if (!user.isGoogleConnected()) {
+                throw new BadRequestException(
+                        "Cannot change the password. Contact the Administrator");
+            }
+            user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
+            super.save(user);
+            return;
+        }
+
+        if (!StringUtils.hasText(requestDTO.getCurrentPassword())
+                || !passwordManager.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password does not match");
+        }
+
+        if (passwordManager.matches(requestDTO.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("Choose a password you haven't used before.");
+        }
+
+        user.setPassword(passwordManager.encodePassword(requestDTO.getNewPassword()));
+        super.save(user);
     }
 }

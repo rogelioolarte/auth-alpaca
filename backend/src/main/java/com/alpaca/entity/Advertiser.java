@@ -1,6 +1,8 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,15 +20,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "advertisers")
-public class Advertiser {
+public class Advertiser extends Auditable {
 
     /**
      * Unique identifier for the Advertiser. This value is automatically generated using a UUID
      * strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "advertiser_id")
+    @GeneratorUUIDv7
+    @Column(name = "id")
     private UUID id;
 
     /** The title or name of the Advertiser. This field cannot be null. */
@@ -73,80 +75,32 @@ public class Advertiser {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    /**
-     * Constructs an instance of a new Advertiser object with the specified attributes. The
-     * generated object is ready to be used and stored in the database.
-     *
-     * @param title Title name - must not be null
-     * @param description Short description of the Advertiser - must not be null
-     * @param bannerUrl URL of the Advertiser's banner image - must not be null
-     * @param avatarUrl URL of the Advertiser's avatar image - must not be null
-     * @param publicLocation Publicly visible location - must not be null
-     * @param publicUrlLocation URL of the public location - must not be null
-     * @param indexed indicates whether the Advertiser is indexed for public search
-     * @param paid indicates whether the Advertiser has a paid subscription
-     * @param verified indicates whether the Advertiser is verified
-     * @param user the User associated with this Advertiser - must not be null
-     */
-    public Advertiser(
-            String title,
-            String description,
-            String bannerUrl,
-            String avatarUrl,
-            String publicLocation,
-            String publicUrlLocation,
-            boolean indexed,
-            boolean paid,
-            boolean verified,
-            User user) {
-        this.title = title;
-        this.description = description;
-        this.bannerUrl = bannerUrl;
-        this.avatarUrl = avatarUrl;
-        this.publicLocation = publicLocation;
-        this.publicUrlLocation = publicUrlLocation;
-        this.indexed = indexed;
-        this.paid = paid;
-        this.verified = verified;
-        this.user = user;
-    }
-
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Advertiser that)) return false;
-        return indexed == that.indexed
+        return Objects.equals(title, that.title)
+                && Objects.equals(description, that.description)
+                && Objects.equals(bannerUrl, that.bannerUrl)
+                && Objects.equals(avatarUrl, that.avatarUrl)
+                && Objects.equals(publicLocation, that.publicLocation)
+                && Objects.equals(publicUrlLocation, that.publicUrlLocation)
+                && indexed == that.indexed
                 && paid == that.paid
-                && verified == that.verified
-                && title != null
-                && title.equals(that.title)
-                && description != null
-                && description.equals(that.description)
-                && bannerUrl != null
-                && bannerUrl.equals(that.bannerUrl)
-                && avatarUrl != null
-                && avatarUrl.equals(that.avatarUrl)
-                && publicLocation != null
-                && publicLocation.equals(that.publicLocation)
-                && publicUrlLocation != null
-                && publicUrlLocation.equals(that.publicUrlLocation)
-                && user != null
-                && user.equals(that.user);
+                && verified == that.verified;
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + title.hashCode();
-        result = 31 * result + description.hashCode();
-        result = 31 * result + bannerUrl.hashCode();
-        result = 31 * result + avatarUrl.hashCode();
-        result = 31 * result + publicLocation.hashCode();
-        result = 31 * result + publicUrlLocation.hashCode();
-        result = 31 * result + Boolean.hashCode(indexed);
-        result = 31 * result + Boolean.hashCode(paid);
-        result = 31 * result + Boolean.hashCode(verified);
-        result = 31 * result + user.hashCode();
-        return result;
+        return Objects.hash(
+                title,
+                description,
+                bannerUrl,
+                avatarUrl,
+                publicLocation,
+                publicUrlLocation,
+                indexed,
+                paid,
+                verified);
     }
 }

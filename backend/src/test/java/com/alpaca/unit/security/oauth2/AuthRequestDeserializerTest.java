@@ -1,209 +1,358 @@
 package com.alpaca.unit.security.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.alpaca.security.oauth2.AuthRequestDeserializer;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /** Unit tests for {@link AuthRequestDeserializer} */
+@ExtendWith(MockitoExtension.class)
 @DisplayName("AuthRequestDeserializer Unit Tests")
 class AuthRequestDeserializerTest {
 
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @BeforeEach
     void setUp() {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(OAuth2AuthorizationRequest.class, new AuthRequestDeserializer());
-        mapper = new ObjectMapper().registerModule(module);
+
+        mapper = JsonMapper.builder().addModule(module).build();
     }
 
-    @Nested
-    @DisplayName("deserialize()")
-    class DeserializeTests {
+    @Test
+    @DisplayName("deserialize should parse complete json correctly")
+    void deserialize_ShouldParseCompleteJsonCorrectly() {
 
-        @Test
-        @DisplayName("Given valid full JSON, parses all fields correctly")
-        void givenValidJson_parsesAllFields() throws Exception {
-            String json =
-                    """
-                    {
-                      "clientId":"my-client",
-                      "authorizationUri":"https://auth.example.com",
-                      "redirectUri":"https://app.example.com/callback",
-                      "state":"xyz-state",
-                      "scopes":["read","write"],
-                      "attributes":{"roles": ["user","admin"]},
-                      "additionalParameters":{"baz":[123, 124]}
-                    }
-                    """;
-            OAuth2AuthorizationRequest req =
-                    mapper.readValue(json, OAuth2AuthorizationRequest.class);
-            assertAll(
-                    "full-object",
-                    () -> assertEquals("my-client", req.getClientId()),
-                    () -> assertEquals("https://auth.example.com", req.getAuthorizationUri()),
-                    () -> assertEquals("https://app.example.com/callback", req.getRedirectUri()),
-                    () -> assertEquals("xyz-state", req.getState()),
-                    () -> assertEquals(Set.of("read", "write"), req.getScopes()),
-                    () ->
-                            assertEquals(
-                                    Map.of("roles", List.of("user", "admin")), req.getAttributes()),
-                    () ->
-                            assertEquals(
-                                    Map.of("baz", List.of(123, 124)),
-                                    req.getAdditionalParameters()));
-        }
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state",
+                  "scopes":["read","write"],
+                  "attributes":{"roles":["admin","user"]},
+                  "additionalParameters":{"tenant":"alpaca"}
+                }
+                """;
 
-        @Test
-        @DisplayName("Missing required field triggers JsonMappingException")
-        void missingRequiredField_throws() {
-            String json =
-                    """
-                    {
-                      "clientId":"c1",
-                      "authorizationUri":"u1",
-                      "redirectUri":"r1"
-                    }
-                    """;
-            JsonMappingException ex =
-                    assertThrows(
-                            JsonMappingException.class,
-                            () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
-            assertTrue(ex.getOriginalMessage().contains("Missing required field 'state'"));
-        }
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
 
-        @Test
-        @DisplayName("Empty or missing scopes yields empty set")
-        void missingScopes_producesEmptyScopes() throws Exception {
-            String jsonWithoutScopes =
-                    """
-                    {
-                      "clientId":"c1","authorizationUri":"u1",
-                      "redirectUri":"r1","state":"s1"
-                    }
-                    """;
-            OAuth2AuthorizationRequest r1 =
-                    mapper.readValue(jsonWithoutScopes, OAuth2AuthorizationRequest.class);
-            assertTrue(r1.getScopes().isEmpty());
-            String jsonEmptyScopes =
-                    """
-                    {
-                      "clientId":"c1","authorizationUri":"u1",
-                      "redirectUri":"r1","state":"s1",
-                      "scopes":[]
-                    }
-                    """;
-            OAuth2AuthorizationRequest r2 =
-                    mapper.readValue(jsonEmptyScopes, OAuth2AuthorizationRequest.class);
-            assertTrue(r2.getScopes().isEmpty());
-        }
+        assertAll(
+                () -> assertEquals("client-id", request.getClientId()),
+                () -> assertEquals("https://auth.alpaca.com", request.getAuthorizationUri()),
+                () -> assertEquals("https://alpaca.com/callback", request.getRedirectUri()),
+                () -> assertEquals("oauth-state", request.getState()),
+                () -> assertEquals(Set.of("read", "write"), request.getScopes()),
+                () ->
+                        assertEquals(
+                                Map.of("roles", List.of("admin", "user")), request.getAttributes()),
+                () -> assertEquals(Map.of("tenant", "alpaca"), request.getAdditionalParameters()));
+    }
 
-        @Test
-        @DisplayName("Unknown fields are ignored")
-        void unknownFields_areIgnored() throws Exception {
-            String json =
-                    """
-                    {
-                      "clientId":"c1","authorizationUri":"u1",
-                      "redirectUri":"r1","state":"s1",
-                      "fooBar":123,
-                      "scopes":["a"]
-                    }
-                    """;
-            OAuth2AuthorizationRequest req =
-                    mapper.readValue(json, OAuth2AuthorizationRequest.class);
-            assertEquals("c1", req.getClientId());
-            assertEquals(Set.of("a"), req.getScopes());
-        }
+    @Test
+    @DisplayName("deserialize should ignore unknown fields")
+    void deserialize_ShouldIgnoreUnknownFields() {
 
-        @Test
-        @DisplayName("Non‑array scopes node is skipped")
-        void nonArrayScopes_skipped() throws Exception {
-            String json =
-                    """
-                    {
-                      "clientId":"c1","authorizationUri":"u1",
-                      "redirectUri":"r1","state":"s1",
-                      "scopes":12345
-                    }
-                    """;
-            OAuth2AuthorizationRequest req =
-                    mapper.readValue(json, OAuth2AuthorizationRequest.class);
-            assertTrue(req.getScopes().isEmpty());
-        }
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state",
+                  "unknown":{"nested":"value"},
+                  "scopes":["openid"]
+                }
+                """;
 
-        @Test
-        @DisplayName("Given scopes array with only non‑string elements, returns empty set")
-        void arrayWithNonStringScopes_skipped() throws Exception {
-            String json =
-                    """
-                    {
-                      "clientId":"c1",
-                      "authorizationUri":"u1",
-                      "redirectUri":"r1",
-                      "state":"s1",
-                      "scopes":[1, true, {"foo":"bar"}]
-                    }
-                    """;
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
 
-            OAuth2AuthorizationRequest req =
-                    mapper.readValue(json, OAuth2AuthorizationRequest.class);
-            assertTrue(
-                    req.getScopes().isEmpty(),
-                    "Non‑string elements in scopes array should be ignored");
-        }
+        assertEquals("client-id", request.getClientId());
+        assertEquals(Set.of("openid"), request.getScopes());
+    }
 
-        @Test
-        @DisplayName("Given advances null currentToken to START_OBJECT")
-        void deserialize_directly_advancesParserFromNull() throws Exception {
-            String json =
-                    """
-                    { "clientId":"c","authorizationUri":"u","redirectUri":"r","state":"s" }
-                    """;
-            JsonFactory factory = new JsonFactory();
-            try (JsonParser parser = factory.createParser(json)) {
-                assertNull(parser.currentToken(), "Must start with null token");
-                AuthRequestDeserializer desert = new AuthRequestDeserializer();
-                OAuth2AuthorizationRequest req = desert.deserialize(parser, null);
-                assertEquals("c", req.getClientId());
-            }
-        }
+    @Test
+    @DisplayName("deserialize should return empty scopes when scopes field is missing")
+    void deserialize_ShouldReturnEmptyScopes_WhenScopesFieldIsMissing() {
 
-        @Test
-        @DisplayName("Given a non‑object JSON, throws JsonMappingException")
-        void nonObjectJson_throwsJsonMappingException() {
-            String json =
-                    """
-                        [ "not", "an", "object" ]
-                    """;
-            JsonMappingException ex =
-                    assertThrows(
-                            JsonMappingException.class,
-                            () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
-            assertTrue(
-                    ex.getOriginalMessage()
-                            .contains("Expected JSON object for OAuth2AuthorizationRequest"),
-                    "Should enforce START_OBJECT at the root");
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state"
+                }
+                """;
+
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
+
+        assertTrue(request.getScopes().isEmpty());
+    }
+
+    @Test
+    @DisplayName("deserialize should return empty scopes when scopes is not an array")
+    void deserialize_ShouldReturnEmptyScopes_WhenScopesIsNotArray() {
+
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state",
+                  "scopes":123
+                }
+                """;
+
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
+
+        assertTrue(request.getScopes().isEmpty());
+    }
+
+    @Test
+    @DisplayName("deserialize should ignore non string scope values")
+    void deserialize_ShouldIgnoreNonStringScopeValues() {
+
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state",
+                  "scopes":["openid", 1, true, {"foo":"bar"}]
+                }
+                """;
+
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
+
+        assertEquals(Set.of("openid"), request.getScopes());
+    }
+
+    @Test
+    @DisplayName("deserialize should remove duplicated scopes")
+    void deserialize_ShouldRemoveDuplicatedScopes() {
+
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state",
+                  "scopes":["openid","openid","profile"]
+                }
+                """;
+
+        OAuth2AuthorizationRequest request =
+                mapper.readValue(json, OAuth2AuthorizationRequest.class);
+
+        assertEquals(Set.of("openid", "profile"), request.getScopes());
+    }
+
+    @ParameterizedTest
+    @MethodSource("missingRequiredFieldProvider")
+    @DisplayName("deserialize should throw exception when required field is missing")
+    void deserialize_ShouldThrowException_WhenRequiredFieldIsMissing(
+            String json, String missingField) {
+
+        JacksonException exception =
+                assertThrows(
+                        JacksonException.class,
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
+
+        assertTrue(
+                exception.getOriginalMessage().contains("Missing required field " + missingField));
+    }
+
+    private static Stream<Arguments> missingRequiredFieldProvider() {
+        return Stream.of(
+                Arguments.of(
+                        """
+                        {
+                          "clientId":"client-id",
+                          "authorizationUri":"https://auth.alpaca.com",
+                          "redirectUri":"https://alpaca.com/callback"
+                        }
+                        """,
+                        "state"),
+                Arguments.of(
+                        """
+                        {
+                          "authorizationUri":"https://auth.alpaca.com",
+                          "redirectUri":"https://alpaca.com/callback",
+                          "state":"oauth-state"
+                        }
+                        """,
+                        "clientId"),
+                Arguments.of(
+                        """
+                        {
+                          "clientId":"client-id",
+                          "redirectUri":"https://alpaca.com/callback",
+                          "state":"oauth-state"
+                        }
+                        """,
+                        "authorizationUri"),
+                Arguments.of(
+                        """
+                        {
+                          "clientId":"client-id",
+                          "authorizationUri":"https://auth.alpaca.com",
+                          "state":"oauth-state"
+                        }
+                        """,
+                        "redirectUri"));
+    }
+
+    @Test
+    @DisplayName("deserialize should throw exception when redirectUri is missing")
+    void deserialize_ShouldThrowException_WhenRedirectUriIsMissing() {
+
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "state":"oauth-state"
+                }
+                """;
+
+        JacksonException exception =
+                assertThrows(
+                        JacksonException.class,
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
+
+        assertTrue(exception.getOriginalMessage().contains("Missing required field redirectUri"));
+    }
+
+    @Test
+    @DisplayName("deserialize should advance parser when current token is null")
+    void deserialize_ShouldAdvanceParser_WhenCurrentTokenIsNull() {
+
+        String json =
+                """
+                {
+                  "clientId":"client-id",
+                  "authorizationUri":"https://auth.alpaca.com",
+                  "redirectUri":"https://alpaca.com/callback",
+                  "state":"oauth-state"
+                }
+                """;
+
+        JsonFactory factory = new JsonFactory();
+        ObjectReadContext context = new ObjectReadContext.Base();
+
+        try (JsonParser parser = factory.createParser(context, json)) {
+
+            assertNull(parser.currentToken());
+
+            AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
+
+            OAuth2AuthorizationRequest request = deserializer.deserialize(parser, null);
+
+            assertEquals("client-id", request.getClientId());
         }
     }
 
     @Test
-    @DisplayName("handledType() returns OAuth2AuthorizationRequest.class")
-    void handledType() {
-        AuthRequestDeserializer desert = new AuthRequestDeserializer();
-        assertEquals(OAuth2AuthorizationRequest.class, desert.handledType());
+    @DisplayName("deserialize should throw exception when root token is not object")
+    void deserialize_ShouldThrowException_WhenRootTokenIsNotObject() {
+
+        String json =
+                """
+                ["invalid"]
+                """;
+
+        JacksonException exception =
+                assertThrows(
+                        JacksonException.class,
+                        () -> mapper.readValue(json, OAuth2AuthorizationRequest.class));
+
+        assertTrue(
+                exception
+                        .getOriginalMessage()
+                        .contains("Expected JSON object for OAuth2AuthorizationRequest"));
+    }
+
+    @Test
+    @DisplayName("deserialize should delegate unexpected token handling")
+    void deserialize_ShouldDelegateUnexpectedTokenHandling() {
+
+        JsonFactory factory = new JsonFactory();
+        ObjectReadContext context = new ObjectReadContext.Base();
+
+        try (JsonParser parser = factory.createParser(context, "\"invalid\"")) {
+
+            parser.nextToken();
+
+            AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
+
+            DeserializationContext deserializationContext = mock(DeserializationContext.class);
+
+            OAuth2AuthorizationRequest expected =
+                    OAuth2AuthorizationRequest.authorizationCode()
+                            .clientId("client")
+                            .authorizationUri("uri")
+                            .redirectUri("redirect")
+                            .state("state")
+                            .build();
+
+            JavaType javaType =
+                    mapper.getTypeFactory().constructType(OAuth2AuthorizationRequest.class);
+
+            when(deserializationContext.handleUnexpectedToken(
+                            eq(javaType), eq(JsonToken.START_OBJECT), eq(parser), anyString()))
+                    .thenReturn(expected);
+
+            OAuth2AuthorizationRequest result =
+                    deserializer.deserialize(parser, deserializationContext);
+
+            assertSame(expected, result);
+        }
+    }
+
+    @Test
+    @DisplayName("handledType should return OAuth2AuthorizationRequest class")
+    void handledType_ShouldReturnOAuth2AuthorizationRequestClass() {
+
+        AuthRequestDeserializer deserializer = new AuthRequestDeserializer();
+
+        Class<OAuth2AuthorizationRequest> result = deserializer.handledType();
+
+        assertEquals(OAuth2AuthorizationRequest.class, result);
     }
 }

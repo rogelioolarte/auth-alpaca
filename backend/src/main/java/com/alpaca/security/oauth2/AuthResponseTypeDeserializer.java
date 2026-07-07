@@ -1,10 +1,11 @@
 package com.alpaca.security.oauth2;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Custom Jackson deserializer for OAuth2 authorization response type values.
@@ -14,19 +15,19 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
  * ensures correct construction of the enum-like object by normalizing the input to uppercase before
  * instantiation using the string constructor.
  *
- * <p>By extending {@link JsonDeserializer}, this class can be registered with Jackson’s {@code
- * ObjectMapper}, allowing Spring Boot to use it automatically when deserializing OAuth2 response
+ * <p>By extending {@link ValueDeserializer}, this class can be registered with Jackson’s {@link
+ * JsonMapper}, allowing Spring Boot to use it automatically when deserializing OAuth2 response
  * types from JSON.
  *
  * @see OAuth2AuthorizationResponseType
- * @see JsonDeserializer
+ * @see ValueDeserializer
  */
 public class AuthResponseTypeDeserializer
-        extends JsonDeserializer<OAuth2AuthorizationResponseType> {
+        extends ValueDeserializer<OAuth2AuthorizationResponseType> {
 
     @Override
-    public OAuth2AuthorizationResponseType deserialize(JsonParser p, DeserializationContext ct)
-            throws IOException {
-        return new OAuth2AuthorizationResponseType(p.getText().toUpperCase());
+    public OAuth2AuthorizationResponseType deserialize(JsonParser p, DeserializationContext context)
+            throws JacksonException {
+        return new OAuth2AuthorizationResponseType(p.getString().toUpperCase());
     }
 }

@@ -1,444 +1,579 @@
 package com.alpaca.integration.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
+import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.entity.Profile;
+import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
+import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
+import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.ProfileProvider;
-import com.alpaca.resources.RoleProvider;
-import com.alpaca.resources.UserProvider;
+import com.alpaca.resources.provider.RefreshTokenProvider;
+import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.UserProvider;
+import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.security.manager.JJwtManager;
-import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
+import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.service.IRefreshTokenService;
+import com.alpaca.service.IRoleService;
+import com.alpaca.service.ISessionService;
+import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.AuthServiceImpl;
-import com.alpaca.service.impl.RoleServiceImpl;
-import com.alpaca.service.impl.UserServiceImpl;
-import java.util.Collections;
-import java.util.Map;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link UserServiceImpl} */
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
-public class AuthServiceImplIT {
+/** Integration tests for {@link AuthServiceImpl} */
+@DisplayName("AuthServiceImpl Integration Tests")
+class AuthServiceImplIT extends BaseIntegrationTests {
 
-    @Autowired private UserServiceImpl userService;
-    @Autowired private RoleServiceImpl roleService;
-    @Autowired private AuthServiceImpl service;
+    @Autowired private AuthServiceImpl authService;
 
-    @Autowired private JJwtManager jJwtManager;
-    @Autowired private PasswordManager passwordManager;
+    @Autowired private IUserService userService;
 
-    private String RAW_PASSWORD;
-    private User firstEntity;
-    private User secondEntity;
-    private User thirdEntity;
-    private Role role;
-    private User user;
-    private UserPrincipal userDetails;
-    private Map<String, Object> attributesVerified;
-    private Map<String, Object> attributesNotVerified;
-    private OAuth2UserInfo userInfoGoogle;
-    private OAuth2UserInfo userInfoGoogleNotVerified;
+    @Autowired private IRoleService roleService;
+
+    @Autowired private JJwtManager jwtManager;
+
+    @MockitoBean private TokenExchangeManager exchangeManager;
+
+    @MockitoBean private IRefreshTokenService refreshTokenService;
+
+    @MockitoBean private ISessionService sessionService;
+
+    private AuthLoginRequestDTO loginRequest;
+
+    private Instant now;
 
     @BeforeEach
     void setup() {
-        firstEntity = UserProvider.singleEntity();
-        secondEntity = UserProvider.alternativeEntity();
-        thirdEntity = UserProvider.notAllowEntity();
-        role = RoleProvider.alternativeEntity();
-        user = UserProvider.alternativeEntity();
-        user.setPassword(passwordManager.encodePassword(secondEntity.getPassword()));
-        RAW_PASSWORD = UserProvider.alternativeEntity().getPassword();
-        userDetails = new UserPrincipal(user, null);
-        Profile profile = ProfileProvider.alternativeEntity();
-        attributesVerified = UserProvider.createAttributes(secondEntity, profile, true);
-        attributesNotVerified = UserProvider.createAttributes(secondEntity, profile, false);
-        userInfoGoogle = OAuth2UserInfoFactory.getOAuth2UserInfo("google", attributesVerified);
-        userInfoGoogleNotVerified =
-                OAuth2UserInfoFactory.getOAuth2UserInfo("google", attributesNotVerified);
+        now = Instant.now();
+
+        User template = UserProvider.singleTemplate();
+
+        loginRequest =
+                new AuthLoginRequestDTO(
+                        template.getEmail(),
+                        "Password123!",
+                        "JUnit-Agent",
+                        "test-client",
+                        "127.0.0.1");
+
+        SecurityContextHolder.clearContext();
     }
 
-    // --- setSecurityContextBefore ---
-    @Test
-    void setSecurityContextBeforeCaseOne() {
-        assertThrows(UnauthorizedException.class, () -> service.setSecurityContextBefore(null));
-    }
+    // -------------------------------------------------------------------------
+    // register
+    // -------------------------------------------------------------------------
 
-    @Test
-    void setSecurityContextBeforeCaseTwo() {
-        UserPrincipal userDetails = new UserPrincipal(firstEntity, null);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null);
-        Object result = service.setSecurityContextBefore(auth);
-        assertEquals(userDetails, result);
-        assertEquals(auth, SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    // --- login ---
     @Test
     @Transactional
-    void loginCaseOne() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        service.register(firstEntity.getEmail(), firstEntity.getPassword());
-        AuthResponseDTO response = service.login(firstEntity.getEmail(), firstEntity.getPassword());
-        assertNotNull(response);
-        assertNotNull(response.token());
-        assertTrue(
-                jJwtManager.isValidToken(
-                        jJwtManager.getAllClaims(jJwtManager.validateToken(response.token()))));
-    }
+    @DisplayName("register: should create user and return tokens")
+    void register_shouldCreateUserAndReturnTokens() {
+        Role role = RoleProvider.singleTemplate();
+        role.setCreatedAt(now);
+        role.setName("TEST_USER");
 
-    // --- register ---
-    @Test
-    @Transactional
-    void registerCaseOne() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        service.register(firstEntity.getEmail(), firstEntity.getPassword());
-        assertThrows(
-                BadRequestException.class,
-                () -> service.register(firstEntity.getEmail(), firstEntity.getPassword()));
+        roleService.save(role);
+
+        AuthResponseDTO expected = new AuthResponseDTO("access-token", "refresh-token");
+
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
+                .thenReturn(expected);
+
+        AuthResponseDTO response = authService.register(loginRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access-token");
+        assertThat(response.refreshToken()).isEqualTo("refresh-token");
+
+        assertThat(userService.existsByEmail(loginRequest.email())).isTrue();
+
+        verify(sessionService)
+                .createSession(
+                        any(),
+                        eq(loginRequest.userAgent()),
+                        eq(loginRequest.clientId()),
+                        eq(loginRequest.clientIp()));
+
+        verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
     }
 
     @Test
     @Transactional
-    void registerCaseTwo() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        AuthResponseDTO response =
-                service.register(secondEntity.getEmail(), secondEntity.getPassword());
-        assertNotNull(response);
-        assertTrue(
-                jJwtManager.isValidToken(
-                        jJwtManager.getAllClaims(jJwtManager.validateToken(response.token()))));
+    @DisplayName("register: should throw when email already exists")
+    void register_shouldThrowWhenEmailAlreadyExists() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+
+        userService.save(user);
+
+        assertThatThrownBy(() -> authService.register(loginRequest))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Email already registered");
     }
 
-    // --- loadUserByUsername ---
-    @Test
-    @Transactional
-    void loadUserByUsernameCaseOne() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        User user =
-                userService.register(
-                        new User(
-                                secondEntity.getEmail(),
-                                secondEntity.getPassword(),
-                                Collections.emptySet()));
-        UserPrincipal loaded = (UserPrincipal) service.loadUserByUsername(secondEntity.getEmail());
-        assertNotNull(loaded);
-        assertEquals(new UserPrincipal(user, null), loaded);
-    }
-
-    // --- validateUserDetails ---
-    @Test
-    void validateUserDetailsCaseOne() {
-        assertThrows(BadRequestException.class, () -> service.validateUserDetails(null, null));
-    }
-
-    @Test
-    void validateUserDetailsCaseTwo() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.validateUserDetails(null, new UserPrincipal(new User(), null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseThree() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.validateUserDetails(" ", new UserPrincipal(new User(), null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseFour() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.validateUserDetails(RAW_PASSWORD + " ", userDetails));
-    }
-
-    @Test
-    void validateUserDetailsCaseFive() {
-        String rawPassword = thirdEntity.getPassword();
-        thirdEntity.setPassword(passwordManager.encodePassword(rawPassword));
-        assertThrows(
-                UnauthorizedException.class,
-                () ->
-                        service.validateUserDetails(
-                                rawPassword, new UserPrincipal(thirdEntity, null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseSix() {
-        User user = UserProvider.createUser(false, true, true, true, true, true);
-        String rawPassword = user.getPassword();
-        user.setPassword(passwordManager.encodePassword(rawPassword));
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.validateUserDetails(rawPassword, new UserPrincipal(user, null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseSeven() {
-        User user = UserProvider.createUser(true, false, true, true, true, true);
-        String rawPassword = user.getPassword();
-        user.setPassword(passwordManager.encodePassword(rawPassword));
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.validateUserDetails(rawPassword, new UserPrincipal(user, null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseEight() {
-        User user = UserProvider.createUser(true, true, false, true, true, true);
-        String rawPassword = user.getPassword();
-        user.setPassword(passwordManager.encodePassword(rawPassword));
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.validateUserDetails(rawPassword, new UserPrincipal(user, null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseNine() {
-        User user = UserProvider.createUser(true, true, true, false, false, false);
-        String rawPassword = user.getPassword();
-        user.setPassword(passwordManager.encodePassword(rawPassword));
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.validateUserDetails(rawPassword, new UserPrincipal(user, null)));
-    }
-
-    @Test
-    void validateUserDetailsCaseTen() {
-        UserDetails result = service.validateUserDetails(secondEntity.getPassword(), userDetails);
-        assertNotNull(result);
-        assertEquals(userDetails, result);
-    }
-
-    // --- authenticate ---
-    @Test
-    @Transactional
-    void authenticateCaseOne() {
-        User newUser =
-                userService.register(
-                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-        Authentication auth =
-                service.authenticate(secondEntity.getEmail(), secondEntity.getPassword());
-        assertNotNull(auth);
-        assertNotNull(auth.getPrincipal());
-        assertEquals(new UserPrincipal(newUser, null), (UserPrincipal) auth.getPrincipal());
-    }
-
-    // --- registerOrLoginOAuth2 ---
-    @Test
-    void registerOrLoginOAuth2CaseOne() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2(null, "first", "last", "image", false, null));
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2(" ", "first", "last", "image", false, null));
-    }
-
-    @Test
-    void registerOrLoginOAuth2CaseTwo() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", null, "last", "image", false, null));
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", " ", "last", "image", false, null));
-    }
-
-    @Test
-    void registerOrLoginOAuth2CaseThree() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", "first", null, "image", false, null));
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", "first", " ", "image", false, null));
-    }
-
-    @Test
-    void registerOrLoginOAuth2CaseFour() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", "first", "last", null, false, null));
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerOrLoginOAuth2("email", "first", "last", " ", false, null));
-    }
+    // -------------------------------------------------------------------------
+    // login(UserPrincipal)
+    // -------------------------------------------------------------------------
 
     @Test
     @Transactional
-    void registerOrLoginOAuth2CaseFive() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        UserPrincipal userPrincipal =
-                service.registerOrLoginOAuth2(
-                        userInfoGoogleNotVerified.getEmail(),
-                        userInfoGoogleNotVerified.getFirstName(),
-                        userInfoGoogleNotVerified.getLastName(),
-                        userInfoGoogleNotVerified.getImageUrl(),
-                        userInfoGoogleNotVerified.getEmailVerified(),
-                        attributesNotVerified);
-        User newUser = userService.findByEmail(userInfoGoogleNotVerified.getEmail());
-        assertNotNull(userPrincipal);
-        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
+    @DisplayName("login(UserPrincipal): should create session and generate tokens")
+    void loginUserPrincipal_shouldCreateSessionAndGenerateTokens() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+
+        User savedUser = userService.save(user);
+
+        UserPrincipal principal = new UserPrincipal(savedUser);
+
+        AuthResponseDTO expected = new AuthResponseDTO("access", "refresh");
+
+        when(refreshTokenService.generateJWTTokens(any(UserPrincipal.class), any()))
+                .thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(principal, loginRequest);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access");
+        assertThat(response.refreshToken()).isEqualTo("refresh");
+
+        verify(sessionService)
+                .createSession(
+                        savedUser.getId(),
+                        loginRequest.userAgent(),
+                        loginRequest.clientId(),
+                        loginRequest.clientIp());
+
+        verify(refreshTokenService).generateJWTTokens(any(UserPrincipal.class), any());
     }
+
+    // -------------------------------------------------------------------------
+    // login(AuthCode)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when code is null")
+    void loginAuthCode_shouldThrowWhenCodeIsNull() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode(null);
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Exchange code is required");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when code is empty")
+    void loginAuthCode_shouldThrowWhenCodeIsEmpty() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("");
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Exchange code is required");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when verifier is null")
+    void loginAuthCode_shouldThrowWhenVerifierIsNull() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("valid-code");
+        authCode.setCodeVerifier(null);
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when verifier format is invalid")
+    void loginAuthCode_shouldThrowWhenVerifierIsInvalid() {
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("valid-code");
+        authCode.setCodeVerifier("short");
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Invalid code-verifier format");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when auth code does not exist")
+    void loginAuthCode_shouldThrowWhenAuthCodeDoesNotExist() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        AuthCode authCode = new AuthCode();
+        authCode.setCode("missing-code");
+        authCode.setCodeVerifier(verifier);
+
+        when(exchangeManager.consumeCode("missing-code")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(authCode))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when challenge does not match")
+    void loginAuthCode_shouldThrowWhenChallengeDoesNotMatch() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge("invalid-challenge");
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when auth code is expired")
+    void loginAuthCode_shouldThrowWhenCodeExpired() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.minusSeconds(1));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when redirect uri mismatches")
+    void loginAuthCode_shouldThrowWhenRedirectUriMismatch() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/other");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should generate jwt tokens when auth code is valid")
+    void loginAuthCode_shouldGenerateJwtTokensWhenValid() {
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientId("test-client");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientId("test-client");
+        request.setClientIp("127.0.0.1");
+
+        AuthResponseDTO expected = new AuthResponseDTO("access", "refresh");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        when(refreshTokenService.generateJWTTokens(savedCode)).thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo("access");
+        assertThat(response.refreshToken()).isEqualTo("refresh");
+
+        verify(refreshTokenService).generateJWTTokens(savedCode);
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when client id mismatches")
+    void loginAuthCode_shouldThrowWhenClientIdMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("expected-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("another-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("127.0.0.1");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when user agent mismatches")
+    void loginAuthCode_shouldThrowWhenUserAgentMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("Expected-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("Another-Agent");
+        request.setClientIp("127.0.0.1");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName("login(AuthCode): should throw when client ip mismatches")
+    void loginAuthCode_shouldThrowWhenClientIpMismatch() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("10.10.10.10");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Code Invalid or Expired");
+
+        verify(refreshTokenService, never()).generateJWTTokens(any(AuthCode.class));
+    }
+
+    @Test
+    @DisplayName(
+            "login(AuthCode): should consume auth code and generate jwt tokens when all validations"
+                    + " succeed")
+    void loginAuthCode_shouldConsumeCodeAndGenerateTokens_WhenAllValidationsSucceed() {
+
+        String verifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~";
+
+        String challenge = jwtManager.createTokenHash(verifier);
+
+        AuthCode savedCode = new AuthCode();
+        savedCode.setCode("valid-code");
+        savedCode.setCodeChallenge(challenge);
+        savedCode.setRedirectUri("http://localhost/callback");
+        savedCode.setExpiresAt(now.plusSeconds(60));
+        savedCode.setClientId("test-client");
+        savedCode.setUserAgent("JUnit-Agent");
+        savedCode.setClientIp("127.0.0.1");
+
+        AuthCode request = new AuthCode();
+        request.setCode("valid-code");
+        request.setCodeVerifier(verifier);
+        request.setRedirectUri("http://localhost/callback");
+        request.setClientId("test-client");
+        request.setUserAgent("JUnit-Agent");
+        request.setClientIp("127.0.0.1");
+
+        AuthResponseDTO expected =
+                new AuthResponseDTO("generated-access-token", "generated-refresh-token");
+
+        when(exchangeManager.consumeCode("valid-code")).thenReturn(Optional.of(savedCode));
+
+        when(refreshTokenService.generateJWTTokens(savedCode)).thenReturn(expected);
+
+        AuthResponseDTO response = authService.login(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.accessToken()).isEqualTo(expected.accessToken());
+        assertThat(response.refreshToken()).isEqualTo(expected.refreshToken());
+
+        verify(exchangeManager).consumeCode("valid-code");
+        verify(refreshTokenService).generateJWTTokens(savedCode);
+    }
+
+    // -------------------------------------------------------------------------
+    // logout
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("logout: should throw when refresh token is blank")
+    void logout_shouldThrowWhenRefreshTokenIsBlank() {
+        assertThatThrownBy(() -> authService.logout("", "cli", "ua", "ip"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Invalid Refresh Token");
+    }
+
+    @Test
+    @DisplayName("logout: should throw when refresh token is not found")
+    void logout_shouldThrowWhenRefreshTokenNotFound() {
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(
+                        () -> authService.logout("missing-token", "client", "agent", "127.0.0.1"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Refresh Token Not Found");
+    }
+
+    @Test
+    @DisplayName("logout: should throw when refresh token already revoked")
+    void logout_shouldThrowWhenRefreshTokenAlreadyRevoked() {
+        RefreshToken token = RefreshTokenProvider.singleTemplate();
+        token.setRevoked(true);
+        token.setUserAgent("agent");
+        token.setClientId("client");
+        token.setIpAddress("127.0.0.1");
+
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.of(token));
+        doThrow(new UnauthorizedException("Refresh Token already revoked"))
+                .when(refreshTokenService)
+                .validateRefreshToken(any(), any(), any(Instant.class), any(), any());
+
+        assertThatThrownBy(
+                        () -> authService.logout("refresh-token", "client", "agent", "127.0.0.1"))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Refresh Token already revoked");
+    }
+
+    @Test
+    @DisplayName("logout: should revoke token family and clear security context")
+    void logout_shouldRevokeFamilyAndClearSecurityContext() {
+        RefreshToken token = RefreshTokenProvider.singleTemplate();
+        token.setRevoked(false);
+        token.setFamilyId(java.util.UUID.randomUUID());
+
+        when(refreshTokenService.findByTokenHashSecure(anyString())).thenReturn(Optional.of(token));
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken("user", "password"));
+
+        authService.logout("refresh-token", "client", "agent", "127.0.0.1");
+
+        verify(refreshTokenService)
+                .revokeRefreshTokensAndSessionByFamilyId(
+                        eq(token.getFamilyId()), any(Instant.class), eq("logout-session"));
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    // -------------------------------------------------------------------------
+    // loadUserByUsername
+    // -------------------------------------------------------------------------
 
     @Test
     @Transactional
-    void registerOrLoginOAuth2CaseSix() {
-        User newUser =
-                userService.register(
-                        new User(
-                                secondEntity.getEmail(),
-                                secondEntity.getPassword(),
-                                Collections.emptySet()));
-        UserPrincipal userPrincipal =
-                service.registerOrLoginOAuth2(
-                        userInfoGoogle.getEmail(),
-                        userInfoGoogle.getFirstName(),
-                        userInfoGoogle.getLastName(),
-                        userInfoGoogle.getImageUrl(),
-                        userInfoGoogle.getEmailVerified(),
-                        attributesVerified);
-        assertNotNull(userPrincipal);
-        assertEquals(new UserPrincipal(newUser, null), userPrincipal);
-    }
+    @DisplayName("loadUserByUsername: should return user principal")
+    void loadUserByUsername_shouldReturnUserPrincipal() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
 
-    // --- registerProfile ---
-    @Test
-    void registerProfileCaseOne() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerProfile(null, "first", "last", "image"));
+        userService.save(user);
+
+        UserDetails result = authService.loadUserByUsername(user.getEmail());
+
+        assertThat(result).isInstanceOf(UserPrincipal.class);
+        assertThat(result.getUsername()).isEqualTo(user.getEmail());
     }
 
     @Test
-    void registerProfileCaseTwo() {
-        user.setId(null);
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerProfile(user, "first", "last", "image"));
-    }
-
-    @Test
-    void registerProfileCaseThree() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerProfile(user, null, "last", "image"));
-    }
-
-    @Test
-    void registerProfileCaseFour() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerProfile(user, "first", null, "image"));
-    }
-
-    @Test
-    void registerProfileCaseFive() {
-        assertThrows(
-                BadRequestException.class,
-                () -> service.registerProfile(user, "first", "last", null));
-    }
-
-    @Test
-    @Transactional
-    void registerProfileCaseSix() {
-        roleService.save(
-                new Role(role.getRoleName(), role.getRoleDescription(), Collections.emptySet()));
-        User newUser =
-                service.registerProfile(
-                        user,
-                        userInfoGoogle.getFirstName(),
-                        userInfoGoogle.getLastName(),
-                        userInfoGoogle.getImageUrl());
-        assertNotNull(newUser);
-        assertNotNull(newUser.getProfile());
-        assertEquals(userInfoGoogle.getFirstName(), newUser.getProfile().getFirstName());
-        assertEquals(userInfoGoogle.getLastName(), newUser.getProfile().getLastName());
-        assertEquals(userInfoGoogle.getImageUrl(), newUser.getProfile().getAvatarUrl());
-    }
-
-    // --- checkExistingUser ---
-    @Test
-    void checkExistingUserCaseOne() {
-        assertThrows(
-                UnauthorizedException.class,
-                () -> service.checkExistingUser(thirdEntity, userInfoGoogle.getEmailVerified()));
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUserCaseTwo() {
-        User beforeUser =
-                userService.register(
-                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-        beforeUser.setGoogleConnected(false);
-        beforeUser.setEmailVerified(true);
-        User afterUser = userService.register(beforeUser);
-        User newUser = service.checkExistingUser(afterUser, userInfoGoogle.getEmailVerified());
-        assertEquals(beforeUser.getId(), newUser.getId());
-        assertTrue(newUser.isGoogleConnected());
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUserCaseThree() {
-        User beforeUser =
-                userService.register(
-                        new User(user.getEmail(), user.getPassword(), Collections.emptySet()));
-        beforeUser.setGoogleConnected(true);
-        beforeUser.setEmailVerified(false);
-        User afterUser = userService.register(beforeUser);
-        User newUser = service.checkExistingUser(afterUser, userInfoGoogle.getEmailVerified());
-        assertEquals(beforeUser.getId(), newUser.getId());
-        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUserCaseFour() {
-        user.setGoogleConnected(true);
-        user.setEmailVerified(false);
-        User newUser =
-                service.checkExistingUser(user, userInfoGoogleNotVerified.getEmailVerified());
-        assertEquals(user.getId(), newUser.getId());
-        assertEquals(userInfoGoogleNotVerified.getEmailVerified(), newUser.isEmailVerified());
-    }
-
-    @Test
-    @Transactional
-    void checkExistingUserCaseFive() {
-        user.setGoogleConnected(true);
-        user.setEmailVerified(true);
-        User newUser = service.checkExistingUser(user, userInfoGoogle.getEmailVerified());
-        assertEquals(user.getId(), newUser.getId());
-        assertEquals(userInfoGoogle.getEmailVerified(), newUser.isEmailVerified());
+    @DisplayName("loadUserByUsername: should throw when user does not exist")
+    void loadUserByUsername_shouldThrowWhenUserDoesNotExist() {
+        assertThatThrownBy(() -> authService.loadUserByUsername("missing@test.com"))
+                .isInstanceOf(UsernameNotFoundException.class);
     }
 }

@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
+		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>multiple-auth-api</artifactId>
+	<groupId>com.alpaca</groupId>
+	<artifactId>auth-alpaca</artifactId>
 	<version>2.0.0</version>
 	<name>Multiple Auth API</name>
 	<description>Spring Boot App that focuses on implementing multiple authentication methods using OAuth2 and JWT.</description>
@@ -47,13 +47,23 @@
 		<tag>HEAD</tag>
 	</scm>
 	<properties>
+        <sonar.organization>rogelioolarte</sonar.organization>
+		<sonar.projectKey>rogelioolarte_auth-alpaca</sonar.projectKey>
 		<java.version>25</java.version>
+		<maven.compiler.args>--enable-preview</maven.compiler.args>
 		<jjwt.version>0.13.0</jjwt.version>
 		<spotless.version>3.0.0</spotless.version>
         <google-java-format.version>1.27.0</google-java-format.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+		<uuid-generator.version>5.2.0</uuid-generator.version>
+        <bucket4j.version>8.10.1</bucket4j.version>
+		<caffeine.version>3.2.4</caffeine.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-h2console</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -64,8 +74,73 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-client</artifactId>
+			<artifactId>spring-boot-starter-security-oauth2-client</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-client-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -84,44 +159,27 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
+			<groupId>com.fasterxml.uuid</groupId>
+			<artifactId>java-uuid-generator</artifactId>
+			<version>${uuid-generator.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>${bucket4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>${caffeine.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.github.cdimascio</groupId>
-			<artifactId>dotenv-java</artifactId>
-			<version>3.2.0</version>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 	</dependencies>
 	<profiles>
@@ -176,7 +234,7 @@
 								</goals>
 								<configuration>
 									<excludes>
-										<exclude>**/DemoApplication.class</exclude>
+										<exclude>**/Application.class</exclude>
 										<exclude>**/DataServiceImpl.class</exclude>
 										<exclude>**/entity/**</exclude>
 										<exclude>**/model/**</exclude>
@@ -217,14 +275,38 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<!-- SpringBoot Maven Plugin -->
 			<plugin>
@@ -239,7 +321,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
 			<!-- Spotless auto formatting -->
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
@@ -289,21 +370,18 @@
 				</executions>
 			</plugin>
 
-			<!-- JaCoCo Plugin for both unit and integration test coverage -->
+			<!-- JaCoCo Plugin for unit and integration test coverage -->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
+				<version>${jacoco-maven-plugin.version}</version>
 				<executions>
-					<!-- Attach the Java agent to both test phases -->
 					<execution>
 						<id>default-prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-
-					<!-- Report for Unit Tests -->
 					<execution>
 						<id>report-unit</id>
 						<phase>test</phase>
@@ -311,10 +389,8 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<dataFile>${project.build.directory}/jacoco.exec</dataFile>
-							<outputDirectory>${project.build.directory}/jacoco-report/unit</outputDirectory>
 							<excludes>
-								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/Application.class</exclude>
 								<exclude>**/DataServiceImpl.class</exclude>
 								<exclude>**/entity/**</exclude>
 								<exclude>**/model/**</exclude>
@@ -327,30 +403,22 @@
 						</configuration>
 					</execution>
 
-					<!-- Report for Integration Tests -->
 					<execution>
 						<id>prepare-agent-integration</id>
-						<phase>pre-integration-test</phase>
 						<goals>
-							<goal>prepare-agent</goal>
+							<goal>prepare-agent-integration</goal>
 						</goals>
-						<configuration>
-							<propertyName>jacoco.agent.it</propertyName>
-							<destFile>${project.build.directory}/jacoco-it.exec</destFile>
-						</configuration>
 					</execution>
 
 					<execution>
 						<id>report-integration</id>
-						<phase>post-integration-test</phase>
+						<phase>verify</phase>
 						<goals>
-							<goal>report</goal>
+							<goal>report-integration</goal>
 						</goals>
 						<configuration>
-							<dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
-							<outputDirectory>${project.build.directory}/jacoco-report/integration</outputDirectory>
 							<excludes>
-								<exclude>**/DemoApplication.class</exclude>
+								<exclude>**/Application.class</exclude>
 								<exclude>**/DataServiceImpl.class</exclude>
 								<exclude>**/entity/**</exclude>
 								<exclude>**/model/**</exclude>
@@ -360,6 +428,8 @@
 								<exclude>**/repository/**</exclude>
 								<exclude>**/config/**</exclude>
 								<exclude>**/utils/**</exclude>
+								<exclude>**/security/**</exclude>
+								<exclude>**/mapper/**</exclude>
 							</excludes>
 						</configuration>
 					</execution>
@@ -370,7 +440,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.5.3</version>
 				<executions>
 					<execution>
 						<goals>
@@ -386,7 +455,6 @@
 					<excludes>
 						<exclude>unit/**</exclude>
 					</excludes>
-					<reportsDirectory>${project.build.directory}/failsafe-reports/integration</reportsDirectory>
 				</configuration>
 			</plugin>
 
@@ -402,6 +470,7 @@
 						@{argLine}
 						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
 						-Xshare:off -XX:+EnableDynamicAgentLoading
+						--sun-misc-unsafe-memory-access=allow
 					</argLine>
 				</configuration>
 			</plugin>
@@ -417,6 +486,27 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<!-- Javadoc Plugin: -missing suppresses doclint warnings for default
+			     constructors, @param on Lombok-generated code, and @return on
+			     trivial getters — these add noise without real value when the
+			     codebase uses constructor injection and Lombok consistently. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<doclint>all,-missing</doclint>
+					<overview>src/docs/overview.html</overview>
+					<doctitle>Multiple Auth API ${project.version}</doctitle>
+					<windowtitle>Multiple Auth API ${project.version}</windowtitle>
+					<header>Multiple Auth API ${project.version}</header>
+					<bottom><![CDATA[
+						<span>Copyright &#169; 2026. </span>
+						<a href="https://github.com/rogelioolarte/auth-alpaca">Auth-Alpaca</a>.
+						<span> Licensed under the MIT License.</span>
+					]]></bottom>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

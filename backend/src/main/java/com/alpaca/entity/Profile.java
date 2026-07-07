@@ -1,33 +1,32 @@
 package com.alpaca.entity;
 
+import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Represents a Profile entity in the system. This entity is mapped to the "profiles" table in the
  * database and stores personal details of a user, including name, address, and avatar. It has a
  * one-to-one relationship with the {@link User} entity.
  */
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "profiles")
-public class Profile {
+public class Profile extends Auditable {
 
     /**
      * Unique identifier for the Profile. This value is automatically generated using a UUID
      * strategy.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "profile_id")
+    @GeneratorUUIDv7
+    @Column(name = "id")
     private UUID id;
 
     /** The first name of the Profile. This field cannot be null. */
@@ -73,29 +72,17 @@ public class Profile {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Profile profile)) return false;
-        return firstName != null
-                && firstName.equals(profile.firstName)
-                && lastName != null
-                && lastName.equals(profile.lastName)
-                && address != null
-                && address.equals(profile.address)
-                && avatarUrl != null
-                && avatarUrl.equals(profile.avatarUrl)
-                && user != null
-                && user.equals(profile.user);
+        return Objects.equals(firstName, profile.firstName)
+                && Objects.equals(lastName, profile.lastName)
+                && Objects.equals(address, profile.address)
+                && Objects.equals(avatarUrl, profile.avatarUrl);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(firstName);
-        result = 31 * result + Objects.hashCode(lastName);
-        result = 31 * result + Objects.hashCode(address);
-        result = 31 * result + Objects.hashCode(avatarUrl);
-        result = 31 * result + Objects.hashCode(user);
-        return result;
+        return Objects.hash(firstName, lastName, address, avatarUrl);
     }
 }

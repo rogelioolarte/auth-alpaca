@@ -30,4 +30,15 @@ public interface IUserDAO extends IGenericDAO<User, UUID> {
      * @return {@code true} if a user with the given email exists, {@code false} otherwise.
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Retrieves and pessimistically locks a user row for concurrency-safe operations.
+     *
+     * <p>Used in operations such as token rotation or credential updates where overlapping
+     * transactions must not read or modify the same user record simultaneously.
+     *
+     * @param userId the user UUID to lock and retrieve
+     * @return An {@link Optional} containing the locked user if found, otherwise empty
+     */
+    Optional<User> lockFindUserById(UUID userId);
 }

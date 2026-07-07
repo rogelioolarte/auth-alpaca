@@ -1,0 +1,316 @@
+@use '@angular/material' as mat;
+@use 'ngx-toastr/toastr';
+
+// 1. Theme Configuration
+$my-theme: mat.define-theme((
+  color: (
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+));
+
+html {
+  @include mat.theme($my-theme);
+  @include mat.all-component-themes($my-theme);
+  @include mat.system-level-colors($my-theme);
+  @include mat.system-level-typography($my-theme);
+  @include mat.all-component-densities(0);
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+:root {
+  // 2. M3 System Color Bridge
+  --sys-color-primary: var(--mat-sys-primary);
+  --sys-color-on-primary: var(--mat-sys-on-primary);
+  --sys-color-primary-container: var(--mat-sys-primary-container);
+  --sys-color-on-primary-container: var(--mat-sys-on-primary-container);
+  
+  --sys-color-secondary: var(--mat-sys-secondary);
+  --sys-color-on-secondary: var(--mat-sys-on-secondary);
+  --sys-color-secondary-container: var(--mat-sys-secondary-container);
+  --sys-color-on-secondary-container: var(--mat-sys-on-secondary-container);
+
+  --sys-color-tertiary: var(--mat-sys-tertiary);
+  --sys-color-on-tertiary: var(--mat-sys-on-tertiary);
+  --sys-color-tertiary-container: var(--mat-sys-tertiary-container);
+  --sys-color-on-tertiary-container: var(--mat-sys-on-tertiary-container);
+
+  --sys-color-error: var(--mat-sys-error);
+  --sys-color-on-error: var(--mat-sys-on-error);
+  --sys-color-error-container: var(--mat-sys-error-container);
+  --sys-color-on-error-container: var(--mat-sys-on-error-container);
+
+  --sys-color-surface: var(--mat-sys-surface);
+  --sys-color-on-surface: var(--mat-sys-on-surface);
+  --sys-color-surface-variant: var(--mat-sys-surface-variant);
+  --sys-color-on-surface-variant: var(--mat-sys-on-surface-variant);
+  --sys-color-surface-container-low: var(--mat-sys-surface-container-low);
+  --sys-color-surface-container: var(--mat-sys-surface-container);
+  --sys-color-surface-container-high: var(--mat-sys-surface-container-high);
+
+  --sys-color-outline: var(--mat-sys-outline);
+  --sys-color-outline-variant: var(--mat-sys-outline-variant);
+
+  // 3. Legacy Color Bridge
+  --color-primary: var(--sys-color-primary);
+  --color-on-primary: var(--sys-color-on-primary);
+  --color-primary-container: var(--sys-color-primary-container);
+  --color-on-primary-container: var(--sys-color-on-primary-container);
+
+  --color-secondary: var(--sys-color-secondary);
+  --color-on-secondary: var(--sys-color-on-secondary);
+  --color-secondary-container: var(--sys-color-secondary-container);
+  --color-on-secondary-container: var(--sys-color-on-secondary-container);
+
+  --color-tertiary: var(--sys-color-tertiary);
+  --color-on-tertiary: var(--sys-color-on-tertiary);
+  --color-tertiary-container: var(--sys-color-tertiary-container);
+  --color-on-tertiary-container: var(--sys-color-on-tertiary-container);
+
+  --color-error: var(--sys-color-error);
+  --color-on-error: var(--sys-color-on-error);
+  --color-error-container: var(--sys-color-error-container);
+  --color-on-error-container: var(--sys-color-on-error-container);
+
+  --color-surface: var(--sys-color-surface);
+  --color-on-surface: var(--sys-color-on-surface);
+  --color-surface-variant: var(--sys-color-surface-variant);
+  --color-on-surface-variant: var(--sys-color-on-surface-variant);
+  --color-surface-container-low: var(--sys-color-surface-container-low);
+  --color-surface-container: var(--sys-color-surface-container);
+  --color-surface-container-high: var(--sys-color-surface-container-high);
+
+  --color-outline: var(--sys-color-outline);
+  --color-outline-variant: var(--sys-color-outline-variant);
+
+  // 4. Other existing tokens from src/styles.css
+  --shadow-sm: 0 var(--space-0) 0.375rem rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 var(--space-0) 0.5rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 1rem 3rem rgba(0, 0, 0, 0.15);
+  --shadow-xxl: 0 1.5rem 5rem rgba(0, 0, 0, 0.2);
+
+  --color-dashboard-premium-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  --color-dashboard-text: #1a1a1a;
+
+    --space-0: 0.125rem;  /* 2px - Hairline / Tiny */
+    --space-1: 0.25rem;  /* 4px - Extra Small */
+    --space-2: 0.5rem;   /* 8px - Small */
+    --space-3: 0.75rem;  /* 12px - Medium Small */
+    --space-4: 1rem;     /* 16px - Medium (Base) */
+    --space-6: 1.5rem;   /* 24px - Medium Large */
+    --space-8: 2rem;     /* 32px - Large */
+    --space-12: 3rem;    /* 48px - Extra Large */
+    --space-16: 4rem;    /* 64px - XXL */
+    --space-20: 5rem;    /* 80px - XXXL */
+    --space-32: 8rem;    /* 128px - Hero */
+    --space-48: 12rem;    /* 192px - Card */
+
+    --radius-sm: 0.25rem;  /* 4px */
+    --radius-md: 0.5rem;   /* 8px */
+    --radius-lg: 0.75rem;  /* 12px */
+    --radius-xl: 1rem;     /* 16px - Sophisticated curve */
+    --radius-full: 100rem;
+
+  --font-family-base: 'Roboto', sans-serif;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5;
+}
+
+@layer reset, material, base, components, overrides;
+
+@layer reset {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer base {
+  body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--color-on-surface);
+    background-color: var(--color-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer overrides {
+  .mat-mdc-card {
+    --mdc-elevated-card-container-shape: var(--radius-lg);
+  }
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-outlined-button,
+  .mat-mdc-flat-button {
+    border-radius: var(--radius-md);
+  }
+  .user-dropdown {
+    min-width: var(--space-32);
+    margin-top: var(--space-2);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-4);
+      background: linear-gradient(135deg, var(--color-surface-variant) 0%, var(--color-surface) 100%);
+      cursor: default;
+      pointer-events: none;
+
+      .user-avatar-large {
+        width: var(--space-12);
+        height: var(--space-12);
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-tertiary) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-md);
+        flex-shrink: 0;
+
+        mat-icon {
+          font-size: var(--space-6);
+          width: var(--space-6);
+          height: var(--space-6);
+          color: var(--color-on-primary);
+        }
+      }
+
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        flex: 1;
+        min-width: 0;
+
+        .user-name-text {
+          font-size: 0.9375rem;
+          font-weight: 600;
+          color: var(--color-on-surface);
+        }
+
+        .user-roles {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-1);
+
+          .role-chip {
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: var(--space-0) var(--space-2);
+            background: var(--color-secondary-container);
+            color: var(--color-on-secondary-container);
+            border-radius: var(--radius-md);
+            text-transform: uppercase;
+            letter-spacing: 0.03125rem;
+
+            &.more {
+              background: var(--color-tertiary-container);
+              color: var(--color-on-tertiary-container);
+            }
+          }
+        }
+      }
+    }
+
+    .menu-section {
+      padding: var(--space-1) 0;
+
+      .section-label {
+        display: block;
+        padding: var(--space-1) var(--space-4) var(--space-1);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-on-surface-variant);
+        text-align: left;
+      }
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--color-outline-variant);
+      margin: var(--space-1) 0;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-1) var(--space-4);
+      margin: 0 var(--space-2);
+      border-radius: var(--radius-md);
+      height: auto;
+      transition: all 0.15s ease;
+      
+      .item-icon {
+        font-size: var(--space-6);
+        width: var(--space-6);
+        height: var(--space-6);
+        color: var(--color-on-surface-variant);
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+      }
+
+      .item-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-on-surface);
+      }
+
+      &:hover {
+        background: var(--color-surface-variant);
+        
+        .item-icon {
+          color: var(--color-primary);
+          transform: scale(1.1);
+        }
+      }
+
+      &.logout {
+        .item-icon {
+          color: var(--color-error);
+        }
+        .item-text {
+          color: var(--color-error);
+        }
+
+        &:hover {
+          background: var(--color-error-container);
+          
+          .item-icon {
+            color: var(--color-on-error-container);
+          }
+          .item-text {
+            color: var(--color-on-error-container);
+          }
+        }
+      }
+    }
+
+    mat-divider {
+      margin: var(--space-1) var(--space-4);
+    }
+  }
+}

@@ -1,0 +1,64 @@
+/* ========================================
+   MY ADVERTISER PAGE - Premium UI Styles
+   Using design tokens from src/styles.css
+   ======================================== */
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.advertiser-content {
+  max-width: 37.5rem;
+  margin: var(--space-8) auto;
+  padding: var(--space-8);
+}
+
+h1 {
+  padding-left: var(--space-6);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--sys-color-on-surface);
+  margin-top: var(--space-6);
+}
+
+.advertiser-card {
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--sys-color-surface);
+}
+
+mat-card {
+  box-shadow: none;
+}
+
+mat-card-content {
+  padding: var(--space-6);
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.toggle-field {
+  margin: var(--space-6) 0;
+}
+
+.form-actions {
+  margin-top: var(--space-6);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-12);
+}

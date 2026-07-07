@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.NonNull;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -59,6 +59,13 @@ public class AccessTokenResConverter
                 .build();
     }
 
+    /**
+     * Parses the {@code expires_in} value from the token response.
+     *
+     * <p>Falls back to a default of 7200 seconds (2 hours) if the field is missing or not a {@link
+     * Number}. This ensures the client always receives a usable expiration even when the provider
+     * omits the field.
+     */
     private long parseExpiresIn(Map<String, Object> source) {
         var expiresInObj = source.get(OAuth2ParameterNames.EXPIRES_IN);
         if (expiresInObj instanceof Number number) {
@@ -67,6 +74,12 @@ public class AccessTokenResConverter
         return DEFAULT_EXPIRES_IN;
     }
 
+    /**
+     * Parses the {@code scope} field which may arrive as a space-delimited string or as an array of
+     * strings, depending on the OAuth2 provider's response format.
+     *
+     * <p>Returns an empty set if the field is absent or in an unrecognized format.
+     */
     private Set<String> parseScopes(Map<String, Object> source) {
         var scopeObj = source.get(OAuth2ParameterNames.SCOPE);
         if (scopeObj instanceof String scopeStr) {
@@ -78,6 +91,12 @@ public class AccessTokenResConverter
         return Set.of();
     }
 
+    /**
+     * Extracts all entries from the token response that are not standard OAuth2 parameters.
+     *
+     * <p>This preserves provider-specific extensions (e.g., {@code id_token}, custom claims) as an
+     * immutable map so callers can access them without losing data.
+     */
     private Map<String, Object> extractAdditionalParameters(Map<String, Object> source) {
         return Map.copyOf(
                 source.entrySet().stream()
@@ -86,7 +105,7 @@ public class AccessTokenResConverter
                                 Collectors.toMap(
                                         Map.Entry::getKey,
                                         Map.Entry::getValue,
-                                        (a, b) -> b,
+                                        (_, b) -> b,
                                         LinkedHashMap::new)));
     }
 }

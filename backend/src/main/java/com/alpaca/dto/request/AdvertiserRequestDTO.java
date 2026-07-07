@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.UUID;
 
+/**
+ * Payload for creating or updating an advertiser profile: branding assets (title, description,
+ * banner and avatar URLs), public-facing location info, and the indexing/publishing state.
+ */
 @Setter
 @Getter
 @AllArgsConstructor
@@ -42,7 +46,10 @@ public class AdvertiserRequestDTO {
     @NotNull(message = "Indexed State is required.")
     private boolean indexed;
 
-    @UUID(message = "UUID format is required.")
+    @UUID(
+            message = "UUID format is required.",
+            allowNil = false,
+            version = {7})
     @NotBlank(message = "User is required.")
     private String userId;
 }

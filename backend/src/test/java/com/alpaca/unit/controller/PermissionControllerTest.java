@@ -12,7 +12,9 @@ import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
 import com.alpaca.mapper.IPermissionMapper;
-import com.alpaca.resources.PermissionProvider;
+import com.alpaca.resources.provider.PermissionProvider;
+import com.alpaca.resources.utility.ControllerUnitTest;
+import com.alpaca.resources.utility.WithMockCustomUser;
 import com.alpaca.service.IPermissionService;
 import java.util.Collections;
 import java.util.List;
@@ -21,10 +23,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,9 +33,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
+@ControllerUnitTest
 @WebMvcTest(PermissionController.class)
-@AutoConfigureMockMvc(addFilters = false)
-@AutoConfigureJsonTesters
+@WithMockCustomUser
 class PermissionControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -55,11 +55,11 @@ class PermissionControllerTest {
                         argThat(
                                 r ->
                                         r != null
-                                                && r.getPermissionName()
+                                                && r.getName()
                                                         .equals(
                                                                 PermissionControllerTest
                                                                         .singleRequest
-                                                                        .getPermissionName()))))
+                                                                        .getName()))))
                 .thenReturn(PermissionControllerTest.singleEntity);
         when(service.save(PermissionControllerTest.singleEntity))
                 .thenReturn(PermissionControllerTest.singleEntity);
@@ -72,11 +72,11 @@ class PermissionControllerTest {
                         argThat(
                                 r ->
                                         r != null
-                                                && r.getPermissionName()
+                                                && r.getName()
                                                         .equals(
                                                                 PermissionControllerTest
                                                                         .singleRequest
-                                                                        .getPermissionName()))))
+                                                                        .getName()))))
                 .thenReturn(PermissionControllerTest.singleEntity);
         when(service.updateById(PermissionControllerTest.singleEntity, id))
                 .thenReturn(PermissionControllerTest.singleEntity);
@@ -95,7 +95,7 @@ class PermissionControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
+                .andExpect(jsonPath("$.name", is(firstResponse.name())));
 
         verify(service).findById(firstResponse.id());
         verify(mapper).toResponseDTO(listEntities.getFirst());
@@ -127,7 +127,7 @@ class PermissionControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
+                .andExpect(jsonPath("$.name", is(firstResponse.name())));
 
         ArgumentCaptor<Permission> captor = ArgumentCaptor.forClass(Permission.class);
         verify(mapper).toEntity(isA(PermissionRequestDTO.class));
@@ -137,7 +137,7 @@ class PermissionControllerTest {
 
         assertNotNull(captor.getValue());
         assertEquals(singleEntity.getId(), captor.getValue().getId());
-        assertEquals(singleEntity.getPermissionName(), captor.getValue().getPermissionName());
+        assertEquals(singleEntity.getName(), captor.getValue().getName());
     }
 
     @Test
@@ -170,7 +170,7 @@ class PermissionControllerTest {
                                 .content(requestJson.write(singleRequest).getJson()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$.permissionName", is(firstResponse.permissionName())));
+                .andExpect(jsonPath("$.name", is(firstResponse.name())));
 
         ArgumentCaptor<Permission> captor = ArgumentCaptor.forClass(Permission.class);
         verify(mapper).toEntity(isA(PermissionRequestDTO.class));
@@ -178,18 +178,14 @@ class PermissionControllerTest {
         verify(mapper).toResponseDTO(isA(Permission.class));
 
         assertEquals(singleEntity.getId(), captor.getValue().getId());
-        assertEquals(singleEntity.getPermissionName(), captor.getValue().getPermissionName());
+        assertEquals(singleEntity.getName(), captor.getValue().getName());
     }
 
     @Test
     @DisplayName("updateById returns 404 Not Found when object to modify does not exist")
     void updateByIdNotFound() throws Exception {
         UUID id = firstResponse.id();
-        when(mapper.toEntity(
-                        argThat(
-                                r ->
-                                        r.getPermissionName()
-                                                .equals(singleRequest.getPermissionName()))))
+        when(mapper.toEntity(argThat(r -> r.getName().equals(singleRequest.getName()))))
                 .thenReturn(singleEntity);
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found"))
                 .when(service)
@@ -259,9 +255,9 @@ class PermissionControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
                 .andExpect(jsonPath("$[0].id", is(firstResponse.id().toString())))
-                .andExpect(jsonPath("$[0].permissionName", is(firstResponse.permissionName())))
+                .andExpect(jsonPath("$[0].name", is(firstResponse.name())))
                 .andExpect(jsonPath("$[1].id", is(altResponse.id().toString())))
-                .andExpect(jsonPath("$[1].permissionName", is(altResponse.permissionName())));
+                .andExpect(jsonPath("$[1].name", is(altResponse.name())));
 
         verify(service).findAll();
         verify(mapper).toListResponseDTO(listEntities);
@@ -280,9 +276,7 @@ class PermissionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id", is(firstResponse.id().toString())))
-                .andExpect(
-                        jsonPath(
-                                "$.content[0].permissionName", is(firstResponse.permissionName())));
+                .andExpect(jsonPath("$.content[0].name", is(firstResponse.name())));
 
         verify(service).findAllPage(isA(Pageable.class));
         verify(mapper).toPageResponseDTO(PermissionProvider.pageEntities());
