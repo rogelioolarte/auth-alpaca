@@ -95,8 +95,6 @@ cd frontend && bun install && bun run start
 
 The frontend dev server runs on `http://localhost:4200`.
 
-> The default `application.properties` uses `postgres-db:5432` as the DB host (Docker Compose DNS). For local development, override with your own `SPRING_DATASOURCE_URL` — for example by copying `backend/.env.example` to `backend/.env` and setting `SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/auth-alpaca`.
-
 ---
 
 ## Authentication Flow (OAuth2 + PKCE)
