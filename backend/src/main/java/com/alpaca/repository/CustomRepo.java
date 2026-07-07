@@ -1,11 +1,10 @@
 package com.alpaca.repository;
 
+import java.util.Collection;
 import org.jspecify.annotations.NonNull;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-
-import java.util.Collection;
 
 /**
  * Generic repository interface for managing entities.
@@ -26,8 +25,8 @@ public interface CustomRepo<T, I> extends JpaRepository<T, I> {
     /**
      * Deletes an entity by its identifier, throwing an exception if no entity exists.
      *
-     * <p>Unlike the default {@code deleteById(I id)} from Spring Data, this custom variant
-     * throws {@link EmptyResultDataAccessException} when no entity matches the given ID, making it
+     * <p>Unlike the default {@code deleteById(I id)} from Spring Data, this custom variant throws
+     * {@link EmptyResultDataAccessException} when no entity matches the given ID, making it
      * suitable for callers that need to detect and handle the missing-entity case explicitly.
      *
      * @param id The entity ID to delete - must not be null.

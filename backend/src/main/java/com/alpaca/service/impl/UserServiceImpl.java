@@ -10,13 +10,12 @@ import com.alpaca.persistence.IUserDAO;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IUserService;
+import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link User} entities and encapsulating business logic

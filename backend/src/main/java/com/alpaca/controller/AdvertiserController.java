@@ -8,6 +8,8 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.service.IAdvertiserService;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -15,9 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * REST controller for managing {@link Advertiser} entities at {@code /api/advertisers}.

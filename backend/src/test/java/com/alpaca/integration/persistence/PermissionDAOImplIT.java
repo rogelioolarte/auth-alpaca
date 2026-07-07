@@ -1,9 +1,13 @@
 package com.alpaca.integration.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.entity.Permission;
 import com.alpaca.persistence.impl.PermissionDAOImpl;
 import com.alpaca.repository.PermissionRepo;
 import com.alpaca.resources.utility.DataJpaIntegrationTest;
+import java.time.Instant;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,11 +17,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link PermissionDAOImpl}. */
 @DataJpaIntegrationTest

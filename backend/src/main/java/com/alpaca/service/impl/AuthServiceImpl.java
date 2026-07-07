@@ -12,6 +12,7 @@ import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.time.Instant;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2

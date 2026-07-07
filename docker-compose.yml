@@ -5,7 +5,7 @@ x-logging: &default-logging
     max-file: "3"
 
 services:
-  db:
+  postgres-db:
     image: postgres:18-alpine
     container_name: auth-alpaca-db
     restart: unless-stopped
@@ -30,7 +30,7 @@ services:
     container_name: auth-alpaca-api
     restart: unless-stopped
     depends_on:
-      db:
+      postgres-db:
         condition: service_healthy
     environment:
       TZ: UTC

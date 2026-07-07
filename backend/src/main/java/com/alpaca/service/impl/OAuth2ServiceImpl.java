@@ -12,6 +12,8 @@ import com.alpaca.service.IOAuth2Service;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Generated;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -20,9 +22,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Service implementation for OAuth2 login flows. Extends Spring Security's {@link

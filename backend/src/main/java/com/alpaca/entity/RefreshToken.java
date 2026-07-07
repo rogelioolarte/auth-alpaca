@@ -2,12 +2,11 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Represents a stored refresh token in the system, used for refresh-token rotation and reuse

@@ -1,5 +1,9 @@
 package com.alpaca.unit.mapper;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.dto.response.RoleResponseDTO;
 import com.alpaca.entity.Role;
@@ -8,6 +12,10 @@ import com.alpaca.mapper.impl.RoleMapperImpl;
 import com.alpaca.resources.provider.PermissionProvider;
 import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.service.impl.PermissionServiceImpl;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,15 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RoleMapperImplTest {

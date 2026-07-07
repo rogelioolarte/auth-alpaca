@@ -22,7 +22,11 @@ Focuses on fast, isolated checks (unit tests and slice tests) without database o
 
 * **Command**:
   ```bash
-  ./mvnw clean test -Punit-tests
+  # From project root:
+  ./backend/mvnw clean test -Punit-tests
+
+  # Or from backend/ directly:
+  cd backend && ./mvnw clean test -Punit-tests
   ```
 * **Execution details**:
   - Executes unit tests naming convention: `unit/**/*Test.java` via `maven-surefire-plugin`.
@@ -34,7 +38,11 @@ Focuses on end-to-end functionality, HTTP request mapping, and database interact
 
 * **Command**:
   ```bash
-  ./mvnw clean verify -Pintegration-tests
+  # From project root:
+  ./backend/mvnw clean verify -Pintegration-tests
+
+  # Or from backend/ directly:
+  cd backend && ./mvnw clean verify -Pintegration-tests
   ```
 * **Execution details**:
   - Executes integration tests naming convention: `integration/**/*IT.java` via `maven-failsafe-plugin`.
@@ -49,28 +57,44 @@ Focuses on end-to-end functionality, HTTP request mapping, and database interact
 Integration tests verify component interaction by launching real, lightweight instances of PostgreSQL in Docker containers before running tests.
 
 ### Configuration Template
-An integration test class configures the database container dynamically:
+
+The Testcontainers setup is centralized in a dedicated `@TestConfiguration` class, leveraging Spring Boot 3.1+ `@ServiceConnection` for automatic property registration:
 
 ```java
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public abstract class BaseIntegrationTest {
+@TestConfiguration(proxyBeanMethods = false)
+public class TestContainersConfiguration {
 
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = 
-        new PostgreSQLContainer<>("postgres:18-alpine")
-            .withDatabaseName("auth-alpaca-test")
-            .withUsername("test")
-            .withPassword("test");
+    @Value("${spring.datasource.database-name:auth_alpaca_test}")
+    private String dbName;
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    @Value("${spring.datasource.username:alpaca}")
+    private String username;
+
+    @Value("${spring.datasource.password:secret}")
+    private String password;
+
+    @Bean
+    @ServiceConnection
+    public PostgreSQLContainer postgresContainer() {
+        return new PostgreSQLContainer("postgres:18-alpine")
+                .withDatabaseName(dbName)
+                .withUsername(username)
+                .withPassword(password);
     }
 }
 ```
+
+The base integration test class imports this configuration:
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
+@ActiveProfiles("test")
+@Import({TestContainersConfiguration.class, JpaRepositoryConfig.class})
+public abstract class BaseIntegrationTests {}
+```
+
+This approach avoids `@DynamicPropertySource` boilerplate and keeps container lifecycle management in a single location.
 
 ---
 
@@ -91,7 +115,7 @@ To simulate real-world conditions and avoid database locking/contention on a sin
 
 Seeding script run:
 ```bash
-# Seed postgres container
+# Seed postgres container (adjust -h if the container is on a different host)
 psql -h 127.0.0.1 -U postgres -d auth-alpaca -f performance-tests/data/seeding-users.sql
 ```
 

@@ -1,5 +1,9 @@
 package com.alpaca.integration.persistence;
 
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.IRefreshTokenDAO;
@@ -9,6 +13,11 @@ import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.provider.RefreshTokenProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.DataJpaIntegrationTest;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,16 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.within;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link RefreshTokenDAOImpl} */
 @DataJpaIntegrationTest

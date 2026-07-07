@@ -15,6 +15,10 @@ import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.UUIDv7Generator;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.Generated;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -22,11 +26,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link Session} entities. Inherits common CRUD

@@ -2,10 +2,9 @@ package com.alpaca.mapper;
 
 import com.alpaca.dto.response.SessionResponseDTO;
 import com.alpaca.entity.Session;
-import org.springframework.data.domain.Page;
-
 import java.util.Collection;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 /**
  * Mapper interface for converting between {@link Session} entities and their response DTOs.

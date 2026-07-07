@@ -2,10 +2,9 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.Objects;
 import java.util.UUID;
+import lombok.*;
 
 /**
  * Represents a Profile entity in the system. This entity is mapped to the "profiles" table in the

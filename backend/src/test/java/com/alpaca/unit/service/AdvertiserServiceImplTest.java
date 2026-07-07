@@ -1,5 +1,8 @@
 package com.alpaca.unit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.alpaca.entity.Advertiser;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -8,6 +11,9 @@ import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.resources.provider.AdvertiserProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.AdvertiserServiceImpl;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,13 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link AdvertiserServiceImpl}. */
 @ExtendWith(MockitoExtension.class)

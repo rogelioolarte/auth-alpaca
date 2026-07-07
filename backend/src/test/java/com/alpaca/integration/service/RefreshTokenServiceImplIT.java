@@ -1,5 +1,7 @@
 package com.alpaca.integration.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
@@ -19,18 +21,15 @@ import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.RefreshTokenServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link RefreshTokenServiceImpl} */
 @DisplayName("RefreshTokenServiceImpl Integration Tests")

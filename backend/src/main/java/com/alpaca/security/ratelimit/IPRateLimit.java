@@ -3,12 +3,11 @@ package com.alpaca.security.ratelimit;
 import com.alpaca.dto.response.RateLimitResult;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * Per-IP rate limiter using the token bucket algorithm via Bucket4j.

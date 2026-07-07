@@ -3,6 +3,7 @@ package com.alpaca.security.manager;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.service.IAuthService;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -11,8 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 /**
  * An {@link AuthenticationProvider} that validates username/password credentials against the

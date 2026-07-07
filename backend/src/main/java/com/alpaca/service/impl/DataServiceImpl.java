@@ -7,6 +7,8 @@ import com.alpaca.service.DataService;
 import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +17,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Service responsible for seeding essential application data upon startup.

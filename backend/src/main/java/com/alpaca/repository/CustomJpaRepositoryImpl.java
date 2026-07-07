@@ -5,13 +5,12 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import java.util.Collection;
 import org.jspecify.annotations.NonNull;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
 
 /**
  * Custom base implementation of {@link SimpleJpaRepository} that overrides the default {@link
@@ -104,7 +103,8 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
         var idAttribute = entityInformation.getIdAttribute();
         if (idAttribute == null) {
             throw new IllegalStateException(
-                    String.format("No valid id attribute for entity %s.",
+                    String.format(
+                            "No valid id attribute for entity %s.",
                             entityInformation.getEntityName()));
         }
         return idAttribute.getName();

@@ -16,7 +16,7 @@ The production-ready stack is orchestrated using `docker-compose.yml`, which sep
 graph TD
     User([User Client]) -.->|Port 80| FE[frontend: auth-alpaca-ui]
     FE -->|frontend-net| BE[backend: auth-alpaca-api]
-    BE -->|backend-net| DB[(db: auth-alpaca-db)]
+    BE -->|backend-net| DB[(postgres-db: auth-alpaca-db)]
 
     subgraph public-net [Public / Frontend Network]
         FE
@@ -29,7 +29,7 @@ graph TD
 ```
 
 ### Services Overview
-1. **`db` (auth-alpaca-db)**:
+1. **`postgres-db` (auth-alpaca-db)**:
    - Run from image `postgres:18-alpine`.
    - Health check utilizes `pg_isready` to ensure database readiness before booting the backend.
    - Volumes map `postgres_data` to `/var/lib/postgresql` for persistent storage.
@@ -59,7 +59,7 @@ networks:
 
 ### Network Descriptions
 * **`backend-net` (`internal: true`)**:
-  - Hosts the database (`db`) and the Spring Boot API (`backend`).
+   - Hosts the database (`postgres-db`) and the Spring Boot API (`backend`).
   - The `internal: true` flag guarantees that no container in this network can communicate with the outside world, nor can external entities access them directly. This prevents PostgreSQL port scanning.
 * **`frontend-net`**:
   - Connects the Nginx-hosted client (`frontend`) and the Spring Boot API (`backend`).
@@ -73,8 +73,8 @@ The following table summarizes all environment variables required to run the ser
 
 | Environment Variable | Service | Description | Example / Default Value |
 | :--- | :--- | :--- | :--- |
-| `SPRING_DATASOURCE_URL` | `backend` | JDBC connection URL targeting the db service. | `jdbc:postgresql://db:5432/auth-alpaca` |
-| `SPRING_DATASOURCE_USERNAME` | `db`, `backend` | Database user account name. | `postgres` |
+| `SPRING_DATASOURCE_URL` | `backend` | JDBC connection URL targeting the postgres-db service. | `jdbc:postgresql://postgres-db:5432/auth-alpaca` |
+| `SPRING_DATASOURCE_USERNAME` | `postgres-db`, `backend` | Database user account name. | `postgres` |
 | `SPRING_DATASOURCE_PASSWORD` | `db`, `backend` | Secure password for PostgreSQL authentication. | `your_db_password` |
 | `SPRING_DATASOURCE_MAXIMUM_POOL_SIZE` | `backend` | Maximum size of the Hikari connection pool. | `50` |
 | `SPRING_DATASOURCE_MINIMUM_IDLE` | `backend` | Minimum number of idle connections kept by Hikari. | `10` |

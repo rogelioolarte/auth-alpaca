@@ -1,25 +1,24 @@
 package com.alpaca.unit.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.ProfileDAOImpl;
 import com.alpaca.repository.ProfileRepo;
 import com.alpaca.resources.provider.ProfileProvider;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link ProfileDAOImpl}. */
 @ExtendWith(MockitoExtension.class)

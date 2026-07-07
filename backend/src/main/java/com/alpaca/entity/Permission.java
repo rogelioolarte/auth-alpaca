@@ -2,12 +2,11 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import lombok.*;
 
 /**
  * Represents a Permission entity in the system. This entity is used to manage user permissions and

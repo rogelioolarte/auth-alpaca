@@ -1,5 +1,7 @@
 package com.alpaca.integration.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.alpaca.entity.User;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.persistence.impl.UserDAOImpl;
@@ -7,6 +9,10 @@ import com.alpaca.repository.UserRepo;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.DataJpaIntegrationTest;
 import com.alpaca.security.manager.PasswordManager;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,13 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /** Integration tests for {@link UserDAOImpl} */
 @DataJpaIntegrationTest

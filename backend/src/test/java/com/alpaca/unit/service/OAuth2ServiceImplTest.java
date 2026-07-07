@@ -1,5 +1,8 @@
 package com.alpaca.unit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -12,6 +15,11 @@ import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,15 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link OAuth2ServiceImpl}. */
 @ExtendWith(MockitoExtension.class)

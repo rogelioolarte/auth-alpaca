@@ -2,9 +2,8 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.*;
+import lombok.*;
 
 /**
  * Represents a Role entity in the system. This entity is mapped to the "roles" table in the

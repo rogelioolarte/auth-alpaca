@@ -1,5 +1,9 @@
 package com.alpaca.security.oauth2;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
@@ -8,11 +12,6 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JavaType;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.json.JsonMapper;
-
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Custom Jackson deserializer for {@link OAuth2AuthorizationRequest}, enabling reconstruction of

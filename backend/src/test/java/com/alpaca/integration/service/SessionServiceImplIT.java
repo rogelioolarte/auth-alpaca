@@ -1,5 +1,8 @@
 package com.alpaca.integration.service;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -13,6 +16,10 @@ import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.SessionServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,14 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 /** Integration tests for {@link SessionServiceImpl} */
 @DisplayName("SessionServiceImpl Integration Tests")

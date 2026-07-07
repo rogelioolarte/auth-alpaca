@@ -102,9 +102,11 @@ bun run build
 The output directory will be populated under `dist/auth-alpaca-ui/browser`.
 
 ### Local Production Server Preview
-You can build and preview the application locally using a light server:
+You can build and preview the application locally using a light HTTP server:
 ```bash
-bun run start:dist
+# Build + servir en local
+bun run build
+bunx http-server dist/auth-alpaca-ui/browser -p 4200 -o
 ```
 
 > [!NOTE]

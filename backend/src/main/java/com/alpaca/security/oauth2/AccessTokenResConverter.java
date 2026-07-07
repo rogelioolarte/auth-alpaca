@@ -1,17 +1,16 @@
 package com.alpaca.security.oauth2;
 
-import org.jspecify.annotations.NonNull;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.NonNull;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 
 /**
  * Converter that transforms a raw token response {@link Map} into a structured {@link

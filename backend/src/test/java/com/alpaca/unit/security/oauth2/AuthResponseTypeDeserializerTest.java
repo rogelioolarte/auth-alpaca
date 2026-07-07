@@ -1,5 +1,8 @@
 package com.alpaca.unit.security.oauth2;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import com.alpaca.security.oauth2.AuthResponseTypeDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,9 +14,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link AuthResponseTypeDeserializer} */
 @ExtendWith(MockitoExtension.class)

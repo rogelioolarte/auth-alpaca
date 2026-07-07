@@ -5,6 +5,7 @@ import com.alpaca.security.manager.CustomAuthenticationManager;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.oauth2.*;
 import com.alpaca.service.IOAuth2Service;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,8 +35,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 /**
  * Configures security settings for the application, including authentication, authorization, OAuth2

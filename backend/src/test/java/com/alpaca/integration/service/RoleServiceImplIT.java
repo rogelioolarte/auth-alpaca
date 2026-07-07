@@ -1,5 +1,10 @@
 package com.alpaca.integration.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.alpaca.entity.Permission;
 import com.alpaca.entity.Role;
 import com.alpaca.exception.BadRequestException;
@@ -9,6 +14,8 @@ import com.alpaca.resources.provider.PermissionProvider;
 import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.impl.RoleServiceImpl;
+import java.time.Instant;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,14 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
 /** Integration tests for {@link RoleServiceImpl} */
 @DisplayName("RoleServiceImpl Integration Tests")

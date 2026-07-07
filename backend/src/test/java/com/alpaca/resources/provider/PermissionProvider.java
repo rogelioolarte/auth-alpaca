@@ -3,9 +3,8 @@ package com.alpaca.resources.provider;
 import com.alpaca.dto.request.PermissionRequestDTO;
 import com.alpaca.dto.response.PermissionResponseDTO;
 import com.alpaca.entity.Permission;
-import org.springframework.data.domain.PageImpl;
-
 import java.util.*;
+import org.springframework.data.domain.PageImpl;
 
 public class PermissionProvider {
 

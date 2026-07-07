@@ -2,15 +2,14 @@ package com.alpaca.repository;
 
 import com.alpaca.entity.User;
 import jakarta.persistence.LockModeType;
+import java.util.Optional;
+import java.util.UUID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Repository interface for managing {@link User} entities.

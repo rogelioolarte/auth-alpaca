@@ -1,10 +1,9 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Advertiser;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.UUID;
 
 /**
  * Service interface for managing {@link Advertiser} entities. Extends {@link IGenericService} to

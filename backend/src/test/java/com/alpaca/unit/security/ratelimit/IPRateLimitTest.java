@@ -1,12 +1,12 @@
 package com.alpaca.unit.security.ratelimit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.security.ratelimit.IPRateLimit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class IPRateLimitTest {
 
