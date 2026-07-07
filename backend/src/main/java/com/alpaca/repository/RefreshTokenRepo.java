@@ -140,4 +140,16 @@ public interface RefreshTokenRepo extends CustomRepo<RefreshToken, UUID> {
             @Param("userId") UUID userId,
             @Param("revokedAt") Instant revokedAt,
             @Param("reason") String reason);
+
+    /**
+     * Bulk-deletes all refresh tokens that are marked as revoked.
+     *
+     * <p>Intended for scheduled cleanup (e.g. daily purge of stale revoked tokens). Runs a single
+     * bulk DELETE statement without loading entities.
+     *
+     * @return the number of deleted rows
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM RefreshToken r WHERE r.revoked = true")
+    int deleteRevoked();
 }

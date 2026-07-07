@@ -217,4 +217,16 @@ public interface SessionRepo extends CustomRepo<Session, UUID> {
                        AND s.revoked = false
                     """)
     Page<Session> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
+
+    /**
+     * Bulk-deletes all sessions that are marked as revoked.
+     *
+     * <p>Intended for scheduled cleanup (e.g. weekly purge of stale revoked sessions). Runs a
+     * single bulk DELETE statement without loading entities.
+     *
+     * @return the number of deleted rows
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Session s WHERE s.revoked = true")
+    int deleteRevoked();
 }
