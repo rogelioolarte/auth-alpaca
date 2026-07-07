@@ -500,6 +500,15 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<doclint>all,-missing</doclint>
+					<overview>src/docs/overview.html</overview>
+					<doctitle>Multiple Auth API ${project.version}</doctitle>
+					<windowtitle>Multiple Auth API ${project.version}</windowtitle>
+					<header>Multiple Auth API ${project.version}</header>
+					<bottom><![CDATA[
+						<span>Copyright &#169; 2026. </span>
+						<a href="https://github.com/rogelioolarte/auth-alpaca">Auth-Alpaca</a>.
+						<span> Licensed under the MIT License.</span>
+					]]></bottom>
 				</configuration>
 			</plugin>
 		</plugins>
