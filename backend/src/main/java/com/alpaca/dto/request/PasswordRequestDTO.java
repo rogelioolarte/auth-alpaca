@@ -7,10 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
 /**
  * Carries the three fields required to change a user's password: the current password for
  * verification, the new password, and a confirmation field.
@@ -18,6 +14,10 @@ import lombok.Setter;
  * <p>The confirmation ({@code reNewPassword}) is expected to match {@code newPassword}; that
  * equality check is performed at the service layer rather than via Bean Validation.
  */
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PasswordRequestDTO {
 
     @Size(min = 8, max = 200, message = "CurrentPassword must be at least 8 to 200 characters.")

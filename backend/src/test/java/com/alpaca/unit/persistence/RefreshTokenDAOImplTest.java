@@ -1,24 +1,25 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.persistence.impl.RefreshTokenDAOImpl;
 import com.alpaca.repository.RefreshTokenRepo;
 import com.alpaca.resources.provider.RefreshTokenProvider;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /** Unit tests for {@link RefreshTokenDAOImpl} implementation. */
 @ExtendWith(MockitoExtension.class)

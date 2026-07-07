@@ -12,7 +12,6 @@ import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.Instant;
 
 /**
  * Implementation of {@link IAuthService}, handling authentication, user registration, and OAuth2
@@ -119,6 +120,11 @@ public class AuthServiceImpl implements IAuthService {
     /**
      * Registers a new user, assigns default role, and logs them in returning a JWT token.
      *
+     * <p>Before persisting, validates that no user exists with the same email address. A session is
+     * created for the device fingerprint embedded in the request DTO, and JWT tokens are issued.
+     *
+     * @param requestDTO the registration request containing email, password, and device context —
+     *     must not be null
      * @return {@link AuthResponseDTO} for the newly registered user
      * @throws BadRequestException if the email is already registered
      */

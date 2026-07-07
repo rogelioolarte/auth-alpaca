@@ -8,8 +8,6 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IAdvertiserMapper;
 import com.alpaca.service.IAdvertiserService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -18,11 +16,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
- * REST controller for managing {@link Advertiser} entities.
+ * REST controller for managing {@link Advertiser} entities at {@code /api/advertisers}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of advertisers. Utilizes {@link
- * IAdvertiserService} for business logic and {@link IAdvertiserMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination. Most endpoints require the {@code ADMIN} role or
+ * ownership ({@code principal.getAdvertiserId() == #id}), with the exception of {@code GET
+ * /api/advertisers/page} which is public (returns only indexed advertisers). See each method's
+ * {@code @PreAuthorize} annotation for the exact security expression.
  *
  * @see IAdvertiserService
  * @see IAdvertiserMapper

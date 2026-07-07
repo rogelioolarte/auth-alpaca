@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.UUID;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
 /**
  * Payload for creating or updating a user's personal profile, including names, address, avatar URL,
  * and the owning user ID.
  */
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProfileRequestDTO {
 
     @Size(min = 2, max = 250, message = "First Name must be at least 5 to 250 characters.")

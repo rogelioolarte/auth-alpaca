@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for refresh token rotation.
+ * REST controller for refresh token rotation at {@code /api/auth}.
  *
- * <p>Provides the endpoint for exchanging an expiring refresh token for a new access and refresh
- * token pair. Requests are IP-rate-limited to prevent abuse.
+ * <p>Provides the {@code POST /rotate} endpoint for exchanging an expiring refresh token for a new
+ * access and refresh token pair (token rotation). Requests are IP-rate-limited via {@link
+ * IPRateLimit} to prevent abuse. Requires authentication — unauthenticated requests return HTTP
+ * 401.
  *
  * @see IRefreshTokenService
  * @see IPRateLimit

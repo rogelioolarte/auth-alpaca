@@ -1,10 +1,11 @@
 package com.alpaca.persistence;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Generic Data Access Object (DAO) interface providing common CRUD operations.

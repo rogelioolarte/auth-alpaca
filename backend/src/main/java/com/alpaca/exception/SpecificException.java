@@ -13,6 +13,12 @@ import org.springframework.web.server.ResponseStatusException;
  */
 public class SpecificException extends ResponseStatusException {
 
+    /**
+     * Constructs a new SpecificException with a dynamic HTTP status and reason.
+     *
+     * @param status the HTTP status code to return (e.g., 400, 409, 422)
+     * @param reason the detail message explaining the error
+     */
     public SpecificException(Integer status, String reason) {
         super(HttpStatusCode.valueOf(status), reason);
     }

@@ -12,6 +12,11 @@ import org.springframework.web.server.ResponseStatusException;
  */
 public class InternalErrorException extends ResponseStatusException {
 
+    /**
+     * Constructs a new InternalErrorException with the given detail message.
+     *
+     * @param message the detail message describing the internal error
+     */
     public InternalErrorException(String message) {
         super(HttpStatus.INTERNAL_SERVER_ERROR, message);
     }

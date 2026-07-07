@@ -12,8 +12,6 @@ import com.alpaca.mapper.IUserMapper;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.IUserService;
 import com.alpaca.utils.IsAuthenticated;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -24,11 +22,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
- * REST controller for managing {@link User} entities.
+ * REST controller for managing {@link User} entities at {@code /api/users}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of users. Utilizes {@link IUserService}
- * for business logic and {@link IUserMapper} for DTO conversions.
+ * <p>Provides CRUD operations, pagination, and password changes. Endpoints require the {@code
+ * ADMIN} role or, where applicable, self-ownership ({@code principal.getUserId() == #id}). The
+ * {@code PUT /change-password} endpoint requires authentication via {@code @IsAuthenticated}.
  *
  * @see IUserService
  * @see IUserMapper

@@ -10,6 +10,11 @@ import org.springframework.web.server.ResponseStatusException;
  * identified but does not hold the required role or authority.
  */
 public class ForbiddenException extends ResponseStatusException {
+    /**
+     * Constructs a new ForbiddenException with the given detail message.
+     *
+     * @param message the detail message explaining why access was denied
+     */
     public ForbiddenException(String message) {
         super(HttpStatus.FORBIDDEN, message);
     }

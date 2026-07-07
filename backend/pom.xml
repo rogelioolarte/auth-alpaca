@@ -490,6 +490,18 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Javadoc Plugin: -missing suppresses doclint warnings for default
+			     constructors, @param on Lombok-generated code, and @return on
+			     trivial getters — these add noise without real value when the
+			     codebase uses constructor injection and Lombok consistently. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<doclint>all,-missing</doclint>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

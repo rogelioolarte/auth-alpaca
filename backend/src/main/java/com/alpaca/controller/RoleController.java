@@ -8,8 +8,6 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IRoleMapper;
 import com.alpaca.service.IRoleService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -17,11 +15,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
- * REST controller for managing {@link Role} entities.
+ * REST controller for managing {@link Role} entities at {@code /api/roles}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of roles. Utilizes {@link IRoleService}
- * for business logic and {@link IRoleMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination for roles. Note: this controller has no method-level
+ * security annotations — access control is expected to be handled by Spring Security's global
+ * filter chain or at the service layer.
  *
  * @see IRoleService
  * @see IRoleMapper

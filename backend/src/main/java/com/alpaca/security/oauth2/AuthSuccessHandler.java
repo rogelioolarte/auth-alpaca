@@ -13,10 +13,6 @@ import com.alpaca.utils.Utils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Optional;
-import java.util.Set;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -24,6 +20,11 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Handles successful authentication for OAuth2 login flows.
@@ -47,8 +48,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    /** Query parameter and cookie name for the post-login redirect URI. */
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+
+    /** Attribute key and cookie name for the PKCE code challenge passed from the client. */
     public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
+
     private final CookieAuthReqRepo repository;
     private final Set<URI> authorizedRedirectUris;
     private final TokenExchangeManager exchangeManager;

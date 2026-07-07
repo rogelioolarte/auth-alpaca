@@ -1,8 +1,5 @@
 package com.alpaca.unit.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
 import com.alpaca.entity.Session;
@@ -20,15 +17,19 @@ import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.RefreshTokenServiceImpl;
 import com.alpaca.utils.UUIDv7Generator;
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link RefreshTokenServiceImpl}. */
 @ExtendWith(MockitoExtension.class)

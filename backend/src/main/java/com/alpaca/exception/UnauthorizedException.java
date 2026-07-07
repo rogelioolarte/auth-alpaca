@@ -11,6 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
  */
 public class UnauthorizedException extends ResponseStatusException {
 
+    /**
+     * Constructs a new UnauthorizedException with the given detail message.
+     *
+     * @param message the detail message explaining why authentication failed
+     */
     public UnauthorizedException(String message) {
         super(HttpStatus.UNAUTHORIZED, message);
     }

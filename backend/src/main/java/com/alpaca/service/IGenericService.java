@@ -2,16 +2,17 @@ package com.alpaca.service;
 
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import java.util.Collection;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Generic service interface providing common CRUD operations.
  *
- * @param <T> The type of entity.
- * @param <I> The type of the entity's identifier.
+ * @param <T> the entity type managed by this service (e.g., User, Role, Session)
+ * @param <I> the type of the entity's identifier (e.g., Long, UUID, String)
  */
 public interface IGenericService<T, I> {
 

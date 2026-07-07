@@ -11,6 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
  */
 public class BadRequestException extends ResponseStatusException {
 
+    /**
+     * Constructs a new BadRequestException with the given detail message.
+     *
+     * @param message the detail message explaining the bad request reason
+     */
     public BadRequestException(String message) {
         super(HttpStatus.BAD_REQUEST, message);
     }

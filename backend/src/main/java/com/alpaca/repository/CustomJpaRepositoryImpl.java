@@ -1,14 +1,17 @@
 package com.alpaca.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import jakarta.persistence.metamodel.SingularAttribute;
-import java.util.Collection;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.jspecify.annotations.NonNull;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
 
 /**
  * Custom base implementation of {@link SimpleJpaRepository} that overrides the default {@link
@@ -29,6 +32,12 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
     private final EntityManager entityManager;
     private final JpaEntityInformation<T, I> entityInformation;
 
+    /**
+     * Creates a custom repository implementation for the given entity type.
+     *
+     * @param entityInformation metadata about the entity type, used for JPQL query construction
+     * @param entityManager the JPA {@link EntityManager} for executing queries
+     */
     public CustomJpaRepositoryImpl(
             JpaEntityInformation<T, I> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
@@ -48,27 +57,20 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
     @Override
     @Transactional
     public void deleteById(@NonNull I id) {
-        String entityName = entityInformation.getEntityName();
+        Class<T> entityClass = entityInformation.getJavaType();
+        String idAttributeName = resolveIdAttributeName();
 
-        SingularAttribute<? super T, ?> idAttribute = entityInformation.getIdAttribute();
-        if (idAttribute == null) {
-            throw new IllegalStateException(
-                    String.format("No valid entity %s exists.", entityName));
-        }
-        String idAttributeName = idAttribute.getName();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaDelete<T> delete = cb.createCriteriaDelete(entityClass);
+        Root<T> root = delete.from(entityClass);
+        delete.where(cb.equal(root.get(idAttributeName), id));
 
-        String queryString =
-                String.format("DELETE FROM %s e WHERE e.%s = :id", entityName, idAttributeName);
-
-        Query query = entityManager.createQuery(queryString);
-        query.setParameter("id", id);
-
-        int affectedRows = query.executeUpdate();
+        int affectedRows = entityManager.createQuery(delete).executeUpdate();
         if (affectedRows == 0) {
             throw new EmptyResultDataAccessException(
                     String.format(
                             "%s with id %s was not found or has already been removed.",
-                            entityName, id),
+                            entityInformation.getEntityName(), id),
                     1);
         }
     }
@@ -86,21 +88,25 @@ public class CustomJpaRepositoryImpl<T, I> extends SimpleJpaRepository<T, I>
             return 0L;
         }
 
-        String entityName = entityInformation.getEntityName();
-        SingularAttribute<? super T, ?> idAttribute = entityInformation.getIdAttribute();
+        Class<T> entityClass = entityInformation.getJavaType();
+        String idAttributeName = resolveIdAttributeName();
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<T> root = query.from(entityClass);
+        query.select(cb.count(root));
+        query.where(root.get(idAttributeName).in(ids));
+
+        return entityManager.createQuery(query).getSingleResult();
+    }
+
+    private String resolveIdAttributeName() {
+        var idAttribute = entityInformation.getIdAttribute();
         if (idAttribute == null) {
             throw new IllegalStateException(
-                    String.format("No valid entity %s exists.", entityName));
+                    String.format("No valid id attribute for entity %s.",
+                            entityInformation.getEntityName()));
         }
-        String idAttributeName = idAttribute.getName();
-
-        String queryString =
-                String.format(
-                        "SELECT COUNT(e) FROM %s e WHERE e.%s IN :ids",
-                        entityName, idAttributeName);
-
-        Query query = entityManager.createQuery(queryString);
-        query.setParameter("ids", ids);
-        return (long) query.getSingleResult();
+        return idAttribute.getName();
     }
 }

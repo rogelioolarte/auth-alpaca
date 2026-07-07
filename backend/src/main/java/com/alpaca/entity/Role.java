@@ -2,8 +2,9 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.*;
+
+import java.util.*;
 
 /**
  * Represents a Role entity in the system. This entity is mapped to the "roles" table in the
@@ -80,6 +81,9 @@ public class Role extends Auditable {
      *
      * <p>Clears existing {@link RolePermission} associations and rebuilds them from the provided
      * collection. Has no effect if the collection is null or empty.
+     *
+     * @param permissions the collection of permissions to assign; may be empty or {@code null}
+     *     (no-op)
      */
     public void setRolePermissions(Collection<Permission> permissions) {
         if (this.rolePermissions == null) {

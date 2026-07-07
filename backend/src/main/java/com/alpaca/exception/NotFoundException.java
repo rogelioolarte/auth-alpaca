@@ -11,6 +11,11 @@ import org.springframework.web.server.ResponseStatusException;
  */
 public class NotFoundException extends ResponseStatusException {
 
+    /**
+     * Constructs a new NotFoundException with the given detail message.
+     *
+     * @param message the detail message describing the resource that was not found
+     */
     public NotFoundException(String message) {
         super(HttpStatus.NOT_FOUND, message);
     }

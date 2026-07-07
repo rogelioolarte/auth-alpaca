@@ -1,11 +1,12 @@
 package com.alpaca.mapper;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A generic mapper interface to facilitate conversion between entities, request DTOs, and response
@@ -23,6 +24,10 @@ import org.springframework.data.domain.Pageable;
  *
  * By standardizing these operations, implementations can reduce boilerplate code and ensure
  * consistency across data transformation layers.
+ *
+ * @param <T> the entity type
+ * @param <R> the response DTO type
+ * @param <D> the request DTO type
  */
 public interface GenericMapper<T, R, D> {
 

@@ -1,10 +1,5 @@
 package com.alpaca.integration.persistence;
 
-import static org.assertj.core.api.Assertions.within;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.ISessionDAO;
@@ -14,11 +9,6 @@ import com.alpaca.persistence.impl.UserDAOImpl;
 import com.alpaca.resources.provider.SessionProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.DataJpaIntegrationTest;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +17,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Integration tests for {@link SessionDAOImpl}. */
 @DataJpaIntegrationTest

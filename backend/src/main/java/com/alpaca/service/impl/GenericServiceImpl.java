@@ -4,14 +4,15 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.service.IGenericService;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Abstract base implementation of {@link IGenericService}, providing reusable CRUD operations with
@@ -21,8 +22,8 @@ import org.springframework.util.StringUtils;
  * <p>Concrete services should extend this class and provide specific {@link IGenericDAO} instances
  * and entity names for exception messages.
  *
- * @param <T> the type of entity managed
- * @param <I> the type of the entity's identifier
+ * @param <T> the entity type managed by this service (e.g., User, Role, Session)
+ * @param <I> the type of the entity's identifier (e.g., Long, UUID, String)
  * @see IGenericService
  */
 public abstract class GenericServiceImpl<T, I> implements IGenericService<T, I> {

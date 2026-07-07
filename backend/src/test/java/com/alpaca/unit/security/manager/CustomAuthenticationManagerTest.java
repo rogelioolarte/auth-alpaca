@@ -1,14 +1,10 @@
 package com.alpaca.unit.security.manager;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.security.manager.CustomAuthenticationManager;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.IAuthService;
-import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +14,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CustomAuthenticationManagerTest {

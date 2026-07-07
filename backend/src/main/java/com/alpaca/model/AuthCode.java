@@ -1,11 +1,12 @@
 package com.alpaca.model;
 
-import java.time.Instant;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Represents an OAuth2 authorization code with optional PKCE support.
@@ -58,6 +59,14 @@ public class AuthCode {
      *
      * <p>Sets the TTL to 60 seconds from now. The authenticated {@code userId} is recorded so the
      * server can resolve the user when the code is exchanged.
+     *
+     * @param code the opaque authorization code
+     * @param codeChallenge the PKCE S256 code challenge from the client
+     * @param clientId the OAuth2 client identifier
+     * @param userAgent the user-agent header from the authorization request
+     * @param clientIp the client IP from the authorization request
+     * @param userId the authenticated user that approved the code
+     * @param redirectUri the redirect URI bound to this authorization code
      */
     public AuthCode(
             String code,
@@ -80,6 +89,13 @@ public class AuthCode {
     /**
      * Constructor for flows where the server issues the code with a raw PKCE verifier rather than a
      * challenge. No user ID or expiry is set — caller should populate those separately if needed.
+     *
+     * @param code the opaque authorization code
+     * @param codeVerifier the raw PKCE code verifier
+     * @param redirectUri the redirect URI bound to this code
+     * @param clientId the OAuth2 client identifier
+     * @param userAgent the user-agent header from the authorization request
+     * @param clientIp the client IP from the authorization request
      */
     public AuthCode(
             String code,
@@ -101,6 +117,10 @@ public class AuthCode {
      *
      * <p>Suitable for simple or legacy flows where PKCE is not used and audit metadata is tracked
      * elsewhere.
+     *
+     * @param code the opaque authorization code
+     * @param codeVerifier the raw PKCE code verifier (or empty/non-null for non-PKCE flows)
+     * @param redirectUri the redirect URI bound to this code
      */
     public AuthCode(String code, String codeVerifier, String redirectUri) {
         this.code = code;

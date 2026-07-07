@@ -3,8 +3,9 @@ package com.alpaca.resources.provider;
 import com.alpaca.dto.request.UserRequestDTO;
 import com.alpaca.dto.response.UserResponseDTO;
 import com.alpaca.entity.User;
-import java.util.*;
 import org.springframework.data.domain.PageImpl;
+
+import java.util.*;
 
 public class UserProvider {
 

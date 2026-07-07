@@ -2,7 +2,9 @@ name: Deploy Backend to OCI
 
 on:
   push:
-    branches: [ dev ]
+    branches: [main]
+    paths:
+      - 'backend/**'
 
 jobs:
   build:
@@ -51,43 +53,43 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VM_IP }}
-          username: ubuntu
+          username: ${{ vars.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "deploy/*"
-          target: "/home/ubuntu/app"
+          target: "/home/${{ vars.VM_USER }}/app"
           strip_components: 1
 
       - name: Update Environment & Restart
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VM_IP }}
-          username: ubuntu
+          username: ${{ vars.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            printf "SPRING_PROFILES_ACTIVE=prod\n" > /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_URL=%s\n" "${{secrets.SPRING_DATASOURCE_URL}}" >> /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_USERNAME=%s\n" "${{secrets.SPRING_DATASOURCE_USERNAME}}" >> /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_PASSWORD=%s\n" "${{secrets.SPRING_DATASOURCE_PASSWORD}}" >> /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=%s\n" "${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}" >> /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=%s\n" "${{secrets.SPRING_DATASOURCE_MINIMUM_IDLE}}" >> /home/ubuntu/app/.env
-            printf "SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=30000\n" >> /home/ubuntu/app/.env
-            printf "JWT_ISSUER=%s\n" "${{secrets.JWT_ISSUER}}" >> /home/ubuntu/app/.env
-            printf "JWT_ACCESS_TOKEN_EXPIRATION=%s\n" "${{secrets.JWT_ACCESS_TOKEN_EXPIRATION}}" >> /home/ubuntu/app/.env
-            printf "JWT_REFRESH_TOKEN_EXPIRATION=%s\n" "${{secrets.JWT_REFRESH_TOKEN_EXPIRATION}}" >> /home/ubuntu/app/.env
-            printf "JWT_ACCESS_PRIVATE_KEY_PATH=%s\n" "${{secrets.JWT_ACCESS_PRIVATE_KEY_PATH}}" >> /home/ubuntu/app/.env
-            printf "JWT_ACCESS_PUBLIC_KEY_PATH=%s\n" "${{secrets.JWT_ACCESS_PUBLIC_KEY_PATH}}" >> /home/ubuntu/app/.env
-            printf "JWT_REFRESH_PRIVATE_KEY_PATH=%s\n" "${{secrets.JWT_REFRESH_PRIVATE_KEY_PATH}}" >> /home/ubuntu/app/.env
-            printf "JWT_REFRESH_PUBLIC_KEY_PATH=%s\n" "${{secrets.JWT_REFRESH_PUBLIC_KEY_PATH}}" >> /home/ubuntu/app/.env
-            printf "ADMIN_EMAIL=%s\n" "${{secrets.ADMIN_EMAIL}}" >> /home/ubuntu/app/.env
-            printf "ADMIN_PASSWORD=%s\n" "${{secrets.ADMIN_PASSWORD}}" >> /home/ubuntu/app/.env
-            printf "APP_FRONTEND_URI=%s\n" "${{secrets.APP_FRONTEND_URI}}" >> /home/ubuntu/app/.env
-            printf "GOOGLE_CLIENT_ID=%s\n" "${{secrets.GOOGLE_CLIENT_ID}}" >> /home/ubuntu/app/.env
-            printf "GOOGLE_CLIENT_SECRET=%s\n" "${{secrets.GOOGLE_CLIENT_SECRET}}" >> /home/ubuntu/app/.env
-            printf "MAX_SESSIONS_PER_USER=%s\n" "${{secrets.MAX_SESSIONS_PER_USER}}" >> /home/ubuntu/app/.env
-            printf "INFINITY_LOGIN=%s\n" "${{secrets.INFINITY_LOGIN}}" >> /home/ubuntu/app/.env
-            printf "BCRYPT_COST_FACTOR=%s\n" "${{secrets.BCRYPT_COST_FACTOR}}" >> /home/ubuntu/app/.env
+            printf "SPRING_PROFILES_ACTIVE=prod\n" > /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_URL=%s\n" "${{secrets.SPRING_DATASOURCE_URL}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_USERNAME=%s\n" "${{secrets.SPRING_DATASOURCE_USERNAME}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_PASSWORD=%s\n" "${{secrets.SPRING_DATASOURCE_PASSWORD}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=%s\n" "${{secrets.SPRING_DATASOURCE_MAXIMUM_POOL_SIZE}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=%s\n" "${{secrets.SPRING_DATASOURCE_MINIMUM_IDLE}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=30000\n" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_ISSUER=%s\n" "${{secrets.JWT_ISSUER}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_ACCESS_TOKEN_EXPIRATION=%s\n" "${{secrets.JWT_ACCESS_TOKEN_EXPIRATION}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_REFRESH_TOKEN_EXPIRATION=%s\n" "${{secrets.JWT_REFRESH_TOKEN_EXPIRATION}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_ACCESS_PRIVATE_KEY_PATH=%s\n" "${{secrets.JWT_ACCESS_PRIVATE_KEY_PATH}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_ACCESS_PUBLIC_KEY_PATH=%s\n" "${{secrets.JWT_ACCESS_PUBLIC_KEY_PATH}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_REFRESH_PRIVATE_KEY_PATH=%s\n" "${{secrets.JWT_REFRESH_PRIVATE_KEY_PATH}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "JWT_REFRESH_PUBLIC_KEY_PATH=%s\n" "${{secrets.JWT_REFRESH_PUBLIC_KEY_PATH}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "ADMIN_EMAIL=%s\n" "${{secrets.ADMIN_EMAIL}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "ADMIN_PASSWORD=%s\n" "${{secrets.ADMIN_PASSWORD}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "APP_FRONTEND_URI=%s\n" "${{secrets.APP_FRONTEND_URI}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "GOOGLE_CLIENT_ID=%s\n" "${{secrets.GOOGLE_CLIENT_ID}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "GOOGLE_CLIENT_SECRET=%s\n" "${{secrets.GOOGLE_CLIENT_SECRET}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "MAX_SESSIONS_PER_USER=%s\n" "${{secrets.MAX_SESSIONS_PER_USER}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "INFINITY_LOGIN=%s\n" "${{secrets.INFINITY_LOGIN}}" >> /home/${{ vars.VM_USER }}/app/.env
+            printf "BCRYPT_COST_FACTOR=%s\n" "${{secrets.BCRYPT_COST_FACTOR}}" >> /home/${{ vars.VM_USER }}/app/.env
 
-            chmod 600 /home/ubuntu/app/.env
-            chmod 600 /home/ubuntu/app/keys/*.pem
+            chmod 600 /home/${{ vars.VM_USER }}/app/.env
+            chmod 600 /home/${{ vars.VM_USER }}/app/keys/*.pem
             
             sudo systemctl restart alpaca.service

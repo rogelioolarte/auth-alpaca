@@ -1,11 +1,12 @@
 package com.alpaca.service;
 
 import com.alpaca.entity.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Service interface for managing {@link Session} entities. Extends {@link IGenericService} to

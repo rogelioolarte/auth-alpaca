@@ -8,8 +8,6 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IPermissionMapper;
 import com.alpaca.service.IPermissionService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -17,11 +15,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
- * REST controller for managing {@link Permission} entities.
+ * REST controller for managing {@link Permission} entities at {@code /api/permissions}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of permissions. Utilizes {@link
- * IPermissionService} for business logic and {@link IPermissionMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination for permissions. Note: this controller has no
+ * method-level security annotations — access control is expected to be handled by Spring Security's
+ * global filter chain or at the service layer.
  *
  * @see IPermissionService
  * @see IPermissionMapper

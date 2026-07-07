@@ -8,8 +8,6 @@ import com.alpaca.exception.NotFoundException;
 import com.alpaca.mapper.IProfileMapper;
 import com.alpaca.service.IProfileService;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -18,11 +16,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
- * REST controller for managing {@link Profile} entities.
+ * REST controller for managing {@link Profile} entities at {@code /api/profiles}.
  *
- * <p>Provides endpoints for CRUD operations and pagination of profiles. Utilizes {@link
- * IProfileService} for business logic and {@link IProfileMapper} for DTO conversions.
+ * <p>Provides CRUD operations and pagination. Endpoints require the {@code ADMIN} role or
+ * self-ownership ({@code principal.getProfileId() == #id}), except for {@code POST /} which permits
+ * creation when the authenticated user has no profile yet ({@code principal.getProfileId() ==
+ * null}).
  *
  * @see IProfileService
  * @see IProfileMapper

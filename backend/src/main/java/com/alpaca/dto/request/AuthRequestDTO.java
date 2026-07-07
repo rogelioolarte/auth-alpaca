@@ -8,16 +8,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
 /**
  * Carries login credentials (email + password) for authentication requests.
  *
  * <p>Both fields are validated for basic format constraints before reaching the authentication
  * service.
  */
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthRequestDTO {
 
     @Email(message = "Email must be valid.")

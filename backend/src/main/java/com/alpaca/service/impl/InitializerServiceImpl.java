@@ -1,7 +1,6 @@
 package com.alpaca.service.impl;
 
 import com.alpaca.service.DataService;
-import java.util.Arrays;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -9,6 +8,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 /**
  * Spring Boot startup initializer for development environments.

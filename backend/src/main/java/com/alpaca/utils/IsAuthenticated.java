@@ -1,7 +1,8 @@
 package com.alpaca.utils;
 
-import java.lang.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.annotation.*;
 
 /**
  * Meta-annotation that secures a method or class by requiring an authenticated user.

@@ -33,9 +33,16 @@ import org.springframework.stereotype.Component;
 public class CookieAuthReqRepo
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
+    /** Cookie name holding the serialized {@link OAuth2AuthorizationRequest}. */
     public static final String AUTHORIZATION_COOKIE_NAME = "oauth2_auth_request";
+
+    /** Cookie name for the post-login redirect URI. */
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
+
+    /** Cookie name for the PKCE code challenge provided by the client. */
     public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
+
+    /** Lifetime in seconds after which the authorization cookies expire. */
     public static final int COOKIE_EXPIRED_SECONDS = 180;
 
     /**

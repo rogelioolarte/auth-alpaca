@@ -6,17 +6,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-import java.util.Set;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+import java.util.Set;
+import java.util.UUID;
+
 /**
  * Payload for creating or updating a user account.
  *
@@ -25,6 +22,10 @@ import lombok.Setter;
  * {@code password} is mandatory on create but optional on update, while {@code email} and {@code
  * roles} are required in both cases.
  */
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRequestDTO {
 
     @Email(

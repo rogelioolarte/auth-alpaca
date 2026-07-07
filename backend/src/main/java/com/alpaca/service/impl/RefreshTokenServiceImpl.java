@@ -17,10 +17,6 @@ import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
 import com.alpaca.utils.UUIDv7Generator;
-import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link RefreshToken} entities. Inherits common CRUD

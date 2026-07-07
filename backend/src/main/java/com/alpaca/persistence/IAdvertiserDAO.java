@@ -1,9 +1,10 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Advertiser;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.UUID;
 
 /**
  * Data Access Object (DAO) interface for managing {@code Advertiser} entities. Extends {@link

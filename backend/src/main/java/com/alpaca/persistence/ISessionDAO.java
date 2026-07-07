@@ -1,11 +1,12 @@
 package com.alpaca.persistence;
 
 import com.alpaca.entity.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 /**
  * Data Access Object (DAO) interface for managing {@link Session} entities.

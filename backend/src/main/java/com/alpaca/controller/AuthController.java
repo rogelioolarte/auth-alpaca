@@ -10,7 +10,6 @@ import com.alpaca.utils.IsAuthenticated;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +20,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
- * REST controller for authentication operations.
+ * REST controller for authentication operations at {@code /api/auth}.
  *
- * <p>Provides endpoints for user login, registration, and retrieving the current authenticated
- * user. Utilizes {@link IAuthService} for authentication logic.
+ * <p>Public endpoints: {@code POST /login}, {@code POST /register}, {@code POST /exchange} (OAuth2
+ * auth code flow), and {@code GET /} (health). Authenticated endpoints ({@code @IsAuthenticated}):
+ * {@code POST /logout}, {@code GET /me}.
  *
  * @see IAuthService
  */
@@ -38,13 +40,20 @@ public class AuthController {
     private final AuthenticationManager manager;
 
     /**
-     * Authenticates a user based on provided credentials.
+     * Authenticates a user with email and password.
      *
-     * @param requestDTO the authentication request containing email and password; must not be
-     *     {@code null}
+     * <p>On success, issues an access token and a refresh token. The returned refresh token should
+     * be provided on subsequent {@code POST /api/auth/rotate} calls via the {@code X-Refresh-Token}
+     * header.
+     *
+     * @param requestDTO the credentials containing email and password; must not be {@code null}
+     * @param clientId the OAuth2 client identifier, provided via {@code X-Client-Id} header
+     * @param userAgent the user agent string, provided via {@code User-Agent} header
+     * @param request the HTTP servlet request (used for client IP extraction)
      * @return {@link ResponseEntity} containing the {@link AuthResponseDTO} with status {@link
      *     HttpStatus#OK}
-     * @throws IllegalArgumentException if the provided credentials are invalid
+     * @throws org.springframework.security.authentication.BadCredentialsException if the email or
+     *     password is invalid
      */
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(
@@ -72,11 +81,18 @@ public class AuthController {
     /**
      * Registers a new user with the provided credentials.
      *
-     * @param requestDTO the registration request containing email and password; must not be {@code
+     * <p>Creates a user account and immediately issues an access token and refresh token upon
+     * successful registration.
+     *
+     * @param requestDTO the registration details containing email and password; must not be {@code
      *     null}
+     * @param clientId the OAuth2 client identifier, provided via {@code X-Client-Id} header
+     * @param userAgent the user agent string, provided via {@code User-Agent} header
+     * @param request the HTTP servlet request (used for client IP extraction)
      * @return {@link ResponseEntity} containing the {@link AuthResponseDTO} with status {@link
      *     HttpStatus#OK}
-     * @throws IllegalArgumentException if the provided credentials are invalid
+     * @throws com.alpaca.exception.BadRequestException if the email is already registered or the
+     *     input is invalid
      */
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(

@@ -1,23 +1,24 @@
 package com.alpaca.unit.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.entity.Session;
 import com.alpaca.entity.User;
 import com.alpaca.persistence.impl.SessionDAOImpl;
 import com.alpaca.repository.SessionRepo;
 import com.alpaca.resources.provider.SessionProvider;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link SessionDAOImpl} implementation. */
 @ExtendWith(MockitoExtension.class)

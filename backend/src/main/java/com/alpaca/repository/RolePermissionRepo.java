@@ -1,8 +1,9 @@
 package com.alpaca.repository;
 
 import com.alpaca.entity.RolePermission;
-import java.util.UUID;
 import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
 
 /**
  * Repository interface for managing {@link RolePermission} entities.

@@ -1,8 +1,5 @@
 package com.alpaca.unit.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -11,8 +8,6 @@ import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.service.impl.ProfileServiceImpl;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +15,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link ProfileServiceImpl}. */
 @ExtendWith(MockitoExtension.class)

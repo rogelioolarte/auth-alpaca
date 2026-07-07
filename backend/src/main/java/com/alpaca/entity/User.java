@@ -2,11 +2,12 @@ package com.alpaca.entity;
 
 import com.alpaca.utils.GeneratorUUIDv7;
 import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "users" table in the
@@ -211,6 +212,8 @@ public class User extends Auditable {
      *
      * <p>Clears existing {@link UserRole} associations and rebuilds them from the provided
      * collection. Has no effect if the collection is null or empty.
+     *
+     * @param roles the collection of roles to assign; may be empty or {@code null} (no-op)
      */
     public void setRoles(Collection<Role> roles) {
         if (roles != null && !roles.isEmpty()) {
@@ -311,6 +314,8 @@ public class User extends Auditable {
      * <p>Sets {@code enabled}, {@code accountNonExpired}, {@code accountNonLocked}, and {@code
      * credentialNonExpired} to the same value. Use this when the entire account should be
      * universally allowed or suspended, rather than toggling individual flags.
+     *
+     * @param value the common value for all account-status flags
      */
     public void setAllowed(boolean value) {
         this.enabled = value;
@@ -353,6 +358,8 @@ public class User extends Auditable {
      *
      * <p>Only updates if the new profile is non-null and its ID differs from the current profile's
      * ID, preventing unnecessary entity graph churn.
+     *
+     * @param newUser the reference user whose profile may be merged into this user
      */
     public void updateProfile(User newUser) {
         if (newUser.getProfile() != null
@@ -369,6 +376,8 @@ public class User extends Auditable {
      *
      * <p>Only updates if the new advertiser is non-null and its ID differs from the current
      * advertiser's ID, preventing unnecessary entity graph churn.
+     *
+     * @param newUser the reference user whose advertiser may be merged into this user
      */
     public void updateAdvertiser(User newUser) {
         if (newUser.getAdvertiser() != null

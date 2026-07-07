@@ -1,9 +1,5 @@
 package com.alpaca.integration.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
 import com.alpaca.entity.RefreshToken;
@@ -25,8 +21,6 @@ import com.alpaca.service.IRoleService;
 import com.alpaca.service.ISessionService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.AuthServiceImpl;
-import java.time.Instant;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +31,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 /** Integration tests for {@link AuthServiceImpl} */
 @DisplayName("AuthServiceImpl Integration Tests")

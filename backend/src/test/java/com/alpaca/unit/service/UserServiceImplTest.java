@@ -1,9 +1,5 @@
 package com.alpaca.unit.service;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.alpaca.dto.request.PasswordRequestDTO;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
@@ -15,10 +11,6 @@ import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.security.manager.PasswordManager;
 import com.alpaca.service.impl.UserServiceImpl;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +19,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for {@link UserServiceImpl}. */
 @ExtendWith(MockitoExtension.class)

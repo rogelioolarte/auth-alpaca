@@ -7,5 +7,9 @@ import java.time.LocalDateTime;
  *
  * <p>Carries the failing endpoint path, a human-readable message, and the server timestamp so
  * callers can correlate responses with server-side logs.
+ *
+ * @param apiPath the request URI path that triggered the error
+ * @param message a human-readable description of the error
+ * @param errorTime the server timestamp when the error occurred
  */
 public record ErrorResponseDTO(String apiPath, String message, LocalDateTime errorTime) {}

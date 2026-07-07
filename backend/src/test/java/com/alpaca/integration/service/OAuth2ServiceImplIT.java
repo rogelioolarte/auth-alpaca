@@ -1,8 +1,5 @@
 package com.alpaca.integration.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
@@ -15,9 +12,6 @@ import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +23,13 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /** Integration tests for {@link OAuth2ServiceImpl} */
 @DisplayName("OAuth2ServiceImpl Integration Tests")

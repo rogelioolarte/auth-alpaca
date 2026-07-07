@@ -1,7 +1,13 @@
 name: Workflow for SonarQube
 on:
   push:
+    branches: [main]
+    paths:
+      - 'backend/**'
   pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
     types: [opened, synchronize, reopened]
 jobs:
   build:

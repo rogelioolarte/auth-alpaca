@@ -5,15 +5,16 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.regex.Pattern;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Custom authentication failure handler for OAuth2 login flows.
@@ -42,6 +43,8 @@ public class AuthFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     private final CookieAuthReqRepo repository;
     private final String frontendUriFallback;
     private static final Pattern ERROR_SANITIZER = Pattern.compile("[|{}\\[\\]]+");
+
+    /** Query parameter and cookie name for the post-authentication redirect URI. */
     public static final String REDIRECT_PARAM_NAME = "redirect_uri";
 
     /**

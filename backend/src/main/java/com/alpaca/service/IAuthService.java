@@ -20,11 +20,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 public interface IAuthService extends UserDetailsService {
 
     /**
-     * Authenticates a user based on the provided credentials.
+     * Authenticates a user based on the provided credentials, creating a new session and issuing
+     * JWT tokens.
      *
-     * @return The authentication response containing the token.
-     * @throws BadRequestException if the credentials of the user are invalid.
-     * @throws NotFoundException if the user is not found.
+     * <p>The caller is expected to have already validated the user's credentials via Spring
+     * Security and resolved the {@link UserPrincipal} before invoking this method. The request DTO
+     * carries device-fingerprint fields (user-agent, client-id, client-ip) used for session
+     * creation.
+     *
+     * @param userPrincipal the authenticated user's principal — must not be null
+     * @param requestDTO the login request containing device and client context
+     * @return the authentication response containing the access and refresh tokens
+     * @throws BadRequestException if the credentials of the user are invalid
+     * @throws NotFoundException if the user is not found
      */
     AuthResponseDTO login(UserPrincipal userPrincipal, AuthLoginRequestDTO requestDTO);
 
@@ -42,14 +50,16 @@ public interface IAuthService extends UserDetailsService {
     AuthResponseDTO login(AuthCode authCode);
 
     /**
-     * Registers a new user in the system.
+     * Registers a new user in the system, assigns default roles, and issues JWT tokens.
      *
-     * <p>In this method should be verifying that no existing user has the same email by calling the
-     * appropriate validation method. If a user with the given email already exists, an exception
-     * must be thrown within this method.
+     * <p>Implementations must verify that no existing user has the same email before persisting. If
+     * a user with the given email already exists, a {@link BadRequestException} must be thrown.
      *
-     * @return The authentication response containing the token.
-     * @throws BadRequestException If a user with their unique field already exists.
+     * @param requestDTO the registration request containing email, password, and device context —
+     *     must not be null
+     * @return the authentication response containing the access and refresh tokens for the newly
+     *     registered user
+     * @throws BadRequestException if a user with the given email already exists
      */
     AuthResponseDTO register(AuthLoginRequestDTO requestDTO);
 

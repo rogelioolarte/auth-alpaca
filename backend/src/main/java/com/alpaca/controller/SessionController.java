@@ -5,7 +5,6 @@ import com.alpaca.mapper.ISessionMapper;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.service.ISessionService;
 import com.alpaca.utils.IsAuthenticated;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -14,11 +13,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 /**
- * REST controller for managing the authenticated user's sessions.
+ * REST controller for managing the authenticated user's sessions at {@code /api/sessions}.
  *
- * <p>Provides endpoints for listing active sessions, revoking a specific session, or revoking all
- * sessions for the currently authenticated user. All endpoints require authentication.
+ * <p>Provides endpoints for listing active sessions ({@code GET /page}), revoking a specific
+ * session ({@code DELETE /{id}}), or revoking all sessions ({@code DELETE /all}). All endpoints
+ * require authentication via {@code @IsAuthenticated} and are scoped to sessions owned by the
+ * current user.
  *
  * @see ISessionService
  * @see ISessionMapper

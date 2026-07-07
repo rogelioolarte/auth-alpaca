@@ -7,13 +7,14 @@ import com.alpaca.persistence.IAdvertiserDAO;
 import com.alpaca.persistence.IGenericDAO;
 import com.alpaca.service.IAdvertiserService;
 import com.alpaca.service.IGenericService;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Service layer implementation for managing {@link Advertiser} entities. This class extends {@link
