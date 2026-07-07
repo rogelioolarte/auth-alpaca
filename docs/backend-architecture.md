@@ -7,6 +7,7 @@
 - [Spring Security 6 Integration](#spring-security-6-integration)
 - [JWT Token Generation & Rotation](#jwt-token-generation--rotation)
 - [Database Schema & Flyway Migrations](#database-schema--flyway-migrations)
+- [Scheduled Cleanup for Revoked Data](backend-scheduled-cleanup.md)
 - [Core API Endpoints](#core-api-endpoints)
 
 ---
