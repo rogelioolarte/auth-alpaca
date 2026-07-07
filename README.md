@@ -3,7 +3,7 @@
 [![release badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?color=brightgreen&sort=semver)](https://github.com/rogelioolarte/auth-alpaca/releases)
 [![javadoc badge](https://img.shields.io/github/v/release/rogelioolarte/auth-alpaca?label=javadoc&labelColor=grey&color=brightgreen)](https://rogelioolarte.github.io/auth-alpaca/)
 [![codecov badge](https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg)](https://codecov.io/gh/rogelioolarte/auth-alpaca)
-[![ci badge](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml/badge.svg)](https://github.com/rogelioolarte/auth-alpaca/actions/workflows/build.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rogelioolarte_auth-alpaca&metric=alert_status)](https://sonarcloud.io/summary/overall?id=rogelioolarte_auth-alpaca)
 [![license badge](https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue)](LICENSE)
 
 <div align="center">
