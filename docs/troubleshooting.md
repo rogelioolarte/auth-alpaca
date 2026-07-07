@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> [README](README.md) — **Troubleshooting**
+> [README](../README.md) — **Troubleshooting**
 
 Common issues and how to resolve them.
 

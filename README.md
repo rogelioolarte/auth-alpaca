@@ -25,7 +25,7 @@ The frontend is a functional integration example; the backend is the core — ha
 | **Quality** | [Testing Strategy](docs/testing-strategy.md) | Unit tests, Testcontainers, CI profiles |
 | | [Performance Tests](performance-tests/README.md) | k6 suite, thresholds, scenarios, baseline calibration |
 | | [Deployment & Operations](docs/deployment.md) | Docker Compose topology, env vars, networking |
-| **Help** | [Troubleshooting](TROUBLESHOOTING.md) | Common issues, fixes, and diagnostics |
+| **Help** | [Troubleshooting](docs/troubleshooting.md) | Common issues, fixes, and diagnostics |
 | **Learning** | [Start the 4-Pillar Journey](docs/learning/index.md) | Guided learning path from concepts to code |
 | | [Glossary](docs/learning/glossary.md) | Security terminology reference |
 
