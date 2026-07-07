@@ -153,7 +153,7 @@ ALTER TABLE IF EXISTS public.advertisers
     ADD CONSTRAINT fk99a8ajxxms2g3q0hfjcpxgjdw FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+        ON DELETE NO ACTION;
     CREATE INDEX IF NOT EXISTS advertisers_user_id_key
     ON public.advertisers(user_id);
 
@@ -162,7 +162,7 @@ ALTER TABLE IF EXISTS public.advertisers
     ADD CONSTRAINT fk410q61iev7klncmpqfuo85ivh FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+        ON DELETE NO ACTION;
     CREATE INDEX IF NOT EXISTS profiles_user_id_key
     ON public.profiles(user_id);
 
@@ -170,7 +170,7 @@ ALTER TABLE IF EXISTS public.advertisers
     ADD CONSTRAINT fk1lih5y2npsf8u5o3vhdb9y0os FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+        ON DELETE NO ACTION;
 
 
 ALTER TABLE IF EXISTS public.refresh_tokens
