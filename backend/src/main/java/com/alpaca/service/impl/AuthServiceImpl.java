@@ -109,9 +109,9 @@ public class AuthServiceImpl implements IAuthService {
         if (!savedAuthCode.getUserAgent().equals(authCode.getUserAgent())) {
             throw new UnauthorizedException("Code Invalid or Expired");
         }
-        if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
-            throw new UnauthorizedException("Code Invalid or Expired");
-        }
+        // if (!savedAuthCode.getClientIp().equals(authCode.getClientIp())) {
+        //     throw new UnauthorizedException("Code Invalid or Expired");
+        // }
 
         return refreshTokenService.generateJWTTokens(savedAuthCode);
     }
