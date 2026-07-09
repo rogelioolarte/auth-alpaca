@@ -85,10 +85,12 @@ jobs:
             printf "APP_FRONTEND_URI=%s\n" "${{secrets.APP_FRONTEND_URI}}" >> /home/${{ secrets.VM_USER }}/app/.env
             printf "GOOGLE_CLIENT_ID=%s\n" "${{secrets.GOOGLE_CLIENT_ID}}" >> /home/${{ secrets.VM_USER }}/app/.env
             printf "GOOGLE_CLIENT_SECRET=%s\n" "${{secrets.GOOGLE_CLIENT_SECRET}}" >> /home/${{ secrets.VM_USER }}/app/.env
+            printf "GOOGLE_REDIRECT_URI=%s\n" "${{secrets.GOOGLE_REDIRECT_URI}}" >> /home/${{ secrets.VM_USER }}/app/.env
             printf "MAX_SESSIONS_PER_USER=%s\n" "${{secrets.MAX_SESSIONS_PER_USER}}" >> /home/${{ secrets.VM_USER }}/app/.env
             printf "INFINITY_LOGIN=%s\n" "${{secrets.INFINITY_LOGIN}}" >> /home/${{ secrets.VM_USER }}/app/.env
             printf "BCRYPT_COST_FACTOR=%s\n" "${{secrets.BCRYPT_COST_FACTOR}}" >> /home/${{ secrets.VM_USER }}/app/.env
 
             chmod 600 /home/${{ secrets.VM_USER }}/app/.env
             chmod 600 /home/${{ secrets.VM_USER }}/app/keys/*.pem
+
             sudo systemctl restart alpaca.service
