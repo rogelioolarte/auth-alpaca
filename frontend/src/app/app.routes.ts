@@ -17,6 +17,8 @@ import { Users } from './components/pages/users/users';
 import { Base } from './components/pure/base/base';
 import { externalGuard } from './auth/external-guard';
 import { Dashboard } from './components/pages/dashboard/dashboard';
+import { Privacy } from './components/pages/privacy/privacy';
+import { Terms } from './components/pages/terms/terms';
 
 export const routes: Routes = [
   {
@@ -57,6 +59,8 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: 'privacy', component: Privacy },
+  { path: 'terms', component: Terms },
   // Redirect unknown routes to landing
   { path: '**', redirectTo: '' },
 ];
