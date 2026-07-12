@@ -3,8 +3,11 @@ package com.alpaca.controller;
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.dto.response.RateLimitResult;
+import com.alpaca.exception.RateLimitExceededException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.IsAuthenticated;
 import com.alpaca.utils.Utils;
@@ -37,6 +40,7 @@ public class AuthController {
 
     private final IAuthService authService;
     private final AuthenticationManager manager;
+    private final IPRateLimit rateLimit;
 
     /**
      * Authenticates a user with email and password.
@@ -60,6 +64,13 @@ public class AuthController {
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
+
+        String clientIp = Utils.extractClientIP(request);
+        RateLimitResult result = rateLimit.check(clientIp);
+        if (!result.allowed()) {
+            throw new RateLimitExceededException(result.retryAfterSeconds());
+        }
+
         Authentication authentication =
                 manager.authenticate(
                         new UsernamePasswordAuthenticationToken(
@@ -73,7 +84,7 @@ public class AuthController {
                                 requestDTO.getPassword(),
                                 clientId,
                                 userAgent,
-                                Utils.extractClientIP(request))),
+                                clientIp)),
                 HttpStatus.OK);
     }
 
@@ -99,6 +110,13 @@ public class AuthController {
             @RequestHeader("X-Client-Id") String clientId,
             @RequestHeader("User-Agent") String userAgent,
             HttpServletRequest request) {
+
+        String clientIp = Utils.extractClientIP(request);
+        RateLimitResult result = rateLimit.check(clientIp);
+        if (!result.allowed()) {
+            throw new RateLimitExceededException(result.retryAfterSeconds());
+        }
+
         return ResponseEntity.ok(
                 authService.register(
                         new AuthLoginRequestDTO(
@@ -106,7 +124,7 @@ public class AuthController {
                                 requestDTO.getPassword(),
                                 clientId,
                                 userAgent,
-                                Utils.extractClientIP(request))));
+                                clientIp)));
     }
 
     /**
@@ -158,11 +176,17 @@ public class AuthController {
             HttpServletRequest request,
             @RequestHeader("User-Agent") String userAgent,
             @RequestBody Map<String, String> body) {
+
+        String clientIp = Utils.extractClientIP(request);
+        RateLimitResult result = rateLimit.check(clientIp);
+        if (!result.allowed()) {
+            throw new RateLimitExceededException(result.retryAfterSeconds());
+        }
+
         String code = body.get("code");
         String codeVerifier = body.get("code_verifier");
         String redirectUri = body.get("redirect_uri");
         String clientId = body.get("client_id");
-        String clientIp = Utils.extractClientIP(request);
         return new ResponseEntity<>(
                 authService.login(
                         new AuthCode(
