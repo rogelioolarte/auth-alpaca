@@ -76,13 +76,13 @@ You can run the backend directly via Maven for faster iteration:
 
 ```bash
 # From project root:
-./backend/mvnw clean compile -Punit-tests   # compile + run unit tests
+./auth-alpaca-api/mvnw clean compile -Punit-tests   # compile + run unit tests
 
 # Run integration tests (requires Docker for Testcontainers):
-./backend/mvnw clean verify -Pintegration-tests
+./auth-alpaca-api/mvnw clean verify -Pintegration-tests
 
 # Start the application:
-cd backend && ./mvnw spring-boot:run
+cd auth-alpaca-api && ./mvnw spring-boot:run
 ```
 
 The backend starts on `http://localhost:8080` by default. See [Testing Strategy](docs/testing-strategy.md) for the full test suite documentation.
@@ -90,7 +90,7 @@ The backend starts on `http://localhost:8080` by default. See [Testing Strategy]
 ### Frontend
 
 ```bash
-cd frontend && bun install && bun run start
+cd auth-alpaca-ui && bun install && bun run start
 ```
 
 The frontend dev server runs on `http://localhost:4200`.
@@ -142,7 +142,7 @@ Contributions are welcome! Here's how to get started:
 1. **Read the docs** — check the [Navigation](#navigation) table above for architecture and testing guides.
 2. **Run tests before submitting**:
    ```bash
-   ./backend/mvnw verify -Punit-tests
+   ./auth-alpaca-api/mvnw verify -Punit-tests
    ```
 3. **Follow the commit style** — we use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, etc.).
 4. **Open a pull request** — keep changes focused and rebased on `main`.

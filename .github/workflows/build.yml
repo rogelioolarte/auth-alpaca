@@ -3,11 +3,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
+      - 'auth-alpaca-api/**'
   pull_request:
     branches: [main]
     paths:
-      - 'backend/**'
+      - 'auth-alpaca-api/**'
     types: [opened, synchronize, reopened]
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
 
     defaults: 
       run: 
-        working-directory: backend
+        working-directory: auth-alpaca-api
     
     env:
       MAVEN_OPTS: >-

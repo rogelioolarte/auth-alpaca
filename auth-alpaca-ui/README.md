@@ -14,9 +14,9 @@ Example frontend for the OAuth2 + JWT authentication flow. Built with **Angular 
 
 ```bash
 # From project root:
-cd frontend && bun install && bun run start
+cd auth-alpaca-ui && bun install && bun run start
 
-# Or from frontend/ directly:
+# Or from auth-alpaca-ui/ directly:
 bun install
 bun run start
 ```

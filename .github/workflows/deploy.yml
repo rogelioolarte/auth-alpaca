@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
+      - 'auth-alpaca-api/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: auth-alpaca-api
     steps:
       - uses: actions/checkout@v4
 
@@ -36,8 +36,8 @@ jobs:
         with:
           name: app-package
           path: |
-            backend/target/*.jar
-            backend/keys/*
+            auth-alpaca-api/target/*.jar
+            auth-alpaca-api/keys/*
 
   deploy:
     needs: build

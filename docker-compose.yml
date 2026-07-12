@@ -26,7 +26,7 @@ services:
     logging: *default-logging
 
   backend:
-    build: ./backend
+    build: ./auth-alpaca-api
     container_name: auth-alpaca-api
     restart: unless-stopped
     depends_on:
@@ -73,7 +73,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./auth-alpaca-ui
       args:
         NG_API_URL: ${NG_API_URL}
         NG_UI_URL: ${NG_UI_URL}

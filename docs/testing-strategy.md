@@ -23,10 +23,10 @@ Focuses on fast, isolated checks (unit tests and slice tests) without database o
 * **Command**:
   ```bash
   # From project root:
-  ./backend/mvnw clean test -Punit-tests
+  ./auth-alpaca-api/mvnw clean test -Punit-tests
 
-  # Or from backend/ directly:
-  cd backend && ./mvnw clean test -Punit-tests
+  # Or from auth-alpaca-api/ directly:
+  cd auth-alpaca-api && ./mvnw clean test -Punit-tests
   ```
 * **Execution details**:
   - Executes unit tests naming convention: `unit/**/*Test.java` via `maven-surefire-plugin`.
@@ -39,10 +39,10 @@ Focuses on end-to-end functionality, HTTP request mapping, and database interact
 * **Command**:
   ```bash
   # From project root:
-  ./backend/mvnw clean verify -Pintegration-tests
+  ./auth-alpaca-api/mvnw clean verify -Pintegration-tests
 
-  # Or from backend/ directly:
-  cd backend && ./mvnw clean verify -Pintegration-tests
+  # Or from auth-alpaca-api/ directly:
+  cd auth-alpaca-api && ./mvnw clean verify -Pintegration-tests
   ```
 * **Execution details**:
   - Executes integration tests naming convention: `integration/**/*IT.java` via `maven-failsafe-plugin`.

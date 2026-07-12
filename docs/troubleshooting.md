@@ -102,7 +102,7 @@ docker ps
 
 **Fix**:
 ```bash
-chmod +x backend/mvnw
+chmod +x auth-alpaca-api/mvnw
 ```
 
 ---

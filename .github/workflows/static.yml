@@ -5,9 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
-      - 'docs/privacy/**'
-      - 'docs/terms/**'
+      - 'auth-alpaca-api/**'
   workflow_dispatch:
 
 permissions:
@@ -34,17 +32,17 @@ jobs:
 
       - name: Generate Javadoc
         run: mvn -B javadoc:javadoc -q
-        working-directory: backend
+        working-directory: auth-alpaca-api
 
       - name: Copy static pages into artifact
         run: |
-          cp -r docs/privacy backend/target/reports/apidocs/privacy
-          cp -r docs/terms backend/target/reports/apidocs/terms
+          cp -r docs/privacy auth-alpaca-api/target/reports/apidocs/privacy
+          cp -r docs/terms auth-alpaca-api/target/reports/apidocs/terms
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: backend/target/reports/apidocs
+          path: auth-alpaca-api/target/reports/apidocs
 
   deploy:
     needs: build

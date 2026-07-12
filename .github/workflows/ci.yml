@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
+      - 'auth-alpaca-api/**'
   pull_request:
     branches: [main]
     paths:
-      - 'backend/**'
+      - 'auth-alpaca-api/**'
   
 concurrency:
-  group: backend-${{ github.ref }}
+  group: auth-alpaca-api-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: auth-alpaca-api
 
     permissions:
       contents: read
@@ -55,6 +55,6 @@ jobs:
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_ORG_TOKEN }}
-          files: backend/target/site/jacoco/jacoco.xml
+          files: auth-alpaca-api/target/site/jacoco/jacoco.xml
           fail_ci_if_error: true
           verbose: true

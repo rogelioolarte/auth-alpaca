@@ -35,12 +35,12 @@ graph TD
    - Volumes map `postgres_data` to `/var/lib/postgresql` for persistent storage.
    - Restricted to the `backend-net` internal network.
 2. **`backend` (auth-alpaca-api)**:
-   - Custom build using `./backend/Dockerfile`.
+   - Custom build using `./auth-alpaca-api/Dockerfile`.
    - Configured with `restart: unless-stopped` and resources limits capped to 2 CPUs and 2GB RAM.
    - Key storage secrets directory `./secrets` is mounted read-only (`ro`) to `/keys`.
    - Enters both `backend-net` (to talk to db) and `frontend-net` (to receive calls).
 3. **`frontend` (auth-alpaca-ui)**:
-   - Custom build using `./frontend/Dockerfile`.
+   - Custom build using `./auth-alpaca-ui/Dockerfile`.
    - Maps container port `8080` (running Nginx) to host port `80`.
    - Connected strictly to `frontend-net`.
 
