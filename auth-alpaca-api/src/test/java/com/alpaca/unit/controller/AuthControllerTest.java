@@ -12,9 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.alpaca.controller.AuthController;
 import com.alpaca.dto.request.AuthRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.dto.response.RateLimitResult;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.resources.utility.ControllerUnitTest;
 import com.alpaca.resources.utility.WithMockCustomUser;
+import com.alpaca.security.ratelimit.IPRateLimit;
 import com.alpaca.service.IAuthService;
 import com.alpaca.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -48,6 +51,8 @@ class AuthControllerTest {
 
     @MockitoBean private IAuthService authService;
 
+    @MockitoBean private IPRateLimit ipRateLimit;
+
     @MockitoBean private AuthenticationManager manager;
 
     @MockitoBean private Authentication authentication;
@@ -67,6 +72,11 @@ class AuthControllerTest {
 
     private static final AuthResponseDTO RESPONSE =
             new AuthResponseDTO("access-token", "refresh-token");
+
+    @BeforeEach
+    void setUp() {
+        when(ipRateLimit.check(CLIENT_IP)).thenReturn(new RateLimitResult(true, 60));
+    }
 
     @AfterEach
     void tearDown() {
@@ -279,7 +289,7 @@ class AuthControllerTest {
     @DisplayName("getCurrentUser returns unauthorized when user is not authenticated")
     void getCurrentUserReturnsUnauthorizedWhenUserIsNull() {
 
-        AuthController controller = new AuthController(authService, manager);
+        AuthController controller = new AuthController(authService, manager, ipRateLimit);
 
         assertEquals(401, controller.getCurrentUser(null).getStatusCode().value());
     }

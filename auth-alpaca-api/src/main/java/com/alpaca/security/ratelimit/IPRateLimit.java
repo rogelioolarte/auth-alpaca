@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IPRateLimit {
 
-    @Value("${security.ratelimit.max.rpm:500}")
+    @Value("${security.ratelimit.max.rpm:50}")
     private int maxRequests;
 
     private static final Duration WINDOW = Duration.ofMinutes(1);
