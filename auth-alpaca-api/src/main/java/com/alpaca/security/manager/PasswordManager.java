@@ -31,6 +31,9 @@ public class PasswordManager {
      * @return the hashed password string
      */
     public String encodePassword(String rawPassword) {
+        if (rawPassword == null) {
+            return null;
+        }
         return encoder.encode(rawPassword);
     }
 

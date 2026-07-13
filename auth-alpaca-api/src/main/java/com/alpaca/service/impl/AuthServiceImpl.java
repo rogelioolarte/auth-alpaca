@@ -14,7 +14,6 @@ import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
