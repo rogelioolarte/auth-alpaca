@@ -1,15 +1,11 @@
 package com.alpaca.security.ratelimit;
 
 import com.alpaca.dto.response.RateLimitResult;
-import com.alpaca.exception.RateLimitExceededException;
-import com.alpaca.utils.Utils;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -83,5 +79,4 @@ public class IPRateLimit {
                 .addLimit(limit -> limit.capacity(maxRequests).refillGreedy(maxRequests, WINDOW))
                 .build();
     }
-
 }

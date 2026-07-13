@@ -34,11 +34,6 @@ jobs:
         run: mvn -B javadoc:javadoc -q
         working-directory: auth-alpaca-api
 
-      - name: Copy static pages into artifact
-        run: |
-          cp -r docs/privacy auth-alpaca-api/target/reports/apidocs/privacy
-          cp -r docs/terms auth-alpaca-api/target/reports/apidocs/terms
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
