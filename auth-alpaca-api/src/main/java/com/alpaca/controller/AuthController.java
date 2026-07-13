@@ -149,6 +149,7 @@ public class AuthController {
             @RequestHeader("User-Agent") String userAgent,
             @AuthenticationPrincipal UserPrincipal user,
             HttpServletRequest request) {
+                
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
