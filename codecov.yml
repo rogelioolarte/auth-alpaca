@@ -1,0 +1,19 @@
+# codecov.yml
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        paths:
+          - "auth-alpaca-api"
+    patch:
+      default:
+        target: auto
+        threshold: 15%
+        paths:
+          - "auth-alpaca-api"

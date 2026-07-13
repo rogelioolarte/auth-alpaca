@@ -56,5 +56,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_ORG_TOKEN }}
           files: auth-alpaca-api/target/site/jacoco/jacoco.xml
+          config_file: ../codecov.yml
           fail_ci_if_error: true
           verbose: true
