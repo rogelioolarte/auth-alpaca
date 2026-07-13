@@ -84,7 +84,6 @@ class AuthSuccessHandlerTest {
         when(uuidGenerator.generate()).thenReturn(generatedCode);
         when(principal.getUserId()).thenReturn(userId);
 
-        when(request.getHeader("X-Client-Id")).thenReturn("web-client");
         when(request.getHeader("User-Agent")).thenReturn("mozilla");
 
         when(repository.loadAuthorizationRequest(request)).thenReturn(authorizationRequest);
@@ -105,6 +104,14 @@ class AuthSuccessHandlerTest {
                                     new Cookie(
                                             AuthSuccessHandler.REDIRECT_PARAM_NAME,
                                             authorizedRedirectUri.toString())));
+            cookieManager
+                    .when(
+                            () ->
+                                    CookieManager.getCookie(
+                                            request, AuthSuccessHandler.CLIENT_ID_PARAM))
+                    .thenReturn(
+                            Optional.of(
+                                    new Cookie(AuthSuccessHandler.CLIENT_ID_PARAM, "web-client")));
 
             utils.when(() -> Utils.extractClientIP(request)).thenReturn("127.0.0.1");
 

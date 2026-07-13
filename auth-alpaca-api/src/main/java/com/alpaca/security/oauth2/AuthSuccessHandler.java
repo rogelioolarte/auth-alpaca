@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -53,6 +54,9 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     /** Attribute key and cookie name for the PKCE code challenge passed from the client. */
     public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
+
+    /** Query parameter and cookie name for the Client ID provided by the client. */
+    public static final String CLIENT_ID_PARAM = "client_id";
 
     private final CookieAuthReqRepo repository;
     private final Set<URI> authorizedRedirectUris;
@@ -103,20 +107,26 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         String targetUrl = determineTargetUrl(request, response, authentication);
         String codeChallenge = determineCodeChallenge(request);
         if (codeChallenge.isBlank()) {
+            repository.removeAuthorizationRequestCookies(request, response);
+            clearAuthenticationAttributes(request, response);
             throw new BadRequestException("Invalid Code Challenge");
         }
-        repository.removeAuthorizationRequestCookies(request, response);
-
-        clearAuthenticationAttributes(request, response);
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         if (userPrincipal == null) {
+            repository.removeAuthorizationRequestCookies(request, response);
+            clearAuthenticationAttributes(request, response);
             throw new UnauthorizedException("Invalid Credentials");
         }
         String code = uuidGenerator.generate().toString();
-        String clientId = Optional.ofNullable(request.getHeader("X-Client-Id")).orElse("");
+        String clientId =
+                CookieManager.getCookie(request, CLIENT_ID_PARAM).map(Cookie::getValue).orElse("");
         String userAgent = Optional.ofNullable(request.getHeader("User-Agent")).orElse("");
         String clientIp = Optional.ofNullable(Utils.extractClientIP(request)).orElse("");
+
+        repository.removeAuthorizationRequestCookies(request, response);
+        clearAuthenticationAttributes(request, response);
+
         AuthCode authCode =
                 new AuthCode(
                         code,
@@ -160,7 +170,7 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         Optional<Cookie> redirectCookie = CookieManager.getCookie(request, REDIRECT_PARAM_NAME);
         String target = redirectCookie.map(Cookie::getValue).orElse(getDefaultTargetUrl());
-        if (isAuthorizedRedirectURI(URI.create(target))) {
+        if (!isAuthorizedRedirectURI(URI.create(target))) {
             throw new UnauthorizedException("Unauthorized redirect URI");
         }
 
@@ -221,6 +231,6 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
      */
     private boolean isAuthorizedRedirectURI(URI clientUri) {
         return authorizedRedirectUris.stream()
-                .noneMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
+                .anyMatch(auth -> auth.getHost().equalsIgnoreCase(clientUri.getHost()));
     }
 }

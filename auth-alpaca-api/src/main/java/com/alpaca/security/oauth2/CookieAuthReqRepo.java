@@ -4,7 +4,6 @@ import com.alpaca.security.manager.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
@@ -44,6 +43,9 @@ public class CookieAuthReqRepo
     /** Cookie name for the PKCE code challenge provided by the client. */
     public static final String CLIENT_CODE_CHALLENGE = "client_code_challenge";
 
+    /** Cookie name for the Client ID provided by the client. */
+    public static final String CLIENT_ID_PARAM = "client_id";
+
     /** Lifetime in seconds after which the authorization cookies expire. */
     public static final int COOKIE_EXPIRED_SECONDS = 180;
 
@@ -75,16 +77,11 @@ public class CookieAuthReqRepo
      */
     @Override
     public void saveAuthorizationRequest(
-            OAuth2AuthorizationRequest authorizationRequest,
+            @NonNull OAuth2AuthorizationRequest authorizationRequest,
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response) {
-        if (Objects.isNull(authorizationRequest)) {
-            CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
-            CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
-            CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
-            return;
-        }
         CookieManager.addCookie(
+                request,
                 response,
                 AUTHORIZATION_COOKIE_NAME,
                 CookieManager.serialize(authorizationRequest),
@@ -93,13 +90,26 @@ public class CookieAuthReqRepo
         String redirectURIAfterLogin = request.getParameter(REDIRECT_PARAM_NAME);
         if (redirectURIAfterLogin != null && !redirectURIAfterLogin.isBlank()) {
             CookieManager.addCookie(
-                    response, REDIRECT_PARAM_NAME, redirectURIAfterLogin, COOKIE_EXPIRED_SECONDS);
+                    request,
+                    response,
+                    REDIRECT_PARAM_NAME,
+                    redirectURIAfterLogin,
+                    COOKIE_EXPIRED_SECONDS);
+        }
+        String clientId = request.getParameter(CLIENT_ID_PARAM);
+        if (clientId != null && !clientId.isBlank()) {
+            CookieManager.addCookie(
+                    request, response, CLIENT_ID_PARAM, clientId, COOKIE_EXPIRED_SECONDS);
         }
         String clientCodeChallenge =
                 (String) authorizationRequest.getAttributes().get(CLIENT_CODE_CHALLENGE);
         if (clientCodeChallenge != null && !clientCodeChallenge.isBlank()) {
             CookieManager.addCookie(
-                    response, CLIENT_CODE_CHALLENGE, clientCodeChallenge, COOKIE_EXPIRED_SECONDS);
+                    request,
+                    response,
+                    CLIENT_CODE_CHALLENGE,
+                    clientCodeChallenge,
+                    COOKIE_EXPIRED_SECONDS);
         }
     }
 
@@ -129,5 +139,6 @@ public class CookieAuthReqRepo
         CookieManager.deleteCookie(request, response, AUTHORIZATION_COOKIE_NAME);
         CookieManager.deleteCookie(request, response, REDIRECT_PARAM_NAME);
         CookieManager.deleteCookie(request, response, CLIENT_CODE_CHALLENGE);
+        CookieManager.deleteCookie(request, response, CLIENT_ID_PARAM);
     }
 }

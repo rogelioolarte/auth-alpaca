@@ -77,29 +77,6 @@ class CookieAuthReqRepoTest {
     }
 
     @Test
-    @DisplayName("saveAuthorizationRequest: Should delete all cookies when request is null")
-    void saveAuthorizationRequest_ShouldDeleteCookies_WhenRequestIsNull() {
-        try (MockedStatic<CookieManager> cm = mockStatic(CookieManager.class)) {
-            repo.saveAuthorizationRequest(null, request, response);
-
-            cm.verify(
-                    () ->
-                            CookieManager.deleteCookie(
-                                    request,
-                                    response,
-                                    CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME));
-            cm.verify(
-                    () ->
-                            CookieManager.deleteCookie(
-                                    request, response, CookieAuthReqRepo.REDIRECT_PARAM_NAME));
-            cm.verify(
-                    () ->
-                            CookieManager.deleteCookie(
-                                    request, response, CookieAuthReqRepo.CLIENT_CODE_CHALLENGE));
-        }
-    }
-
-    @Test
     @DisplayName(
             "saveAuthorizationRequest: Should add cookies for auth, redirect, and client challenge")
     void saveAuthorizationRequest_ShouldAddAllCookies_WhenPresent() {
@@ -121,6 +98,7 @@ class CookieAuthReqRepoTest {
             cm.verify(
                     () ->
                             CookieManager.addCookie(
+                                    request,
                                     response,
                                     CookieAuthReqRepo.AUTHORIZATION_COOKIE_NAME,
                                     serialized,
@@ -128,6 +106,7 @@ class CookieAuthReqRepoTest {
             cm.verify(
                     () ->
                             CookieManager.addCookie(
+                                    request,
                                     response,
                                     CookieAuthReqRepo.REDIRECT_PARAM_NAME,
                                     redirectUri,
@@ -135,6 +114,7 @@ class CookieAuthReqRepoTest {
             cm.verify(
                     () ->
                             CookieManager.addCookie(
+                                    request,
                                     response,
                                     CookieAuthReqRepo.CLIENT_CODE_CHALLENGE,
                                     challenge,
@@ -161,6 +141,7 @@ class CookieAuthReqRepoTest {
             cm.verify(
                     () ->
                             CookieManager.addCookie(
+                                    eq(request),
                                     eq(response),
                                     eq(CookieAuthReqRepo.REDIRECT_PARAM_NAME),
                                     anyString(),
@@ -169,6 +150,7 @@ class CookieAuthReqRepoTest {
             cm.verify(
                     () ->
                             CookieManager.addCookie(
+                                    eq(request),
                                     eq(response),
                                     eq(CookieAuthReqRepo.CLIENT_CODE_CHALLENGE),
                                     anyString(),

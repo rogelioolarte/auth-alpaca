@@ -73,7 +73,7 @@ class CookieManagerTest {
         String value = "dark-mode";
         int maxAge = 3600;
 
-        CookieManager.addCookie(response, name, value, maxAge);
+        CookieManager.addCookie(request, response, name, value, maxAge);
 
         verify(response, times(1)).addCookie(cookieCaptor.capture());
         Cookie captured = cookieCaptor.getValue();
