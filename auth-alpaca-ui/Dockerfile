@@ -4,9 +4,11 @@ WORKDIR /app
 
 ARG NG_API_URL
 ARG NG_UI_URL
+ARG NG_INFINITY_LOGIN
 
 ENV NG_API_URL=$NG_API_URL
 ENV NG_UI_URL=$NG_UI_URL
+ENV NG_INFINITY_LOGIN=$NG_INFINITY_LOGIN
 
 # 1. Copy only the dependency files first to take advantage of the Docker cache
 COPY package.json bun.lock ./

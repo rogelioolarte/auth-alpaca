@@ -74,10 +74,14 @@ public class CookieManager {
      * @param maxAge maximum age in seconds for the cookie
      */
     public static void addCookie(
-            HttpServletResponse response, String name, String value, int maxAge) {
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String name,
+            String value,
+            int maxAge) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setHttpOnly(request.isSecure());
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);

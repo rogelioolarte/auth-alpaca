@@ -14,6 +14,7 @@ import com.alpaca.security.manager.TokenExchangeManager;
 import com.alpaca.service.*;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -87,10 +88,10 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Invalid code-verifier format");
         }
         AuthCode savedAuthCode = exchangeManager.consumeCode(authCode.getCode()).orElse(null);
-
         if (savedAuthCode == null) {
             throw new UnauthorizedException("Code Invalid or Expired");
         }
+
         String newCodeChallenge = jJwtManager.createTokenHash(authCode.getCodeVerifier());
         if (!savedAuthCode.getCodeChallenge().equals(newCodeChallenge)) {
             throw new UnauthorizedException("Code Invalid or Expired");
@@ -101,7 +102,6 @@ public class AuthServiceImpl implements IAuthService {
         if (!savedAuthCode.getRedirectUri().equals(authCode.getRedirectUri())) {
             throw new UnauthorizedException("Code Invalid or Expired");
         }
-
         // Optional additional validation userAgent, clientId, ClientIp
         if (!savedAuthCode.getClientId().equals(authCode.getClientId())) {
             throw new UnauthorizedException("Code Invalid or Expired");
