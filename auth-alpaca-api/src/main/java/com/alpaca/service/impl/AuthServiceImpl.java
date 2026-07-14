@@ -2,7 +2,9 @@ package com.alpaca.service.impl;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.entity.Profile;
 import com.alpaca.entity.RefreshToken;
+import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
@@ -11,8 +13,11 @@ import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.service.*;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +40,7 @@ public class AuthServiceImpl implements IAuthService {
 
     private final IRoleService roleService;
     private final IUserService userService;
+    private final IProfileService profileService;
     private final ISessionService sessionService;
     private final IRefreshTokenService refreshTokenService;
     private final JJwtManager manager;
@@ -128,6 +134,7 @@ public class AuthServiceImpl implements IAuthService {
      * @throws BadRequestException if the email is already registered
      */
     @Override
+    @Transactional
     public AuthResponseDTO register(AuthLoginRequestDTO requestDTO) {
         if (userService.existsByEmail(requestDTO.email())) {
             throw new BadRequestException("Email already registered");
@@ -188,5 +195,61 @@ public class AuthServiceImpl implements IAuthService {
     @NonNull
     public UserDetails loadUserByUsername(@NonNull String username) {
         return new UserPrincipal(userService.findByEmail(username));
+    }
+
+    /**
+     * Registers or updates a user based on OAuth2 provider information.
+     *
+     * <p>If a user with the email already exists, their OAuth2 connection and email verification
+     * are updated via {@link #checkExistingUser(User, boolean)}. Otherwise, a new {@link User} and
+     * associated {@link Profile} are created within the same transaction.
+     *
+     * @param userInfo the OAuth2 provider user information; must not be {@code null}
+     * @return the existing or newly registered {@link User}
+     * @throws UnauthorizedException if the existing account is disabled or locked
+     */
+    @Override
+    @Transactional
+    public User registerOAuth2User(OAuth2UserInfo userInfo) {
+        String email = userInfo.getEmail();
+        String firstName = userInfo.getFirstName();
+        String lastName = userInfo.getLastName();
+        String imageURL = Objects.requireNonNullElse(userInfo.getImageUrl(), "");
+        boolean emailVerified = userInfo.getEmailVerified();
+        if (userService.existsByEmail(email)) {
+            return checkExistingUser(userService.findByEmail(email), emailVerified);
+        } else {
+            Set<Role> userRoles = roleService.getUserRoles();
+            User user = new User(email, null, emailVerified, true, userRoles);
+            Profile profile = new Profile(firstName, lastName, "", imageURL, null);
+            User newUser = userService.save(user);
+            newUser.setRoles(userRoles);
+            profile.setUser(newUser);
+            profileService.save(profile);
+            return newUser;
+        }
+    }
+
+    /**
+     * Updates an existing user's OAuth2 connection status and email verification flag.
+     *
+     * @param user the existing user
+     * @param emailVerified OAuth2-provided email verification status
+     * @return updated {@link User}
+     * @throws UnauthorizedException if the user account is disabled or locked
+     */
+    public User checkExistingUser(User user, boolean emailVerified) {
+        if (!user.isAllowUser()) {
+            throw new UnauthorizedException("The account has been deactivated or blocked");
+        }
+        if (!user.isGoogleConnected()) {
+            user.setGoogleConnected(true);
+            userService.save(user);
+        }
+        if (user.isEmailVerified() != emailVerified) {
+            user.setEmailVerified(emailVerified);
+            userService.save(user);
+        }
+        return user;
     }
 }

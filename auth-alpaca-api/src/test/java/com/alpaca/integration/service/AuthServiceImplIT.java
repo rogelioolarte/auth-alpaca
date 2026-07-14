@@ -20,6 +20,7 @@ import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.BaseIntegrationTests;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.ISessionService;
@@ -575,5 +576,65 @@ class AuthServiceImplIT extends BaseIntegrationTests {
     void loadUserByUsername_shouldThrowWhenUserDoesNotExist() {
         assertThatThrownBy(() -> authService.loadUserByUsername("missing@test.com"))
                 .isInstanceOf(UsernameNotFoundException.class);
+    }
+
+    // -------------------------------------------------------------------------
+    // registerOAuth2User
+    // -------------------------------------------------------------------------
+
+    @Test
+    @Transactional
+    @DisplayName("registerOAuth2User: should create user and profile for new email")
+    void registerOAuth2User_shouldCreateUserAndProfile() {
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn("oauth2-new@test.com");
+        when(userInfo.getFirstName()).thenReturn("Jane");
+        when(userInfo.getLastName()).thenReturn("Doe");
+        when(userInfo.getImageUrl()).thenReturn("https://example.com/avatar.jpg");
+        when(userInfo.getEmailVerified()).thenReturn(true);
+
+        User result = authService.registerOAuth2User(userInfo);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("oauth2-new@test.com");
+        assertThat(result.isGoogleConnected()).isTrue();
+        assertThat(userService.existsByEmail("oauth2-new@test.com")).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("registerOAuth2User: should update existing user's google connection")
+    void registerOAuth2User_shouldUpdateExistingUser() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        userService.save(user);
+
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn(user.getEmail());
+        when(userInfo.getEmailVerified()).thenReturn(true);
+
+        User result = authService.registerOAuth2User(userInfo);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.isGoogleConnected()).isTrue();
+        assertThat(result.isEmailVerified()).isTrue();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("registerOAuth2User: should throw when existing user is deactivated")
+    void registerOAuth2User_shouldThrowWhenUserDeactivated() {
+        User user = UserProvider.singleTemplate();
+        user.setCreatedAt(now);
+        user.setEnabled(false);
+        userService.save(user);
+
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn(user.getEmail());
+
+        assertThatThrownBy(() -> authService.registerOAuth2User(userInfo))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("The account has been deactivated or blocked");
     }
 }

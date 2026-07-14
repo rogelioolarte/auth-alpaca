@@ -5,22 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.Role;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.persistence.IRoleDAO;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.RoleProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.BaseIntegrationTests;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.time.Instant;
 import java.util.*;
@@ -38,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 class UserServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private UserServiceImpl service;
-    @Autowired private IProfileDAO profileDAO;
     @Autowired private IUserDAO userDAO;
     @Autowired private IRoleDAO roleDAO;
 
@@ -53,15 +46,6 @@ class UserServiceImplIT extends BaseIntegrationTests {
         User user = UserProvider.singleTemplate();
         user.setCreatedAt(now);
         return user;
-    }
-
-    private Profile buildSingleProfile(User user) {
-        Profile profile = ProfileProvider.singleTemplate();
-        if (user != null) {
-            profile.setUser(user);
-        }
-        profile.setCreatedAt(now);
-        return profile;
     }
 
     private User buildAlternativeUser() {
@@ -98,61 +82,6 @@ class UserServiceImplIT extends BaseIntegrationTests {
                 () -> assertThat(saved.getId()).isNotNull(),
                 () -> assertThat(saved.getPassword()).isNotBlank(),
                 () -> assertThat(saved.getPassword()).isNotEqualTo(rawPassword));
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("registerOAuth2User creates a new OAuth2 user and profile")
-    void registerOAuth2User_ShouldCreateUserAndProfile_WhenEmailDoesNotExist() {
-        User template = buildSingleUser();
-        Profile profile = buildSingleProfile(template);
-
-        OAuth2UserInfo userInfo =
-                OAuth2UserInfoFactory.getOAuth2UserInfo(
-                        "google",
-                        Map.of(
-                                "email", template.getEmail(),
-                                "given_name", profile.getFirstName(),
-                                "family_name", profile.getLastName(),
-                                "picture", profile.getAvatarUrl(),
-                                "email_verified", template.isEmailVerified()));
-
-        User result = service.registerOAuth2User(userInfo);
-
-        assertAll(
-                () -> assertThat(result.getId()).isNotNull(),
-                () -> assertThat(result.getEmail()).isEqualTo(userInfo.getEmail()),
-                () -> assertThat(result.isEmailVerified()).isEqualTo(userInfo.getEmailVerified()),
-                () -> assertThat(result.isGoogleConnected()).isTrue());
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("registerOAuth2User returns and updates an existing OAuth2 user")
-    void registerOAuth2User_ShouldUpdateExistingUser_WhenEmailExists() {
-        User user = buildSingleUser();
-        user.setGoogleConnected(false);
-        user.setEmailVerified(false);
-        User saved = service.save(user);
-        Profile profile = profileDAO.save(buildSingleProfile(saved));
-        saved.setProfile(profile);
-
-        OAuth2UserInfo userInfo =
-                OAuth2UserInfoFactory.getOAuth2UserInfo(
-                        "google",
-                        Map.of(
-                                "email", saved.getEmail(),
-                                "given_name", saved.getProfile().getFirstName(),
-                                "family_name", saved.getProfile().getLastName(),
-                                "picture", saved.getProfile().getAvatarUrl(),
-                                "email_verified", true));
-
-        User result = service.registerOAuth2User(userInfo);
-
-        assertAll(
-                () -> assertThat(result.getId()).isEqualTo(saved.getId()),
-                () -> assertThat(result.isGoogleConnected()).isTrue(),
-                () -> assertThat(result.isEmailVerified()).isTrue());
     }
 
     @Test
@@ -609,68 +538,5 @@ class UserServiceImplIT extends BaseIntegrationTests {
     @DisplayName("existsByUniqueProperties handles null")
     void existsByUniqueProperties_ShouldHandleNull() {
         assertThat(service.existsByUniqueProperties(null)).isFalse();
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("checkExistingUser throws UnauthorizedException when account is blocked")
-    void checkExistingUser_ShouldThrow_WhenUserBlocked() {
-        User user = buildSingleUser();
-        user.setAllowed(false);
-        boolean isEmailVerified = user.isEmailVerified();
-
-        assertThatThrownBy(() -> service.checkExistingUser(user, isEmailVerified))
-                .isInstanceOf(UnauthorizedException.class)
-                .hasMessageContaining("The account has been deactivated or blocked");
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("checkExistingUser updates Google connection")
-    void checkExistingUser_ShouldUpdateConnection_WhenPreviouslyFalse() {
-        User user = buildSingleUser();
-        user.setGoogleConnected(false);
-        user.setAllowed(true);
-        User saved = service.save(user);
-
-        User updated = service.checkExistingUser(saved, saved.isEmailVerified());
-
-        assertAll(
-                () -> assertThat(updated.isGoogleConnected()).isTrue(),
-                () ->
-                        assertThat(service.findByEmail(saved.getEmail()).isGoogleConnected())
-                                .isTrue());
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("checkExistingUser updates email verification status")
-    void checkExistingUser_ShouldUpdateVerification_WhenStatusChanges() {
-        User user = buildAlternativeUser();
-        user.setEmailVerified(false);
-        user.setGoogleConnected(true);
-        user.setAllowed(true);
-        User saved = service.save(user);
-
-        User updated = service.checkExistingUser(saved, true);
-
-        assertThat(updated.isEmailVerified()).isTrue();
-    }
-
-    @Test
-    @Transactional
-    @DisplayName("checkExistingUser returns unchanged user when OAuth2 state is current")
-    void checkExistingUser_ShouldReturnUnchangedUser_WhenStateIsCurrent() {
-        User user = buildSingleUser();
-        user.setAllowed(true);
-        user.setGoogleConnected(true);
-        User saved = service.save(user);
-
-        User result = service.checkExistingUser(saved, saved.isEmailVerified());
-
-        assertAll(
-                () -> assertThat(result.getId()).isEqualTo(saved.getId()),
-                () -> assertThat(result.isGoogleConnected()).isTrue(),
-                () -> assertThat(result.isEmailVerified()).isEqualTo(saved.isEmailVerified()));
     }
 }

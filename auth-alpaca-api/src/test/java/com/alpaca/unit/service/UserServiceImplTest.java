@@ -2,32 +2,22 @@ package com.alpaca.unit.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
-import com.alpaca.service.IRoleService;
 import com.alpaca.service.impl.UserServiceImpl;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,10 +28,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 class UserServiceImplTest {
 
     @Mock private IUserDAO dao;
-    @Mock private IProfileDAO profileService;
-    @Mock private IRoleService roleService;
     @Mock private PasswordManager passwordManager;
-    @Mock private OAuth2UserInfo userInfo;
 
     @InjectMocks private UserServiceImpl service;
 
@@ -79,144 +66,6 @@ class UserServiceImplTest {
 
         verify(passwordManager).encodePassword(rawPassword);
         verify(dao).save(firstUser);
-    }
-
-    @Test
-    void registerOAuth2UserShouldReturnExistingUserWhenEmailAlreadyExists() {
-        String email = firstUser.getEmail();
-        firstUser.setGoogleConnected(true);
-
-        when(userInfo.getEmail()).thenReturn(email);
-        when(userInfo.getEmailVerified()).thenReturn(firstUser.isEmailVerified());
-        when(dao.existsByEmail(email)).thenReturn(true);
-        when(dao.findByEmail(email)).thenReturn(Optional.of(firstUser));
-
-        User result = service.registerOAuth2User(userInfo);
-
-        assertThat(result).isSameAs(firstUser);
-
-        verify(dao).existsByEmail(email);
-        verify(dao).findByEmail(email);
-        verify(dao, never()).save(any(User.class));
-        verifyNoInteractions(profileService, roleService);
-    }
-
-    @Test
-    void registerOAuth2UserShouldCreateUserAndProfileWhenEmailDoesNotExist() {
-        String email = firstUser.getEmail();
-        Profile profile = ProfileProvider.singleEntity();
-        firstUser.setProfile(profile);
-        String firstName = firstUser.getProfile().getFirstName();
-        String lastName = firstUser.getProfile().getLastName();
-        String imageUrl = firstUser.getProfile().getAvatarUrl();
-        boolean emailVerified = firstUser.isEmailVerified();
-
-        when(userInfo.getEmail()).thenReturn(email);
-        when(userInfo.getFirstName()).thenReturn(firstName);
-        when(userInfo.getLastName()).thenReturn(lastName);
-        when(userInfo.getImageUrl()).thenReturn(imageUrl);
-        when(userInfo.getEmailVerified()).thenReturn(emailVerified);
-        when(dao.existsByEmail(email)).thenReturn(false);
-        when(roleService.getUserRoles()).thenReturn(new HashSet<>(firstUser.getRoles()));
-        when(dao.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(profileService.save(any(Profile.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        User result = service.registerOAuth2User(userInfo);
-
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
-
-        verify(dao).save(userCaptor.capture());
-        verify(profileService).save(profileCaptor.capture());
-
-        User savedUser = userCaptor.getValue();
-        Profile savedProfile = profileCaptor.getValue();
-
-        assertThat(result).isSameAs(savedUser);
-        assertThat(savedUser.getEmail()).isEqualTo(email);
-        assertThat(savedUser.isEmailVerified()).isEqualTo(emailVerified);
-        assertThat(savedUser.isGoogleConnected()).isTrue();
-        assertThat(savedUser.getRoles()).isEqualTo(firstUser.getRoles());
-        assertThat(savedProfile.getFirstName()).isEqualTo(firstName);
-        assertThat(savedProfile.getLastName()).isEqualTo(lastName);
-        assertThat(savedProfile.getAvatarUrl()).isEqualTo(imageUrl);
-        assertThat(savedProfile.getUser()).isSameAs(savedUser);
-
-        verify(dao).existsByEmail(email);
-        verify(roleService).getUserRoles();
-    }
-
-    @Test
-    void checkExistingUserShouldThrowUnauthorizedExceptionWhenUserIsNotAllowed() {
-        firstUser.setEnabled(false);
-        boolean emailVerified = firstUser.isEmailVerified();
-
-        UnauthorizedException exception =
-                assertThrows(
-                        UnauthorizedException.class,
-                        () -> service.checkExistingUser(firstUser, emailVerified));
-
-        assertEquals("The account has been deactivated or blocked", exception.getReason());
-        verifyNoInteractions(dao);
-    }
-
-    @Test
-    void checkExistingUserShouldConnectGoogleWhenNotConnected() {
-        firstUser.setGoogleConnected(false);
-        boolean emailVerified = firstUser.isEmailVerified();
-
-        when(dao.save(firstUser)).thenReturn(firstUser);
-
-        User result = service.checkExistingUser(firstUser, emailVerified);
-
-        assertThat(result).isSameAs(firstUser);
-        assertThat(result.isGoogleConnected()).isTrue();
-
-        verify(dao).save(firstUser);
-    }
-
-    @Test
-    void checkExistingUserShouldUpdateEmailVerificationWhenDifferent() {
-        firstUser.setGoogleConnected(true);
-        boolean emailVerified = !firstUser.isEmailVerified();
-
-        when(dao.save(firstUser)).thenReturn(firstUser);
-
-        User result = service.checkExistingUser(firstUser, emailVerified);
-
-        assertThat(result).isSameAs(firstUser);
-        assertThat(result.isEmailVerified()).isEqualTo(emailVerified);
-
-        verify(dao).save(firstUser);
-    }
-
-    @Test
-    void checkExistingUserShouldSaveTwiceWhenGoogleConnectionAndEmailVerificationChange() {
-        firstUser.setGoogleConnected(false);
-        boolean emailVerified = !firstUser.isEmailVerified();
-
-        when(dao.save(firstUser)).thenReturn(firstUser);
-
-        User result = service.checkExistingUser(firstUser, emailVerified);
-
-        assertThat(result).isSameAs(firstUser);
-        assertThat(result.isGoogleConnected()).isTrue();
-        assertThat(result.isEmailVerified()).isEqualTo(emailVerified);
-
-        verify(dao, times(2)).save(firstUser);
-    }
-
-    @Test
-    void checkExistingUserShouldNotSaveWhenNoChangesAreRequired() {
-        firstUser.setGoogleConnected(true);
-        boolean emailVerified = firstUser.isEmailVerified();
-
-        User result = service.checkExistingUser(firstUser, emailVerified);
-
-        assertThat(result).isSameAs(firstUser);
-
-        verifyNoInteractions(dao);
     }
 
     @Test

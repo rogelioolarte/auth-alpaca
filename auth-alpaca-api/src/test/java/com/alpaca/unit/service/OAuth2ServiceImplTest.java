@@ -9,7 +9,7 @@ import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.UserProvider;
-import com.alpaca.service.IUserService;
+import com.alpaca.service.IAuthService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @ExtendWith(MockitoExtension.class)
 class OAuth2ServiceImplTest {
 
-    @Mock private IUserService userService;
+    @Mock private IAuthService authService;
     @Mock private OAuth2UserRequest request;
     @Mock private OAuth2User oauth2User;
     @Mock private ClientRegistration clientRegistration;
@@ -63,7 +63,7 @@ class OAuth2ServiceImplTest {
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
                 .hasMessage("The account does not have enough information");
 
-        verifyNoInteractions(userService);
+        verifyNoInteractions(authService);
     }
 
     @ParameterizedTest
@@ -81,7 +81,7 @@ class OAuth2ServiceImplTest {
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
                 .hasMessage("The account does not have enough information");
 
-        verifyNoInteractions(userService);
+        verifyNoInteractions(authService);
     }
 
     @Test
@@ -95,7 +95,7 @@ class OAuth2ServiceImplTest {
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
                 .hasMessageContaining("The account does not have enough information");
 
-        verifyNoInteractions(userService);
+        verifyNoInteractions(authService);
     }
 
     @Test
@@ -113,7 +113,7 @@ class OAuth2ServiceImplTest {
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
                 .hasMessage("The account does not have enough information");
 
-        verifyNoInteractions(userService);
+        verifyNoInteractions(authService);
     }
 
     @Test
@@ -128,6 +128,6 @@ class OAuth2ServiceImplTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("The account does not have enough information");
 
-        verify(userService, never()).registerOAuth2User(any());
+        verify(authService, never()).registerOAuth2User(any());
     }
 }

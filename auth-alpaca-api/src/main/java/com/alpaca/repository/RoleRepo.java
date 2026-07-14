@@ -3,6 +3,7 @@ package com.alpaca.repository;
 import com.alpaca.entity.Role;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -22,6 +23,7 @@ public interface RoleRepo extends CustomRepo<Role, UUID> {
      * @param roleName The name of the role.
      * @return An {@link Optional} containing the role if found, otherwise empty.
      */
+    @EntityGraph(attributePaths = {"rolePermissions", "rolePermissions.permission"})
     Optional<Role> findByName(String roleName);
 
     /**

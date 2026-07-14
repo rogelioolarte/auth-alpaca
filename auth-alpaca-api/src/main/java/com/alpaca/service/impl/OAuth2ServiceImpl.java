@@ -5,8 +5,8 @@ import com.alpaca.exception.OAuth2AuthenticationProcessingException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.security.oauth2.userinfo.OAuth2UserInfoFactory;
+import com.alpaca.service.IAuthService;
 import com.alpaca.service.IOAuth2Service;
-import com.alpaca.service.IUserService;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Generated;
@@ -35,7 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 @AllArgsConstructor
 public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAuth2Service {
 
-    private final IUserService userService;
+    private final IAuthService authService;
 
     /**
      * Handles OAuth2 login by processing the provider's user data and delegating logic.
@@ -81,6 +81,6 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         }
 
         return new UserPrincipal(
-                userService.registerOAuth2User(userInfo), userInfo.getAttributes());
+                authService.registerOAuth2User(userInfo), userInfo.getAttributes());
     }
 }

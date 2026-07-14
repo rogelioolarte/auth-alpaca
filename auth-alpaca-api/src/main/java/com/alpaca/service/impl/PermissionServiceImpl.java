@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Permission} entities. Inherits common CRUD
@@ -61,6 +62,7 @@ public class PermissionServiceImpl extends GenericServiceImpl<Permission, UUID>
      * @throws BadRequestException if a permission with the same unique properties already exists
      */
     @Override
+    @Transactional
     public Permission save(Permission permission) {
         if (dao.existsByUniqueProperties(permission)) {
             throw new BadRequestException(String.format("%s already exists", getEntityName()));
@@ -79,6 +81,7 @@ public class PermissionServiceImpl extends GenericServiceImpl<Permission, UUID>
      * @throws NotFoundException if no permission exists with the specified ID
      */
     @Override
+    @Transactional
     public Permission updateById(Permission permission, UUID id) {
         if (permission == null || id == null)
             throw new BadRequestException(

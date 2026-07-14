@@ -1,13 +1,10 @@
 package com.alpaca.service;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import java.util.UUID;
 
 /**
@@ -41,19 +38,6 @@ public interface IUserService extends IGenericService<User, UUID> {
      */
     @Override
     User save(User user);
-
-    /**
-     * Registers or updates a user based on OAuth2 provider information.
-     *
-     * <p>If a user with the email already exists, their OAuth2 connection and email verification
-     * are updated via {@code checkExistingUser(User, boolean)}. Otherwise, a new {@link User} and
-     * associated {@link Profile} are created within the same transaction.
-     *
-     * @param userInfo the OAuth2 provider user information; must not be {@code null}
-     * @return the existing or newly registered {@link User}
-     * @throws UnauthorizedException if the existing account is disabled or locked
-     */
-    User registerOAuth2User(OAuth2UserInfo userInfo);
 
     /**
      * Checks if a user exists by their email address.

@@ -5,10 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
-import com.alpaca.entity.RefreshToken;
-import com.alpaca.entity.Role;
-import com.alpaca.entity.Session;
-import com.alpaca.entity.User;
+import com.alpaca.entity.*;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
 import com.alpaca.exception.UnauthorizedException;
@@ -18,6 +15,8 @@ import com.alpaca.resources.provider.SessionProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.security.manager.JJwtManager;
 import com.alpaca.security.manager.TokenExchangeManager;
+import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
+import com.alpaca.service.IProfileService;
 import com.alpaca.service.IRefreshTokenService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.ISessionService;
@@ -44,6 +43,7 @@ class AuthServiceImplTest {
 
     @Mock private IRoleService roleService;
     @Mock private IUserService userService;
+    @Mock private IProfileService profileService;
     @Mock private ISessionService sessionService;
     @Mock private IRefreshTokenService refreshTokenService;
     @Mock private TokenExchangeManager exchangeManager;
@@ -482,5 +482,133 @@ class AuthServiceImplTest {
                 () -> assertEquals(user.getEmail(), result.getUsername()));
 
         verify(userService).findByEmail(user.getEmail());
+    }
+
+    // -------------------------------------------------------------------------
+    // registerOAuth2User
+    // -------------------------------------------------------------------------
+
+    @Test
+    void registerOAuth2User_WhenEmailExists_ReturnsExistingUser() {
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn(user.getEmail());
+        when(userInfo.getEmailVerified()).thenReturn(true);
+
+        when(userService.existsByEmail(user.getEmail())).thenReturn(true);
+        when(userService.findByEmail(user.getEmail())).thenReturn(user);
+
+        User result = service.registerOAuth2User(userInfo);
+
+        assertNotNull(result);
+        assertEquals(user.getEmail(), result.getEmail());
+        verify(userService).findByEmail(user.getEmail());
+        verifyNoInteractions(profileService);
+    }
+
+    @Test
+    void registerOAuth2User_WhenEmailNotExists_CreatesUserAndProfile() {
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn("oauth2@test.com");
+        when(userInfo.getFirstName()).thenReturn("Jane");
+        when(userInfo.getLastName()).thenReturn("Doe");
+        when(userInfo.getImageUrl()).thenReturn("https://example.com/avatar.jpg");
+        when(userInfo.getEmailVerified()).thenReturn(true);
+
+        Set<Role> roles = Set.of(new Role());
+        when(roleService.getUserRoles()).thenReturn(roles);
+        when(userService.existsByEmail("oauth2@test.com")).thenReturn(false);
+
+        when(userService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = service.registerOAuth2User(userInfo);
+
+        assertNotNull(result);
+        assertEquals("oauth2@test.com", result.getEmail());
+        assertNull(result.getPassword());
+        assertTrue(result.isGoogleConnected());
+
+        ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
+        verify(profileService).save(profileCaptor.capture());
+        Profile captured = profileCaptor.getValue();
+        assertAll(
+                () -> assertEquals("Jane", captured.getFirstName()),
+                () -> assertEquals("Doe", captured.getLastName()),
+                () -> assertEquals("https://example.com/avatar.jpg", captured.getAvatarUrl()),
+                () -> assertSame(result, captured.getUser()));
+
+        verify(roleService).getUserRoles();
+        verify(userService).save(any(User.class));
+    }
+
+    @Test
+    void registerOAuth2User_WhenImageUrlIsNull_DefaultsToEmpty() {
+        OAuth2UserInfo userInfo = mock(OAuth2UserInfo.class);
+        when(userInfo.getEmail()).thenReturn("new@test.com");
+        when(userInfo.getFirstName()).thenReturn("John");
+        when(userInfo.getLastName()).thenReturn("Smith");
+        when(userInfo.getImageUrl()).thenReturn(null);
+        when(userInfo.getEmailVerified()).thenReturn(false);
+
+        when(userService.existsByEmail("new@test.com")).thenReturn(false);
+        when(roleService.getUserRoles()).thenReturn(Set.of(new Role()));
+        when(userService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.registerOAuth2User(userInfo);
+
+        ArgumentCaptor<Profile> captor = ArgumentCaptor.forClass(Profile.class);
+        verify(profileService).save(captor.capture());
+        assertEquals("", captor.getValue().getAvatarUrl());
+    }
+
+    // -------------------------------------------------------------------------
+    // checkExistingUser
+    // -------------------------------------------------------------------------
+
+    @Test
+    void checkExistingUser_WhenUserIsDeactivated_ThrowsUnauthorizedException() {
+        user.setEnabled(false);
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class, () -> service.checkExistingUser(user, true));
+
+        assertEquals("The account has been deactivated or blocked", exception.getReason());
+        verify(userService, never()).save(any(User.class));
+    }
+
+    @Test
+    void checkExistingUser_WhenNotGoogleConnected_ConnectsAndSaves() {
+        user.setGoogleConnected(false);
+        user.setEmailVerified(false);
+
+        User result = service.checkExistingUser(user, true);
+
+        assertTrue(result.isGoogleConnected());
+        assertTrue(result.isEmailVerified());
+        verify(userService, times(2)).save(user);
+    }
+
+    @Test
+    void checkExistingUser_WhenEmailVerifiedDiffers_UpdatesAndSaves() {
+        user.setGoogleConnected(true);
+        user.setEmailVerified(false);
+
+        User result = service.checkExistingUser(user, true);
+
+        assertTrue(result.isEmailVerified());
+        assertTrue(result.isGoogleConnected());
+        verify(userService, times(1)).save(user);
+    }
+
+    @Test
+    void checkExistingUser_WhenAlreadySynced_NoChanges() {
+        user.setGoogleConnected(true);
+        user.setEmailVerified(true);
+
+        User result = service.checkExistingUser(user, true);
+
+        assertTrue(result.isGoogleConnected());
+        assertTrue(result.isEmailVerified());
+        verify(userService, never()).save(any(User.class));
     }
 }

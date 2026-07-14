@@ -383,6 +383,7 @@ public class RefreshTokenServiceImpl extends GenericServiceImpl<RefreshToken, UU
      *     exist
      */
     @Override
+    @Transactional
     public RefreshToken updateById(RefreshToken refreshToken, UUID id) {
         if (refreshToken == null || id == null)
             throw new BadRequestException(

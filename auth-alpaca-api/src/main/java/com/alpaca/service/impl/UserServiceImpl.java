@@ -1,21 +1,15 @@
 package com.alpaca.service.impl;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
-import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
 import com.alpaca.persistence.IGenericDAO;
-import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.persistence.IUserDAO;
 import com.alpaca.security.manager.PasswordManager;
-import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.service.IGenericService;
-import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +33,6 @@ import org.springframework.util.StringUtils;
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {
 
     private final IUserDAO dao;
-    private final IProfileDAO profileService;
-    private final IRoleService roleService;
 
     private final PasswordManager passwordManager;
     private static final String ERROR_CREATED_MESS = "%s cannot be created";
@@ -76,65 +68,12 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if the provided user is {@code null}
      */
     @Override
+    @Transactional
     public User save(User user) {
         if (user == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
         user.setPassword(passwordManager.encodePassword(user.getPassword()));
         return super.save(user);
-    }
-
-    /**
-     * Registers or updates a user based on OAuth2 provider information.
-     *
-     * <p>If a user with the email already exists, their OAuth2 connection and email verification
-     * are updated via {@link #checkExistingUser(User, boolean)}. Otherwise, a new {@link User} and
-     * associated {@link Profile} are created within the same transaction.
-     *
-     * @param userInfo the OAuth2 provider user information; must not be {@code null}
-     * @return the existing or newly registered {@link User}
-     * @throws UnauthorizedException if the existing account is disabled or locked
-     */
-    @Override
-    @Transactional
-    public User registerOAuth2User(OAuth2UserInfo userInfo) {
-        String email = userInfo.getEmail();
-        String firstName = userInfo.getFirstName();
-        String lastName = userInfo.getLastName();
-        String imageURL = Objects.requireNonNullElse(userInfo.getImageUrl(), "");
-        boolean emailVerified = userInfo.getEmailVerified();
-        if (existsByEmail(email)) {
-            return checkExistingUser(findByEmail(email), emailVerified);
-        } else {
-            User user = new User(email, null, emailVerified, true, roleService.getUserRoles());
-            Profile profile = new Profile(firstName, lastName, "", imageURL, null);
-            User newUser = dao.save(user);
-            profile.setUser(user);
-            profileService.save(profile);
-            return newUser;
-        }
-    }
-
-    /**
-     * Updates an existing user's OAuth2 connection status and email verification flag.
-     *
-     * @param user the existing user
-     * @param emailVerified OAuth2-provided email verification status
-     * @return updated {@link User}
-     * @throws UnauthorizedException if the user account is disabled or locked
-     */
-    public User checkExistingUser(User user, boolean emailVerified) {
-        if (!user.isAllowUser()) {
-            throw new UnauthorizedException("The account has been deactivated or blocked");
-        }
-        if (!user.isGoogleConnected()) {
-            user.setGoogleConnected(true);
-            dao.save(user);
-        }
-        if (user.isEmailVerified() != emailVerified) {
-            user.setEmailVerified(emailVerified);
-            dao.save(user);
-        }
-        return user;
     }
 
     /**
@@ -149,6 +88,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws NotFoundException if no existing user is found with the given ID
      */
     @Override
+    @Transactional
     public User updateById(User user, UUID id) {
         if (user == null || id == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
@@ -249,6 +189,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if validation fails for any of the above rules
      */
     @Override
+    @Transactional
     public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
         if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {
             throw new BadRequestException("New password mismatch the ReType password");
