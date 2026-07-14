@@ -1,22 +1,27 @@
 package com.alpaca.unit.service;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.alpaca.dto.request.PasswordRequestDTO;
-import com.alpaca.entity.Role;
+import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.persistence.IProfileDAO;
 import com.alpaca.persistence.IUserDAO;
-import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.security.manager.PasswordManager;
+import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
+import com.alpaca.service.IRoleService;
 import com.alpaca.service.impl.UserServiceImpl;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,8 +38,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 class UserServiceImplTest {
 
     @Mock private IUserDAO dao;
-
+    @Mock private IProfileDAO profileService;
+    @Mock private IRoleService roleService;
     @Mock private PasswordManager passwordManager;
+    @Mock private OAuth2UserInfo userInfo;
 
     @InjectMocks private UserServiceImpl service;
 
@@ -49,14 +56,13 @@ class UserServiceImplTest {
         encodedPassword = "encoded-password";
     }
 
-    // --- save ---
-
     @Test
     void saveShouldThrowBadRequestExceptionWhenUserIsNull() {
-        assertThrows(BadRequestException.class, () -> service.save(null));
+        assertThatThrownBy(() -> service.save(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("User cannot be created");
 
-        verifyNoInteractions(dao);
-        verifyNoInteractions(passwordManager);
+        verifyNoInteractions(dao, passwordManager);
     }
 
     @Test
@@ -68,28 +74,167 @@ class UserServiceImplTest {
 
         User result = service.save(firstUser);
 
-        assertNotNull(result);
-        assertEquals(firstUser, result);
-        assertEquals(encodedPassword, firstUser.getPassword());
+        assertThat(result).isSameAs(firstUser);
+        assertThat(result.getPassword()).isEqualTo(encodedPassword);
 
         verify(passwordManager).encodePassword(rawPassword);
         verify(dao).save(firstUser);
     }
 
-    // --- updateById ---
+    @Test
+    void registerOAuth2UserShouldReturnExistingUserWhenEmailAlreadyExists() {
+        String email = firstUser.getEmail();
+        firstUser.setGoogleConnected(true);
+
+        when(userInfo.getEmail()).thenReturn(email);
+        when(userInfo.getEmailVerified()).thenReturn(firstUser.isEmailVerified());
+        when(dao.existsByEmail(email)).thenReturn(true);
+        when(dao.findByEmail(email)).thenReturn(Optional.of(firstUser));
+
+        User result = service.registerOAuth2User(userInfo);
+
+        assertThat(result).isSameAs(firstUser);
+
+        verify(dao).existsByEmail(email);
+        verify(dao).findByEmail(email);
+        verify(dao, never()).save(any(User.class));
+        verifyNoInteractions(profileService, roleService);
+    }
+
+    @Test
+    void registerOAuth2UserShouldCreateUserAndProfileWhenEmailDoesNotExist() {
+        String email = firstUser.getEmail();
+        Profile profile = ProfileProvider.singleEntity();
+        firstUser.setProfile(profile);
+        String firstName = firstUser.getProfile().getFirstName();
+        String lastName = firstUser.getProfile().getLastName();
+        String imageUrl = firstUser.getProfile().getAvatarUrl();
+        boolean emailVerified = firstUser.isEmailVerified();
+
+        when(userInfo.getEmail()).thenReturn(email);
+        when(userInfo.getFirstName()).thenReturn(firstName);
+        when(userInfo.getLastName()).thenReturn(lastName);
+        when(userInfo.getImageUrl()).thenReturn(imageUrl);
+        when(userInfo.getEmailVerified()).thenReturn(emailVerified);
+        when(dao.existsByEmail(email)).thenReturn(false);
+        when(roleService.getUserRoles()).thenReturn(new HashSet<>(firstUser.getRoles()));
+        when(dao.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(profileService.save(any(Profile.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = service.registerOAuth2User(userInfo);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<Profile> profileCaptor = ArgumentCaptor.forClass(Profile.class);
+
+        verify(dao).save(userCaptor.capture());
+        verify(profileService).save(profileCaptor.capture());
+
+        User savedUser = userCaptor.getValue();
+        Profile savedProfile = profileCaptor.getValue();
+
+        assertThat(result).isSameAs(savedUser);
+        assertThat(savedUser.getEmail()).isEqualTo(email);
+        assertThat(savedUser.isEmailVerified()).isEqualTo(emailVerified);
+        assertThat(savedUser.isGoogleConnected()).isTrue();
+        assertThat(savedUser.getRoles()).isEqualTo(firstUser.getRoles());
+        assertThat(savedProfile.getFirstName()).isEqualTo(firstName);
+        assertThat(savedProfile.getLastName()).isEqualTo(lastName);
+        assertThat(savedProfile.getAvatarUrl()).isEqualTo(imageUrl);
+        assertThat(savedProfile.getUser()).isSameAs(savedUser);
+
+        verify(dao).existsByEmail(email);
+        verify(roleService).getUserRoles();
+    }
+
+    @Test
+    void checkExistingUserShouldThrowUnauthorizedExceptionWhenUserIsNotAllowed() {
+        firstUser.setEnabled(false);
+        boolean emailVerified = firstUser.isEmailVerified();
+
+        UnauthorizedException exception =
+                assertThrows(
+                        UnauthorizedException.class,
+                        () -> service.checkExistingUser(firstUser, emailVerified));
+
+        assertEquals("The account has been deactivated or blocked", exception.getReason());
+        verifyNoInteractions(dao);
+    }
+
+    @Test
+    void checkExistingUserShouldConnectGoogleWhenNotConnected() {
+        firstUser.setGoogleConnected(false);
+        boolean emailVerified = firstUser.isEmailVerified();
+
+        when(dao.save(firstUser)).thenReturn(firstUser);
+
+        User result = service.checkExistingUser(firstUser, emailVerified);
+
+        assertThat(result).isSameAs(firstUser);
+        assertThat(result.isGoogleConnected()).isTrue();
+
+        verify(dao).save(firstUser);
+    }
+
+    @Test
+    void checkExistingUserShouldUpdateEmailVerificationWhenDifferent() {
+        firstUser.setGoogleConnected(true);
+        boolean emailVerified = !firstUser.isEmailVerified();
+
+        when(dao.save(firstUser)).thenReturn(firstUser);
+
+        User result = service.checkExistingUser(firstUser, emailVerified);
+
+        assertThat(result).isSameAs(firstUser);
+        assertThat(result.isEmailVerified()).isEqualTo(emailVerified);
+
+        verify(dao).save(firstUser);
+    }
+
+    @Test
+    void checkExistingUserShouldSaveTwiceWhenGoogleConnectionAndEmailVerificationChange() {
+        firstUser.setGoogleConnected(false);
+        boolean emailVerified = !firstUser.isEmailVerified();
+
+        when(dao.save(firstUser)).thenReturn(firstUser);
+
+        User result = service.checkExistingUser(firstUser, emailVerified);
+
+        assertThat(result).isSameAs(firstUser);
+        assertThat(result.isGoogleConnected()).isTrue();
+        assertThat(result.isEmailVerified()).isEqualTo(emailVerified);
+
+        verify(dao, times(2)).save(firstUser);
+    }
+
+    @Test
+    void checkExistingUserShouldNotSaveWhenNoChangesAreRequired() {
+        firstUser.setGoogleConnected(true);
+        boolean emailVerified = firstUser.isEmailVerified();
+
+        User result = service.checkExistingUser(firstUser, emailVerified);
+
+        assertThat(result).isSameAs(firstUser);
+
+        verifyNoInteractions(dao);
+    }
 
     @Test
     void updateByIdShouldThrowBadRequestExceptionWhenUserIsNull() {
         UUID userId = firstUser.getId();
 
-        assertThrows(BadRequestException.class, () -> service.updateById(null, userId));
+        assertThatThrownBy(() -> service.updateById(null, userId))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("User cannot be created");
 
         verifyNoInteractions(dao);
     }
 
     @Test
     void updateByIdShouldThrowBadRequestExceptionWhenIdIsNull() {
-        assertThrows(BadRequestException.class, () -> service.updateById(firstUser, null));
+        assertThatThrownBy(() -> service.updateById(firstUser, null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("User cannot be created");
 
         verifyNoInteractions(dao);
     }
@@ -100,89 +245,92 @@ class UserServiceImplTest {
 
         when(dao.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> service.updateById(firstUser, userId));
+        assertThatThrownBy(() -> service.updateById(firstUser, userId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User with ID %s not found", userId);
 
         verify(dao).findById(userId);
         verify(dao, never()).save(any(User.class));
     }
 
     @Test
-    void updateByIdShouldUpdatePasswordWhenPasswordIsDifferent() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
-        incomingUser.setRoles(existingUser.getRoles());
-
+    void updateByIdShouldUpdateMutablePropertiesSuccessfully() {
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         UUID userId = existingUser.getId();
+        String existingPassword = existingUser.getPassword();
 
         when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
+        when(passwordManager.matches(incomingUser.getPassword(), existingPassword))
                 .thenReturn(false);
         when(dao.save(existingUser)).thenReturn(existingUser);
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertEquals(incomingUser.getPassword(), result.getPassword());
+        assertThat(result).isSameAs(existingUser);
+        assertThat(result.getPassword()).isEqualTo(incomingUser.getPassword());
+        assertThat(result.getRoles()).isEqualTo(incomingUser.getRoles());
+        assertThat(result.getEmail()).isEqualTo(incomingUser.getEmail());
+        assertThat(result.isEnabled()).isEqualTo(incomingUser.isEnabled());
+        assertThat(result.isAccountNonLocked()).isEqualTo(incomingUser.isAccountNonLocked());
+        assertThat(result.isAccountNonExpired()).isEqualTo(incomingUser.isAccountNonExpired());
+        assertThat(result.isCredentialNonExpired())
+                .isEqualTo(incomingUser.isCredentialNonExpired());
+        assertThat(result.isEmailVerified()).isEqualTo(incomingUser.isEmailVerified());
+        assertThat(result.isGoogleConnected()).isEqualTo(incomingUser.isGoogleConnected());
 
-        verify(dao).findById(userId);
-        verify(passwordManager).matches(incomingUser.getPassword(), existingUser.getPassword());
+        verify(passwordManager).matches(incomingUser.getPassword(), existingPassword);
         verify(dao).save(existingUser);
     }
 
     @Test
     void updateByIdShouldNotUpdatePasswordWhenPasswordsMatch() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         incomingUser.setRoles(existingUser.getRoles());
 
         UUID userId = existingUser.getId();
-        String originalPassword = existingUser.getPassword();
+        String existingPassword = existingUser.getPassword();
 
         when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
+        when(passwordManager.matches(incomingUser.getPassword(), existingPassword))
                 .thenReturn(true);
         when(dao.save(existingUser)).thenReturn(existingUser);
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertEquals(originalPassword, result.getPassword());
+        assertThat(result.getPassword()).isEqualTo(existingPassword);
 
-        verify(passwordManager).matches(incomingUser.getPassword(), originalPassword);
+        verify(passwordManager).matches(incomingUser.getPassword(), existingPassword);
         verify(dao).save(existingUser);
     }
 
     @Test
-    void updateByIdShouldNotUpdatePasswordWhenIncomingPasswordIsBlank() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
+    void updateByIdShouldNotCheckPasswordWhenIncomingPasswordIsBlank() {
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         incomingUser.setPassword(" ");
         incomingUser.setRoles(existingUser.getRoles());
 
         UUID userId = existingUser.getId();
-        String originalPassword = existingUser.getPassword();
+        String existingPassword = existingUser.getPassword();
 
         when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
         when(dao.save(existingUser)).thenReturn(existingUser);
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertEquals(originalPassword, result.getPassword());
+        assertThat(result.getPassword()).isEqualTo(existingPassword);
 
-        verify(passwordManager, never()).matches(anyString(), anyString());
+        verifyNoInteractions(passwordManager);
         verify(dao).save(existingUser);
     }
 
     @Test
-    void updateByIdShouldNotUpdatePasswordWhenExistingPasswordIsNull() {
-        User existingUser = UserProvider.singleEntity();
+    void updateByIdShouldNotCheckPasswordWhenExistingPasswordIsNull() {
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         existingUser.setPassword(null);
-
-        User incomingUser = UserProvider.alternativeEntity();
         incomingUser.setRoles(existingUser.getRoles());
 
         UUID userId = existingUser.getId();
@@ -192,61 +340,16 @@ class UserServiceImplTest {
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertNull(result.getPassword());
+        assertThat(result.getPassword()).isNull();
 
-        verify(passwordManager, never()).matches(anyString(), anyString());
-        verify(dao).save(existingUser);
-    }
-
-    @Test
-    void updateByIdShouldUpdateRolesWhenRolesAreDifferent() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
-
-        UUID userId = existingUser.getId();
-
-        when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
-                .thenReturn(true);
-        when(dao.save(existingUser)).thenReturn(existingUser);
-
-        User result = service.updateById(incomingUser, userId);
-
-        assertNotNull(result);
-        assertEquals(incomingUser.getRoles(), result.getRoles());
-
-        verify(dao).save(existingUser);
-    }
-
-    @Test
-    void updateByIdShouldNotUpdateRolesWhenRolesAreEqual() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
-        incomingUser.setRoles(existingUser.getRoles());
-
-        UUID userId = existingUser.getId();
-
-        when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
-                .thenReturn(true);
-        when(dao.save(existingUser)).thenReturn(existingUser);
-
-        User result = service.updateById(incomingUser, userId);
-
-        assertNotNull(result);
-        assertEquals(existingUser.getRoles(), result.getRoles());
-
+        verifyNoInteractions(passwordManager);
         verify(dao).save(existingUser);
     }
 
     @Test
     void updateByIdShouldNotUpdateRolesWhenIncomingRolesAreNull() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         incomingUser.setRoles(null);
 
         UUID userId = existingUser.getId();
@@ -258,17 +361,15 @@ class UserServiceImplTest {
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertEquals(existingUser.getRoles(), result.getRoles());
+        assertThat(result.getRoles()).isEqualTo(existingUser.getRoles());
 
         verify(dao).save(existingUser);
     }
 
     @Test
-    void updateByIdShouldUpdateEmailAndBooleanFlagsSuccessfully() {
-        User existingUser = UserProvider.singleEntity();
-
-        User incomingUser = UserProvider.alternativeEntity();
+    void updateByIdShouldNotUpdateRolesWhenRolesAreEqual() {
+        User existingUser = firstUser;
+        User incomingUser = secondUser;
         incomingUser.setRoles(existingUser.getRoles());
 
         UUID userId = existingUser.getId();
@@ -280,49 +381,10 @@ class UserServiceImplTest {
 
         User result = service.updateById(incomingUser, userId);
 
-        assertNotNull(result);
-        assertEquals(incomingUser.getEmail(), result.getEmail());
-        assertEquals(incomingUser.isEnabled(), result.isEnabled());
-        assertEquals(incomingUser.isAccountNonLocked(), result.isAccountNonLocked());
-        assertEquals(incomingUser.isAccountNonExpired(), result.isAccountNonExpired());
-        assertEquals(incomingUser.isCredentialNonExpired(), result.isCredentialNonExpired());
-        assertEquals(incomingUser.isEmailVerified(), result.isEmailVerified());
-        assertEquals(incomingUser.isGoogleConnected(), result.isGoogleConnected());
+        assertThat(result.getRoles()).isEqualTo(existingUser.getRoles());
 
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-
-        verify(dao).save(userCaptor.capture());
-
-        assertEquals(incomingUser.getEmail(), userCaptor.getValue().getEmail());
-    }
-
-    @Test
-    void updateByIdShouldUpdateRolesWhenIncomingRolesAreDifferentAndExistingRolesAreNull() {
-        User existingUser = UserProvider.singleEntity();
-        existingUser.setRoles(null);
-
-        User incomingUser = UserProvider.alternativeEntity();
-        List<Role> roles = RoleProvider.listEntities();
-        incomingUser.setRoles(new HashSet<>(roles));
-
-        UUID userId = existingUser.getId();
-
-        when(dao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(incomingUser.getPassword(), existingUser.getPassword()))
-                .thenReturn(true);
-        when(dao.save(existingUser)).thenReturn(existingUser);
-
-        User result = service.updateById(incomingUser, userId);
-
-        assertNotNull(result);
-        assertThat(result.getRoles()).containsExactlyInAnyOrderElementsOf(incomingUser.getRoles());
-
-        verify(dao).findById(userId);
-        verify(passwordManager).matches(incomingUser.getPassword(), existingUser.getPassword());
         verify(dao).save(existingUser);
     }
-
-    // --- existsByEmail ---
 
     @Test
     void existsByEmailShouldReturnTrueWhenUserExists() {
@@ -332,7 +394,7 @@ class UserServiceImplTest {
 
         boolean result = service.existsByEmail(email);
 
-        assertTrue(result);
+        assertThat(result).isTrue();
 
         verify(dao).existsByEmail(email);
     }
@@ -345,23 +407,27 @@ class UserServiceImplTest {
 
         boolean result = service.existsByEmail(email);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
 
         verify(dao).existsByEmail(email);
     }
 
-    // --- findByEmail ---
-
     @Test
     void findByEmailShouldThrowBadRequestExceptionWhenEmailIsNull() {
-        assertThrows(BadRequestException.class, () -> service.findByEmail(null));
+        assertThatThrownBy(() -> service.findByEmail(null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Email must not be null or blank");
 
         verifyNoInteractions(dao);
     }
 
     @Test
     void findByEmailShouldThrowBadRequestExceptionWhenEmailIsBlank() {
-        assertThrows(BadRequestException.class, () -> service.findByEmail(" "));
+        String email = " ";
+
+        assertThatThrownBy(() -> service.findByEmail(email))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Email must not be null or blank");
 
         verifyNoInteractions(dao);
     }
@@ -372,7 +438,9 @@ class UserServiceImplTest {
 
         when(dao.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class, () -> service.findByEmail(email));
+        assertThatThrownBy(() -> service.findByEmail(email))
+                .isInstanceOf(UsernameNotFoundException.class)
+                .hasMessage("The email does not match any account");
 
         verify(dao).findByEmail(email);
     }
@@ -385,76 +453,76 @@ class UserServiceImplTest {
 
         User result = service.findByEmail(email);
 
-        assertNotNull(result);
-        assertEquals(firstUser, result);
+        assertThat(result).isSameAs(firstUser);
 
         verify(dao).findByEmail(email);
     }
 
-    // --- changePassword ---
-
     @Test
-    void changePasswordShouldThrowBadRequestExceptionWhenPasswordsDoNotMatch() {
+    void changePasswordShouldThrowBadRequestExceptionWhenNewPasswordsDoNotMatch() {
         PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("different-password");
+        requestDTO.setNewPassword(firstUser.getPassword());
+        requestDTO.setReNewPassword("unused password");
 
         UserPrincipal principal = new UserPrincipal(firstUser);
 
-        assertThrows(
-                BadRequestException.class, () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("New password mismatch the ReType password");
 
-        verifyNoInteractions(dao);
+        verifyNoInteractions(dao, passwordManager);
     }
 
     @Test
     void changePasswordShouldThrowUsernameNotFoundExceptionWhenUserDoesNotExist() {
         PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+        requestDTO.setNewPassword(secondUser.getPassword());
+        requestDTO.setReNewPassword(secondUser.getPassword());
 
         UserPrincipal principal = new UserPrincipal(firstUser);
 
         when(dao.findById(principal.getUserId())).thenReturn(Optional.empty());
 
-        assertThrows(
-                UsernameNotFoundException.class,
-                () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(UsernameNotFoundException.class)
+                .hasMessage("The User does not exist.");
 
         verify(dao).findById(principal.getUserId());
+        verifyNoInteractions(passwordManager);
     }
 
     @Test
-    void
-            changePasswordShouldThrowBadRequestExceptionWhenPasswordIsNullAndUserIsNotGoogleConnected() {
-        User existingUser = UserProvider.singleEntity();
+    void changePasswordShouldRejectPasswordCreationForNonGoogleUser() {
+        User existingUser = firstUser;
         existingUser.setPassword(null);
         existingUser.setGoogleConnected(false);
 
         PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+        requestDTO.setNewPassword(secondUser.getPassword());
+        requestDTO.setReNewPassword(secondUser.getPassword());
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
         when(dao.findById(principal.getUserId())).thenReturn(Optional.of(existingUser));
 
-        assertThrows(
-                BadRequestException.class, () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Cannot change the password. Contact the Administrator");
 
         verify(dao).findById(principal.getUserId());
         verify(dao, never()).save(any(User.class));
+        verifyNoInteractions(passwordManager);
     }
 
     @Test
-    void changePasswordShouldSetPasswordWhenPasswordIsNullAndUserIsGoogleConnected() {
-        User existingUser = UserProvider.singleEntity();
+    void changePasswordShouldCreatePasswordForGoogleConnectedUser() {
+        User existingUser = firstUser;
         existingUser.setPassword(null);
         existingUser.setGoogleConnected(true);
 
         PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+        requestDTO.setNewPassword(secondUser.getPassword());
+        requestDTO.setReNewPassword(secondUser.getPassword());
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
@@ -465,39 +533,41 @@ class UserServiceImplTest {
 
         service.changePassword(principal, requestDTO);
 
-        assertEquals(encodedPassword, existingUser.getPassword());
+        assertThat(existingUser.getPassword()).isEqualTo(encodedPassword);
 
         verify(passwordManager).encodePassword(requestDTO.getNewPassword());
         verify(dao).save(existingUser);
     }
 
     @Test
-    void changePasswordShouldThrowBadRequestExceptionWhenCurrentPasswordIsBlank() {
+    void changePasswordShouldRejectBlankCurrentPassword() {
+        User existingUser = firstUser;
+
         PasswordRequestDTO requestDTO = new PasswordRequestDTO();
         requestDTO.setCurrentPassword(" ");
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
-
-        User existingUser = UserProvider.singleEntity();
+        requestDTO.setNewPassword(secondUser.getPassword());
+        requestDTO.setReNewPassword(secondUser.getPassword());
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
         when(dao.findById(principal.getUserId())).thenReturn(Optional.of(existingUser));
 
-        assertThrows(
-                BadRequestException.class, () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Old password does not match");
 
-        verify(dao).findById(principal.getUserId());
+        verifyNoInteractions(passwordManager);
+        verify(dao, never()).save(any(User.class));
     }
 
     @Test
-    void changePasswordShouldThrowBadRequestExceptionWhenCurrentPasswordDoesNotMatch() {
-        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setCurrentPassword("invalid-password");
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+    void changePasswordShouldRejectIncorrectCurrentPassword() {
+        User existingUser = firstUser;
 
-        User existingUser = UserProvider.singleEntity();
+        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
+        requestDTO.setCurrentPassword(secondUser.getPassword());
+        requestDTO.setNewPassword(encodedPassword);
+        requestDTO.setReNewPassword(encodedPassword);
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
@@ -505,21 +575,24 @@ class UserServiceImplTest {
         when(passwordManager.matches(requestDTO.getCurrentPassword(), existingUser.getPassword()))
                 .thenReturn(false);
 
-        assertThrows(
-                BadRequestException.class, () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Old password does not match");
 
         verify(passwordManager)
                 .matches(requestDTO.getCurrentPassword(), existingUser.getPassword());
+        verify(dao, never()).save(any(User.class));
     }
 
     @Test
-    void changePasswordShouldThrowBadRequestExceptionWhenNewPasswordMatchesCurrentPassword() {
-        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setCurrentPassword("current-password");
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+    void changePasswordShouldRejectPreviouslyUsedPassword() {
+        User existingUser = firstUser;
 
-        User existingUser = UserProvider.singleEntity();
+        String newPassword = "new-password";
+        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
+        requestDTO.setCurrentPassword(firstUser.getPassword());
+        requestDTO.setNewPassword(newPassword);
+        requestDTO.setReNewPassword(newPassword);
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
@@ -529,27 +602,33 @@ class UserServiceImplTest {
         when(passwordManager.matches(requestDTO.getNewPassword(), existingUser.getPassword()))
                 .thenReturn(true);
 
-        assertThrows(
-                BadRequestException.class, () -> service.changePassword(principal, requestDTO));
+        assertThatThrownBy(() -> service.changePassword(principal, requestDTO))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Choose a password you haven't used before.");
 
+        verify(passwordManager)
+                .matches(requestDTO.getCurrentPassword(), existingUser.getPassword());
         verify(passwordManager).matches(requestDTO.getNewPassword(), existingUser.getPassword());
+        verify(dao, never()).save(any(User.class));
     }
 
     @Test
     void changePasswordShouldUpdatePasswordSuccessfully() {
-        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
-        requestDTO.setCurrentPassword("current-password");
-        requestDTO.setNewPassword("new-password");
-        requestDTO.setReNewPassword("new-password");
+        User existingUser = firstUser;
+        String existingPassword = existingUser.getPassword();
+        String newPassword = "new-password";
 
-        User existingUser = UserProvider.singleEntity();
+        PasswordRequestDTO requestDTO = new PasswordRequestDTO();
+        requestDTO.setCurrentPassword(existingPassword);
+        requestDTO.setNewPassword(newPassword);
+        requestDTO.setReNewPassword(newPassword);
 
         UserPrincipal principal = new UserPrincipal(existingUser);
 
         when(dao.findById(principal.getUserId())).thenReturn(Optional.of(existingUser));
-        when(passwordManager.matches(requestDTO.getCurrentPassword(), existingUser.getPassword()))
+        when(passwordManager.matches(requestDTO.getCurrentPassword(), existingPassword))
                 .thenReturn(true);
-        when(passwordManager.matches(requestDTO.getNewPassword(), existingUser.getPassword()))
+        when(passwordManager.matches(requestDTO.getNewPassword(), existingPassword))
                 .thenReturn(false);
         when(passwordManager.encodePassword(requestDTO.getNewPassword()))
                 .thenReturn(encodedPassword);
@@ -557,8 +636,10 @@ class UserServiceImplTest {
 
         service.changePassword(principal, requestDTO);
 
-        assertEquals(encodedPassword, existingUser.getPassword());
+        assertThat(existingUser.getPassword()).isEqualTo(encodedPassword);
 
+        verify(passwordManager).matches(requestDTO.getCurrentPassword(), existingPassword);
+        verify(passwordManager).matches(requestDTO.getNewPassword(), existingPassword);
         verify(passwordManager).encodePassword(requestDTO.getNewPassword());
         verify(dao).save(existingUser);
     }

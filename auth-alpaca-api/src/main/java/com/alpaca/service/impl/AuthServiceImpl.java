@@ -86,7 +86,7 @@ public class AuthServiceImpl implements IAuthService {
         if (!authCode.getCodeVerifier().matches("^[A-Za-z0-9\\-._~]{43,128}$")) {
             throw new BadRequestException("Invalid code-verifier format");
         }
-        
+
         AuthCode savedAuthCode = exchangeManager.consumeCode(authCode.getCode()).orElse(null);
         if (savedAuthCode == null) {
             throw new UnauthorizedException("Code Invalid or Expired");
