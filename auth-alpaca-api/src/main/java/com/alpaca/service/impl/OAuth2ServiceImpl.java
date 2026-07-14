@@ -73,14 +73,14 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
                         request.getClientRegistration().getRegistrationId(), user.getAttributes());
         if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
             throw new OAuth2AuthenticationProcessingException(
-                    "Email not found from OAuth2 Provider");
+                    "The account does not have enough information");
         }
-        if (StringUtils.hasText(userInfo.getEmail())
-                || StringUtils.hasText(userInfo.getFirstName())
-                || StringUtils.hasText(userInfo.getLastName())) {
+        if (!StringUtils.hasText(userInfo.getFirstName())
+                && !StringUtils.hasText(userInfo.getLastName())) {
             throw new BadRequestException("The account does not have enough information");
         }
 
-        return new UserPrincipal(userService.registerOAuth2User(userInfo));
+        return new UserPrincipal(
+                userService.registerOAuth2User(userInfo), userInfo.getAttributes());
     }
 }

@@ -47,31 +47,45 @@ public class GoogleUserInfo extends OAuth2UserInfo {
 
     @Override
     public String getFullName() {
-        return (String) attributes.get("name");
+        return (String) attributes.getOrDefault("name", "");
     }
 
     @Override
     public String getFirstName() {
-        return (String) attributes.get("given_name");
+        String givenName = (String) attributes.get("given_name");
+        if (givenName != null && !givenName.isBlank()) return givenName;
+        String fullName = getFullName();
+        if (fullName != null && !fullName.isBlank()) {
+            int space = fullName.indexOf(' ');
+            return space > 0 ? fullName.substring(0, space).trim() : fullName;
+        }
+        return "";
     }
 
     @Override
     public String getLastName() {
-        return (String) attributes.get("family_name");
+        String familyName = (String) attributes.get("family_name");
+        if (familyName != null && !familyName.isBlank()) return familyName;
+        String fullName = getFullName();
+        if (fullName != null && !fullName.isBlank()) {
+            int space = fullName.lastIndexOf(' ');
+            return space > 0 ? fullName.substring(space + 1).trim() : "";
+        }
+        return "";
     }
 
     @Override
     public String getEmail() {
-        return (String) attributes.get("email");
+        return (String) attributes.getOrDefault("email", "");
     }
 
     @Override
     public String getImageUrl() {
-        return (String) attributes.get("picture");
+        return (String) attributes.getOrDefault("picture", "");
     }
 
     @Override
     public boolean getEmailVerified() {
-        return (boolean) attributes.get("email_verified");
+        return (boolean) attributes.getOrDefault("email_verified", false);
     }
 }

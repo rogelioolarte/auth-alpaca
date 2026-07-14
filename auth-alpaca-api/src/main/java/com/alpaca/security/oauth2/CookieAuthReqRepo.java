@@ -47,7 +47,7 @@ public class CookieAuthReqRepo
     public static final String CLIENT_ID_PARAM = "client_id";
 
     /** Lifetime in seconds after which the authorization cookies expire. */
-    public static final int COOKIE_EXPIRED_SECONDS = 300;
+    public static final int COOKIE_EXPIRED_SECONDS = 600;
 
     /**
      * Loads the {@link OAuth2AuthorizationRequest} from the cookie if present.

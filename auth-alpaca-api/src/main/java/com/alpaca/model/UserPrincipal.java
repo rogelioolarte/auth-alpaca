@@ -95,7 +95,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @param user the {@link User} entity containing user details; must not be {@code null}
      */
     public UserPrincipal(User user) {
-        this.userId = user.getId();
+        this.userId = user.getId() != null ? user.getId() : null;
         this.profileId = user.getProfile() != null ? user.getProfile().getId() : null;
         this.advertiserId = user.getAdvertiser() != null ? user.getAdvertiser().getId() : null;
         this.username = user.getEmail();
@@ -145,6 +145,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
      * @return a map of user attributes.
      */
     @Override
+    @NonNull
     public Map<String, Object> getAttributes() {
         return attributes;
     }

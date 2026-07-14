@@ -61,7 +61,7 @@ class OAuth2ServiceImplTest {
 
         assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
-                .hasMessage("Email not found from OAuth2 Provider");
+                .hasMessage("The account does not have enough information");
 
         verifyNoInteractions(userService);
     }
@@ -79,19 +79,20 @@ class OAuth2ServiceImplTest {
 
         assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
-                .hasMessage("Email not found from OAuth2 Provider");
+                .hasMessage("The account does not have enough information");
 
         verifyNoInteractions(userService);
     }
 
     @Test
     void processOAuth2UserShouldThrowBadRequestExceptionWhenEmailHasText() {
+        attributes.put("email", "");
         when(request.getClientRegistration()).thenReturn(clientRegistration);
         when(clientRegistration.getRegistrationId()).thenReturn("google");
         when(oauth2User.getAttributes()).thenReturn(attributes);
 
         assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
-                .isInstanceOf(BadRequestException.class)
+                .isInstanceOf(OAuth2AuthenticationProcessingException.class)
                 .hasMessageContaining("The account does not have enough information");
 
         verifyNoInteractions(userService);
@@ -110,13 +111,15 @@ class OAuth2ServiceImplTest {
 
         assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
-                .hasMessage("Email not found from OAuth2 Provider");
+                .hasMessage("The account does not have enough information");
 
         verifyNoInteractions(userService);
     }
 
     @Test
     void processOAuth2UserShouldNotRegisterUserBecauseCurrentValidationIsUnreachable() {
+        attributes.put("given_name", "");
+        attributes.put("family_name", "");
         when(request.getClientRegistration()).thenReturn(clientRegistration);
         when(clientRegistration.getRegistrationId()).thenReturn("google");
         when(oauth2User.getAttributes()).thenReturn(attributes);
