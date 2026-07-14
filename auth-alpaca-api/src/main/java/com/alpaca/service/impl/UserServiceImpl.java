@@ -15,6 +15,7 @@ import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import com.alpaca.service.IGenericService;
 import com.alpaca.service.IRoleService;
 import com.alpaca.service.IUserService;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
@@ -99,7 +100,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
         String email = userInfo.getEmail();
         String firstName = userInfo.getFirstName();
         String lastName = userInfo.getLastName();
-        String imageURL = userInfo.getImageUrl();
+        String imageURL = Objects.requireNonNullElse(userInfo.getImageUrl(), "");
         boolean emailVerified = userInfo.getEmailVerified();
         if (existsByEmail(email)) {
             return checkExistingUser(findByEmail(email), emailVerified);

@@ -77,8 +77,7 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         }
         if (StringUtils.hasText(userInfo.getEmail())
                 || StringUtils.hasText(userInfo.getFirstName())
-                || StringUtils.hasText(userInfo.getLastName())
-                || StringUtils.hasText(userInfo.getImageUrl())) {
+                || StringUtils.hasText(userInfo.getLastName())) {
             throw new BadRequestException("The account does not have enough information");
         }
 
