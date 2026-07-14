@@ -2,10 +2,14 @@ package com.alpaca.service;
 
 import com.alpaca.dto.request.AuthLoginRequestDTO;
 import com.alpaca.dto.response.AuthResponseDTO;
+import com.alpaca.entity.Profile;
+import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.NotFoundException;
+import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.AuthCode;
 import com.alpaca.model.UserPrincipal;
+import com.alpaca.security.oauth2.userinfo.OAuth2UserInfo;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -85,4 +89,17 @@ public interface IAuthService extends UserDetailsService {
     @Override
     @NonNull UserDetails loadUserByUsername(@NonNull String username)
             throws UsernameNotFoundException;
+
+    /**
+     * Registers or updates a user based on OAuth2 provider information.
+     *
+     * <p>If a user with the email already exists, their OAuth2 connection and email verification
+     * are updated via {@code checkExistingUser(User, boolean)}. Otherwise, a new {@link User} and
+     * associated {@link Profile} are created within the same transaction.
+     *
+     * @param userInfo the OAuth2 provider user information; must not be {@code null}
+     * @return the existing or newly registered {@link User}
+     * @throws UnauthorizedException if the existing account is disabled or locked
+     */
+    User registerOAuth2User(OAuth2UserInfo userInfo);
 }

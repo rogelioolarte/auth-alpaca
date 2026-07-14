@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Profile} entities. Inherits common CRUD
@@ -62,6 +63,7 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
      * @throws BadRequestException if a profile with identical unique properties already exists
      */
     @Override
+    @Transactional
     public Profile save(Profile profile) {
         if (dao.existsByUniqueProperties(profile)) {
             throw new BadRequestException(String.format("%s already exists", getEntityName()));
@@ -80,6 +82,7 @@ public class ProfileServiceImpl extends GenericServiceImpl<Profile, UUID>
      * @throws NotFoundException if no profile exists with the specified ID
      */
     @Override
+    @Transactional
     public Profile updateById(Profile profile, UUID id) {
         if (profile == null || id == null)
             throw new BadRequestException(

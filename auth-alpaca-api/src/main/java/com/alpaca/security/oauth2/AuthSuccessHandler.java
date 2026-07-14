@@ -18,7 +18,6 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -107,15 +106,11 @@ public class AuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         String targetUrl = determineTargetUrl(request, response, authentication);
         String codeChallenge = determineCodeChallenge(request);
         if (codeChallenge.isBlank()) {
-            repository.removeAuthorizationRequestCookies(request, response);
-            clearAuthenticationAttributes(request, response);
             throw new BadRequestException("Invalid Code Challenge");
         }
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         if (userPrincipal == null) {
-            repository.removeAuthorizationRequestCookies(request, response);
-            clearAuthenticationAttributes(request, response);
             throw new UnauthorizedException("Invalid Credentials");
         }
         String code = uuidGenerator.generate().toString();

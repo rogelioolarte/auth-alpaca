@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Role} entities and encapsulating business logic
@@ -123,6 +124,7 @@ public class RoleServiceImpl extends GenericServiceImpl<Role, UUID> implements I
      * @throws NotFoundException if no role exists with the specified ID
      */
     @Override
+    @Transactional
     public Role updateById(Role role, UUID id) {
         if (role == null || id == null)
             throw new BadRequestException(

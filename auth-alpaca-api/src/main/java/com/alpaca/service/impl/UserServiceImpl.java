@@ -15,6 +15,7 @@ import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
 public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements IUserService {
 
     private final IUserDAO dao;
+
     private final PasswordManager passwordManager;
     private static final String ERROR_CREATED_MESS = "%s cannot be created";
 
@@ -66,6 +68,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if the provided user is {@code null}
      */
     @Override
+    @Transactional
     public User save(User user) {
         if (user == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
@@ -85,6 +88,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws NotFoundException if no existing user is found with the given ID
      */
     @Override
+    @Transactional
     public User updateById(User user, UUID id) {
         if (user == null || id == null)
             throw new BadRequestException(String.format(ERROR_CREATED_MESS, getEntityName()));
@@ -185,6 +189,7 @@ public class UserServiceImpl extends GenericServiceImpl<User, UUID> implements I
      * @throws BadRequestException if validation fails for any of the above rules
      */
     @Override
+    @Transactional
     public void changePassword(UserPrincipal principal, PasswordRequestDTO requestDTO) {
         if (!requestDTO.getNewPassword().equals(requestDTO.getReNewPassword())) {
             throw new BadRequestException("New password mismatch the ReType password");

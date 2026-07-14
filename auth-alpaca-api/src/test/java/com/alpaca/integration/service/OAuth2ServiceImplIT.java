@@ -3,24 +3,27 @@ package com.alpaca.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.alpaca.entity.Role;
+import com.alpaca.entity.Profile;
 import com.alpaca.entity.User;
 import com.alpaca.exception.BadRequestException;
 import com.alpaca.exception.OAuth2AuthenticationProcessingException;
-import com.alpaca.exception.UnauthorizedException;
 import com.alpaca.model.UserPrincipal;
-import com.alpaca.resources.provider.RoleProvider;
+import com.alpaca.resources.provider.ProfileProvider;
 import com.alpaca.resources.provider.UserProvider;
 import com.alpaca.resources.utility.BaseIntegrationTests;
-import com.alpaca.service.IRoleService;
-import com.alpaca.service.IUserService;
 import com.alpaca.service.impl.OAuth2ServiceImpl;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -30,180 +33,159 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link OAuth2ServiceImpl} */
+/** Integration tests for {@link OAuth2ServiceImpl}. */
 @DisplayName("OAuth2ServiceImpl Integration Tests")
 class OAuth2ServiceImplIT extends BaseIntegrationTests {
 
     @Autowired private OAuth2ServiceImpl service;
-    @Autowired private IUserService userService;
-    @Autowired private IRoleService roleService;
-
     private Instant now;
+    private OAuth2UserRequest request;
+    private User user;
+    private Profile profile;
 
     @BeforeEach
     void setup() {
         now = Instant.now();
+        request = createOAuth2UserRequest();
+        user = UserProvider.singleTemplate();
+        profile = ProfileProvider.singleTemplate();
     }
 
-    // -------------------------------------------------------------------------
-    // processOAuth2User Logic
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("processOAuth2User: Should throw exception if email is missing or blank")
-    @Transactional
-    void processOAuth2User_ShouldThrow_WhenEmailIsInvalid() {
-        // Arrange
-        OAuth2UserRequest request = createMockRequest();
-        OAuth2User oauthUser =
-                new DefaultOAuth2User(
-                        Collections.emptySet(), Map.of("sub", "123", "email", ""), "sub");
-
-        // Act & Assert
-        assertThatThrownBy(() -> service.processOAuth2User(request, oauthUser))
+    @ParameterizedTest(name = "[{index}] email=''{0}''")
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", " "})
+    @DisplayName("processOAuth2User throws when email is null, empty, or blank")
+    void processOAuth2User_ShouldThrowOAuth2AuthenticationProcessingException_WhenEmailIsInvalid(
+            String email) {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("sub", UUID.randomUUID().toString());
+        attributes.put("email", email);
+        attributes.put("given_name", profile.getFirstName());
+        attributes.put("family_name", profile.getLastName());
+        OAuth2User oauth2User = createOAuth2User(attributes);
+        assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
                 .isInstanceOf(OAuth2AuthenticationProcessingException.class)
-                .hasMessageContaining("Email not found");
-    }
-
-    // -------------------------------------------------------------------------
-    // registerOrLoginOAuth2 Logic
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("registerOrLoginOAuth2: Should register new user and profile when valid")
-    @Transactional
-    void registerOrLoginOAuth2_ShouldRegister_WhenUserIsNew() {
-        // Arrange
-        Role userRole = RoleProvider.singleTemplate();
-        userRole.setName("TEST_USER");
-        userRole.setCreatedAt(now); // CRITICAL: Manual audit property
-        roleService.save(userRole);
-
-        String email = "new.alpaca@example.com";
-        Map<String, Object> attrs = Map.of("sub", "123");
-
-        // Act
-        UserPrincipal principal =
-                service.registerOrLoginOAuth2(
-                        email, "John", "Doe", "http://image.url", true, attrs);
-
-        // Assert
-        assertThat(principal).isNotNull();
-        assertThat(principal.getUsername()).isEqualTo(email);
-
-        User persisted = userService.findByEmail(email);
-        assertThat(persisted.getProfile()).isNotNull();
-        assertThat(persisted.getProfile().getFirstName()).isEqualTo("John");
-        assertThat(persisted.isGoogleConnected()).isTrue();
+                .hasMessage("The account does not have enough information");
     }
 
     @Test
-    @DisplayName("registerOrLoginOAuth2: Should throw BadRequest if mandatory info is missing")
-    @Transactional
-    void registerOrLoginOAuth2_ShouldThrow_WhenFieldsMissing() {
-        Map<String, Object> attrs = Collections.emptyMap();
-
-        assertThatThrownBy(() -> service.registerOrLoginOAuth2(null, "F", "L", "I", true, attrs))
-                .isInstanceOf(BadRequestException.class);
-
-        assertThatThrownBy(
-                        () -> service.registerOrLoginOAuth2("e@e.com", " ", "L", "I", true, attrs))
-                .isInstanceOf(BadRequestException.class);
+    @DisplayName("processOAuth2User throws when email attribute is missing")
+    void processOAuth2User_ShouldThrowOAuth2AuthenticationProcessingException_WhenEmailIsMissing() {
+        Map<String, Object> attributes =
+                Map.of(
+                        "sub",
+                        UUID.randomUUID().toString(),
+                        "given_name",
+                        profile.getFirstName(),
+                        "family_name",
+                        profile.getLastName());
+        OAuth2User oauth2User = createOAuth2User(attributes);
+        assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
+                .isInstanceOf(OAuth2AuthenticationProcessingException.class)
+                .hasMessageContaining("The account does not have enough information");
     }
 
-    // -------------------------------------------------------------------------
-    // registerProfile Logic
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("registerProfile: Should throw BadRequest if user has no ID or is null")
-    @Transactional
-    void registerProfile_ShouldThrow_WhenUserInvalid() {
-        User userWithoutId = UserProvider.singleTemplate();
-        // ID is null by default from provider
-
-        assertThatThrownBy(() -> service.registerProfile(null, "F", "L", "I"))
-                .isInstanceOf(BadRequestException.class);
-
-        assertThatThrownBy(() -> service.registerProfile(userWithoutId, "F", "L", "I"))
-                .isInstanceOf(BadRequestException.class);
-    }
-
-    // -------------------------------------------------------------------------
-    // checkExistingUser Logic
-    // -------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("checkExistingUser: Should throw Unauthorized if account is disabled")
-    @Transactional
-    void checkExistingUser_ShouldThrow_WhenUserBlocked() {
-        // Arrange
-        User blocked = UserProvider.singleTemplate();
-        blocked.setAllowed(false);
-
-        // Act & Assert
-        assertThatThrownBy(() -> service.checkExistingUser(blocked, true))
-                .isInstanceOf(UnauthorizedException.class);
+    @ParameterizedTest(name = "[{index}] givenName=''{0}'', lastName=''{1}''")
+    @CsvSource(value = {"NULL, NULL", "NULL, EMPTY", "EMPTY, NULL", "EMPTY, EMPTY", "BLANK, BLANK"})
+    @DisplayName("processOAuth2User throws when both first and last name have no text")
+    void processOAuth2User_ShouldThrowBadRequestException_WhenNamesHaveNoText(
+            String givenNameCase, String lastNameCase) {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("sub", UUID.randomUUID().toString());
+        attributes.put("email", user.getEmail());
+        putAttribute(attributes, "given_name", resolveTextCase(givenNameCase));
+        putAttribute(attributes, "family_name", resolveTextCase(lastNameCase));
+        OAuth2User oauth2User = createOAuth2User(attributes);
+        assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("The account does not have enough information");
     }
 
     @Test
-    @DisplayName("checkExistingUser: Should update googleConnected flag if false")
     @Transactional
-    void checkExistingUser_ShouldUpdateConnection_WhenPreviouslyFalse() {
-        // Arrange
-        User user = UserProvider.singleTemplate();
-        user.setEmail("existing@example.com");
-        user.setGoogleConnected(false);
-        user.setAllowed(true);
-        user.setCreatedAt(now);
-        User saved = userService.save(user);
-
-        // Act
-        User updated = service.checkExistingUser(saved, true);
-
-        // Assert
-        assertThat(updated.isGoogleConnected()).isTrue();
-        assertThat(userService.findByEmail("existing@example.com").isGoogleConnected()).isTrue();
+    @DisplayName("processOAuth2User registers user when only first name has text")
+    void processOAuth2User_ShouldRegisterUser_WhenOnlyFirstNameHasText() {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("sub", UUID.randomUUID().toString());
+        attributes.put("email", user.getEmail());
+        attributes.put("given_name", profile.getFirstName());
+        attributes.put("family_name", "");
+        OAuth2User result = service.processOAuth2User(request, createOAuth2User(attributes));
+        assertThat(result)
+                .isInstanceOf(UserPrincipal.class)
+                .extracting(OAuth2User::getAttributes)
+                .isNotNull();
     }
 
     @Test
-    @DisplayName("checkExistingUser: Should update emailVerified if status changed")
     @Transactional
-    void checkExistingUser_ShouldUpdateVerification_WhenStatusChanges() {
-        // Arrange
-        User user = UserProvider.alternativeTemplate();
-        user.setEmail("verify@example.com");
-        user.setEmailVerified(false);
-        user.setGoogleConnected(true);
-        user.setAllowed(true);
-        user.setCreatedAt(now);
-        User saved = userService.save(user);
-
-        // Act
-        User updated = service.checkExistingUser(saved, true);
-
-        // Assert
-        assertThat(updated.isEmailVerified()).isTrue();
+    @DisplayName("processOAuth2User registers user when only last name has text")
+    void processOAuth2User_ShouldRegisterUser_WhenOnlyLastNameHasText() {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("sub", UUID.randomUUID().toString());
+        attributes.put("email", user.getEmail());
+        attributes.put("given_name", "");
+        attributes.put("family_name", profile.getLastName());
+        OAuth2User result = service.processOAuth2User(request, createOAuth2User(attributes));
+        assertThat(result)
+                .isInstanceOf(UserPrincipal.class)
+                .extracting(OAuth2User::getAttributes)
+                .isNotNull();
     }
 
-    // -------------------------------------------------------------------------
-    // Helper Methods
-    // -------------------------------------------------------------------------
+    @Test
+    @Transactional
+    @DisplayName("processOAuth2User registers user when OAuth2 information is valid")
+    void processOAuth2User_ShouldReturnUserPrincipal_WhenOAuth2InformationIsValid() {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("sub", UUID.randomUUID().toString());
+        attributes.put("email", user.getEmail());
+        attributes.put("given_name", profile.getFirstName());
+        attributes.put("family_name", profile.getLastName());
+        attributes.put("picture", profile.getAvatarUrl());
+        attributes.put("email_verified", true);
+        OAuth2User result = service.processOAuth2User(request, createOAuth2User(attributes));
+        assertThat(result).isInstanceOf(UserPrincipal.class);
+        assertThat(result.getAttributes()).isNotNull();
+    }
 
-    private OAuth2UserRequest createMockRequest() {
+    private OAuth2User createOAuth2User(Map<String, Object> attributes) {
+        return new DefaultOAuth2User(Collections.emptySet(), attributes, "sub");
+    }
+
+    private OAuth2UserRequest createOAuth2UserRequest() {
         ClientRegistration clientRegistration =
                 ClientRegistration.withRegistrationId("google")
-                        .clientId("id")
+                        .clientId("client-id")
                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                        .tokenUri("https://example.com/token")
-                        .authorizationUri("https://example.com/auth")
-                        .redirectUri("https://example.com/redirect")
+                        .authorizationUri("https://example.com/oauth2/authorize")
+                        .tokenUri("https://example.com/oauth2/token")
+                        .userInfoUri("https://example.com/oauth2/userinfo")
+                        .userNameAttributeName("sub")
+                        .redirectUri("https://example.com/login/oauth2/code/google")
                         .build();
-
-        OAuth2AccessToken token =
+        OAuth2AccessToken accessToken =
                 new OAuth2AccessToken(
-                        OAuth2AccessToken.TokenType.BEARER, "token", now, now.plusSeconds(3600));
+                        OAuth2AccessToken.TokenType.BEARER,
+                        "access-token",
+                        now,
+                        now.plusSeconds(3600));
+        return new OAuth2UserRequest(clientRegistration, accessToken);
+    }
 
-        return new OAuth2UserRequest(clientRegistration, token);
+    private void putAttribute(
+            Map<String, Object> attributes, String attributeName, String attributeValue) {
+        if (attributeValue != null) {
+            attributes.put(attributeName, attributeValue);
+        }
+    }
+
+    private String resolveTextCase(String value) {
+        return switch (value) {
+            case "NULL" -> null;
+            case "EMPTY" -> "";
+            case "BLANK" -> " ";
+            default -> throw new IllegalArgumentException("Unsupported text case: " + value);
+        };
     }
 }

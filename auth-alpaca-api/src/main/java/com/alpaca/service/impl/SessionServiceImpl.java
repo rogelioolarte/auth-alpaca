@@ -288,6 +288,7 @@ public class SessionServiceImpl extends GenericServiceImpl<Session, UUID>
      * @throws NotFoundException if no {@link Session} with the supplied {@code id} exists
      */
     @Override
+    @Transactional
     public Session updateById(Session session, UUID id) {
         if (session == null || id == null)
             throw new BadRequestException(

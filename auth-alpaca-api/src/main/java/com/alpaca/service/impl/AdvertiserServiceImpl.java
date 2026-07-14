@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service layer implementation for managing {@link Advertiser} entities. This class extends {@link
@@ -64,6 +65,7 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
      * @throws BadRequestException if an advertiser with identical unique properties already exists
      */
     @Override
+    @Transactional
     public Advertiser save(Advertiser advertiser) {
         if (dao.existsByUniqueProperties(advertiser)) {
             throw new BadRequestException(String.format("%s already exists", getEntityName()));
@@ -94,6 +96,7 @@ public class AdvertiserServiceImpl extends GenericServiceImpl<Advertiser, UUID>
      * @throws NotFoundException if no advertiser exists with the specified ID
      */
     @Override
+    @Transactional
     public Advertiser updateById(Advertiser advertiser, UUID id) {
         if (advertiser == null || id == null)
             throw new BadRequestException(
