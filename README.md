@@ -5,6 +5,7 @@
 [![codecov badge](https://codecov.io/gh/rogelioolarte/auth-alpaca/branch/main/graph/badge.svg)](https://codecov.io/gh/rogelioolarte/auth-alpaca)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rogelioolarte_auth-alpaca&metric=alert_status)](https://sonarcloud.io/summary/overall?id=rogelioolarte_auth-alpaca)
 [![license badge](https://img.shields.io/github/license/rogelioolarte/auth-alpaca?color=blue)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rogelioolarte/auth-alpaca)
 
 <div align="center">
   <img src="docs/banner.png" alt="auth alpaca banner">
