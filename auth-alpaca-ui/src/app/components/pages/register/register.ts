@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../api/auth-service';
 import { AuthenticationService } from '../../../auth/authentication-service';
@@ -12,7 +12,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 import { DestroyRef } from '@angular/core';
 
 @Component({
@@ -28,6 +31,7 @@ import { DestroyRef } from '@angular/core';
     MatProgressSpinner,
   ],
   templateUrl: './register.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './register.css',
 })
 export class Register implements OnInit {
@@ -41,9 +45,9 @@ export class Register implements OnInit {
   public readonly clientId = toSignal(this.authService.getClientID());
 
   public registerForm!: FormGroup;
-  public submitting = signal(false);
-  public hidePassword = signal(true);
-  public hideConfirmPassword = signal(true);
+  public readonly submitting = signal(false);
+  public readonly hidePassword = signal(true);
+  public readonly hideConfirmPassword = signal(true);
 
   ngOnInit() {
     this.registerForm = this.formBuilder.group(

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -33,6 +33,7 @@ import { ListDialog, ListDialogData } from '@app/components/pure/dialogs/list-di
     MatButtonModule,
   ],
   templateUrl: './roles.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './roles.css',
 })
 export class Roles {
@@ -42,11 +43,11 @@ export class Roles {
   private readonly dialog = inject(MatDialog);
 
   displayedColumns = [/* 'id',  */ 'name', 'description', 'permissions', 'actions'];
-  roles = signal<Role[]>([]);
-  permissions = signal<Permission[]>([]);
-  totalItems = signal(0);
-  pageSize = signal(10);
-  pageIndex = signal(0);
+  readonly roles = signal<Role[]>([]);
+  readonly permissions = signal<Permission[]>([]);
+  readonly totalItems = signal(0);
+  readonly pageSize = signal(10);
+  readonly pageIndex = signal(0);
 
   constructor() {
     this.loadRoles();

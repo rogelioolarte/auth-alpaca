@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -35,6 +35,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatButtonModule,
   ],
   templateUrl: './users.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './users.css',
 })
 export class Users implements OnInit {
@@ -46,11 +47,11 @@ export class Users implements OnInit {
   private readonly myUser = toSignal(this.authService.getUserInfo());
 
   public displayedColumns = [/* 'id',  */ 'email', 'profile', 'advertiser', 'roles', 'actions'];
-  public users = signal<User[]>([]);
-  public roles = signal<Role[]>([]);
-  public totalItems = signal(0);
-  public pageSize = signal(10);
-  public pageIndex = signal(0);
+  public readonly users = signal<User[]>([]);
+  public readonly roles = signal<Role[]>([]);
+  public readonly totalItems = signal(0);
+  public readonly pageSize = signal(10);
+  public readonly pageIndex = signal(0);
 
   ngOnInit() {
     this.loadUsers();

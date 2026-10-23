@@ -22,16 +22,16 @@ import { ACCESS_TOKEN_HEADER_KEY } from '../models/constants';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthenticationService);
   const authRoutes = ['/api/auth/login', '/api/auth/exchange'];
-  const { pathname, host: host_url } = new URL(req.url);
-  const { host: host_api } = new URL(environment.API_URL);
-  if (authRoutes.some((r) => r === pathname) || host_url != host_api) {
+  const { pathname, host: hostUrl } = new URL(req.url);
+  const { host: hostApi } = new URL(environment.API_URL);
+  if (authRoutes.some((r) => r === pathname) || hostUrl != hostApi) {
     return next(req);
   }
   return auth.getJWTState().pipe(
     take(1),
     switchMap((v) => {
       const accessToken = v[0]?.access;
-      const clonedReq = accessToken 
+      const clonedReq = accessToken
         ? req.clone({ setHeaders: { [ACCESS_TOKEN_HEADER_KEY]: `Bearer ${accessToken}` } })
         : req;
 
@@ -41,7 +41,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return auth.rotateTokens().pipe(
               take(1),
               first(),
-              switchMap(() => 
+              switchMap(() =>
                 auth.getJWTState().pipe(
                   take(1),
                   switchMap(([tokens]) => {

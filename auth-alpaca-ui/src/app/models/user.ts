@@ -2,13 +2,13 @@ import { Advertiser } from './advertiser';
 import { Profile } from './profile';
 import { Role } from './role';
 
-export interface UserRequest {
+export type UserRequest = {
   email: string;
   password?: string;
   roles: string[];
 }
 
-export interface User {
+export type User = {
   id: string;
   email: string;
   roles: Role[];
@@ -23,7 +23,7 @@ export enum AuthProvider {
   provider = 'provider',
 }
 
-export interface ChangePassword {
+export type ChangePassword = {
   currentPassword: string;
   newPassword: string;
   reNewPassword: string;

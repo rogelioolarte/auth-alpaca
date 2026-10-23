@@ -1,4 +1,11 @@
-import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  DestroyRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +19,10 @@ import { AuthenticationService } from '@app/auth/authentication-service';
 import { MatButtonModule } from '@angular/material/button';
 import { AdvertiserRequest } from '@app/models/advertiser';
 import { ToastrService } from 'ngx-toastr';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 
 @Component({
   selector: 'app-my-advertiser',
@@ -27,6 +37,7 @@ import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/u
     MatButtonModule,
   ],
   templateUrl: './my-advertiser.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './my-advertiser.css',
 })
 export class MyAdvertiser implements OnInit {
@@ -36,9 +47,9 @@ export class MyAdvertiser implements OnInit {
   private toastr = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
-  loading = signal(true);
-  saving = signal(false);
-  user = toSignal(this.authService.getUserInfo());
+  readonly loading = signal(true);
+  readonly saving = signal(false);
+  readonly user = toSignal(this.authService.getUserInfo());
 
   advertiserForm: FormGroup = this.fb.group({
     title: ['', Validators.required],

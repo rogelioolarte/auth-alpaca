@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { Component, inject, signal, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,9 +8,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PermisionService } from '@app/api/permision-service';
 import { ToastrService } from 'ngx-toastr';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 
-export interface PermissionDialogData {
+export type PermissionDialogData = {
   mode: 'create' | 'edit';
   permission?: {
     id: string;
@@ -71,6 +74,7 @@ export interface PermissionDialogData {
       </form>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .dialog-container {
@@ -103,7 +107,7 @@ export interface PermissionDialogData {
 })
 export class PermissionDialog {
   permissionForm: FormGroup;
-  saving = signal(false);
+  readonly saving = signal(false);
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<PermissionDialog>);
   public data: PermissionDialogData = inject(MAT_DIALOG_DATA);

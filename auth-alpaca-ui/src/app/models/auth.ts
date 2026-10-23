@@ -1,16 +1,16 @@
 import { TokenDecode } from './decode';
 
-export interface AuthRequest {
+export type AuthRequest = {
   email: string;
   password: string;
 }
 
-export interface AuthResponse {
+export type AuthResponse = {
   accessToken: string;
   refreshToken: string;
 }
 
-export interface UserPrincipal {
+export type UserPrincipal = {
   id: string;
   profileId: string;
   advertiserId: string;
@@ -22,11 +22,11 @@ export interface UserPrincipal {
   authorities: Authority[];
 }
 
-export interface Authority {
+export type Authority = {
   authority: string;
 }
 
-export interface UserAuth {
+export type UserAuth = {
   id: string;
   profileId?: string;
   advertiserId?: string;
@@ -41,7 +41,7 @@ export enum AuthProvider {
   provider = 'provider',
 }
 
-export interface AuthCode {
+export type AuthCode = {
   code: string,
   code_verifier: string,
   redirect_uri: string,

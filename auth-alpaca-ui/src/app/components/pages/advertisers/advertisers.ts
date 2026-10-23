@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatChip } from '@angular/material/chips';
@@ -38,6 +38,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     SlicePipe,
   ],
   templateUrl: './advertisers.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './advertisers.css',
 })
 export class AdvertiserPage {
@@ -45,13 +46,13 @@ export class AdvertiserPage {
   private toastr = inject(ToastrService);
   private searchSubject = new Subject<string>();
   private authenticationService = inject(AuthenticationService);
-  private isAdmin = toSignal(this.authenticationService.isAdmin());
+  private readonly isAdmin = toSignal(this.authenticationService.isAdmin());
 
-  loading = signal(true);
-  advertisers = signal<Advertiser[]>([]);
-  totalItems = signal(0);
-  pageSize = signal(12);
-  pageIndex = signal(0);
+  readonly loading = signal(true);
+  readonly advertisers = signal<Advertiser[]>([]);
+  readonly totalItems = signal(0);
+  readonly pageSize = signal(12);
+  readonly pageIndex = signal(0);
   searchQuery = '';
 
   constructor() {
@@ -71,33 +72,31 @@ export class AdvertiserPage {
       sort: ['title,asc'],
     };
 
-    if(this.isAdmin()) {
+    if (this.isAdmin()) {
       this.advertiserService.getAllPageAdvertisersForAdmin(pageable).subscribe({
-      next: (page) => {
-        this.advertisers.set(page.content);
-        this.totalItems.set(page.page.totalElements);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.toastr.error('Error loading advertisers');
-        this.loading.set(false);
-      },
-    });
+        next: (page) => {
+          this.advertisers.set(page.content);
+          this.totalItems.set(page.page.totalElements);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.toastr.error('Error loading advertisers');
+          this.loading.set(false);
+        },
+      });
     } else {
       this.advertiserService.getAllPageAdvertisers(pageable).subscribe({
-      next: (page) => {
-        this.advertisers.set(page.content);
-        this.totalItems.set(page.page.totalElements);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.toastr.error('Error loading advertisers');
-        this.loading.set(false);
-      },
-    });
+        next: (page) => {
+          this.advertisers.set(page.content);
+          this.totalItems.set(page.page.totalElements);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.toastr.error('Error loading advertisers');
+          this.loading.set(false);
+        },
+      });
     }
-
-    
   }
 
   onSearchChange(query: string) {

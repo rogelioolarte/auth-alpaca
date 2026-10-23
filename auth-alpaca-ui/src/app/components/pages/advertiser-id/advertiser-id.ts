@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatChip } from '@angular/material/chips';
@@ -23,14 +23,15 @@ import { Advertiser } from '@app/models/advertiser';
     MatButton,
   ],
   templateUrl: './advertiser-id.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './advertiser-id.css',
 })
 export class AdvertiserId implements OnInit {
   private route = inject(ActivatedRoute);
   private advertiserService = inject(AdvertiserService);
 
-  loading = signal(true);
-  advertiser = signal<Advertiser | null>(null);
+  readonly loading = signal(true);
+  readonly advertiser = signal<Advertiser | null>(null);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');

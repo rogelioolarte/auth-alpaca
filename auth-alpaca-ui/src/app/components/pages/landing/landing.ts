@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { AuthenticationService } from '@app/auth/authentication-service';
   selector: 'app-landing',
   imports: [MatIcon, MatButtonModule, RouterLink],
   templateUrl: './landing.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './landing.css',
 })
 export class Landing {

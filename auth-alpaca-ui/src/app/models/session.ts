@@ -1,4 +1,4 @@
-export interface Session {
+export type Session = {
     id: string,
     ipAddress: string,
     userAgent: string,

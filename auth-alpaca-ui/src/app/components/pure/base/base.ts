@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { AuthenticationService } from '../../../auth/authentication-service';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,6 +22,7 @@ import { PlatformService } from '@app/services/platform-service';
     RouterLink,
   ],
   templateUrl: './base.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './base.css',
 })
 export class Base {
@@ -31,11 +32,11 @@ export class Base {
   public readonly isAuthenticated = toSignal(this.authService.isAuthenticated());
   public readonly user = toSignal(this.authService.getUserInfo());
   public readonly isAdmin = toSignal(this.authService.isAdmin());
-  public sidenavOpened = signal(false);
-  public isInDashboard = toSignal(
+  public readonly sidenavOpened = signal(false);
+  public readonly isInDashboard = toSignal(
     this.platformService.actualRoute().pipe(map((i) => i.includes('/dashboard'))),
   );
-  public readonly myPublicAdvertiserId = computed(() =>this.user()?.advertiserId || '');
+  public readonly myPublicAdvertiserId = computed(() => this.user()?.advertiserId || '');
 
   logout() {
     this.authService.logout().subscribe(() => this.router.navigateByUrl('/login'));
@@ -44,5 +45,4 @@ export class Base {
   toggleSidenav() {
     this.sidenavOpened.update((v) => !v);
   }
-
 }

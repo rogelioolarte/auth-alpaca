@@ -1,13 +1,13 @@
 import { Permission } from './permission';
 
-export interface Role {
+export type Role = {
   id: string;
   name: string;
   description: string;
   permissions: Permission[];
 }
 
-export interface RoleRequest {
+export type RoleRequest = {
   name: string;
   description: string;
   permissions: Permission[];

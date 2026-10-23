@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,7 @@ export class PlatformService {
     return isPlatformBrowser(this.platformId);
   }
 
-  public actualRoute() {
+  public actualRoute(): Observable<string> {
     return this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       map((e) => e.urlAfterRedirects),
