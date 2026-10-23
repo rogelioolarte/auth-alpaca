@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -30,6 +30,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatDialogModule,
   ],
   templateUrl: './manage-sessions.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./manage-sessions.css'],
 })
 export class ManageSessions implements OnInit {
@@ -38,14 +39,14 @@ export class ManageSessions implements OnInit {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly toastService = inject(ToastrService);
-  private clientId = toSignal(this.authenticationService.getClientID());
+  private readonly clientId = toSignal(this.authenticationService.getClientID());
 
   public displayedColumns = ['ipAddress', 'userAgent', 'lastSeenAt', 'actions'];
-  public sessions = signal<Session[]>([]);
-  public totalItems = signal(0);
-  public pageSize = signal(10);
-  public pageIndex = signal(0);
-  public isLoading = signal(false);
+  public readonly sessions = signal<Session[]>([]);
+  public readonly totalItems = signal(0);
+  public readonly pageSize = signal(10);
+  public readonly pageIndex = signal(0);
+  public readonly isLoading = signal(false);
 
   ngOnInit(): void {
     this.loadSessions();
@@ -96,8 +97,8 @@ export class ManageSessions implements OnInit {
           next: () => {
             this.toastService.success('Session revoked successfully');
             this.loadSessions();
-            const mySession = this.sessions().find(s => s.id === id);
-            if(mySession?.clientId === this.clientId()) {
+            const mySession = this.sessions().find((s) => s.id === id);
+            if (mySession?.clientId === this.clientId()) {
               this.revokeMySession();
             }
           },
@@ -113,7 +114,8 @@ export class ManageSessions implements OnInit {
     const dialogRef = this.dialog.open(ConfirmDialog, {
       data: {
         title: 'Revoke All Other Sessions',
-        message: 'Are you sure you want to revoke all other active sessions? Your current session will be closed.',
+        message:
+          'Are you sure you want to revoke all other active sessions? Your current session will be closed.',
       },
     });
 
@@ -128,13 +130,12 @@ export class ManageSessions implements OnInit {
             this.toastService.error(`Error revoking sessions: ${err.message || 'Unknown error'}`);
           },
         });
-        
       }
     });
   }
 
   private revokeMySession() {
     this.authenticationService.cleanStates();
-    this.router.navigateByUrl("/login");
+    this.router.navigateByUrl('/login');
   }
 }

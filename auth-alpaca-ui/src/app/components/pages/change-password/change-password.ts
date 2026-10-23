@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,7 +9,10 @@ import { UserService } from '@app/api/user-service';
 import { ChangePassword } from '@app/models/user';
 import { ToastrService } from 'ngx-toastr';
 import { DestroyRef } from '@angular/core';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
@@ -25,6 +28,7 @@ import { MatIcon } from '@angular/material/icon';
     MatIcon,
   ],
   templateUrl: './change-password.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './change-password.css',
 })
 export class ChangePasswordComponent {
@@ -32,18 +36,21 @@ export class ChangePasswordComponent {
   private readonly userService = inject(UserService);
   private readonly toastService = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
-  public submitting = signal(false);
-  public hideCurrentPassword = signal(true);
-  public hideNewPassword = signal(true);
-  public hideRepeatPassword = signal(true);
+  public readonly submitting = signal(false);
+  public readonly hideCurrentPassword = signal(true);
+  public readonly hideNewPassword = signal(true);
+  public readonly hideRepeatPassword = signal(true);
 
-  passwordForm: FormGroup = this.fb.group({
-    currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(200)]],
-    reNewPassword: ['', Validators.required],
-  }, {
-    validators: this.passwordMatchValidator,
-  });
+  passwordForm: FormGroup = this.fb.group(
+    {
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(200)]],
+      reNewPassword: ['', Validators.required],
+    },
+    {
+      validators: this.passwordMatchValidator,
+    },
+  );
 
   constructor() {
     setupServerErrorClearing(this.passwordForm, this.destroyRef);

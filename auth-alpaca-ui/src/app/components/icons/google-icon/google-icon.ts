@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-google-icon',
@@ -29,6 +29,7 @@ import { Component } from '@angular/core';
       />
     </svg>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: ``,
 })
 export class GoogleIcon {}

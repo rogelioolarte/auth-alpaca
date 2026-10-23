@@ -1,4 +1,4 @@
-export interface TokenDecode {
+export type TokenDecode = {
   // Common JWT properties
   iss: string;
   sub: string; // Subject (whom the token refers to)
@@ -16,12 +16,12 @@ export interface TokenDecode {
   clientId?: string;
 }
 
-export interface JWTTokens {
+export type JWTTokens = {
   access: string;
   refresh: string;
 }
 
-export interface DecodeTokens {
+export type DecodeTokens = {
   access: TokenDecode;
   refresh: TokenDecode;
 }

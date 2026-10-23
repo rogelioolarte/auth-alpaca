@@ -1,15 +1,15 @@
-export interface Pageable {
+export type Pageable = {
   page?: number;
   size?: number;
   sort?: string[];
 }
 
-export interface Page<T> {
+export type Page<T> = {
   content: T[];
   page: PageInfo;
 }
 
-export interface PageInfo {
+export type PageInfo = {
   size: number;
   number: number;
   totalElements: number;

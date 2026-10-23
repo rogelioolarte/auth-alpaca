@@ -1,11 +1,11 @@
-import { Component, Inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
 
-export interface ListDialogData {
+export type ListDialogData = {
   title: string;
   items: { id: string; name: string }[];
   emptyMessage?: string;
@@ -44,6 +44,7 @@ export interface ListDialogData {
       </mat-dialog-actions>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .list-dialog {
@@ -108,10 +109,8 @@ export interface ListDialogData {
   ],
 })
 export class ListDialog {
-  constructor(
-    private dialogRef: MatDialogRef<ListDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: ListDialogData,
-  ) {}
+  private dialogRef = inject(MatDialogRef<ListDialog>)
+  public data: ListDialogData = inject(MAT_DIALOG_DATA)
 
   close() {
     this.dialogRef.close();

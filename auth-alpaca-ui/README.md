@@ -1,6 +1,6 @@
 # AuthAlpacaUi
 
-Example frontend for the OAuth2 + JWT authentication flow. Built with **Angular 21**, managed with **Bun 1.3.11**.
+Example frontend for the OAuth2 + JWT authentication flow. Built with **Angular 22**, managed with **Bun 1.3.11**.
 
 ---
 

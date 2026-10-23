@@ -1,6 +1,5 @@
 export const environment = {
   production: true,
-  API_URL: `${import.meta.env.NG_API_URL || 'http://localhost:8080'}`,
-  UI_URL: `${import.meta.env.NG_UI_URL || 'http://localhost:4200'}`,
-  INFINITY_LOGIN: `${import.meta.env.NG_INFINITY_LOGIN || false}`,
+  API_URL: `https://backend.alpacaapi.dpdns.org`,
+  UI_URL: `https://auth-alpaca.vercel.app`
 };

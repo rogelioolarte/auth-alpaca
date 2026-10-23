@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { Component, inject, signal, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,10 +12,13 @@ import { CommonModule } from '@angular/common';
 import { Permission } from '@app/models/permission';
 import { RoleService } from '@app/api/role-service';
 import { ToastrService } from 'ngx-toastr';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 import { RoleRequest } from '@app/models/role';
 
-export interface RoleDialogData {
+export type RoleDialogData = {
   mode: 'create' | 'edit';
   role?: {
     id: string;
@@ -76,7 +79,7 @@ export interface RoleDialogData {
             }
           </mat-form-field>
 
-          @let currentPerms = data.role?.permissions;
+          @let currentPerms = $safeNavigationMigration(data.role?.permissions);
           @if (data.mode === 'edit' && currentPerms && currentPerms.length > 0) {
             <div class="current-permissions">
               <span class="section-label">Current Permissions:</span>
@@ -126,6 +129,7 @@ export interface RoleDialogData {
       </form>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .dialog-container {
@@ -195,7 +199,7 @@ export interface RoleDialogData {
 })
 export class RoleDialog {
   roleForm: FormGroup;
-  saving = signal(false);
+  readonly saving = signal(false);
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<RoleDialog>);
   public data: RoleDialogData = inject(MAT_DIALOG_DATA);

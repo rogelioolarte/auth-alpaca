@@ -10,7 +10,7 @@
   <img src="docs/banner.png" alt="auth alpaca banner">
 </div>
 
-**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 21 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric ES256 (ECDSA P-256) signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
+**Auth Alpaca** is a production-ready reference implementation for OAuth2 and JWT-based authentication built with **Spring Boot 4 + Java 25** and **Angular 22 + Bun**. It implements the Authorization Code flow with PKCE, asymmetric ES256 (ECDSA P-256) signing, refresh token rotation with automatic breach detection, and rate-limited token endpoints — all containerized with Docker Compose.
 
 The frontend is a functional integration example; the backend is the core — hardened, tested, and ready for real-world adoption.
 
@@ -129,7 +129,7 @@ The backend signs access tokens (5 min) and refresh tokens (12 h) with **separat
 | Layer | Technology | Key Libraries |
 |---|---|---|
 | **Backend** | Java 25 | Spring Boot 4.1.0, Spring Security 6, Spring Data JPA, JJWT, Flyway |
-| **Frontend** | Angular 21 | RxJS, JWT-Decode, ngx-cookie-service |
+| **Frontend** | Angular 22 | RxJS, JWT-Decode, ngx-cookie-service |
 | **Database** | PostgreSQL 18 | Dockerized, Flyway-migrated |
 | **Infra** | Docker Compose | Multi-stage builds, isolated networks |
 

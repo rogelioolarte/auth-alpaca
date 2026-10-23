@@ -16,13 +16,10 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@ngx-env/builder:application",
+          "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "ngxEnv": {
-              "prefix": "NG_"
-            },
             "assets": [
               {
                 "glob": "**/*",
@@ -62,7 +59,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@ngx-env/builder:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "auth-alpaca-ui:build:production"
@@ -75,7 +72,7 @@
           "options": {}
         },
         "test": {
-          "builder": "@ngx-env/builder:unit-test",
+          "builder": "@angular/build:unit-test",
           "options": {}
         },
         "lint": {

@@ -104,4 +104,4 @@ The following table summarizes all environment variables required to run the ser
 #### Related Docs
 - [Backend Architecture](backend-architecture.md) — Spring Boot API, JWT token system, and database schema
 - [Testing Strategy](testing-strategy.md) — Unit, integration, and performance testing setup
-- [Frontend Architecture](frontend-architecture.md) — Angular 21 SPA, authentication integration, and routing guards
+- [Frontend Architecture](frontend-architecture.md) — Angular 22 SPA, authentication integration, and routing guards

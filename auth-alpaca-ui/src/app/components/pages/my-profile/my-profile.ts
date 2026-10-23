@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AuthenticationService } from '../../../auth/authentication-service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { Profile } from '@app/models/profile';
 import { MatButtonModule } from '@angular/material/button';
 import { ToastrService } from 'ngx-toastr';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 import { DestroyRef } from '@angular/core';
 
 @Component({
@@ -26,6 +29,7 @@ import { DestroyRef } from '@angular/core';
     MatButtonModule,
   ],
   templateUrl: `./my-profile.html`,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: `./my-profile.css`,
 })
 export class MyProfile implements OnInit {
@@ -35,8 +39,8 @@ export class MyProfile implements OnInit {
   private readonly toastService = inject(ToastrService);
   private destroyRef = inject(DestroyRef);
 
-  public loading = signal(true);
-  public saving = signal(false);
+  public readonly loading = signal(true);
+  public readonly saving = signal(false);
   public readonly profile = toSignal(this.authService.getUserInfo());
 
   profileForm: FormGroup = this.fb.group({

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -21,9 +21,10 @@ import { User } from '@app/models/user';
     MatIcon,
     MatButtonModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   templateUrl: './dashboard.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
@@ -32,9 +33,9 @@ export class Dashboard implements OnInit {
   private readonly router = inject(Router);
 
   public readonly userAuth = toSignal(this.authService.getUserInfo());
-  public user = signal<User | null>(null);
-  public loading = signal(true);
-  public error = signal<string | null>(null);
+  public readonly user = signal<User | null>(null);
+  public readonly loading = signal(true);
+  public readonly error = signal<string | null>(null);
 
   ngOnInit() {
     this.loadUser();
@@ -57,7 +58,7 @@ export class Dashboard implements OnInit {
         console.error('Error loading user:', err);
         this.error.set('Failed to load user data');
         this.loading.set(false);
-      }
+      },
     });
   }
 

@@ -1,4 +1,4 @@
-export interface Advertiser {
+export type Advertiser = {
   id: string;
   title: string;
   description: string;
@@ -13,7 +13,7 @@ export interface Advertiser {
   email: string;
 }
 
-export interface AdvertiserRequest {
+export type AdvertiserRequest = {
   id?: string;
   title: string;
   description: string;

@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { SessionService } from './session-service';
 import { environment } from '../../environments/environment';
 import { Page, Pageable } from '../models/pageable';
+import { Session } from '@app/models/session';
 
 describe('SessionService', () => {
   let service: SessionService;
@@ -11,7 +12,7 @@ describe('SessionService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [provideHttpClientTesting()],
     });
     service = TestBed.inject(SessionService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -28,9 +29,9 @@ describe('SessionService', () => {
   describe('getSessions', () => {
     it('should call the correct endpoint with pageable parameters', () => {
       const mockPageable: Pageable = { page: 0, size: 10 };
-      const mockResponse: Page<any> = { 
-        content: [], 
-        page: { size: 10, number: 0, totalElements: 0, totalPages: 0 } 
+      const mockResponse: Page<Session> = {
+        content: [],
+        page: { size: 10, number: 0, totalElements: 0, totalPages: 0 }
       };
 
       service.getSessions(mockPageable).subscribe(response => {

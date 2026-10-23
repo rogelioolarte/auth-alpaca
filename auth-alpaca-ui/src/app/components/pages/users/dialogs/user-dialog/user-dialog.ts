@@ -1,4 +1,4 @@
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { Component, inject, signal, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,9 +14,12 @@ import { UserRequest } from '@app/models/user';
 import { UserService } from '@app/api/user-service';
 import { AuthenticationService } from '@app/auth/authentication-service';
 import { ToastrService } from 'ngx-toastr';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 
-export interface UserDialogData {
+export type UserDialogData = {
   mode: 'create' | 'edit';
   user?: {
     id: string;
@@ -72,37 +75,36 @@ export interface UserDialogData {
             }
           </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Password</mat-label>
-              <input
-                matInput
-                formControlName="password"
-                [type]="hidePassword() ? 'password' : 'text'"
-                placeholder="Temporary password"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="hidePassword.set(!hidePassword())"
-                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
-                [attr.aria-pressed]="!hidePassword()"
-              >
-                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              @if (userForm.get('password')?.hasError('required')) {
-                <mat-error>Password is required</mat-error>
-              }
-              @if (userForm.get('password')?.hasError('minlength')) {
-                <mat-error>Password must be at least 8 characters</mat-error>
-              }
-              @if (userForm.get('password')?.hasError('serverError')) {
-                <mat-error>{{ userForm.get('password')?.getError('serverError') }}</mat-error>
-              }
-            </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              formControlName="password"
+              [type]="hidePassword() ? 'password' : 'text'"
+              placeholder="Temporary password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="hidePassword.set(!hidePassword())"
+              [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+              [attr.aria-pressed]="!hidePassword()"
+            >
+              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (userForm.get('password')?.hasError('required')) {
+              <mat-error>Password is required</mat-error>
+            }
+            @if (userForm.get('password')?.hasError('minlength')) {
+              <mat-error>Password must be at least 8 characters</mat-error>
+            }
+            @if (userForm.get('password')?.hasError('serverError')) {
+              <mat-error>{{ userForm.get('password')?.getError('serverError') }}</mat-error>
+            }
+          </mat-form-field>
 
-
-          @let currentRoles = data.user?.roles;
+          @let currentRoles = $safeNavigationMigration(data.user?.roles);
           @if (data.mode === 'edit' && currentRoles && currentRoles.length > 0) {
             <div class="current-roles">
               <span class="label">Current Roles:</span>
@@ -145,6 +147,7 @@ export interface UserDialogData {
       </form>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .dialog-container {
@@ -198,11 +201,11 @@ export interface UserDialogData {
 })
 export class UserDialog {
   userForm: FormGroup;
-  saving = signal(false);
+  readonly saving = signal(false);
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<UserDialog>);
   public data: UserDialogData = inject(MAT_DIALOG_DATA);
-  public hidePassword = signal(true);
+  public readonly hidePassword = signal(true);
   private userService = inject(UserService);
   private authService = inject(AuthenticationService);
   private toastr = inject(ToastrService);

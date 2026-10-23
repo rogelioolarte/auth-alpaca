@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../api/auth-service';
 import { AuthenticationService } from '../../../auth/authentication-service';
@@ -14,10 +14,12 @@ import { AuthProvider } from '../../../models/user';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { addCodeChallenge, GITHUB_AUTH_URL, GOOGLE_AUTH_URL } from '../../../models/constants';
-import { GoogleIcon } from '../../icons/google-icon/google-icon';
 import { CommonModule } from '@angular/common';
 import { PkceService } from '@app/auth/pkce-service';
-import { handleBackendFormErrors, setupServerErrorClearing } from '@app/shared/utils/form-error-handler.util';
+import {
+  handleBackendFormErrors,
+  setupServerErrorClearing,
+} from '@app/shared/utils/form-error-handler.util';
 import { DestroyRef } from '@angular/core';
 
 @Component({
@@ -31,10 +33,10 @@ import { DestroyRef } from '@angular/core';
     MatInput,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinner,
-    GoogleIcon,
+    MatProgressSpinner
   ],
   templateUrl: './login.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: `./login.css`,
 })
 export class Login implements OnInit {
@@ -50,8 +52,8 @@ export class Login implements OnInit {
 
   private authProvider = AuthProvider.provider;
   public loginForm!: FormGroup;
-  public submitting = signal(false);
-  public hidePassword = signal(true);
+  public readonly submitting = signal(false);
+  public readonly hidePassword = signal(true);
 
   ngOnInit() {
     this.loginForm = this.formBuilder.group({
@@ -78,12 +80,11 @@ export class Login implements OnInit {
           state: { from: this.router.routerState.snapshot.url },
         });
         this.submitting.set(false);
-
       },
       error: (err: HttpErrorResponse) => {
         handleBackendFormErrors(err, this.loginForm, this.toastService);
         this.submitting.set(false);
-      }
+      },
     });
   }
 
@@ -92,7 +93,7 @@ export class Login implements OnInit {
       this.toastService.warning('Reload the App.');
       return;
     }
-    const clientId = this.clientId() || "";
+    const clientId = this.clientId() || '';
     const codeChallenge = await this.pkceService.generateCodeChallenge();
     this.authProvider = provider;
     switch (provider) {

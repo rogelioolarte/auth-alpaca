@@ -1,4 +1,4 @@
-import { Component, inject, model } from '@angular/core';
+import { Component, inject, model, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -18,9 +18,10 @@ import { PlatformService } from '@app/services/platform-service';
     MatIconModule,
     MatMenuModule,
     MatButtonModule,
-    MatSidenavModule
+    MatSidenavModule,
   ],
   templateUrl: './navbar.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './navbar.css',
 })
 export class Navbar {
@@ -29,9 +30,9 @@ export class Navbar {
   private readonly platformService = inject(PlatformService);
   public readonly user = toSignal(this.authService.getUserInfo());
   public readonly isAdmin = toSignal(this.authService.isAdmin());
-  public sidenavOpened = model(true);
-  
-  public isInDashboard = toSignal(
+  public readonly sidenavOpened = model(true);
+
+  public readonly isInDashboard = toSignal(
     this.platformService.actualRoute().pipe(map((i) => i.includes('/dashboard'))),
   );
 
