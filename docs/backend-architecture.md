@@ -243,6 +243,6 @@ All authenticated requests must include the header: `Authorization: Bearer <acce
 [Back to README](../README.md) | [Full Documentation](../README.md#navigation-hub-docs-as-code)
 
 #### Related Docs
-- [Frontend Architecture](frontend-architecture.md) — Angular 21 SPA, authentication integration, and routing guards
+- [Frontend Architecture](frontend-architecture.md) — Angular 22 SPA, authentication integration, and routing guards
 - [Testing Strategy](testing-strategy.md) — Unit, integration, and performance testing setup
 - [Deployment](deployment.md) — Docker Compose topology and environment configuration

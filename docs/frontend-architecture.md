@@ -3,7 +3,7 @@
 > [README](../README.md) — **Frontend Architecture**
 
 ## On This Page
-- [Angular 21 Architecture](#angular-21-architecture)
+- [Angular 22 Architecture](#angular-21-architecture)
 - [Authentication Flow & HTTP Interceptor](#authentication-flow--http-interceptor)
 - [Routing Guards](#routing-guards)
 - [Session State & Token Storage](#session-state--token-storage)
@@ -11,13 +11,13 @@
 
 ---
 
-This document outlines the architecture, authentication integration, routing guards, and operations of the Angular 21 frontend application.
+This document outlines the architecture, authentication integration, routing guards, and operations of the Angular 22 frontend application.
 
 ---
 
-## Angular 21 Architecture
+## Angular 22 Architecture
 
-The frontend is a single-page application built on **Angular 21** using standalone components. It manages async states and data streams with RxJS observables.
+The frontend is a single-page application built on **Angular 22** using standalone components. It manages async states and data streams with RxJS observables.
 
 ### Key Directory Structure
 * **`src/app/auth/`**: Core authentication service, HTTP interceptors, routing guards, and redirection handlers.
