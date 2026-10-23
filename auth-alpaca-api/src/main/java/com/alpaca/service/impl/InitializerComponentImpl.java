@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Generated
 @Component
 @RequiredArgsConstructor
-public class InitializerServiceImpl implements ApplicationRunner {
+public class InitializerComponentImpl implements ApplicationRunner {
 
     private final DataService dataService;
     private final Environment environment;

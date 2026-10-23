@@ -15,7 +15,7 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
  * @see DefaultOAuth2UserService
  * @see IOAuth2Service
  */
-@Component
+@Service
 @AllArgsConstructor
 public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAuth2Service {
 
@@ -71,7 +71,7 @@ public class OAuth2ServiceImpl extends DefaultOAuth2UserService implements IOAut
         OAuth2UserInfo userInfo =
                 OAuth2UserInfoFactory.getOAuth2UserInfo(
                         request.getClientRegistration().getRegistrationId(), user.getAttributes());
-        if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
+        if (userInfo.getEmail().isBlank()) {
             throw new OAuth2AuthenticationProcessingException(
                     "The account does not have enough information");
         }
