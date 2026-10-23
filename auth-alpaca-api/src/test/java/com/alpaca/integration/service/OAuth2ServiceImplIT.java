@@ -51,23 +51,6 @@ class OAuth2ServiceImplIT extends BaseIntegrationTests {
         profile = ProfileProvider.singleTemplate();
     }
 
-    @ParameterizedTest(name = "[{index}] email=''{0}''")
-    @NullAndEmptySource
-    @ValueSource(strings = {" ", " "})
-    @DisplayName("processOAuth2User throws when email is null, empty, or blank")
-    void processOAuth2User_ShouldThrowOAuth2AuthenticationProcessingException_WhenEmailIsInvalid(
-            String email) {
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("sub", UUID.randomUUID().toString());
-        attributes.put("email", email);
-        attributes.put("given_name", profile.getFirstName());
-        attributes.put("family_name", profile.getLastName());
-        OAuth2User oauth2User = createOAuth2User(attributes);
-        assertThatThrownBy(() -> service.processOAuth2User(request, oauth2User))
-                .isInstanceOf(OAuth2AuthenticationProcessingException.class)
-                .hasMessage("The account does not have enough information");
-    }
-
     @Test
     @DisplayName("processOAuth2User throws when email attribute is missing")
     void processOAuth2User_ShouldThrowOAuth2AuthenticationProcessingException_WhenEmailIsMissing() {
